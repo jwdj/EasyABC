@@ -1,0 +1,388 @@
+1.3.5.P6
+self.svg_width, self.svg_height = float(self.svg.get('width')), \
+ValueError: invalid literal for float(): 8.50in
+causes easy_abc to fail displaying sheet music.
+Analysis: later version of abcm2ps contain
+
+Fix: in svgrenderer.py, included the patch for compatibility with
+later versions of abcm2ps. Thanks to Frederic Aupepin.
+
+            #later versions of abcm2ps adds in suffix after width or height
+            #self.svg_width, self.svg_height = float(self.svg.get('width')), \
+            #                                  float(self.svg.get('height'))        
+
+            if re.search('^\d+$', self.svg.get('width')):
+                self.svg_width = float(self.svg.get('width'))
+            else:
+                self.svg_width = float(self.svg.get('width')[:-2].strip())
+
+            if re.search('^\d+$', self.svg.get('height')):
+                self.svg_height = float(self.svg.get('height'))
+            else:
+                self.svg_height = float(self.svg.get('height')[:-2].strip())
+            #End of patch for width / height in inch
+
+
+A similar patch was inserted in easy_abc.py for OnPrintPage
+
+   m = re.search(r'width="(\d+[.]?\d*)(?:in"|")\s+height="(\d+[.]?\d*)(?:in"|")', svg)
+        if re.search('^\d+$', m.group(1)):
+            width = int(m.group(1))
+        else:
+            width = float(m.group(1))*72
+        if re.search('^\d+$', m.group(2)):
+            height = int(m.group(2))
+        else:
+            height = float(m.group(2))*72
+
+the *72 is to convert from inch to pixel.
+
+
+
+On Debian 7.0 Linux, the staff lines, bar lines and note stems
+appear too dim. The following patch in svgrenderer was created
+by Frederic Aupepin.
+
+    def set_stroke(self, dc, svg_stroke, line_width=1.0, linecap='butt', dasharray=None):
+        #Patch to avoid to have too dim lines for staff, bar, note stems
+        if line_width < 1:
+            line_width = 1.0
+        #End Patch
+   
+
+
+
+Clear cache fails in case the media player is not installed.
+This occurs in Linux, when the MIDI player is not setup correctly.
+Analysis: easy_abc attempts to stop a nonexistent media player.
+Fix: in   def OnClearCache(self, evt):
+ensure that the media player exists with the statement
+        if self.mc != None:
+
+
+1.3.5.P7
+New arguments added to function AbcToMidi to allow having different instrument for chord, bass and each voice
+This also impacts function OnExportMidi, On ExportAllMidi and PlayMidi to give the required arguments.
+
+
+abc_code is modified in a way that MIDI instruction are added just after a V:Id line to set instrument, volume and pan for that voice and also add instruction for gchord in case gchord are defined in that voice
+
+
+
+add in abc2midi a patch to write in the cache folder of EasyABC the abc file that is passed to abc2midi
+    #Write temporary abc_file (for debug purpose)
+    temp_abc_file =  os.path.abspath(os.path.join(cache_dir, 'temp_%s.abc' % hash))
+    f = open(temp_abc_file, 'wb')
+    f.write(abc_code)
+    f.close()
+
+
+
+Abcm2psSettingsFrame
+Add wx widgets to be able to set instrument for chord and bass and to open a new dialog for setting midi instruction per voice.
+
+
+MidiChannelInstrumentSettingsFrame
+New dialog to be able to define some MIDI instruction per voice
+
+
+Add management of events MEDIA_FINISHED and MEDIA_STOP to be able to have the first one and relaunch as soon as possible if playback is launched with looping (with a double click on the play button)
+            self.Bind(wx.media.EVT_MEDIA_FINISHED, self.OnMediaFinished)
+            self.Bind(wx.media.EVT_MEDIA_STOP, self.OnMediaStop)
+
+
+
+Remove the indication Experimental in the menu concerning MusicXML export
+
+
+1.3.5.P8
+Fixed an issue with the arrow keys used to move the cursor in the
+abc edit window. The highlighted note in the music panel now shifts
+with the cursor in the edit window.
+
+Fixed an issue with regard to playing a tune (converting to MIDI)
+which contains none ascii characters. The temp file is now saved
+in itu-8 encoding.
+
+The F7 button will stop the MIDI player.
+
+Introducing a new application abccore.py created by Seymour
+Shlien. It is still in development.
+
+Updated locale/it (thanks to Guido Gonzato).
+
+Small change to midi/EventDispatcher.py to prevent midi2abc.py from
+crashing on a particular MIDI file.
+
+
+
+1.3.5.P9
+
+Added options in abc settings menu to specify the path to
+ghostscript and ps2pdf converter. (There may be issues with
+run time parameters for ps2pdf.)
+
+I am introducing a new function check_settings() in easy_abc.py
+which looks and reports possible problems.
+
+I have updated the module xml2abc_interface.py to be compatible
+with the latest versions of abc2xml and xml2abc.
+
+The abc settings dialog box was converted into a tabbed book.
+The first page contains links to external executables.
+The next page contains abc2midi options for specifying
+musical instruments.
+
+In event the easyabc does not play MIDI files correctly,
+a link to an external MIDI player may be specified in the
+abc settings menu.
+
+The retrieving of MIDI files and pdf files from the
+cache area has been disabled to allow the program to
+run in a more repeatable manner. (Eventually the
+caching of MIDI and pdf files be eliminated.)
+
+Two new function available in the 'Internals' menu
+item (which is new), allow you to view the error messages
+and warnings returned by external programs like abc2midi
+and see the abc file that is input to the program.
+
+The PO9 version was developed on Debian Linux. When
+the program was tested on Windows 7, two new problems
+were exposed. 1) When an external MIDI player was
+selected using the Abc Settings, the MIDI player failed
+to find the created MIDI file. A message of the sort,
+MidiThread object has no attribute 'midiplayer_path'
+was returned. Explanation: abc2midi creates the midi
+file using a separate thread which runs in parallel with
+EasyAbc so as to not disrupt the user interface. Unfortunately,
+on Windows, EasyAbc starts to call the midiplayer before
+abc2midi is finished. The fix was to force EasyAbc to
+wait a half a second prior to calling the midiplayer.
+2) Using the built-in MIDI player on Windows 7, another
+problem was encountered. The first time a particular
+tune is played, there is no problem. However if we
+go back to this tune and try to play it again, nothing
+happens. Explanation, this problem was introduced
+when I disabled the cache. Abc2midi tries to write
+the MIDI file again, but the file was locked by the
+MIDI player despite the fact that the player had
+finished playing it a long time ago. (This is an
+issue with DirectShow or the wxpython MediaCtrl
+software.) In order to ensure that the MIDI file is
+not locked by the player, it was necessary to load
+a nonexistant MIDI file after the media player stops.
+
+
+1.3.6
+
+This is a major revision of the code. The goal of the
+changes were to add a few more features and to make
+the program more transparent and easier to maintain.
+
+ The internals menu item was added in order to allow the user
+to see how the program interacts with the external executables such 
+as abc2midi and abcm2ps.
+
+The abc settings menu was expanded to a tabbed book instead
+of a bunch of dialog box. This will leave lots of room for
+adding more features.
+
+The operation of the abc file settings has been changed.
+In the earlier version, the user would leave an entry blank
+in order to indicate that the program should use the default
+executables. Now the program shows the path to the executables
+when they are found in the easyabc/bin folder.
+
+Version 1.3.5 and earlier would cache all created midi,
+svg, postscript, pdf, abc files that it created to save
+some computation time. The file names were computed by
+a hashing function based on the contents of the abc tune
+and were meaningless to the user. If the user was not
+careful to purge the cached folder occasionally, it could
+grow indefinitely. The caching has been eliminated in
+version 1.3.6; all temporary files needed are called
+such as temp.abc, temp.midi, temp001.svg and etc. and
+are overwritten as the program runs.
+
+The calling sequence to AbcToMidi() was simplified. The
+self.settings dictionary is passed, and the function extracts
+all the necessary options from that dictionary.
+
+In a similar manner, the call sequence to AbcToSvg was
+also simplified. Now it will be easier to add more options
+rather than having to expand the calling sequence.
+
+The default loudness was increased from 64 to 96. From my
+experience some of the instruments sound to faint at a
+volume level of 64.
+
+The handling of channel settings was simplified. Now all
+16 channel settings are stored even if they are mostly the
+same.
+
+A new tool for searching a folder and all its sub-folders
+for tunes containing a certain word in the title was
+introduced. The titles of all the matching tunes are put
+in a list box. Clicking on one of the titles will cause
+easyabc to load the file containing the tune and scroll
+down to this tune.
+
+ After a lot of work, the new function is almost bug free.
+The function find_abc_string locates the character position
+of the tune of interest in the input file and stores this
+position in the python dictionary type called self.searchlocator
+and the path of the input file in self.searchpaths. The index
+of the dictionaries reflect the position of the tune title
+in the search listbox. When the user selects one of the tunes
+in the search listbox, the function OnItemSelected will load
+the editor with the corresponding file and editor will set
+the position to the location stored in searchlocator. If
+everything works correctly, the editor will automatically display
+the selected music and highlight the selected tune in the
+tune_list listbox.
+
+I had a lot of difficulty getting the editor to position
+itself to the correct tune. First there was the issue of
+special characters which occupied more than one byte. This
+was finally resolved by encoding the text in the file in
+the same manner that it is encoded in the editor. Secondly,
+Python converts all newline characters to one character
+even though it may be a CR/LF. This caused a problem on
+Windows but not on Linux. The eventual fix was to read the
+input abc file as a binary file in order to bypass this
+conversion.
+
+The popup error messages which may occur when an error is
+reported by abc2mps has been suppressed in the function
+OnMusicUpdateDone(). Instead errors and warnings are indicated
+in the status bar which located at the bottom of the interface.
+The nature of the warning or error can be determined by clicking
+the menu item 'Internals/command messages'. The status bar is also
+used to acknowledge the success of certain operations.
+
+The Abc Settings tabbed notebook is still growing.
+
+A progress dialog box appears when exporting an entire collection
+of tunes.
+
+
+
+1.3.6.1
+
+Version 1.3.6.0 would occasionally hang or fail to display the music
+score on some computers due to two threads both attempting to write
+on the screen at the same time. As discussed in easy_abc.txt, the
+main program starts up a separate thread called self.music_update_thread
+which runs in the background during the entire time that EasyAbc is
+running. In version 1.3.6.0, the music_update_thread could also
+update the screen by updating the statusbar and other frames which
+could be open. To avoid this problem, we have removed this function
+from the music_update_thread and use a separate method, called
+update_statusbar_and_messages which is now called from the main
+thread.
+
+All versions of EasyAbc stores its state in a settings file called
+settings1.3.dat. Even though the user removes and reinstalls EasyAbc,
+the settings1.3.dat file which is hidden away is untouched and
+can prevent the reinstalled version of EasyAbc from running correctly.
+A new option called 'Cold Restart' was added to the Settings menu.
+This function will remove the settings1.3.dat file and perform a
+normal shutdown of EasyAbc. When EasyAbc is restarted again, EasyAbc
+will behave as if it has started for the first time and create
+a new copy of settings1.3.dat with the initial 'factory settings'.
+
+The Abc Settings notebook has been changed significantly. The
+'File Settings' page has been moved to the back of the notebook since
+this page is normally not modified when EasyAbc is working properly.
+
+In the 'File Settings' page, the path to ps2pdf was removed since
+it does not appear to be needed. On the Mac, the ghostscript
+function will point to the path /usr/bin/ps2pdf which takes the
+place of ghostscript used in Windows and Linux. The box for additional
+run time parameters for abcm2ps has been moved to the abcm2ps page
+and is called 'Extra Parameters'. There is a new button called
+'Check settings' which can be used to restore some of the path names
+of the executables to their original factory state. This may be
+preferable to performing a cold restart when only one of the path
+names needs to be restored. In order that the program knows which
+path to restore, first completely erase its contents and then
+press Check settings.
+
+In the Abcm2ps page, there are two buttons 'Change abcm2ps path' and
+'Restore abcm2ps path' for the few users who wish to try out different
+versions of abcm2ps without having to go to the 'File Settings' page.
+If you click 'Change abcm2ps path' a browser will allow you to search
+for the abcm2ps executable you wish to use and select it. (The
+file settings page will be automatically updated.). The 'Restore abcm2ps
+path' will reset the path of abcm2ps to the bin folder which comes
+with EasyAbc. The abcm2ps page allows you to change the abcm2ps
+settings (which may or may not be useful). To access these page
+settings be sure that neither of the checkboxes 'No page settings'
+or 'EasyAbc defaults' are checked.
+
+
+1.3.6.2
+
+Except for a few minor corrections there have been no changes to the
+user interface; however, there have been major improvements to the
+performance of the rendering of the svg files including the support
+of the new voicecolor command in abcm2ps 8.5 and higher.  All of
+these improvements are credited to J.W. de Jong.
+
+New classes, BaseTune, and SvgTune were introduced.
+
+The operation of the MusicUpdateThread has been changed. The flag
+self.requests_exists is no longer used to activate the thread; instead
+tasks are queued in by the method ConvertAbcToSvg and are run in
+the method run as long as want_abort is not set.
+
+In the mainframe, a new attribute self.renderer which is set to SvgRenderer()
+was introduced and passed through the class object of MusicScorePanel.
+
+There have been major changes to svgrenderer.py and music_score_panel.py
+introduced by J.W. de Jong in order to make the graphics rendering
+more efficient. I have added additional documentation to svgrenderer.py.
+
+A new folder called not_used was created and python source code that
+is not linked with easy_abc.py was moved to this folder.
+
+A new folder called abcore was created and my experimental code
+abccore.py, abccore_setup.py and g2v were moved to this directory.
+
+
+1.3.6.3
+A new feature has been added. It's called ABC assist and it's purpose is to clarify the selected keyword or note
+and to apply commonly used actions to the selected item, like adding a accidental to a selected note.
+
+When the cursor moves outside the current page, the correct page is automatically chosen for single voiced tunes.
+The preprocessing of an abc file and generating midi/svg has been split up. This was needed for matching the final
+abc-code with the information from the svg-files.
+
+When multiple windows of EasyABC are opened they shared the same midi and svg files (last one wins)
+Unique filenames for midi and svg to prevent problems when multiple editor windows are used
+
+Volume-settings still work even when the abc code contains the directive %%MIDI program
+
+The music score can be zoomed in further so notes are large enough on larger then HD displays
+
+MIDI file starts a little faster after pressing play on Windows OS. The Windows Vista/7 version of
+wx.media.MediaCtrl (MEDIABACKEND_WMP10) contains a bug that the medialoaded event is never triggered.
+The existing code called the medialoaded event after a small delay to bypass this bug, but the delay was too short
+and the medialoaded event was called too early. The new workaround for the bug is to call Play before it is ready.
+That causes the medialoaded event to get triggered when playing is ready to commence like it should. Therefore any
+delays (time.sleep) are no longer necessary.
+
+The play button now acts as pause button while the tune is playing
+
+Several small fixes to the "Processed Abc Tune" window. A fixed font is now used, the text is no longer editable and
+resizing is fixed.
+
+More text is translatable now. This is done by using _() around strings, for example _("translateable text").
+The result of _() is a unicode string so transforming it with the function unicode() is not needed.
+
+'Check settings' has been renamed to 'Restore settings' for this is a more suitable name
+
+EasyABC-window was sometimes unreachable because the window position was -32000,-32000. Negative values now ignored.
+
+Fixed drawing problems with abcm2ps version 8.7.6
