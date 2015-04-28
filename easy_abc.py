@@ -19,7 +19,6 @@
 #
 #
 # New V1.3.6.3
-# ABC assist added. ABC assist gives information on the selected element.
 # When the cursor moves outside the current page, the correct page is automatically chosen
 # Unique filenames for midi and svg to prevent problems when multiple editor windows are used
 # Preprocessing abc file and generating midi/svg split up
@@ -29,6 +28,9 @@
 # Play button acts as pause button when tune is playing
 # Fixed "Processed Abc Tune": no longer editable and uses fixed font now. Also resizing fixed.
 # More text translatable
+# Easier switching between different versions of executables by using dropdown button in File Settings tab
+# Removed buttons 'Change abcm2ps path' and 'Restore abcm2ps path' because the default can be chosen in de File Settings tab
+# Sometimes opening the messages window showed the 'processed tune' window
 #
 #
 # New V1.3.6.2
@@ -187,10 +189,9 @@
 #class MyNoteBook()
 
 #class AbcFileSettingsFrame()
-#   OnBrowse(), OnBrowse_midiplayer(),OnPath_abcm2ps(), OnPath_abc2midi(),
-#   OnPath_abc2abc(), OnPath_gs(), OnPath_nwc2xml(), OnPath_ps2pdf(),
-#   OnPath_abcm2ps_format(), On_abcm2ps_extra_params(), On_Chk_IncludeHeader()
-#   OnPath_midiplayer(), OnCheckSettings()
+#   OnBrowse(), On_Chk_IncludeHeader()
+#   OnPath_midiplayer(), OnRestoreSettings()
+#   append_exe(), keep_existing_paths(), get_default_path()
 
 #class MyChordPlayPage()
 #   OnPlayChords(), OnNodynamics(), OnNofermatas(), OnNograce(), OnBarfly()
@@ -206,7 +207,7 @@
 #  OnPSScale(), OnPSleftmarg(), OnPSrightmarg(),
 #  OnPStopmarg(), OnPSbotmarg(), OnPSpagewidth(),
 #  OnPSpageheight(), OnFormat(), On_extra_params(),
-#  OnBrowse_format(), OnChangeAbcm2psPath(), OnDefaultAbcm2psPath()
+#  OnBrowse_format()
 
 #class MyXmlPage()
 #   OnXmlPage(), OnXmlCompressed(), OnXmlUnfold(), OnXmlMidi()
@@ -286,17 +287,17 @@
 #   UpdateTuneListVisibility(), OnTimer(), GetTunes(),
 #   GetTuneAbc(), InitEditor(), OnDropFile(), update_statusbar_and_messages()
 #   handle_midi_conversion(), OnReducedMargins(), load_settings(),
-#   save_settings(), check_settings()
+#   save_settings(), restore_settings()
 
 #class MyFileDropTarget()
 
 #class AboutFrame()
 
-#class MyInforFrame()
-#   ShowText()
+#class MyInfoFrame()
+#   ShowText(), update_text()
 
 #class MyAbcFrame()
-#   ShowText()
+#   ShowText(), update_text()
 
 #class MyApp()
 #   CheckCanDrawSharpFlat(), NewMainFrame(), UnRegisterFrame(),
@@ -312,12 +313,16 @@ utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
 import os, os.path
 import sys
+import wx
 if os.getenv('EASYABCDIR'):
     cwd = os.getenv('EASYABCDIR')
 else:
     cwd = os.getcwd()
     if os.path.isabs(sys.argv[0]):
         cwd = os.path.dirname(sys.argv[0])
+        # 1.3.6.3 [JWDJ] 2015-04-27 On Windows replace forward slashes with backslashes
+        if wx.Platform == "__WXMSW__":
+            cwd = cwd.replace('/', '\\')
 sys.path.append(cwd)
 
 import re
@@ -341,7 +346,6 @@ from UserString import MutableString
 from cStringIO import StringIO
 from wx.lib.scrolledpanel import ScrolledPanel
 from tune_elements import AbcStructure # 1.3.6.2 [JWDJ] 2015-3
-import wx
 import wx.html
 import wx.stc as stc
 import wx.lib.agw.aui as aui
@@ -537,6 +541,14 @@ doremi_suffixes = 'oeiaoaioOEIAOAIOlLhH'
 
 execmessages = ''
 visible_abc_code = ''
+
+# 1.3.6.3 [JWDJ] one function to determine font size
+def get_normal_fontsize(): 
+    if wx.Platform == "__WXMSW__":
+        font_size = 10
+    else:
+        font_size = 14
+    return font_size
 
 def read_text_if_file_exists(filepath):
     ''' reads the contents of the given file if it exists, otherwise returns the empty string '''
@@ -965,6 +977,9 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     abcm2ps_format_path =  settings.get('abcm2ps_format_path','')
     extra_params =         settings.get('abcm2ps_extra_params','')
 
+    if 'AbcToSvg' in execmessages:
+        execmessages = u'' # 1.3.6.3 clear message window if it contains a previous report
+
     #print traceback.extract_stack(None, 5)
 
     if target_file_name:
@@ -1021,7 +1036,7 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     #cmd1 = [arg.encode(fse) if isinstance(arg,unicode) else arg for arg in cmd1]
 
     # t = datetime.now() # 1.3.6.3 [JWDJ] 2015-04-21 not used anymore
-    execmessages = '\nAbcToSvg\n' + " ".join(cmd1)
+    execmessages += '\nAbcToSvg\n' + " ".join(cmd1)
     process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, universal_newlines=True, cwd=os.path.dirname(svg_file))
     stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
     execmessages += '\n' + stdout_value + stderr_value
@@ -1059,7 +1074,7 @@ def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):
     # determine parameters
     cmd1 = [abc2abc_path, '-', '-r', '-b', '-e'] + params
 
-    execmessages = '\nAbcToAbc\n' + " ".join(cmd1)
+    execmessages += '\nAbcToAbc\n' + " ".join(cmd1)
 
     process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
     stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
@@ -1111,7 +1126,7 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
     #1.3.6.1 [SS] 2015-01-28
     if wx.Platform == "__WXMSW__":
         creationflags = win32process.CREATE_NO_WINDOW
-    # p09 we already checked for gs_path in check_settings() 2014-10-14
+    # p09 we already checked for gs_path in restore_settings() 2014-10-14
     fontmap_dir = r'D:\MyFontmap'
     cmd2 = [gs_path, '-sDEVICE=pdfwrite', '-sOutputFile=%s' % pdf_file, '-dBATCH', '-dNOPAUSE', ps_file]
     # [SS] 2015-04-08
@@ -1121,7 +1136,7 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
         os.remove(pdf_file)
 
     # 1.3.6.1 [SS] 2015-01-13
-    execmessages = '\nAbcToPDF\n' + " ".join(cmd2)
+    execmessages += '\nAbcToPDF\n' + " ".join(cmd2)
     process = subprocess.Popen(cmd2, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags = creationflags)
     stdout_value, stderr_value = process.communicate()
     # 1.3.6.1 [SS] 2015-01-13
@@ -1134,7 +1149,8 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
 def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier, midi_file_name=None):
     global execmessages, visible_abc_code
 
-    execmessages = ''
+    if 'AbcToMidi' in execmessages:
+        execmessages = u'' # 1.3.6.3 clear message window if it contains a previous report
 
     abc_code = process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier)
     visible_abc_code = abc_code #p09 2014-10-22 [SS]
@@ -1145,14 +1161,10 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
         midi_file_name = os.path.abspath(os.path.join(cache_dir, 'temp%s.midi' % tune_id))
     midi_file = abc_to_midi(abc_code, settings, midi_file_name)
     # P09 2014-10-26 [SS]
-    win = wx.FindWindowByName('infoframe')
-    if win is not None:
-        win.ShowText(execmessages)
+    MyInfoFrame.update_text()
 
     # 1.3.6 2014-12-16 [SS]
-    win2 = wx.FindWindowByName('abctuneframe')
-    if win2 is not None:
-        win2.ShowText(visible_abc_code)
+    MyAbcFrame.update_text()
 
     # 1.3.6 [SS] 2014-12-08
     # time.sleep(0.2)
@@ -1183,7 +1195,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                           'midi_program_ch13', 'midi_program_ch14', 'midi_program_ch15', 'midi_program_ch16']
     default_midi_program_ch = []
     for channel in range(16):
-		default_midi_program_ch.append(settings.get(midi_program_ch_list[channel]))
+        default_midi_program_ch.append(settings.get(midi_program_ch_list[channel]))
 
     # add some extra lines to header (whether chords are on/off and what default midi program to use for each channel)
     global execmessages
@@ -1269,7 +1281,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             new_lines.append(lines[i])
             # do not take into account the definition present in the header (maybe it would be better... to be further analysed)
             if lines[i].startswith('K:'): header_finished=True
-            # 1.3.6.3 [JWDJ] 2015-04-21 
+            # 1.3.6.3 [JWDJ] 2015-04-21
             if (lines[i].startswith('V:') or lines[i].startswith('[V:')) and header_finished:
                 #extraction of the voice ID
                 voice_def=lines[i][2:].strip()
@@ -1370,11 +1382,11 @@ def add_abc2midi_options(cmd,settings):
 
 # 1.3.6 [SS] 2014-11-24
 def str2bool(v):
-	''' converts a string to a boolean if necessary'''
-	if type(v) == str:
-		return v.lower() in ('yes', 'true', 't' ,'1')
-	else:
-		return v
+    ''' converts a string to a boolean if necessary'''
+    if type(v) == str:
+        return v.lower() in ('yes', 'true', 't' ,'1')
+    else:
+        return v
 
 
 
@@ -1602,7 +1614,14 @@ class MusicUpdateThread(threading.Thread):
 def frac_mod(fractional_number, modulo):
     return fractional_number - modulo * int(fractional_number / modulo)
 
-
+def start_process_and_continue(cmd):
+    """ Starts a process and does not wait for it to finish
+    :param cmd: tuple containing executable and command line parameter
+    :return: nothing
+    """
+    DETACHED_PROCESS = 0x00000008
+    p = subprocess.Popen(cmd,shell=False,stdin=None,stdout=None,stderr=None,close_fds=True,creationflags=DETACHED_PROCESS)
+    return
 
 # p09 new class for playing midi files if self.mc is not working 2014-10-14
 # 1.3.6.3 [JWdJ] midithread extended so it works the same as the svg-thread
@@ -1613,7 +1632,6 @@ class MidiThread(threading.Thread):
         self.daemon = True
         self.queue = Queue(maxsize=0) # 1.3.6.3 [JWdJ]
         self.settings = settings
-        self.cache_dir = cache_dir
         self.__want_abort = False # 1.3.6.3 [JWdJ]
         self.start()
 
@@ -1627,7 +1645,10 @@ class MidiThread(threading.Thread):
             # separate thread anymore.
             #time.sleep(0.5) # give abc2midi a chance to complete 2014-10-26 [SS]
             c = [midiplayer_path,  midi_file]
-            output = subprocess.check_output(c)
+            try:
+                start_process_and_continue(c)
+            except Exception as e:
+                print e
 
     #p09 new function for playing midi files as a last resort 2014-10-14 [SS]
     def play_midi(self, midi_file):
@@ -1636,7 +1657,7 @@ class MidiThread(threading.Thread):
         midiplayer_path = self.settings['midiplayer_path']
         if midiplayer_path:
             execmessages += '\ncalling ' + midiplayer_path #1.3.6 [SS]
-            self.queue_task('play', (midiplayer_path, midi_file))
+            self.queue_task('play', midiplayer_path, midi_file)
 
     def clear_queue(self):
         while not self.queue.empty():
@@ -1933,10 +1954,7 @@ class NewTuneFrame(wx.Dialog):
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
         border = 4
         sizer = wx.GridBagSizer(5, 5)
-        if wx.Platform == "__WXMSW__":
-            font_size = 10
-        else:
-            font_size = 14
+        font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
 
         #fields = ['K: Key signature',
         #          'M: Metre',
@@ -1995,8 +2013,6 @@ class MyNoteBook(wx.Frame):
         p.SetSizer(sizer)
         sizer.Fit(self)
 
-
-
 # p09 formerly Abcm2psSettingsFrame. It was initially a wx.dialog.
 # Now it is a page in a wx.notebook. The panel has been expanded
 # to include setting the path to ghostscript, ps2pdf, and a
@@ -2009,47 +2025,27 @@ class AbcFileSettingsFrame(wx.Panel):
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
         border = 4
 
-        # common file browse control settings
+        PathEntry = namedtuple('PathEntry', 'name display_name tooltip add_default')
 
-        # 1.3.6 [SS] 2014-11-12
-        abcm2ps_toolTip = _('This executable is used to display the music')
-        abc2midi_toolTip = _('This executable is used to make the midi file')
-        abc2abc_toolTip = _('This executable is used to transpose the music')
-        gs_toolTip = _('This executable is used to create PDF files')
+        # 1.3.6.3 [JWDJ] 2015-04-27 replaced TextCtrl with ComboBox for easier switching of versions
+        self.needed_path_entries = [
+            PathEntry('abcm2ps', _('abcm2ps executable:'), _('This executable is used to display the music'), True),
+            PathEntry('abc2midi', _('abc2midi executable:'), _('This executable is used to make the midi file'), True),
+            PathEntry('abc2abc', _('abc2abc executable:'), _('This executable is used to transpose the music'), True),
+            PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False),
+            PathEntry('nwc2xml', _('nwc2xml executable:'), None, False),
+            PathEntry('midiplayer', _('midiplayer:'), None, False)
+        ]
+
         if wx.Platform == "__WXMSW__":
-            fb_fileMask = '*.*'
-            exe_fileMask = '*.exe'
+            self.exe_file_mask = '*.exe'
         else:
-            fb_fileMask = '*'
-            exe_fileMask = '*'
+            self.exe_file_mask = '*'
 
-        bid1, bid2, bid3, bid4, bid5, bid6, bid7, bid8 = (-1, -1, -1, -1, -1, -1, -1, -1)
-        self.path_abcm2ps = wx.TextCtrl(self)
-        browse1 = wx.Button(self, bid1, _('Browse...'))
-        self.path_abc2midi = wx.TextCtrl(self)
-        browse2 = wx.Button(self, bid2, _('Browse...'))
-        self.path_abc2abc = wx.TextCtrl(self)
-        browse3 = wx.Button(self, bid3, _('Browse...'))
-        #self.path_format = wx.TextCtrl(self)
-        #browse4 = wx.Button(self, bid4, _('Browse...'))
-        self.path_gs = wx.TextCtrl(self)
-        browse5 = wx.Button(self, bid5, _('Browse...'))
-        self.path_nwc2xml = wx.TextCtrl(self)
-        browse6 = wx.Button(self, bid6, _('Browse...'))
-        # [SS] 1.3.6.1 2015-01-28
-        #self.path_ps2pdf  = wx.TextCtrl(self)
-        #browse7 = wx.Button(self, bid7, _('Browse...'))
-        self.path_midiplayer = wx.TextCtrl(self)
-        browse8 = wx.Button(self,bid8, _('Browse...'))
-
-        self.checksettings = wx.Button(self, -1, _('Restore settings')) # 1.3.6.3 [JWDJ] 2015-04-25 renamed
+        self.restore_settings = wx.Button(self, -1, _('Restore settings')) # 1.3.6.3 [JWDJ] 2015-04-25 renamed
         check_toolTip = _('Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when blank')
-        self.checksettings.SetToolTip(wx.ToolTip(check_toolTip))
+        self.restore_settings.SetToolTip(wx.ToolTip(check_toolTip))
 
-        self.path_abcm2ps.SetToolTip(wx.ToolTip(abcm2ps_toolTip))
-        self.path_abc2midi.SetToolTip(wx.ToolTip(abc2midi_toolTip))
-        self.path_abc2abc.SetToolTip(wx.ToolTip(abc2abc_toolTip))
-        self.path_gs.SetToolTip(wx.ToolTip(gs_toolTip))
 
         sizer = rcs.RowColSizer()
         if wx.Platform == "__WXMAC__":
@@ -2057,34 +2053,36 @@ class AbcFileSettingsFrame(wx.Panel):
             r = 1
         else:
             r = 0
-        sizer.Add(wx.StaticText(self, -1, _('abcm2ps executable:')),  row=r+0, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('abc2midi executable:')), row=r+1, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('abc2abc executable:')),  row=r+2, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        # 1.3.6.1 [SS] 2015-01-28 format file input moved to abcm2ps page
-        #sizer.Add(wx.StaticText(self, -1, _('abcm2ps format file:')), row=r+3, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('ghostscript executable:')), row=r+3, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('nwc2xml executable:')),  row=r+4, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        # 1.3.6.1 [SS] 2015-01-28
-        #sizer.Add(wx.StaticText(self, -1, _('ps2pdf  executable:')),  row=r+5, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('midiplayer:')),  row=r+5, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.path_abcm2ps,  row=r+0, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(browse1, row=r+0, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.path_abc2midi, row=r+1, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(browse2, row=r+1, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.path_abc2abc,  row=r+2, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(browse3, row=r+2, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        # 1.3.6.1 [SS] 2015-01-28
-        #sizer.Add(self.path_format,   row=r+3, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        #sizer.Add(browse4, row=r+3, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.path_gs,  row=r+3, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(browse5, row=r+3, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.path_nwc2xml,  row=r+4, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(browse6, row=r+4, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        # 1.3.6.1 [SS] 2015-01-28
-        #sizer.Add(self.path_ps2pdf,  row=r+5, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        #sizer.Add(browse7, row=r+5, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.path_midiplayer,  row=r+5, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(browse8, row=r+5, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+
+        self.browsebutton_to_control = {}
+        self.control_to_name = {}
+        for entry in self.needed_path_entries:
+            setting_name = '%s_path' % entry.name
+            setting_name_choices = '%s_path_choices' % entry.name
+            path_choices = self.settings.get(setting_name_choices, '').split('|')
+            path_choices = self.keep_existing_paths(path_choices)
+            current_path = self.settings.get(setting_name, '')
+            path_choices = self.append_exe(current_path, path_choices)
+            if entry.add_default:
+                path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
+            control = wx.ComboBox(self, -1, choices=path_choices, style=wx.CB_DROPDOWN)
+
+            self.control_to_name[control] = entry.name
+            if entry.tooltip:
+                control.SetToolTip(wx.ToolTip(entry.tooltip))
+            control.SetValue(current_path)
+
+            browse_button = wx.Button(self, -1, _('Browse...'))
+            self.browsebutton_to_control[browse_button] = control
+            sizer.Add(wx.StaticText(self, -1, entry.display_name), row=r, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            sizer.Add(control, row=r, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+            sizer.Add(browse_button, row=r, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+
+            control.Bind(wx.EVT_TEXT, self.OnChangePath)
+            browse_button.Bind(wx.EVT_BUTTON, self.OnBrowse)
+
+            r += 1
+
         sizer.AddGrowableCol(1)
 
         if wx.Platform == "__WXMAC__":
@@ -2097,10 +2095,7 @@ class AbcFileSettingsFrame(wx.Panel):
         sizer = wx.GridBagSizer(5, 5)
         # 1.3.6.1 [SS] 2015-01-29
         #self.extra_params = ExpandoTextCtrl(self, size=(300, 22))
-        if wx.Platform == "__WXMSW__":
-            font_size = 10
-        else:
-            font_size = 14
+        font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
         # 1.3.6.1 [SS] 2015-01-29
         #font = wx.Font(font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New")
         #text = wx.StaticText(self, -1, 'abcm2ps abc_file.abc -O ps_file.ps')
@@ -2127,110 +2122,48 @@ class AbcFileSettingsFrame(wx.Panel):
         #self.sizer.Add(box1, flag=wx.ALL | wx.EXPAND, border=10)
         self.sizer.Add(self.chkIncludeHeader, flag=wx.ALL | wx.EXPAND, border=10)
         self.sizer.Add(btn_box,               flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
-        self.sizer.Add(self.checksettings,    flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
+        self.sizer.Add(self.restore_settings, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.Centre()
         self.sizer.Fit(self)
 
-        # 1.3.6.1 [SS] 2015-01-29
-        #self.extra_params.SetValue(self.settings.get('abcm2ps_extra_params', ''))
-        self.path_abcm2ps.SetValue(self.settings.get('abcm2ps_path', ''))
-        # 1.3.6.1 [SS] 2015-01-28
-        #self.path_format.SetValue(self.settings.get('abcm2ps_format_path', ''))
-        self.path_abc2midi.SetValue(self.settings.get('abc2midi_path', ''))
-        self.path_abc2abc.SetValue(self.settings.get('abc2abc_path', ''))
-        self.path_gs.SetValue(self.settings.get('gs_path', ''))
-        self.path_nwc2xml.SetValue(self.settings.get('nwc2xml_path', ''))
-        # 1.3.6.1 [SS] 2015-01-28
-        #self.path_ps2pdf.SetValue(self.settings.get('ps2pdf_path', ''))
-        self.path_midiplayer.SetValue(self.settings.get('midiplayer_path', ''))
         self.chkIncludeHeader.SetValue(self.settings.get('abc_include_file_header', True))
 
-        # Bindings
-        browse1.Bind(wx.EVT_BUTTON, lambda e: self.OnBrowse(e, self.path_abcm2ps,  exe_fileMask))
-        browse2.Bind(wx.EVT_BUTTON, lambda e: self.OnBrowse(e, self.path_abc2midi, exe_fileMask))
-        browse3.Bind(wx.EVT_BUTTON, lambda e: self.OnBrowse(e, self.path_abc2abc,  exe_fileMask))
-        #browse4.Bind(wx.EVT_BUTTON, lambda e: self.OnBrowse(e, self.path_format,   fb_fileMask))
-        browse5.Bind(wx.EVT_BUTTON, lambda e: self.OnBrowse(e, self.path_gs,  exe_fileMask))
-        browse6.Bind(wx.EVT_BUTTON, lambda e: self.OnBrowse(e, self.path_nwc2xml,  exe_fileMask))
         # 1.3.6.1 [SS] 2015-01-28
-        #browse7.Bind(wx.EVT_BUTTON, lambda e: self.OnBrowse(e, self.path_ps2pdf,  exe_fileMask))
+        self.chkIncludeHeader.Bind(wx.EVT_CHECKBOX, self.On_Chk_IncludeHeader, self.chkIncludeHeader)
+        self.restore_settings.Bind(wx.EVT_BUTTON, self.OnRestoreSettings, self.restore_settings)
 
-        self.path_abcm2ps.Bind(wx.EVT_TEXT,self.OnPath_abcm2ps,self.path_abcm2ps)
-        self.path_abc2midi.Bind(wx.EVT_TEXT,self.OnPath_abc2midi,self.path_abc2midi)
-        self.path_abc2abc.Bind(wx.EVT_TEXT,self.OnPath_abc2abc,self.path_abc2abc)
-        self.path_gs.Bind(wx.EVT_TEXT,self.OnPath_gs,self.path_gs)
-        self.path_nwc2xml.Bind(wx.EVT_TEXT,self.OnPath_nwc2xml,self.path_nwc2xml)
-        # 1.3.6.1 [SS] 2015-01-28
-        #self.path_ps2pdf.Bind(wx.EVT_TEXT,self.OnPath_ps2pdf,self.path_ps2pdf)
-        self.path_midiplayer.Bind(wx.EVT_TEXT,self.OnPath_midiplayer,self.path_midiplayer)
-        # 1.3.6.1 [SS] 2015-01-28
-        #self.path_format.Bind(wx.EVT_TEXT,self.OnPath_abcm2ps_format,self.path_format)
-        #self.extra_params.Bind(wx.EVT_TEXT,self.On_abcm2ps_extra_params,self.extra_params)
-        self.chkIncludeHeader.Bind(wx.EVT_CHECKBOX,self.On_Chk_IncludeHeader,self.chkIncludeHeader)
-        browse8.Bind(wx.EVT_BUTTON,self.OnBrowse_midiplayer,browse8)
-        self.checksettings.Bind(wx.EVT_BUTTON,self.OnCheckSettings,self.checksettings)
-
-
-
-    def OnBrowse(self, evt, text_control, wildcard):
+    def OnBrowse(self, evt):
+        control = self.browsebutton_to_control[evt.EventObject]
+        wildcard = self.exe_file_mask
+        default_dir = os.path.dirname(control.GetValue()) # 1.3.6.3 [JWDJ] uses current folder as default
         dlg = wx.FileDialog(
-                self, message=_("Choose a file"), defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
+                self, message=_("Choose a file"), defaultDir=default_dir, defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
-                text_control.SetValue(dlg.GetPath())
+                control.SetValue(dlg.GetPath())
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
-    #p08 2014-10-14
-    def OnBrowse_midiplayer(self,evt):
-        dlg = wx.FileDialog(
-                self, message=_("Find midi player"), defaultFile="",  style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                self.path_midiplayer.SetValue(dlg.GetPath())
-                app = wx.GetApp()
-                app.frame.update_play_button()
-        finally:
-            dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-
-
-    def OnPath_abcm2ps(self,event):
-        self.settings['abcm2ps_path'] = self.path_abcm2ps.GetValue()
-
-    def OnPath_abc2midi(self,event):
-        self.settings['abc2midi_path'] = self.path_abc2midi.GetValue()
-
-    def OnPath_abc2abc(self,event):
-        self.settings['abc2abc_path'] = self.path_abc2abc.GetValue()
-
-    def OnPath_gs(self,event):
-        self.settings['gs_path'] = self.path_gs.GetValue()
-
-    def OnPath_nwc2xml(self,event):
-        self.settings['nwc2xml_path'] = self.path_nwc2xml.GetValue()
-
-    # 1.3.6.1 [SS] 2015-01-28
-    #def OnPath_ps2pdf(self,event):
-        #self.settings['ps2pdf_path'] = self.path_ps2pdf.GetValue()
-
-    def OnPath_abcm2ps_format(self,event):
-        self.settings['abcm2ps_format_path'] = self.path_format.GetValue()
-
-    def On_abcm2ps_extra_params(self,event):
-        self.settings['abcm2ps_extra_params'] = self.extra_params.GetValue()
+    def OnChangePath(self, evt):
+        control = evt.EventObject
+        name = self.control_to_name[control]
+        setting_name = '%s_path' % name
+        setting_name_choices = '%s_path_choices' % name
+        path = control.GetValue()
+        self.settings[setting_name] = path
+        paths = self.append_exe(path, control.Items)
+        self.settings[setting_name_choices] = '|'.join(paths)
+        if setting_name == 'midiplayer_path':
+            app = wx.GetApp()
+            app.frame.update_play_button() # 1.3.6.3 [JWDJ] 2015-04-21 playbutton enabling centralized
 
     def On_Chk_IncludeHeader(self,event):
         self.settings['abc_include_file_header'] = self.chkIncludeHeader.GetValue()
 
-    def OnPath_midiplayer(self,event):
-        self.settings['midiplayer_path'] = self.path_midiplayer.GetValue()
-        app = wx.GetApp()
-        app.frame.update_play_button() # 1.3.6.3 [JWDJ] 2015-04-21 playbutton enabling centralized
-
-    def OnCheckSettings(self,event):
+    def OnRestoreSettings(self,event):
         # 1.3.6.1 [SS] 2015-02-03
         result = wx.MessageBox(_("This button will restore some of the paths to the executables (abcmp2s, abc2midi, etc.) to "
         "their defaults. In order that the program knows which paths to restore, you need to make those paths blank prior to continuing. "
@@ -2238,14 +2171,37 @@ class AbcFileSettingsFrame(wx.Panel):
         "If this was not done, click Cancel first and then try again."),
                                _("Proceed?"), wx.ICON_QUESTION | wx.OK | wx.CANCEL)
         if result == wx.OK:
+            for entry in self.needed_path_entries:
+                setting_name = '%s_choices' % entry.name
+                if setting_name in self.settings:
+                    del self.settings[setting_name] # 1.3.6.3 [JWDJ] clean up unwanted paths
+
             frame = app._frames[0]
-            frame.check_settings()
+            frame.restore_settings()
             frame.book.Show(False)
             frame.book.Destroy()
             frame.book = MyNoteBook(self.settings)
             frame.book.Show()
 
+    def append_exe(self, path, paths):
+        if path and not path in paths and os.path.isfile(path) and os.access(path, os.X_OK):
+            paths.append(path)
+        return paths
 
+    def keep_existing_paths(self, paths):
+        result = []
+        for path in paths:
+            if path and os.path.exists(path):
+                result.append(path)
+        return result
+
+    def get_default_path(self, executable):
+        if wx.Platform == "__WXMSW__":
+            return os.path.join(cwd, 'bin', '%s.exe' % executable)
+        elif wx.Platform == "__WXMAC__":
+            return os.path.join(cwd, 'bin', executable)
+        else:
+            return os.path.join(cwd, 'bin', executable)
 
 
 # p09 this was derived from the Abcm2psSettingsFrame. Now it is a separate page in the
@@ -2253,6 +2209,7 @@ class AbcFileSettingsFrame(wx.Panel):
 class MyChordPlayPage (wx.Panel):
     def __init__(self,parent,settings):
         wx.Panel.__init__(self,parent)
+        self.SetBackgroundColour(wx.Colour(245, 244, 235)) # 1.3.6.3 [JWDJ] 2014-04-28 same background for all tabs
         gridsizer   = wx.FlexGridSizer(20,4,2,2)
         #self.program = ''
         # midi_box to set default instrument for playback
@@ -2669,9 +2626,6 @@ class MyAbcm2psPage(wx.Panel):
         self.formatf = wx.TextCtrl(self,-1,size=(350,22))
         self.browsef = wx.Button(self,-1, _('Browse...'),size = (-1,22))
 
-        self.setabcm2pspath  = wx.Button(self,-1, _('Change abcm2ps path'))
-        self.defabcm2pspath  = wx.Button(self,-1, _('Restore abcm2ps path'))
-
         scalefact  = wx.StaticText(self,-1, "Scale Factor (eg. 0.8)")
         self.chkm2psclean = wx.CheckBox(self,-1,'')
         self.chkm2psdef   = wx.CheckBox(self,-1,'')
@@ -2741,9 +2695,6 @@ class MyAbcm2psPage(wx.Panel):
         # 1.3.6.1 [SS] 2015-01-29
         self.pagewidth.Bind(wx.EVT_TEXT,self.OnPSpagewidth,self.pagewidth)
         self.pageheight.Bind(wx.EVT_TEXT,self.OnPSpageheight,self.pageheight)
-        # 1.3.6.1 [SS] 2015-02-02
-        self.setabcm2pspath.Bind(wx.EVT_BUTTON,self.OnChangeAbcm2psPath,self.setabcm2pspath)
-        self.defabcm2pspath.Bind(wx.EVT_BUTTON,self.OnDefaultAbcm2psPath,self.defabcm2pspath)
 
         # 1.3.6 [SS] 2014-12-16
         # 1.3.6.3 [SS] 2015-03-15
@@ -2787,10 +2738,6 @@ class MyAbcm2psPage(wx.Panel):
 
         gridsizer2.Add(linends,0,0,0,0)
         gridsizer2.Add(self.chkm2psend,0,0,0,0)
-
-        gridsizer2.Add(self.setabcm2pspath,0,0,0,0)
-        gridsizer2.AddSpacer(5,10)
-        gridsizer2.Add(self.defabcm2pspath,0,0,0,0)
 
         # 1.3.6.1 [SS] 2015-01-08
         self.gridsizer3.Add(leftmarg,0,0,0,0)
@@ -2929,29 +2876,6 @@ class MyAbcm2psPage(wx.Panel):
                 self.formatf.SetValue(dlg.GetPath())
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-
-    # 1.3.6.1 [SS] 2015-02-02
-    def OnChangeAbcm2psPath(self,evt):
-        dlg = wx.FileDialog(
-                self, message=_("Choose abcm2ps executable"), defaultFile="", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                #self.parent.abcsettings.abcm2ps_path.SetValue(dlg.GetPath())
-                self.abcsettingspage.path_abcm2ps.SetValue(dlg.GetPath())
-                self.settings['abcm2ps_path'] = dlg.GetPath()
-        finally:
-            dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-
-    # 1.3.6.1 [SS] 2015-02-02
-    def OnDefaultAbcm2psPath(self,evt):
-        if wx.Platform == "__WXMSW__":
-            abcm2ps_path = os.path.join(cwd, 'bin', 'abcm2ps.exe')
-        elif wx.Platform == "__WXMAC__":
-            abcm2ps_path = os.path.join(cwd, 'bin', 'abcm2ps')
-        else:
-            abcm2ps_path = os.path.join(cwd, 'bin', 'abcm2ps')
-        self.settings['abcm2ps_path'] = abcm2ps_path
-        self.abcsettingspage.path_abcm2ps.SetValue(abcm2ps_path)
 
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
@@ -3193,10 +3117,7 @@ class ErrorFrame(wx.Dialog):
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        if wx.Platform == "__WXMSW__":
-            font_size = 10
-        else:
-            font_size = 14
+        font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
         font = wx.Font(font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New")
         self.error = wx.TextCtrl(self, -1, error_msg, size=(700, 300), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER|wx.HSCROLL)
         self.error.SetFont(font)
@@ -3337,8 +3258,8 @@ class MySearchFrame(wx.Frame):
         dlg = wx.DirDialog(self,"Open","Choose a folder",wx.OPEN)
         try:
             if dlg.ShowModal() == wx.ID_OK:
-				self.settings['searchfolder'] = dlg.GetPath()
-				self.searchfoldtxt.SetValue(self.settings['searchfolder'])
+                self.settings['searchfolder'] = dlg.GetPath()
+                self.searchfoldtxt.SetValue(self.settings['searchfolder'])
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
@@ -3559,10 +3480,7 @@ class MainFrame(wx.Frame):
         self.music_pane.SetBackgroundColour((255, 255, 255))
         self.music_pane.OnNoteSelectionChangedDesc = self.OnNoteSelectionChangedDesc
 
-        if wx.Platform == "__WXMSW__":
-            error_font_size = 10
-        else:
-            error_font_size = 14
+        error_font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
         self.error_msg = wx.TextCtrl(self, -1, '', size=(200, 100), style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER | wx.TE_READONLY | wx.TE_DONTWRAP)
         self.error_msg.SetFont(wx.Font(error_font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New"))
         self.error_pane = aui.AuiPaneInfo().Name("error message").Caption(_("ABC errors")).CloseButton(False).BestSize((160, 80)).Bottom()
@@ -3631,7 +3549,7 @@ class MainFrame(wx.Frame):
         #self.music_pane.Bind(wx.EVT_KEY_DOWN, self.OnMusicPaneKeyDown)
 
         self.load_settings(load_window_size_pos=True)
-        self.check_settings()
+        self.restore_settings()
 
         # 1.3.6.3 [JWdJ] show abc-assist
         self.manager.DetachPane(self.abc_assist_panel)
@@ -3640,7 +3558,7 @@ class MainFrame(wx.Frame):
 
         # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
         self.update_play_button() # 1.3.6.3 [JWdJ] 2015-04-21 centralized playbutton enabling
- 
+
         #1.3.6 [SS] 2014-12-07 (self.statusbar)
         #1.3.6.2 [SS] 2015-03-03 self.statusbar removed
         self.music_update_thread = MusicUpdateThread(self, self.settings, self.cache_dir)
@@ -3818,8 +3736,8 @@ class MainFrame(wx.Frame):
 
         # 1.3.6 [SS] 2014-12-17
         lines = re.split('\r\n|\r|\n', process_abc_code(self.settings,tune.abc,
-				tune.header,
-				minimal_processing=not self.settings.get('reduced_margins', True)))
+                tune.header,
+                minimal_processing=not self.settings.get('reduced_margins', True)))
         num_header_lines = 0
         first_note_line_index = 0
         for i, line in enumerate(lines):
@@ -3997,7 +3915,7 @@ class MainFrame(wx.Frame):
         hang up this program
         '''
         if self.play_music_thread is None:
-            self.play_music_thread = MidiThread(mc, self.settings, self.cache_dir)
+            self.play_music_thread = MidiThread(self.settings)
         self.play_music_thread.play_midi(midifile)
 
     def do_load_media_file(self, path):
@@ -4210,8 +4128,8 @@ class MainFrame(wx.Frame):
         self.cur_page_combo.Show(False)
 
         self.manager.AddPane(self.toolbar, aui.AuiPaneInfo().
-							Name("tb2").Caption("Toolbar2").
-							ToolbarPane().Top().Floatable(True).Dockable(False))
+                            Name("tb2").Caption("Toolbar2").
+                            ToolbarPane().Top().Floatable(True).Dockable(False))
 
     def OnViewRythm(self, evt):
         pass
@@ -4652,15 +4570,8 @@ class MainFrame(wx.Frame):
             # 1.3.6 2014-11-12 2014-12-10 [SS]
             self.statusbar.SetStatusText('XML file was created.')
             print 'execmessages = ',execmessages
-            win = wx.FindWindowByName('infoframe')
-            if win is not None:
-                win.ShowText(execmessages)
-            win2 = wx.FindWindowByName('abctuneframe')
-            if win2 is not None:
-                win2.basicText.ClearAll()
-                win2.ShowText(visible_abc_code)
-
-
+            MyInfoFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
+            MyAbcFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
 
     def OnExportAllMusicXML(self, evt):
         dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
@@ -4714,9 +4625,7 @@ class MainFrame(wx.Frame):
             self.statusbar.SetStatusText('XML files were created.')
             progdialog.Destroy()
             # 1.3.6 [SS] 2014-12-10
-            win = wx.FindWindowByName('infoframe')
-            if win is not None:
-                win.ShowText(execmessages)
+            MyInfoFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
 
 
     def OnExportHTML(self, evt):
@@ -5582,15 +5491,15 @@ class MainFrame(wx.Frame):
     def OnShowAbcTune(self,evt):
         win = wx.FindWindowByName('abctuneframe')
         if win is None:
-            self.msg = MyAbcFrame()
-            self.msg.ShowText(visible_abc_code)
-            self.msg.Show()
+            # 1.3.6.3 [JWDJ] 2015-04-27 instance of MyInfoFrame was overwritten by mistake
+            self.tune_frame = MyAbcFrame()
+            self.tune_frame.ShowText(visible_abc_code)
+            self.tune_frame.Show()
         else:
             win.ShowText(visible_abc_code)
             # 1.3.6.1 [SS] 2015-02-01
             win.Iconize(False)
             win.Raise()
-
 
     # 1.3.6 [SS] 2014-12-10
     def OnShowSettings(self,evt):
@@ -5898,26 +5807,18 @@ class MainFrame(wx.Frame):
             if first_note_editor is not None:
                 current_body_row = current_row - tune_first_line_no - first_note_editor
                 if current_body_row >= 0:
-                    new_page_index = page.index
-                    first_note_svg = self.current_svg_tune.first_note_line_index
-                    last_page_index = self.current_svg_tune.page_count - 1
-                    page_found = False
-                    while not page_found and len(page.notes) > 0:
-                        first_note_on_page = page.notes[0]
-                        last_note_on_page = page.notes[-1]
-                        first_row_on_page = first_note_on_page[2] - first_note_svg - 1
-                        last_row_on_page = last_note_on_page[2] - first_note_svg - 1
-                        if current_body_row < first_row_on_page and page.index > 0:
-                            new_page_index -= 1
-                        elif current_body_row > last_row_on_page and page.index < last_page_index:
-                            new_page_index += 1
-                        else:
-                            page_found = True
+                    # create a list of pages but start with the current page because it has the most chance
+                    page_indices = [self.current_page_index] + \
+                                   [p for p in range(self.current_svg_tune.page_count) if p != self.current_page_index]
+                    current_svg_row = current_body_row + self.current_svg_tune.first_note_line_index + 1 # row in svg-file is 1-based
+                    new_page_index = None
+                    for page_index in page_indices:
+                        page = self.current_svg_tune.render_page(page_index, self.renderer)
+                        if current_svg_row in page.notes_in_row:
+                            new_page_index = page_index
+                            break
 
-                        if not page_found:
-                            page = self.current_svg_tune.render_page(new_page_index, self.renderer)
-
-                    if new_page_index != self.current_page_index:
+                    if new_page_index is not None and new_page_index != self.current_page_index:
                         self.current_page_index = new_page_index
                         self.UpdateMusicPane()
 
@@ -6067,7 +5968,7 @@ class MainFrame(wx.Frame):
             self.editor.EndUndoAction()
 
         elif (c in ']}' and self.editor.GetTextRange(p1, p1+1) == c and is_default_style) or \
-				(c == '"'  and self.editor.GetTextRange(p1, p1+1) == c and self.editor.GetTextRange(p1-1, p1) != '\\'):
+                (c == '"'  and self.editor.GetTextRange(p1, p1+1) == c and self.editor.GetTextRange(p1-1, p1) != '\\'):
             (text,pos) = self.editor.GetCurLine()
             # unless this is not a field line
             if re.match('[a-zA-Z]:', text):
@@ -6112,7 +6013,7 @@ class MainFrame(wx.Frame):
             elif is_default_style and (self.mni_TA_active.IsChecked() and self.mni_TA_add_right.IsChecked()):
                 line, _ = self.editor.GetCurLine()
                 if c == '"' and line.count('"') % 2 == 1 or \
-						c != '"' and line.count(end) > line.count(start):
+                        c != '"' and line.count(end) > line.count(start):
                     evt.Skip()
                 else:
                     self.editor.ReplaceSelection(start + end)
@@ -6359,7 +6260,7 @@ class MainFrame(wx.Frame):
                 duration = get_bar_length(text, default_len)
 
             if (duration >= metre and not bar_sep.match(rest_of_line) and
-					not (text.rstrip() and text.rstrip()[-1] in '[]:|')):
+                    not (text.rstrip() and text.rstrip()[-1] in '[]:|')):
                 self.insert_bar()
                 return True
 
@@ -7020,14 +6921,11 @@ class MainFrame(wx.Frame):
     def update_statusbar_and_messages(self):
         # P09 2014-10-26 [SS]
         global execmessages, visible_abc_code
-        win = wx.FindWindowByName('infoframe')
-        if win is not None:
-            win.ShowText(execmessages)
+        MyInfoFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
 
         # 1.3.6 2014-12-16 [SS]
-        win2 = wx.FindWindowByName('abctuneframe')
-        if win2 is not None:
-            win2.ShowText(visible_abc_code)
+        MyAbcFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
+
 
         # 1.3.6.3 2015-03-15 [SS]
         if execmessages.find('Error') != -1 or execmessages.find('error') != -1:
@@ -7185,7 +7083,7 @@ class MainFrame(wx.Frame):
     # p09 This is a new function which verifies that the critical abcmidi
     # support functions are available. It also attempts to find the paths
     # to ghostscript if it is installed.  2014-10-14 [SS]
-    def check_settings(self):
+    def restore_settings(self):
         settings = self.settings
         abcm2ps_path = settings.get('abcm2ps_path')
 
@@ -7478,8 +7376,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 #p09 2014-10-22
 
 class MyInfoFrame(wx.Frame):
-    ''' Creates the TextCtrl for displaying any messages from abc2midi or
-    abcm2ps. '''
+    ''' Creates the TextCtrl for displaying any messages from abc2midi or abcm2ps. '''
     def __init__(self):
         # 1.3.6.1 [JWdJ] 2014-01-30 Resizing message window fixed
         wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Messages"),style=wx.DEFAULT_FRAME_STYLE,name='infoframe',size=(600,240))
@@ -7494,6 +7391,14 @@ class MyInfoFrame(wx.Frame):
     def ShowText(self,text):
         self.basicText.Clear()
         self.basicText.AppendText(text)
+
+    # 1.3.6.3 [JWDJ] 2015-04-27
+    @staticmethod
+    def update_text():
+        global execmessages
+        win = wx.FindWindowByName('infoframe')
+        if win is not None:
+            win.ShowText(execmessages)
 
 
 class MyAbcFrame(wx.Frame):
@@ -7521,6 +7426,14 @@ class MyAbcFrame(wx.Frame):
         self.basicText.SetEditable(True)
         self.basicText.AppendText(text)
         self.basicText.SetEditable(False) # 1.3.6.3 [JWdJ] 2015-04-22 abc code not editable
+
+    # 1.3.6.3 [JWDJ] 2015-04-27
+    @staticmethod
+    def update_text():
+        global visible_abc_code
+        win = wx.FindWindowByName('abctuneframe')
+        if win is not None:
+            win.ShowText(visible_abc_code)
 
 
 class MyApp(wx.App):

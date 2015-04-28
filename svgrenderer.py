@@ -23,7 +23,7 @@
 
 import xml.etree.ElementTree
 import xml.etree.cElementTree as ET
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
 import re
 import wx
 import math
@@ -81,6 +81,8 @@ class SvgElement(object):
 # etc. The <g>'s group graphical objects which share the same fill, colour and other
 # options. These groups and defs are accessed through the <use> tag in the svg file.
 
+NoteData = namedtuple('NoteData', 'note_type row col x y width height')
+
 class SvgPage(object):
     def __init__(self, renderer, svg):
         self.renderer = renderer
@@ -89,6 +91,7 @@ class SvgPage(object):
         self.id_to_element = {}
         self.base_color = 'black'
         self.notes = []
+        self.notes_in_row = None
         self.selected_indices = set()
         self.scale = 0.75
         self.index = -1
@@ -105,6 +108,7 @@ class SvgPage(object):
             self.process_xml_tree()
             self.id_to_element = {}
             self.class_attributes = {}
+            self.notes_in_row = {} # 1.3.6.3 [JWDJ] contains for each row of abctext note information
             children = [c for c in self.parse_elements(self.svg, {}) if c.name not in ['defs','style']]
             self.root_group = SvgElement('g', {}, children)
 
@@ -150,6 +154,17 @@ class SvgPage(object):
                 svg_element = SvgElement(name, attributes, children)
                 #if name == 'path':
                 #    svg_element.path = self.parse_path(element.attrib['d'])
+                if name == 'abc':
+                    note_type = element.get('type')
+                    row, col = int(element.get('row')), int(element.get('col'))
+                    x, y, width, height = [float(element.get(x)) for x in ('x', 'y', 'width', 'height')]
+                    note_data = NoteData(note_type, row, col, x, y, width, height)
+                    notes_in_row = self.notes_in_row.get(row, None)
+                    if notes_in_row is None:
+                        self.notes_in_row[row] = [note_data]
+                    else:
+                        notes_in_row.append(note_data)
+
                 if name == 'text':
                     text = u''
                     # 1.3.6.3 [JWDJ] 2015-3 fixes !sfz! (z in sfz was missing)

@@ -352,10 +352,7 @@ abccore.py, abccore_setup.py and g2v were moved to this directory.
 
 
 1.3.6.3
-A new feature has been added. It's called ABC assist and it's purpose is to clarify the selected keyword or note
-and to apply commonly used actions to the selected item, like adding a accidental to a selected note.
-
-When the cursor moves outside the current page, the correct page is automatically chosen for single voiced tunes.
+When the caret in the editor moves outside the current page, the correct page is automatically chosen.
 The preprocessing of an abc file and generating midi/svg has been split up. This was needed for matching the final
 abc-code with the information from the svg-files.
 
@@ -386,3 +383,15 @@ The result of _() is a unicode string so transforming it with the function unico
 EasyABC-window was sometimes unreachable because the window position was -32000,-32000. Negative values now ignored.
 
 Fixed drawing problems with abcm2ps version 8.7.6
+
+The File Settings tab in ABC Settings has comboboxes now for easier switching between different versions. If a path in
+the dropdown combobox does not exist anymore it is removed. Also when you press 'Restore settings' the dropdowns are
+cleared. The combobox contains the default path for abcm2ps, abc2midi and abc2abc so the buttons 'Change abcm2ps path'
+and 'Restore abcm2ps path' have been removed.
+
+The messages window is cleared when it contains old information. This prevents users from looking at errors that they
+already have solved.
+
+The Abc2midi tab in the settings now has the same background color as the other tabs
+
+Sometimes opening the messages window showed the 'processed tune' window
