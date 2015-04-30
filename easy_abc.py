@@ -454,6 +454,21 @@ class AbcTune(object):
             self.__tune_id = self.generate_tune_id(self.abc_code)
         return self.__tune_id
 
+    @staticmethod
+    def generate_temp_file_name(path, ending, replace_ending=None):
+        i = 0
+        file_exists = True
+        while file_exists:
+            file_name = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, ending)))
+            file_exists = os.path.exists(file_name)
+            if not file_exists and replace_ending is not None:
+                f = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, replace_ending)))
+                file_exists = os.path.exists(f)
+            i += 1
+
+        return file_name
+
+
 # 1.3.6.3 [JWdJ] 2015-04-22
 class MidiTune(AbcTune):
     """ Container for abc2midi-generated .midi files """
@@ -1159,6 +1174,7 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
 
     if midi_file_name is None:
         midi_file_name = os.path.abspath(os.path.join(cache_dir, 'temp%s.midi' % tune_id))
+        # midi_file_name = AbcTune.generate_temp_file_name(cache_dir, '.midi')
     midi_file = abc_to_midi(abc_code, settings, midi_file_name)
     # P09 2014-10-26 [SS]
     MyInfoFrame.update_text()
@@ -1582,6 +1598,7 @@ class MusicUpdateThread(threading.Thread):
                     abc_code = process_abc_code(self.settings, abc_code, abc_header, minimal_processing=not self.settings.get('reduced_margins', True))
                     tune_id = AbcTune.generate_tune_id(abc_code)
                     file_name = os.path.abspath(os.path.join(self.cache_dir, 'temp-%s-.svg' % tune_id))
+                    # file_name = AbcTune.generate_temp_file_name(self.cache_dir, '-.svg', replace_ending='-001.svg')
                     svg_files, error = abc_to_svg(abc_code, self.cache_dir, self.settings, target_file_name=file_name)
             except Abcm2psException as e:
                 # if abcm2ps crashes, then wait at least 10 seconds until next invocation
