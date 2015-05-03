@@ -395,3 +395,21 @@ already have solved.
 The Abc2midi tab in the settings now has the same background color as the other tabs
 
 Sometimes opening the messages window showed the 'processed tune' window
+
+AbcToMidi adds %%MIDI messages in order to apply the user's preferences of the melody and accompaniment instruments
+given in the ABC Settings/abc2midi page; however, if the selected tune already contains these %%MIDI messages,
+it will suppress some of these additions. (See the code process_abc_for_midi.) This avoids cluttering the
+processed abc tune when you click on Internals/Input Processed tune.
+
+The ABC Settings/File Settings now uses a combobox to store the path
+names to the various third party executables. In event that you
+have several versions of the executables, it is now easier to
+switch between them.
+
+The ABC Settings/Abc2midi page has an added entry box, Extra Midi
+Player Parameters. If you are using an external midi player,
+such as, timidity, you can now pass additional run time arguments
+to the program.
+
+
+

@@ -155,7 +155,7 @@
 #   sort_abc_tunes(), process_abc_code(), AbcToPS, GetSvgFileList(),
 #   AbcToSvg(), AbcToAbc(), set_gs_path_for_platform(), AbcToPDF(), AbcToMidi(),
 #   add_abc2midi_options(), str2bool(), fix_boxmarks(), change_texts_into_chords()
-#   NWCToXml(), play_midi(), frac_mod()
+#   NWCToXml(), frac_mod()
 
 #class AbcTune()
 #    abc_code()
@@ -175,7 +175,8 @@
 #   run(), ConvertAbcToSvg(), abort()
 
 #class MidiThread()
-#   run()
+#   run(), play_midi, clear_queue, queue_task
+#   abort
 
 #class RecordThread()
 #   timedelta_microseconds(), beat_duration(), run(), quantize_swinged_16th(),
@@ -988,9 +989,13 @@ def AbcToSvg(abc_code, header, cache_dir, settings,  target_file_name=None, with
 def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annotations=True, one_file_per_page=True):
     """ converts from abc to postscript. Returns (svg_files, error_message) tuple, where svg_files is an empty list if the creation was not successful """
     global execmessages
+    # 1.3.6.3 [SS] 2015-05-01
+    global visible_abc_code
     abcm2ps_path =         settings.get('abcm2ps_path','')
     abcm2ps_format_path =  settings.get('abcm2ps_format_path','')
     extra_params =         settings.get('abcm2ps_extra_params','')
+    # 1.3.6.3 [SS] 2015-05-01
+    visible_abc_code = abc_code
 
     if 'AbcToSvg' in execmessages:
         execmessages = u'' # 1.3.6.3 clear message window if it contains a previous report
@@ -1636,8 +1641,12 @@ def start_process_and_continue(cmd):
     :param cmd: tuple containing executable and command line parameter
     :return: nothing
     """
-    DETACHED_PROCESS = 0x00000008
-    p = subprocess.Popen(cmd,shell=False,stdin=None,stdout=None,stderr=None,close_fds=True,creationflags=DETACHED_PROCESS)
+    # 1.3.6.3 [SS] 2015-05-01
+    if wx.Platform == "__WXMSW__":
+        creationflags = win32process.DETACHED_PROCESS
+    else:
+        creationflags = 0
+    p = subprocess.Popen(cmd,shell=False,stdin=None,stdout=None,stderr=None,close_fds=True,creationflags=creationflags)
     return
 
 # p09 new class for playing midi files if self.mc is not working 2014-10-14
@@ -1657,11 +1666,13 @@ class MidiThread(threading.Thread):
             command, params = self.queue.get()
             midiplayer_path = params[0]
             midi_file = params[1]
+            midiplayer_parameters = params[2].split()
             self.queue.task_done()
             # 1.3.6.2 [SS] sleep no longer needed. abcToMidi not run as a
             # separate thread anymore.
             #time.sleep(0.5) # give abc2midi a chance to complete 2014-10-26 [SS]
-            c = [midiplayer_path,  midi_file]
+            # 1.3.6.3 [SS] 2015-04-29
+            c = [midiplayer_path,  midi_file, midiplayer_parameters]
             try:
                 start_process_and_continue(c)
             except Exception as e:
@@ -1672,9 +1683,11 @@ class MidiThread(threading.Thread):
         global execmessages
         # p09 an option in case you have trouble playing midi files.
         midiplayer_path = self.settings['midiplayer_path']
+        # [SS] 2015-04-29
+        midiplayer_params = self.settings['midiplayer_parameters']
         if midiplayer_path:
             execmessages += '\ncalling ' + midiplayer_path #1.3.6 [SS]
-            self.queue_task('play', midiplayer_path, midi_file)
+            self.queue_task('play', midiplayer_path, midi_file, midiplayer_params)
 
     def clear_queue(self):
         while not self.queue.empty():
@@ -2063,6 +2076,9 @@ class AbcFileSettingsFrame(wx.Panel):
         check_toolTip = _('Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when blank')
         self.restore_settings.SetToolTip(wx.ToolTip(check_toolTip))
 
+        # 1.3.6.3 [SS] 2015-04-29
+        extraplayerparam = wx.StaticText(self,-1,"Extra Midi Player Parameters")
+        self.extras = wx.TextCtrl(self,-1,size=(200,22))
 
         sizer = rcs.RowColSizer()
         if wx.Platform == "__WXMAC__":
@@ -2108,29 +2124,17 @@ class AbcFileSettingsFrame(wx.Panel):
             box2 = wx.StaticBoxSizer(wx.StaticBox(self, -1, _("File paths to required executables")), wx.VERTICAL)
             box2.Add(sizer, flag=wx.ALL | wx.EXPAND)
 
-        # abcm2ps command line:
         sizer = wx.GridBagSizer(5, 5)
-        # 1.3.6.1 [SS] 2015-01-29
-        #self.extra_params = ExpandoTextCtrl(self, size=(300, 22))
         font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
-        # 1.3.6.1 [SS] 2015-01-29
-        #font = wx.Font(font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New")
-        #text = wx.StaticText(self, -1, 'abcm2ps abc_file.abc -O ps_file.ps')
-        #text.SetFont(font)
-        # 1.3.6.1 [SS] 2015-01-29
-        #self.extra_params.SetFont(font)
-        #self.extra_params.Bind(EVT_ETC_LAYOUT_NEEDED, lambda evt: self.Fit())
-        #self.extra_params.SetValue(self.settings.get('abcm2ps_extra_params', ''))
-        #sizer.Add(text, wx.GBPosition(0, 0), flag=wx.ALL | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        #sizer.Add(self.extra_params, wx.GBPosition(0, 1), flag=wx.ALL | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        # 1.3.6.1 [SS] 2015-01-28
-        #box1 = wx.StaticBoxSizer(wx.StaticBox(self, -1, _("Additional command line parameters to abcm2ps")), wx.VERTICAL)
-        #box1.Add(sizer)
+
+        # [SS] 1.3.6.3 2015-04-29
+        self.gridsizer = wx.FlexGridSizer(0,4,2,2)
+        self.gridsizer.Add(extraplayerparam,0,0,0,0)
+        self.gridsizer.Add(self.extras,0,0,0,0)
 
         self.chkIncludeHeader = wx.CheckBox(self, -1, _('Include file header when rendering tunes'))
 
 
-        btn_box = wx.BoxSizer(wx.HORIZONTAL)
 
         # build settings dialog with the previously defined box
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2138,7 +2142,7 @@ class AbcFileSettingsFrame(wx.Panel):
         # 1.3.6.1 [SS] 2015-01-28
         #self.sizer.Add(box1, flag=wx.ALL | wx.EXPAND, border=10)
         self.sizer.Add(self.chkIncludeHeader, flag=wx.ALL | wx.EXPAND, border=10)
-        self.sizer.Add(btn_box,               flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
+        self.sizer.Add(self.gridsizer, flag=wx.ALL | wx.EXPAND, border=10)
         self.sizer.Add(self.restore_settings, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
         self.SetSizer(self.sizer)
@@ -2147,9 +2151,13 @@ class AbcFileSettingsFrame(wx.Panel):
         self.sizer.Fit(self)
 
         self.chkIncludeHeader.SetValue(self.settings.get('abc_include_file_header', True))
+        self.extras.SetValue(self.settings.get('midiplayer_parameters', ''))
 
         # 1.3.6.1 [SS] 2015-01-28
         self.chkIncludeHeader.Bind(wx.EVT_CHECKBOX, self.On_Chk_IncludeHeader, self.chkIncludeHeader)
+        # 1.3.6.3 [SS] 2015-04-29
+        self.extras.Bind(wx.EVT_TEXT, self.On_extra_midi_parameters,self.extras)
+
         self.restore_settings.Bind(wx.EVT_BUTTON, self.OnRestoreSettings, self.restore_settings)
 
     def OnBrowse(self, evt):
@@ -2179,6 +2187,10 @@ class AbcFileSettingsFrame(wx.Panel):
 
     def On_Chk_IncludeHeader(self,event):
         self.settings['abc_include_file_header'] = self.chkIncludeHeader.GetValue()
+
+    # [SS] 2015-04-29
+    def On_extra_midi_parameters(self,event):
+        self.settings['midiplayer_parameters'] = self.extras.GetValue()
 
     def OnRestoreSettings(self,event):
         # 1.3.6.1 [SS] 2015-02-03
@@ -2319,7 +2331,6 @@ class MyChordPlayPage (wx.Panel):
         self.nofermatas.Bind(wx.EVT_CHECKBOX,self.OnNofermatas)
         self.nograce.Bind(wx.EVT_CHECKBOX,self.OnNograce)
         self.barfly.Bind(wx.EVT_CHECKBOX,self.OnBarfly)
-        # 1.3.6.3 2015-03-19
         self.slidertranspose.Bind(wx.EVT_SCROLL, self.OnTranspose)
         self.slidertuning.Bind(wx.EVT_SCROLL, self.OnTuning)
 
@@ -5831,7 +5842,7 @@ class MainFrame(wx.Frame):
                     new_page_index = None
                     for page_index in page_indices:
                         page = self.current_svg_tune.render_page(page_index, self.renderer)
-                        if current_svg_row in page.notes_in_row:
+                        if page and page.notes_in_row and current_svg_row in page.notes_in_row:
                             new_page_index = page_index
                             break
 
@@ -5905,7 +5916,7 @@ class MainFrame(wx.Frame):
                     self.tune_list.EnsureVisible(i)
                     self.music_pane.Scroll(0, 0)
             if not new_tune_selected:
-                self.ScrollMusicPaneToMatchEditor(select_closest_page=True)
+                self.ScrollMusicPaneToMatchEditor(select_closest_page=self.mni_auto_refresh.IsChecked())
 
             if self.assist_pane.IsShown() and self.abc_assist_panel.IsShown():
                 self.abc_assist_panel.update_assist()
@@ -6346,7 +6357,7 @@ class MainFrame(wx.Frame):
 ##            else:
 ##                self.StartKeyboardInputMode()
         elif evt.GetUniChar() == ord('L') and evt.CmdDown():
-            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=True)
+            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=self.mni_auto_refresh.IsChecked())
         elif evt.MetaDown() and evt.GetKeyCode() == wx.WXK_UP:
             self.editor.GotoPos(0)
         elif evt.MetaDown() and evt.GetKeyCode() == wx.WXK_DOWN:
@@ -6374,7 +6385,7 @@ class MainFrame(wx.Frame):
         evt.Skip()
         p1, p2 = self.editor.GetSelection()
         if p1 == p2:
-            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=True)
+            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=self.mni_auto_refresh.IsChecked())
 
     # p09 This function needs more work, see comments below.
     def OnPosChanged(self, evt):
@@ -7241,7 +7252,7 @@ class MainFrame(wx.Frame):
                         ('abcm2ps_topmargin', '1.00'), ('abcm2ps_botmargin', '1.00'),
                         ('abcm2ps_scale', '0.75'), ('abcm2ps_clean', False),
                         ('abcm2ps_defaults', True), ('abcm2ps_pagewidth', '21.59'),
-                        ('abcm2ps_pageheight', '27.94')
+                        ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', '')
                        ]
 
         # 1.3.6 [SS] 2014-12-16
@@ -7440,9 +7451,15 @@ class MyAbcFrame(wx.Frame):
 
     def ShowText(self, text):
         self.basicText.ClearAll()
-        self.basicText.SetEditable(True)
+        try:
+            self.basicText.SetEditable(True)
+        except:
+            pass
         self.basicText.AppendText(text)
-        self.basicText.SetEditable(False) # 1.3.6.3 [JWdJ] 2015-04-22 abc code not editable
+        try:
+            self.basicText.SetEditable(False) # 1.3.6.3 [JWdJ] 2015-04-22 abc code not editable
+        except:
+            pass # 1.3.6.3 [JWdJ] 2015-05-02 older wx-versions do not support SetEditable
 
     # 1.3.6.3 [JWDJ] 2015-04-27
     @staticmethod

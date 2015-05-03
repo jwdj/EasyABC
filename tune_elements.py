@@ -40,14 +40,8 @@ X:|reference number  |no     |first  |no     |no     |instruction |X:1, X:2
 Z:|transcription     |yes    |yes    |no     |no     |string      |Z:John Smith, <j.s@mail.com>
 """
 
-keyword_to_display_text = {
+name_to_display_text = {
     'staves' : _('Staff layout'),
-}
-
-accidental_to_html = {
-    '^': '&#x266F',
-    '=': '&#x266E',
-    '_': '&#x266D',
 }
 
 decorations = {
@@ -168,7 +162,7 @@ class AbcElement(object):
         self.group_name = group_name
         self.keyword = keyword
         if display_name is None:
-            self.__display_name = keyword_to_display_text.get(name, _(name[:1].upper() + name[1:]))
+            self.__display_name = name_to_display_text.get(name, _(name[:1].upper() + name[1:]))
         else:
             self.__display_name = display_name
         self.description = description
@@ -266,11 +260,15 @@ class AbcElement(object):
             if description:
                 result += escape(description) + '<br>'
 
-            # result += '<pre>%s</pre><br>' % escape(context.match_text)
-            for matchtext in context.current_match.groups():
-                if matchtext:
-                    result += '<pre>%s</pre><br>' % escape(matchtext)
-            # self.context.current_line[match.start():match.end()]
+            groups = context.current_match.groups()
+            element_text = context.match_text
+            if len(groups) == 1 and groups[0]:
+                element_text = groups[0]
+
+            result += '<code>%s</code><br>' % escape(element_text)
+            #for matchtext in context.current_match.groups():
+            #    if matchtext:
+            #        result += '<code>%s</code><br>' % escape(matchtext)
         return result
 
 
@@ -460,7 +458,7 @@ class AbcChordSymbol(AbcBodyElement):
 
 
 class AbcAnnotation(AbcBodyElement):
-    pattern = r'"[\^_<>@]((?:\\"|[^"])*)"'
+    pattern = r'"(?P<pos>[\^_<>@])((?:\\"|[^"])*)"'
     def __init__(self):
         super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern, description=_('An annotation'))
 
@@ -556,13 +554,14 @@ class AbcInvalidCharacter(AbcBodyElement):
 
 
 class AbcBaseNote(AbcBodyElement):
-    accidental_pattern = r'(?P<accidental>\^{1,2}|_{1,2}|=)'
-    length_pattern = r'(?P<length>[1-9/][0-9/]*)'
+    accidental_pattern = r'(?P<accidental>(?:\^{1,2}|_{1,2}|=)?)'
+    length_pattern = r'(?P<length>(?:[1-9/][0-9/]*)?)'
     octave_pattern = r"(?P<octave>[',]*)"
-    note_pattern = '%s?(?P<note>[A-Ga-g])%s%s?' % (accidental_pattern, octave_pattern, length_pattern)
-    normal_rest_pattern = '[zx]%s?' % length_pattern
-    note_or_rest_pattern = '(?:%s|%s)' % (note_pattern, normal_rest_pattern)
-    measure_rest_pattern = '[ZX](?P<measures>[1-9][0-9]*)?'
+    pair_pattern = r'(?P<pair>(?:-| *[><])?)'
+    note_pattern = r'{0}(?P<note>[A-Ga-g]){1}{2}'.format(accidental_pattern, octave_pattern, length_pattern)
+    normal_rest_pattern = '[zx]{0}?'.format(length_pattern)
+    note_or_rest_pattern = '(?:{0}|{1})'.format(note_pattern, normal_rest_pattern)
+    measure_rest_pattern = '[ZX](?P<measures>(?:[1-9][0-9]*)?)'
     def __init__(self, name, pattern, description=None):
         super(AbcBaseNote, self).__init__(name, pattern, description=description)
 
@@ -572,27 +571,23 @@ class AbcNote(AbcBaseNote):
     def __init__(self):
         super(AbcNote, self).__init__('Note', AbcNote.pattern)
 
-    def get_description_html(self, context):
-        html = super(AbcNote, self).get_description_html(context)
-        # note = context.match_text
-        # accidental = accidental_to_html.get(note[0], '')
-        # if accidental:
-        #     note = note[1:]
-        # html += note + accidental
-        return html
-
 
 class AbcRest(AbcBaseNote):
-    pattern = '(?:%s|%s)' % (AbcBaseNote.normal_rest_pattern, AbcBaseNote.measure_rest_pattern)
+    pattern = '(?:{0}|{1})'.format(AbcBaseNote.normal_rest_pattern, AbcBaseNote.measure_rest_pattern)
     def __init__(self):
         super(AbcBaseNote, self).__init__('Rest', AbcRest.pattern)
 
+    def get_header_text(self, context):
+        if context.match_text[0] in 'XZ':
+            return _('Whole measure rest')
+        else:
+            return super(AbcComment, self).get_header_text(context)
+
     def get_description_html(self, context):
         html = super(AbcRest, self).get_description_html(context)
-        if context.match_text[0] in 'xX':
-            html += '<br>'+_('Invisible')+'<br>'
-        else:
-            html += '<br>'+_('Visible')+'<br>'
+
+        if context.match_text[0] in 'Xx':
+            html += '{0}'.format(_('Invisible'))
         return html
 
 
@@ -603,22 +598,22 @@ class AbcGraceNotes(AbcBaseNote):
 
 
 class AbcChord(AbcBaseNote):
-    pattern = r'\[(?:%s*%s)+\]' % (AbcDecoration.pattern, AbcBaseNote.note_pattern)
+    pattern = r'\[(?:{0}*{1})+\]'.format(AbcDecoration.pattern, AbcBaseNote.note_pattern)
     def __init__(self):
         super(AbcBaseNote, self).__init__('Chord', AbcChord.pattern)
 
 
 class AbcNoteGroup(AbcBaseNote):
-    pattern = '%s?%s?(?:%s|%s)*%s(?P<tie>-?)(?P<nextlink>[><]?)' % (AbcGraceNotes.pattern, AbcChordSymbol.pattern,
-                                        AbcDecoration.pattern, AbcAnnotation.pattern, AbcBaseNote.note_pattern)
+    pattern = r'{0}?{1}?(?:{2}|{3})*{4}{5}'.format(AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern,
+                                               AbcAnnotation.pattern, AbcBaseNote.note_pattern, AbcBaseNote.pair_pattern)
     def __init__(self):
-        super(AbcBaseNote, self).__init__('Note group', '^%s$' % AbcNoteGroup.pattern)
+        super(AbcBaseNote, self).__init__('Note group', '^{0}$'.format(AbcNoteGroup.pattern))
         self.exact_match_required = True
 
 class AbcMultipleNotes(AbcBaseNote):
-    pattern = '(?:%s|%s)' % (remove_named_groups(AbcNoteGroup.pattern), remove_named_groups(AbcBaseNote.normal_rest_pattern)) + '{2,}'
+    pattern = '(?:{0}|{1})(?:\s*(?:{0}|{1}))+'.format(remove_named_groups(AbcNoteGroup.pattern), remove_named_groups(AbcBaseNote.normal_rest_pattern))
     def __init__(self):
-        super(AbcBaseNote, self).__init__('Multiple notes', '^%s$' % AbcMultipleNotes.pattern)
+        super(AbcBaseNote, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern))
         self.exact_match_required = True
 
 

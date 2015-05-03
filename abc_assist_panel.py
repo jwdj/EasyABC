@@ -40,7 +40,7 @@ class AbcAssistControl(object):
 
 
 class AbcContext(object):
-    def __init__(self, abc_section, editor):
+    def __init__(self, abc_section, editor, on_invalidate=None):
         self._editor = editor
         self.abc_section = abc_section
         line_no = editor.GetCurrentLine()
@@ -59,6 +59,8 @@ class AbcContext(object):
         self.current_element = None
         self.current_match = None
         self.match_text = None
+        self.match_text_start = None
+        self.on_invalidate = on_invalidate
 
     @property
     def empty_selection(self):
@@ -84,16 +86,51 @@ class AbcContext(object):
 
         self._editor.ReplaceSelection(text)
         self._editor.EndUndoAction()
+        self.invalidate()
+
+    def replace_match_text(self, new_text, matchgroup=None):
+        m = self.current_match
+        start = m.start()
+        end = m.end()
+
+        if matchgroup:
+            s = m.string
+            group_start = m.start(matchgroup)
+            group_end = m.end(matchgroup)
+            new_text = s[start:group_start] + new_text + s[group_end:end]
+
+        if self.current_element.exact_match_required:
+            start += self.editor_sel_start
+            end += self.editor_sel_start
+        else:
+            start += self.editor_lines_start
+            end += self.editor_lines_start
+
+        self.replace_selection(new_text, start, end)
+        self.invalidate()
+
+    def get_match_group(self, matchgroup):
+        return self.current_match.group(matchgroup)
+
+    def invalidate(self): # context has changed so is not valid anymore
+        self.lines = None
+        self.match_text = None
+        self.selected_text = None
+        self.current_element = None
+        self.selection = None
+        if self.on_invalidate is not None:
+            self.on_invalidate()
 
 
-class AbcAssistPanel(wx.ScrolledWindow):
+class AbcAssistPanel(wx.Panel):
     html_header = """\
 <!DOCTYPE html>
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <html>
 <head>
-<style>
+<style type="text/css">
+a { text-decoration:none }
 table, th, td {
     border: 0px solid black;
 }
@@ -104,7 +141,7 @@ table, th, td {
     html_footer = "</body></html>"
 
     def __init__(self, parent, editor, cwd):
-        wx.ScrolledWindow.__init__(self, parent, -1)
+        wx.Panel.__init__(self, parent, -1)
         if wx.Platform == "__WXMSW__":
             self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
@@ -176,7 +213,7 @@ table, th, td {
             return ABC_SECTION_FILE_HEADER
 
     def update_assist(self):
-        self.context = AbcContext(self.get_abc_section(), self._editor)
+        self.context = AbcContext(self.get_abc_section(), self._editor, on_invalidate=self.update_assist)
         element, match = self.get_current_element()
         self.context.current_element = element
         self.context.current_match = match
@@ -191,9 +228,17 @@ table, th, td {
             html += element.get_description_html(self.context)
             action_html = self.actions_handlers.get_action_handler(element).get_action_html(self.context)
             if action_html:
-                html += '<br><br>' + action_html
+                html += '<br>' + action_html
         html += self.html_footer
+        self.set_html(html)
+
+    def set_html(self, html, save_scroll_pos=True):
+        pos = self.current_html.GetViewStart()[1]
+        self.current_html.Freeze()
         self.current_html.SetPage(html)
+        if save_scroll_pos:
+            self.current_html.Scroll(0, pos)
+        self.current_html.Thaw()
 
     def get_current_element(self):
         for element in self.elements:
@@ -211,7 +256,7 @@ table, th, td {
             parts = href.split('?', 1)
             action_name = parts[0]
             if len(parts) > 1:
-                params = urlparse.parse_qs(parts[1])
+                params = dict(urlparse.parse_qsl(parts[1]))
             else:
                 params = None # {}
             action = action_handler.get_action(action_name)
