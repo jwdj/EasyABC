@@ -109,8 +109,11 @@ class AbcContext(object):
         self.replace_selection(new_text, start, end)
         self.invalidate()
 
-    def get_match_group(self, matchgroup):
-        return self.current_match.group(matchgroup)
+    def get_matchgroup(self, matchgroup, default=None):
+        result = self.current_match.group(matchgroup)
+        if result is None:
+            result = default
+        return result
 
     def invalidate(self): # context has changed so is not valid anymore
         self.lines = None

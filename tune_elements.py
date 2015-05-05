@@ -557,9 +557,10 @@ class AbcBaseNote(AbcBodyElement):
     accidental_pattern = r'(?P<accidental>(?:\^{1,2}|_{1,2}|=)?)'
     length_pattern = r'(?P<length>(?:[1-9/][0-9/]*)?)'
     octave_pattern = r"(?P<octave>[',]*)"
-    pair_pattern = r'(?P<pair>(?:-| *[><])?)'
-    note_pattern = r'{0}(?P<note>[A-Ga-g]){1}{2}'.format(accidental_pattern, octave_pattern, length_pattern)
-    normal_rest_pattern = '[zx]{0}?'.format(length_pattern)
+    pair_pattern = r'(?P<pair>(?: *>+| *<+)?)'
+    tie_pattern = r'(?P<tie>-?)'
+    note_pattern = r'{0}(?P<note>[A-Ga-g]){1}{2}{3}'.format(accidental_pattern, octave_pattern, length_pattern, pair_pattern)
+    normal_rest_pattern = '[zx]{0}{1}?'.format(length_pattern, pair_pattern)
     note_or_rest_pattern = '(?:{0}|{1})'.format(note_pattern, normal_rest_pattern)
     measure_rest_pattern = '[ZX](?P<measures>(?:[1-9][0-9]*)?)'
     def __init__(self, name, pattern, description=None):
@@ -574,21 +575,25 @@ class AbcNote(AbcBaseNote):
 
 class AbcRest(AbcBaseNote):
     pattern = '(?:{0}|{1})'.format(AbcBaseNote.normal_rest_pattern, AbcBaseNote.measure_rest_pattern)
-    def __init__(self):
-        super(AbcBaseNote, self).__init__('Rest', AbcRest.pattern)
 
     def get_header_text(self, context):
-        if context.match_text[0] in 'XZ':
-            return _('Whole measure rest')
-        else:
-            return super(AbcComment, self).get_header_text(context)
-
-    def get_description_html(self, context):
-        html = super(AbcRest, self).get_description_html(context)
-
+        text = super(AbcRest, self).get_header_text(context)
         if context.match_text[0] in 'Xx':
-            html += '{0}'.format(_('Invisible'))
-        return html
+            text = '{0} {1}'.format(_('Invisible'), text)
+        return text
+
+
+class AbcNormalRest(AbcRest):
+    pattern = AbcBaseNote.normal_rest_pattern
+    def __init__(self):
+        super(AbcNormalRest, self).__init__('Rest', AbcNormalRest.pattern)
+
+
+class AbcMeasureRest(AbcRest):
+    pattern = AbcBaseNote.measure_rest_pattern
+    def __init__(self):
+        super(AbcMeasureRest, self).__init__('MeasureRest', AbcMeasureRest.pattern)
+        self.__display_name = _('Measure rest')
 
 
 class AbcGraceNotes(AbcBaseNote):
@@ -605,7 +610,7 @@ class AbcChord(AbcBaseNote):
 
 class AbcNoteGroup(AbcBaseNote):
     pattern = r'{0}?{1}?(?:{2}|{3})*{4}{5}'.format(AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern,
-                                               AbcAnnotation.pattern, AbcBaseNote.note_pattern, AbcBaseNote.pair_pattern)
+                                                   AbcAnnotation.pattern, AbcBaseNote.note_pattern, AbcBaseNote.pair_pattern)
     def __init__(self):
         super(AbcBaseNote, self).__init__('Note group', '^{0}$'.format(AbcNoteGroup.pattern))
         self.exact_match_required = True
@@ -796,7 +801,8 @@ class AbcStructure(object):
             AbcDecoration(),
             AbcSlur(),
             AbcNote(),
-            AbcRest(),
+            AbcNormalRest(),
+            AbcMeasureRest(),
             AbcGrace(),
             AbcChordBeginAndEnd(),
             AbcVoiceOverlay(),

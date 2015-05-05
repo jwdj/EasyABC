@@ -9,6 +9,7 @@ except ImportError:
     from cgi import escape  # py2
 import urllib
 import webbrowser
+from fraction import Fraction
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
 CodeDescription = namedtuple('CodeDescription', 'code description')
@@ -182,17 +183,6 @@ class AccidentalChangeAction(ValueChangeAction):
     def __init__(self):
         super(AccidentalChangeAction, self).__init__('Accidental', AccidentalChangeAction.accidentals, matchgroup='accidental')
 
-    def can_execute(self, context, params=None):
-        if not isinstance(context.current_element, AbcNote):
-            return False
-        return True
-
-    def replace_regex_group(self, match, group, replace_value):
-        #g = match.group(group)
-        #r'\g<{0}>'.format(group)
-        #return self._search_re[context.abc_section].sub(replace_value, context.match_text)
-        return False
-
 
 class MeterChangeAction(ValueChangeAction):
     values = [
@@ -226,24 +216,118 @@ class PitchAction(ValueChangeAction):
     def __init__(self):
         super(PitchAction, self).__init__('Pitch', PitchAction.pitch_values, matchgroup='octave')
 
+    def can_execute(self, context, params=None):
+        return True
+
+    @staticmethod
+    def octave_abc_to_number(abc_octave):
+        result = 0
+        if abc_octave:
+            for ch in abc_octave:
+                if ch == "'":
+                    result += 1
+                elif ch == ',':
+                    result -= 1
+        return result
+
+    @staticmethod
+    def octave_number_to_abc(octave):
+        if octave > 0:
+            return "'" * octave
+        elif octave < 0:
+            return "," * -octave
+        else:
+            return ''
+
+    def execute(self, context, params=None):
+        value = params.get('value')
+        octave = self.octave_abc_to_number(context.get_matchgroup('octave'))
+        if value == "'":
+            octave += 1
+        elif value == ',':
+            octave -= 1
+        text = self.octave_number_to_abc(octave)
+        context.replace_match_text(text, 'octave')
+
 
 class DurationAction(ValueChangeAction):
+    denominator_re = re.compile('/(\d*)')
     duration_values = [
-        CodeDescription('/', _('Halve')),
-        CodeDescription('2', _('Double')),
-        CodeDescription('3', _('Dotted')),
+        CodeDescription('/', _('Halve note length')),
+        CodeDescription('2', _('Double note length')),
+        CodeDescription('3', _('Dotted note')),
         CodeDescription('>', _('This note dotted, next note halved')),
-        CodeDescription('<', _('This note halved, next note dotted')),
-        CodeDescription('-', _('Tie to next note')),
+        CodeDescription('<', _('This note halved, next note dotted'))
     ]
     def __init__(self):
         super(DurationAction, self).__init__('Duration', DurationAction.duration_values)
 
+    @staticmethod
+    def length_to_fraction(length):
+        result = Fraction(1, 1)
+        if length:
+            parts = length.split('/', 1)
+            numerator_part = parts[0].strip()
+            denominator_part = ''
+            if len(parts) > 1:
+                denominator_part = '/'+parts[1].strip()
+            if numerator_part:
+                result = Fraction(int(numerator_part), 1)
+            for m in DurationAction.denominator_re.finditer(denominator_part):
+                divisor = m.groups()[0]
+                if divisor:
+                    divisor = int(divisor)
+                else:
+                    divisor = 2
+                result = result * Fraction(1, divisor)
+            result.reduce()
+        return result
+
+    @staticmethod
+    def is_power2(num):
+        return ((num & (num - 1)) == 0) and num > 0
+
     def can_execute(self, context, params=None):
-        return True
+        value = params.get('value')
+        if value in '<>':
+            return not value in context.get_matchgroup('pair', '')
+        else:
+            frac = self.length_to_fraction(context.get_matchgroup('length'))
+            if value == '/':
+                return frac.denominator < 128
+            elif value == '2':
+                return frac.numerator < 128
+            elif value == '3':
+                return self.is_power2(frac.numerator) and self.is_power2(frac.denominator)
 
     def execute(self, context, params=None):
-        context.replace_match_text('test')
+        value = params.get('value')
+        if value in '/23':
+            frac = self.length_to_fraction(context.get_matchgroup('length'))
+            if value == '/':
+                frac.denominator *= 2
+            elif value == '2':
+                frac.numerator *= 2
+            elif value == '3':
+                frac.numerator *= 3
+                frac.denominator *= 2
+            frac.reduce()
+
+            if frac.numerator == 1:
+                text = ''
+            else:
+                text =str(frac.numerator)
+
+            if frac.denominator != 1:
+                if frac.denominator == 2:
+                    text += '/'
+                elif frac.denominator == 4:
+                    text += '//'
+                else:
+                    text += '/{0}'.format(frac.denominator)
+            context.replace_match_text(text, matchgroup='length')
+        elif value in '<>':
+            context.replace_match_text(value, matchgroup='pair')
 
 
 class TempoChangeAction(ValueChangeAction):

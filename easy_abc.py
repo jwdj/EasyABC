@@ -31,6 +31,7 @@
 # Easier switching between different versions of executables by using dropdown button in File Settings tab
 # Removed buttons 'Change abcm2ps path' and 'Restore abcm2ps path' because the default can be chosen in de File Settings tab
 # Sometimes opening the messages window showed the 'processed tune' window
+# Changed Internals->Messages to fixed font so Abcm2ps-messages with a ^ make sense
 #
 #
 # New V1.3.6.2
@@ -555,8 +556,8 @@ all_notes = "C,, D,, E,, F,, G,, A,, B,, C, D, E, F, G, A, B, C D E F G A B c d 
 doremi_prefixes = 'DRMFSLTdrmfslt' # 'd' corresponds to "do", 'r' to "re" and so on, DO vs. do is like C vs. c in ABC
 doremi_suffixes = 'oeiaoaioOEIAOAIOlLhH'
 
-execmessages = ''
-visible_abc_code = ''
+execmessages = u''
+visible_abc_code = u''
 
 # 1.3.6.3 [JWDJ] one function to determine font size
 def get_normal_fontsize(): 
@@ -997,9 +998,6 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     # 1.3.6.3 [SS] 2015-05-01
     visible_abc_code = abc_code
 
-    if 'AbcToSvg' in execmessages:
-        execmessages = u'' # 1.3.6.3 clear message window if it contains a previous report
-
     #print traceback.extract_stack(None, 5)
 
     if target_file_name:
@@ -1168,9 +1166,6 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
 # 1.3.6  [SS] simplified the calling sequence 2014-11-15
 def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier, midi_file_name=None):
     global execmessages, visible_abc_code
-
-    if 'AbcToMidi' in execmessages:
-        execmessages = u'' # 1.3.6.3 clear message window if it contains a previous report
 
     abc_code = process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier)
     visible_abc_code = abc_code #p09 2014-10-22 [SS]
@@ -4410,13 +4405,13 @@ class MainFrame(wx.Frame):
                     midi_tune.cleanup()
 
             # 1.3.6 [SS] 2014-12-08
-            self.statusbar.SetStatusText('Midi file was written')
+            self.statusbar.SetStatusText(_('Midi file was written'))
 
     #Add an export all tunes to MIDI option
     def OnExportAllMidi(self, evt):
         dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         ntunes = self.tune_list.GetItemCount()
-        outstring = 'There are ' + str(ntunes) + 'midi files to create'
+        outstring = _('There are {0} midi files to create').format(ntunes)
         self.statusbar.SetStatusText(outstring)
         progdialog = None
         try:
@@ -4425,7 +4420,7 @@ class MainFrame(wx.Frame):
                 #tunes = [self.GetTune(i) for i in ntunes]
 
                 # 1.3.6 [SS] 2014-12-08
-                progdialog = wx.ProgressDialog('Searching directory','Remaining time',
+                progdialog = wx.ProgressDialog(_('Searching directory'), _('Remaining time'),
                      ntunes,style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME |
                      wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
 
@@ -4476,10 +4471,13 @@ class MainFrame(wx.Frame):
                 #    tunes.append(self.GetSelectedTune())
 
                 # 1.3.6 [SS] 2014-12-08
-                progdialog = wx.ProgressDialog('Searching directory','Remaining time',
+                progdialog = wx.ProgressDialog(_('Searching directory'), _('Remaining time'),
                      ntunes,style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME |
                      wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
                 j = 0
+
+                global execmessages
+                execmessages = u''
 
                 for tune in tunes:
                     # 1.3.6 [SS] 2014-12-08
@@ -4506,15 +4504,17 @@ class MainFrame(wx.Frame):
             dlg.Destroy()
             # 1.3.6 [SS] 2014-12-08
             progdialog.Destroy()
-            self.statusbar.SetStatusText('PDF files created.')
+            self.statusbar.SetStatusText(_('PDF files created.'))
 
     def OnExportPDF(self, evt):
         if not os.path.exists(self.settings.get('gs_path')):
-            dlg = wx.MessageDialog(self,'ghostscript was not found here. Go to settings and indicate the path','Warning',wx.OK)
+            dlg = wx.MessageDialog(self, _('ghostscript was not found here. Go to settings and indicate the path'), _('Warning'), wx.OK)
             dlg.ShowModal()
             return
         tune = self.GetSelectedTune()
         if tune:
+            global execmessages
+            execmessages = u''
             pdf_file = AbcToPDF(self.settings,tune.abc, tune.header, self.cache_dir, self.settings.get('abcm2ps_extra_params', ''),
                                                        self.settings.get('abcm2ps_path', ''),
                                                        self.settings.get('gs_path',''),
@@ -4575,7 +4575,7 @@ class MainFrame(wx.Frame):
         if tune:       # [SS] 1.3.6 2014-12-15
             if mxl:
                 filename = self.GetFileNameForTune(tune, '.mxl')
-                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_('Compressd MusicXML') + " (*.mxl)|*.mxl", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_('Compressed MusicXML') + " (*.mxl)|*.mxl", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             else:
                 filename = self.GetFileNameForTune(tune, '.xml')
                 dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_('MusicXML') + " (*.xml)|*.xml", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
@@ -4585,19 +4585,18 @@ class MainFrame(wx.Frame):
                         errors = []
                         #1.3.6 [SS] 2014-12-10
                         abc_to_xml(tune.header + os.linesep + tune.abc, dlg.GetPath(),mxl, pageFormat, info_messages)
-                        execmessages = 'abc_to_mxl   compression = ' + str(mxl) + '\n'
+                        execmessages = u'abc_to_mxl   compression = ' + str(mxl) + '\n'
                         for infoline in info_messages:
                             execmessages += infoline
                     except Exception as e:
                         error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)) + os.linesep + os.linesep.join(errors)
-                        mdlg = ErrorFrame(self, 'Error during conversion of X:%s ("%s"): %s' % (tune.xnum, tune.title, error_msg))
+                        mdlg = ErrorFrame(self, _('Error during conversion of X:{0} ("{1}"): {2}').format(tune.xnum, tune.title, error_msg))
                         result = mdlg.ShowModal()
                         mdlg.Destroy()
             finally:
                 dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
             # 1.3.6 2014-11-12 2014-12-10 [SS]
-            self.statusbar.SetStatusText('XML file was created.')
-            print 'execmessages = ',execmessages
+            self.statusbar.SetStatusText(_('XML file was created.'))
             MyInfoFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
             MyAbcFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
 
@@ -4820,6 +4819,8 @@ class MainFrame(wx.Frame):
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 self.SetCursor(wx.HOURGLASS_CURSOR)
+                global execmessages
+                execmessages = u''
                 pdf_file = AbcToPDF(self.settings,self.editor.GetText(), '', self.cache_dir, self.settings.get('abcm2ps_extra_params', ''),
                                                                                self.settings.get('abcm2ps_path', ''),
                                                                                self.settings.get('gs_path',''),
@@ -5379,7 +5380,7 @@ class MainFrame(wx.Frame):
         menu3.AppendSeparator()
         #1.3.6.1 [SS] 2015-1-10 do not use 5003 (on Linux it will add Ctr-S shortcut)
         menu3.Append(5007, _("&Clear cache..."), "")
-        menu3.Append(5005,_("&Cold restart"),"") # 1.3.6.1 [SS] 2014-12-28
+        menu3.Append(5005,_("Cold &restart"),"") # 1.3.6.1 [SS] 2014-12-28
 
         menu4 = wx.Menu()
         menu4.Append(6012, _("&Refresh music")+"\tF5", "")
@@ -5532,7 +5533,7 @@ class MainFrame(wx.Frame):
     # 1.3.6 [SS] 2014-12-10
     def OnShowSettings(self,evt):
         global execmessages
-        execmessages = ''
+        execmessages = u''
         for key in sorted(self.settings):
             line = key +' => '+ str(self.settings[key]) + '\n'
             execmessages += line
@@ -6514,6 +6515,7 @@ class MainFrame(wx.Frame):
         if not tune:
             return
 
+        execmessages = u''
         if remove_repeats or (len(self.selected_note_indices) > 1):
             abc = abc.replace('|:', '').replace(':|', '').replace('::', '')
             execmessages += '\n*removing repeats*'
@@ -7411,6 +7413,9 @@ class MyInfoFrame(wx.Frame):
         # Add a panel so it looks the correct on all platforms
         self.panel = ScrolledPanel(self)
         self.basicText = wx.TextCtrl(self.panel,-1,"",style=wx.TE_MULTILINE | wx.TE_READONLY)
+        # 1.3.6.3 [JWDJ] changed to fixed font so Abcm2ps-messages with a ^ make sense
+        font = wx.Font(10, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        self.basicText.SetFont(font)
         sizer = wx.BoxSizer()
         sizer.Add(self.basicText,1,wx.ALL|wx.EXPAND)
         self.panel.SetSizer(sizer)
