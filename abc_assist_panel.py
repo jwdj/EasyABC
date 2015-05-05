@@ -109,6 +109,20 @@ class AbcContext(object):
         self.replace_selection(new_text, start, end)
         self.invalidate()
 
+    def replace_matchgroups(self, values):
+        m = self.current_match
+        start = m.start()
+        end = m.end()
+        s = m.string
+        new_text = ''
+        for matchgroup in values:
+            group_start = m.start(matchgroup)
+            group_end = m.end(matchgroup)
+            value = values[matchgroup]
+            new_text = s[start:group_start] + new_text + s[group_end:end]
+        new_text = ''.join(parts)
+        self.replace_match_text(new_text)
+
     def get_matchgroup(self, matchgroup, default=None):
         result = self.current_match.group(matchgroup)
         if result is None:
@@ -208,10 +222,12 @@ table, th, td {
         start_line = self.get_tune_start_line(line_no)
         if self._editor.GetLine(start_line).startswith('X:'):
             body_start_line = self.get_body_start_line(start_line + 1)
-            if line_no is None or line_no < body_start_line:
+            if line_no < body_start_line:
                 return ABC_SECTION_TUNE_HEADER
-            else:
+            elif line_no < self.get_body_end_line(body_start_line):
                 return ABC_SECTION_TUNE_BODY
+            else:
+                return ABC_SECTION_OUTSIDE_TUNE
         else:
             return ABC_SECTION_FILE_HEADER
 
@@ -293,6 +309,19 @@ table, th, td {
         if self._editor.GetLine(key_line).startswith('K:'):
             body_line = key_line + 1
         return body_line
+
+    def get_body_end_line(self, offset_line):
+        end_line_no = offset_line
+        line_count = self._editor.GetLineCount()
+        end_found = False
+        while not end_found and end_line_no < line_count:
+            line = self._editor.GetLine(end_line_no)
+            if line.startswith('X:'):
+                end_found = True
+            else:
+                end_found = not line.strip() # last empty line is also part of the body
+                end_line_no += 1
+        return end_line_no
 
     def get_tune_start(self, offset):
         start_line = self.get_tune_start_line(self._editor.LineFromPosition(offset))

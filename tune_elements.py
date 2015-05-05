@@ -133,10 +133,12 @@ tune_header_lookup = {'no': ABC_TUNE_HEADER_NO, 'first': ABC_TUNE_HEADER_FIRST, 
 ABC_SECTION_FILE_HEADER = 0
 ABC_SECTION_TUNE_HEADER = 1
 ABC_SECTION_TUNE_BODY = 2
+ABC_SECTION_OUTSIDE_TUNE = 3
 ABC_SECTIONS = [
     ABC_SECTION_FILE_HEADER,
     ABC_SECTION_TUNE_HEADER,
-    ABC_SECTION_TUNE_BODY
+    ABC_SECTION_TUNE_BODY,
+    ABC_SECTION_OUTSIDE_TUNE
 ]
 
 
@@ -155,6 +157,13 @@ def replace_text(text, replacements):
 
 def remove_named_groups(pattern):
     return re.sub(r'(?<=\(\?)P\<[^\>]+\>', ':', pattern)
+
+def replace_named_group(pattern, old_group, new_group=None):
+    if new_group is None:
+        replace_value = ':'
+    else:
+        replace_value = 'P<{0}>'.format(new_group)
+    return re.sub(r'(?<=\(\?)P\<{0}>'.format(old_group), replace_value, pattern)
 
 class AbcElement(object):
     def __init__(self, name, keyword=None, group_name=None, display_name=None, description=None, validation_pattern=None):
@@ -176,6 +185,7 @@ class AbcElement(object):
         self.__validation_re = None
         self.supported_values = None
         self.exact_match_required = False
+        self.visible_match_group = None
 
         #self.html_cache_name = os.path.join(cache_path, "".join([x if x.isalnum() else "_" for x in name]))
 
@@ -260,12 +270,14 @@ class AbcElement(object):
             if description:
                 result += escape(description) + '<br>'
 
-            groups = context.current_match.groups()
-            element_text = context.match_text
-            if len(groups) == 1 and groups[0]:
-                element_text = groups[0]
+            if self.visible_match_group is not None:
+                groups = context.current_match.groups()
+                element_text = context.match_text
+                if len(groups) == 1 and groups[0]:
+                    element_text = groups[0]
 
-            result += '<code>%s</code><br>' % escape(element_text)
+                result += '<code>%s</code><br>' % escape(element_text)
+
             #for matchtext in context.current_match.groups():
             #    if matchtext:
             #        result += '<code>%s</code><br>' % escape(matchtext)
@@ -460,7 +472,7 @@ class AbcChordSymbol(AbcBodyElement):
 class AbcAnnotation(AbcBodyElement):
     pattern = r'"(?P<pos>[\^_<>@])((?:\\"|[^"])*)"'
     def __init__(self):
-        super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern, description=_('An annotation'))
+        super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern) #, description=_('An annotation'))
 
 
 class AbcSlur(AbcBodyElement):
@@ -610,7 +622,8 @@ class AbcChord(AbcBaseNote):
 
 class AbcNoteGroup(AbcBaseNote):
     pattern = r'{0}?{1}?(?:{2}|{3})*{4}{5}'.format(AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern,
-                                                   AbcAnnotation.pattern, AbcBaseNote.note_pattern, AbcBaseNote.pair_pattern)
+                                                   AbcAnnotation.pattern, AbcBaseNote.note_pattern,
+                                                   replace_named_group(AbcBaseNote.pair_pattern, 'pair', 'grouppair'))
     def __init__(self):
         super(AbcBaseNote, self).__init__('Note group', '^{0}$'.format(AbcNoteGroup.pattern))
         self.exact_match_required = True

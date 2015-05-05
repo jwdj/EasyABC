@@ -106,8 +106,8 @@ class AbcAction(object):
     def execute(self, context, params=None):
         pass
 
-    def get_action_html(self, context, params=None):
-        if self.can_execute(context, params):
+    def get_action_html(self, context):
+        if self.can_execute(context):
             return u'<a href="%s">%s</a>' % (self.name, escape(self.display_name))
         return u''
 
@@ -125,21 +125,22 @@ class ValueChangeAction(AbcAction):
         self.matchgroup = matchgroup
 
     def can_execute(self, context, params=None):
+        value = params.get('value', '')
         if self.matchgroup:
-            value = params.get('value', '')
             if context.current_match:
                 current_value = context.current_match.group(self.matchgroup)
                 return value != current_value
-        return True
+        else:
+            return value != context.match_text
 
     def execute(self, context, params=None):
-        if self.matchgroup:
-            value = params.get('value', '')
-            context.replace_match_text(value, self.matchgroup)
-        pass
+        value = params.get('value', '')
+        context.replace_match_text(value, self.matchgroup)
 
     def get_action_html(self, context):
-        result = html_enclose('h4', escape(self.display_name))
+        result = u''
+        if self.display_name:
+            result = html_enclose('h4', escape(self.display_name))
         html_values = []
         for value in self.supported_values:
             if isinstance(value, CodeDescription):
@@ -149,6 +150,18 @@ class ValueChangeAction(AbcAction):
                     html_values.append(t)
                 else:
                     html_values.append(value)
+            elif isinstance(value, list):
+                columns = value
+                row = []
+                for column in columns:
+                    params = {'value': column}
+                    html_column = html_enclose('code', escape(column))
+                    if self.can_execute(context, params):
+                        t = UrlTuple(self.get_action_url(params), html_column)
+                        row.append(t)
+                    else:
+                        row.append(html_column)
+                html_values.append(row)
             else:
                 params = {'value': value}
                 if self.can_execute(context, params):
@@ -165,10 +178,20 @@ class InsertValueAction(ValueChangeAction):
         self.valid_sections = valid_sections
 
     def can_execute(self, context, params=None):
-        return self.valid_sections is None or context.abc_section in self.valid_sections
+        if self.valid_sections is None:
+            return True
+        if isinstance(self.valid_sections, list):
+            return context.abc_section in self.valid_sections
+        else:
+            return context.abc_section == self.valid_sections
 
     def execute(self, context, params=None):
         context.insert_text(params['value'])
+
+    def get_action_html(self, context):
+        if self.can_execute(context):
+            return super(InsertValueAction, self).get_action_html(context)
+        return u''
 
 
 class AccidentalChangeAction(ValueChangeAction):
@@ -195,7 +218,7 @@ class MeterChangeAction(ValueChangeAction):
         CodeDescription('6/8', _('6/8'))
     ]
     def __init__(self):
-        super(MeterChangeAction, self).__init__('Meter', MeterChangeAction.values, matchgroup=1)
+        super(MeterChangeAction, self).__init__('Change meter', MeterChangeAction.values, matchgroup=1)
 
 
 class UnitNoteLengthChangeAction(ValueChangeAction):
@@ -285,7 +308,7 @@ class DurationAction(ValueChangeAction):
 
     @staticmethod
     def is_power2(num):
-        return ((num & (num - 1)) == 0) and num > 0
+        return ((num & (num - 1)) == 0) and num != 0
 
     def can_execute(self, context, params=None):
         value = params.get('value')
@@ -374,6 +397,23 @@ class AnnotationPositionAction(ValueChangeAction):
         super(AnnotationPositionAction, self).__init__('Position', AnnotationPositionAction.values, 'pos')
 
 
+class BarChangeAction(ValueChangeAction):
+    values = [
+        CodeDescription('|',  _('Bar line')),
+        CodeDescription('||', _('Double bar line')),
+        CodeDescription('|]', _('Thin-thick double bar line')),
+        CodeDescription('[|', _('Thick-thin double bar line')),
+        CodeDescription('|:', _('Start of repeated section')),
+        CodeDescription(':|', _('End of repeated section')),
+        CodeDescription('|1', _('First ending')),
+        CodeDescription(':|2', _('Second ending')),
+        CodeDescription('&',  _('Voice overlay'))
+    ]
+    def __init__(self):
+        super(BarChangeAction, self).__init__('Change bar', BarChangeAction.values)
+
+
+
 ##################################################################################################
 #  INSERT ACTIONS
 ##################################################################################################
@@ -391,7 +431,7 @@ class UrlAction(AbcAction):
     def execute(self, context, params=None):
         webbrowser.open(href)
 
-    def get_action_html(self, context, params=None):
+    def get_action_html(self, context):
         return _('Learn <a href="{0}">more</a>...').format(self.url)
 
 
@@ -435,18 +475,23 @@ class NewTuneAction(AbcAction):
         context.insert_text(text)
 
 
-class NewNoteAction(AbcAction):
-    tune_re = re.compile(r'(?m)^X:\s*(\d+)')
-
+class NewNoteAction(InsertValueAction):
+    values = ['c d e f g a b'.split(' '), 'C D E F G A B'.split(' ')]
     def __init__(self):
-        super(NewNoteAction, self).__init__('abc_new_note', display_name=_('Add note or rest'))
+        super(NewNoteAction, self).__init__('abc_new_note', supported_values=NewNoteAction.values,
+                                            valid_sections=ABC_SECTION_TUNE_BODY, display_name=_('Add note'))
 
-    def can_execute(self, context, params=None):
-        return context.previous_line is None or context.current_element.matches_text(context, context.previous_line) is not None
 
-    def execute(self, context, params=None):
-        text = params
-        context.insert_text(text)
+class NewRestAction(InsertValueAction):
+    values = [
+        CodeDescription('z', _('Normal rest')),
+        CodeDescription('Z', _('Measure rest')),
+        CodeDescription('x', _('Invisible rest')),
+        CodeDescription('X', _('Invisible measure rest'))
+    ]
+    def __init__(self):
+        super(NewRestAction, self).__init__('abc_new_rest', supported_values=NewRestAction.values,
+                                            valid_sections=ABC_SECTION_TUNE_BODY, display_name=_('Add rest'))
 
 
 class InsertOptionalAccidental(InsertValueAction):
@@ -506,14 +551,17 @@ class AbcActionHandlers(object):
         self.default_action_handler = AbcActionHandler()
         self.action_handlers = {
             'K:'         : KeyActionHandler(),
-            'Empty line' : AbcActionHandler([NewTuneAction()]),
+            'Empty line' : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
+            'Whitespace' : AbcActionHandler([NewNoteAction(), NewRestAction()]),
             'Note'       : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(),
                                              InsertOptionalAccidental()]),
             'Rest'       : AbcActionHandler([DurationAction()]),
+            'Bar'        : AbcActionHandler([BarChangeAction()]),
             'M:'         : AbcActionHandler([MeterChangeAction()]),
             'Q:'         : AbcActionHandler([TempoChangeAction()]),
             'Annotation' : AbcActionHandler([AnnotationPositionAction()]),
             'L:'         : AbcActionHandler([UnitNoteLengthChangeAction()]),
+
         }
 
     def get_action_handler(self, element):

@@ -4085,10 +4085,10 @@ class MainFrame(wx.Frame):
         self.toolbar.AddSeparator()
 
         # 1.3.6.3 [JWdJ] 2015-04-26 turned off abc assist for it is not finished yet
-        # abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'logo16.png')).ConvertToBitmap(), style=button_style)
-        # abc_assist.SetHelpText('ABC assist')
-        # self.toolbar.AddControl(abc_assist, label=_('ABC assist')).SetShortHelp(_('ABC assist')) # 1.3.6.2 [JWdJ] 2015-03
-        # self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
+        abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'logo16.png')).ConvertToBitmap(), style=button_style)
+        abc_assist.SetHelpText('ABC assist')
+        self.toolbar.AddControl(abc_assist, label=_('ABC assist')).SetShortHelp(_('ABC assist')) # 1.3.6.2 [JWdJ] 2015-03
+        self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
 
         ornamentations = self.toolbar.AddSimpleTool(self.id_ornamentations, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_ornamentations.png')).ConvertToBitmap(), 'Ornamentations')
         dynamics = self.toolbar.AddSimpleTool(self.id_dynamics, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_dynamics.png')).ConvertToBitmap(), 'Dynamics')
