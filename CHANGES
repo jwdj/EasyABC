@@ -411,5 +411,8 @@ Player Parameters. If you are using an external midi player,
 such as, timidity, you can now pass additional run time arguments
 to the program.
 
-
+For an upcoming feature called 'ABC assist' three new files have been added:
+- abc_assist_panel.py
+- tune_actions.py
+- tune_elements.py
 

@@ -99,6 +99,14 @@ class AbcContext(object):
             group_end = m.end(matchgroup)
             new_text = s[start:group_start] + new_text + s[group_end:end]
 
+        self.replace_in_editor(new_text, start, end)
+
+    def replace_matchgroups(self, values):
+        m = self.current_match
+        start = m.start()
+        end = m.end()
+        s = m.string
+        offset = 0
         for (matchgroup, value) in values:
             group_start = m.start(matchgroup)
             group_end = m.end(matchgroup)
