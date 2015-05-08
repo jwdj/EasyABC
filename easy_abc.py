@@ -31,6 +31,7 @@
 # Easier switching between different versions of executables by using dropdown button in File Settings tab
 # Removed buttons 'Change abcm2ps path' and 'Restore abcm2ps path' because the default can be chosen in de File Settings tab
 # Sometimes opening the messages window showed the 'processed tune' window
+# Added beats/minute controlled to the toolbar
 # Changed Internals->Messages to fixed font so Abcm2ps-messages with a ^ make sense
 #
 #
@@ -243,12 +244,12 @@
 #   parse_desc(), get_num_extra_header_lines(),OnNoteSelectionChangeDesc(),
 #   transpose_selected_note(), OnResetView(), OnSettingsChanged(),
 #   OnToggleMusicPaneMaximize(), OnMouseWheel(), update_playback_rate()
-#   OnBpmSlider(), OnBpmSliderClick(), start_midi_out(),
+#   OnBpmSlider(), OnBeatsPerMinute(), OnBpmSliderClick(), start_midi_out(),
 #   do_load_media_file(), OnMediaLoaded(),
 #   OnMediaStop(), OnMediaFinished(), OnToolRecord(),
 #   OnToolStop(), OnSeek(), OnZoomSlider(), OnPlayTimer(),
-#   OnRecordBpmSelected(), OnRecordMetreSelected(), setup_toolbar(),
-#   OnViewRythm(), OnRecordStop(), OnDoReMiModeChange(),
+#   OnRecordBpmSelected(), OnRecordMetreSelected(), flip_toolbar(),
+#   setup_toolbar(), OnViewRythm(), OnRecordStop(), OnDoReMiModeChange(),
 #   generate_incipits_abc(), OnGenerateIncipits(), OnViewIncipits()
 #   OnSortTunes(), OnRenumberTunes(), OnSearchDirectories(),
 #   OnUploadTune(), OnGetFileNameForTune(), OnExportMidi(),
@@ -309,7 +310,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.2 2015-03-12'
+program_name = 'EasyABC 1.3.6.3 2015-05-10'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -1203,6 +1204,8 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     default_midi_program   = settings.get('midi_program')
     default_midi_chordprog = settings.get('midi_chord_program')
     default_midi_bassprog  = settings.get('midi_bass_program')
+    # 1.3.6.3 [SS] 2015-05-04
+    default_tempo          = settings.get('bpmtempo')
     add_meta_data          = False
     #build the list of midi program to be used for each voice
     midi_program_ch_list=['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
@@ -1283,6 +1286,10 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     # 1.3.6.3 [SS] 2015-03-19
     if settings.get('transposition', '0') != '0':
         extra_lines.append('%%%%MIDI transpose %s' % settings['transposition'])
+
+    # 1.3.6.3 [SS] 2015-05-04
+    if default_tempo != 120:
+        extra_lines.append('Q:1/4 = %s' % default_tempo)
 
     header = os.linesep.join(extra_lines + [header.strip()])
 
@@ -3418,6 +3425,7 @@ class MainFrame(wx.Frame):
             exeName = win32api.GetModuleFileName(win32api.GetModuleHandle(None))
             icon = wx.Icon(exeName + ";0", wx.BITMAP_TYPE_ICO)
             self.SetIcon(icon)
+        global execmessages, visible_abc_code
         self.settings = settings
         self.current_svg_tune = None # 1.3.6.2 [JWdJ] 2015-02
         self.svg_tunes = AbcTunes()
@@ -3574,6 +3582,11 @@ class MainFrame(wx.Frame):
         self.load_settings(load_window_size_pos=True)
         self.restore_settings()
 
+        # 1.3.6.3 [SS] 2015-05-03
+        bpmtempo = settings['bpmtempo']
+        self.beatsperminute_slider.SetValue(int(bpmtempo))
+        self.beatsperminute_value.SetLabel(bpmtempo)
+
         # 1.3.6.3 [JWdJ] show abc-assist
         self.manager.DetachPane(self.abc_assist_panel)
         self.manager.AddPane(self.abc_assist_panel, self.assist_pane)
@@ -3612,6 +3625,10 @@ class MainFrame(wx.Frame):
 
         if self.settings.get('show_abc_assist', False):
             self.OnToolAbcAssist(None)
+
+        # 1.3.6.3 [SS] 2015-05-04
+        self.statusbar.SetStatusText('This is the status bar. Check it occasionally.')
+        execmessages = 'You are running '+ program_name + ' on '+ wx.Platform + '\nYou can get the latest version on http://sourceforge.net/projects/easyabc/'
 
     # 1.3.6.2 [JWdJ] 2015-02
     @property
@@ -3932,6 +3949,15 @@ class MainFrame(wx.Frame):
         else:
             evt.Skip()
 
+    def OnBeatsPerMinute(self, evt):
+        value = self.beatsperminute_slider.GetValue()
+        self.beatsperminute_value.SetLabel(str(value))
+        self.settings['bpmtempo'] = str(value)
+
+    # 1.3.6.3 [SS] 2015-05-05
+    def reset_BpmSlider(self):
+        self.bpm_slider.SetValue(100)
+        self.settings['tempo'] = 100
 
     def start_midi_out(self, midifile):
         ''' Starts the Midi Player which runs as a separate thread in order not to
@@ -3980,7 +4006,10 @@ class MainFrame(wx.Frame):
             if self.loop_midi_playback:
                 self.play_again()
             else:
+            # 1.3.6.3 [SS] 2015-05-04
+                self.flip_tempobox(False)      
                 self.stop_playing()
+                self.reset_BpmSlider()
 
     def OnToolRecord(self, evt):
         if self.record_thread and self.record_thread.is_running:
@@ -3999,7 +4028,10 @@ class MainFrame(wx.Frame):
     def OnToolStop(self, evt):
         self.loop_midi_playback = False
         self.stop_playing()
-        self.play_panel.Show(False)
+        # 1.3.6.3 [SS] 2015-04-03
+        #self.play_panel.Show(False)
+        self.flip_tempobox(False)
+        self.reset_BpmSlider()
         # self.toolbar.Realize() # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
         if self.record_thread and self.record_thread.is_running:
             self.OnToolRecord(None)
@@ -4034,6 +4066,17 @@ class MainFrame(wx.Frame):
         for item in self.metre_menu.GetMenuItems():
             if item.GetId() == evt.GetId():
                 self.settings['record_metre'] = item.GetText()
+
+    # 1.3.6.3 [SS] 2015-05-03
+    def flip_tempobox(self,state):
+        ''' rearranges the toolbar depending on whether a midi file is played using the
+            mc media player'''
+        self.tempobox.Show(self.tempotext,state)
+        self.tempobox.Show(self.bpm_slider,state)
+        self.tempobox.Show(self.playpostext,state)
+        self.tempobox.Show(self.media_slider,state)
+        self.tempobox.Show(self.bpmbox,not state)
+        self.toolbar.Realize()
 
     def setup_toolbar(self):
         self.toolbar = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize)#, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
@@ -4085,10 +4128,10 @@ class MainFrame(wx.Frame):
         self.toolbar.AddSeparator()
 
         # 1.3.6.3 [JWdJ] 2015-04-26 turned off abc assist for it is not finished yet
-        abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'logo16.png')).ConvertToBitmap(), style=button_style)
-        abc_assist.SetHelpText('ABC assist')
-        self.toolbar.AddControl(abc_assist, label=_('ABC assist')).SetShortHelp(_('ABC assist')) # 1.3.6.2 [JWdJ] 2015-03
-        self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
+        #abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'logo16.png')).ConvertToBitmap(), style=button_style)
+        #abc_assist.SetHelpText('ABC assist')
+        #self.toolbar.AddControl(abc_assist, label=_('ABC assist')).SetShortHelp(_('ABC assist')) # 1.3.6.2 [JWdJ] 2015-03
+        #self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
 
         ornamentations = self.toolbar.AddSimpleTool(self.id_ornamentations, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_ornamentations.png')).ConvertToBitmap(), 'Ornamentations')
         dynamics = self.toolbar.AddSimpleTool(self.id_dynamics, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_dynamics.png')).ConvertToBitmap(), 'Dynamics')
@@ -4115,22 +4158,46 @@ class MainFrame(wx.Frame):
         self.toolbar.AddControl(self.cur_page_combo)
         self.Bind(wx.EVT_COMBOBOX, self.OnPageSelected, self.cur_page_combo)
 
+        # 1.3.6.3 [SS] 2015-05-03
         self.play_panel = panel = wx.Panel(self.toolbar, -1)
+        self.tempotext = wx.StaticText(panel, -1, _('Tempo:'))
         self.bpm_slider = wx.Slider(panel, -1, 100, 33, 230, (30, 60), (130, 22))
+        self.playpostext = wx.StaticText(panel, -1, _('Play position:'))
         self.media_slider = wx.Slider(panel, -1, 25, 1, 100, (30, 60), (130, 22))
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.AddSpacer(20)
-        box.Add(wx.StaticText(panel, -1, _('Tempo:')), flag=wx.ALIGN_CENTER_VERTICAL)
-        box.Add(self.bpm_slider)
-        box.AddSpacer(20)
-        box.Add(wx.StaticText(panel, -1, _('Play position:')), flag=wx.ALIGN_CENTER_VERTICAL)
-        box.Add(self.media_slider)
-        panel.SetSizer(box)
+        self.bpmtext = wx.StaticText(panel, -1, _('Beats/minute:'))
+        bpmtempo = '120'
+        self.beatsperminute_slider  = wx.Slider(panel, value=int(bpmtempo), minValue=60, maxValue=240,
+                                size=(130, 22), style=wx.SL_HORIZONTAL )
+        self.beatsperminute_value = wx.StaticText(panel,-1,bpmtempo)
+
+        # 1.3.6.3 [SS] 2015-05-03
+        self.tempobox = wx.BoxSizer(wx.HORIZONTAL)
+        self.bpmbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.tempobox.SetMinSize((400,25))
+        self.tempobox.AddSpacer(20)
+        self.tempobox.Add(self.tempotext, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.tempobox.Add(self.bpm_slider)
+        self.tempobox.AddSpacer(20)
+        self.tempobox.Add(self.playpostext, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.tempobox.Add(self.media_slider)
+        self.tempobox.AddSpacer(20)
+        self.bpmbox.Add(self.bpmtext,flag=wx.ALIGN_CENTER_VERTICAL)
+        self.bpmbox.Add(self.beatsperminute_slider)
+        self.bpmbox.Add(self.beatsperminute_value)
+        self.tempobox.Add(self.bpmbox)
+
+        panel.SetSizer(self.tempobox)
         panel.SetAutoLayout(True)
+        self.play_panel.Show(True)
+        self.flip_tempobox(False)
+
+
         self.toolbar.AddControl(panel)
         self.Bind(wx.EVT_SLIDER, self.OnSeek, self.media_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
+        self.Bind(wx.EVT_SLIDER, self.OnBeatsPerMinute,self.beatsperminute_slider)
         self.bpm_slider.Bind(wx.EVT_LEFT_DOWN, self.OnBpmSliderClick)
+
 
         self.Bind(wx.EVT_TOOL, self.OnToolDynamics, dynamics)
         self.Bind(wx.EVT_TOOL, self.OnToolOrnamentation, ornamentations)
@@ -4146,7 +4213,7 @@ class MainFrame(wx.Frame):
 
         # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
         self.toolbar.Realize()
-        self.play_panel.Show(False)
+        #self.play_panel.Show(False) 
         self.cur_page_label.Show(False)
         self.cur_page_combo.Show(False)
 
@@ -4873,7 +4940,10 @@ class MainFrame(wx.Frame):
             self.mc.Play()
         else:
             remove_repeats = evt.ControlDown() or evt.CmdDown()
-            self.play_panel.Show(not self.settings['midiplayer_path']) # 1.3.6.2 [JWdJ] 2015-02
+            # 1.3.6.3 [SS] 2015-05-04
+            if not self.settings['midiplayer_path']:
+                self.flip_tempobox(True)
+            #self.play_panel.Show(not self.settings['midiplayer_path']) # 1.3.6.2 [JWdJ] 2015-02
             # self.toolbar.Realize() # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
 
             if remove_repeats:
@@ -7254,7 +7324,8 @@ class MainFrame(wx.Frame):
                         ('abcm2ps_topmargin', '1.00'), ('abcm2ps_botmargin', '1.00'),
                         ('abcm2ps_scale', '0.75'), ('abcm2ps_clean', False),
                         ('abcm2ps_defaults', True), ('abcm2ps_pagewidth', '21.59'),
-                        ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', '')
+                        ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', ''),
+                        ('bpmtempo', '120')
                        ]
 
         # 1.3.6 [SS] 2014-12-16

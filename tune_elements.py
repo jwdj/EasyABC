@@ -186,6 +186,7 @@ class AbcElement(object):
         self.supported_values = None
         self.exact_match_required = False
         self.visible_match_group = None
+        self.removable_match_groups = {}
 
         #self.html_cache_name = os.path.join(cache_path, "".join([x if x.isalnum() else "_" for x in name]))
 
@@ -463,14 +464,8 @@ class AbcSpace(AbcBodyElement):
         super(AbcSpace, self).__init__('Whitespace', AbcSpace.pattern)
 
 
-class AbcChordSymbol(AbcBodyElement):
-    pattern = r'"[^\^_<>@]((?:\\"|[^"])*)"'
-    def __init__(self):
-        super(AbcChordSymbol, self).__init__('Chord', AbcChordSymbol.pattern, description=_('Chord'))
-
-
 class AbcAnnotation(AbcBodyElement):
-    pattern = r'"(?P<pos>[\^_<>@])((?:\\"|[^"])*)"'
+    pattern = r'(?P<annotation>"(?P<pos>[\^_<>@])((?:\\"|[^"])*)")'
     def __init__(self):
         super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern) #, description=_('An annotation'))
 
@@ -485,12 +480,6 @@ class AbcGrace(AbcBodyElement):
     pattern = '{/?|}'
     def __init__(self):
         super(AbcGrace, self).__init__('Grace notes', AbcGrace.pattern, description=_('Grace notes can be written by enclosing them in curly braces. To distinguish between appoggiaturas and acciaccaturas, the latter are notated with a forward slash immediately following the open brace.'))
-
-
-class AbcChordBeginAndEnd(AbcBodyElement):
-    pattern = r'\[|\]'
-    def __init__(self):
-        super(AbcChordBeginAndEnd, self).__init__('Chord', AbcChordBeginAndEnd.pattern, description=_('Multiple simultaneous notes.'))
 
 
 class TypesettingSpace(AbcBodyElement):
@@ -571,67 +560,92 @@ class AbcBaseNote(AbcBodyElement):
     octave_pattern = r"(?P<octave>[',]*)"
     pair_pattern = r'(?P<pair>(?: *>+| *<+)?)'
     tie_pattern = r'(?P<tie>-?)'
-    note_pattern = r'{0}(?P<note>[A-Ga-g]){1}{2}{3}'.format(accidental_pattern, octave_pattern, length_pattern, pair_pattern)
-    normal_rest_pattern = '[zx]{0}{1}?'.format(length_pattern, pair_pattern)
-    note_or_rest_pattern = '(?:{0}|{1})'.format(note_pattern, normal_rest_pattern)
-    measure_rest_pattern = '[ZX](?P<measures>(?:[1-9][0-9]*)?)'
+
+    basic_note_pattern_without_len = r'{0}(?P<note>[A-Ga-g]){1}'.format(accidental_pattern, octave_pattern)
+    basic_note_pattern = basic_note_pattern_without_len + length_pattern
+
+    basic_rest_pattern_without_len = '(?P<rest>[zx])'
+    basic_rest_pattern = basic_rest_pattern_without_len + length_pattern
+
+    basic_note_or_rest_pattern = '(?:{0}|{1})'.format(basic_note_pattern_without_len, basic_rest_pattern_without_len) + length_pattern
+    basic_measure_rest_pattern = '(?P<measurerest>[ZX])(?P<measures>(?:[1-9][0-9]*)?)'
+
     def __init__(self, name, pattern, description=None):
         super(AbcBaseNote, self).__init__(name, pattern, description=description)
 
 
-class AbcNote(AbcBaseNote):
-    pattern = AbcBaseNote.note_pattern
+class AbcChordBeginAndEnd(AbcBodyElement):
+    pattern = r'\[|\]'
     def __init__(self):
-        super(AbcNote, self).__init__('Note', AbcNote.pattern)
+        super(AbcChordBeginAndEnd, self).__init__('Chord marker', AbcChordBeginAndEnd.pattern, description=_('Multiple simultaneous notes.'))
 
 
-class AbcRest(AbcBaseNote):
-    pattern = '(?:{0}|{1})'.format(AbcBaseNote.normal_rest_pattern, AbcBaseNote.measure_rest_pattern)
-
-    def get_header_text(self, context):
-        text = super(AbcRest, self).get_header_text(context)
-        if context.match_text[0] in 'Xx':
-            text = '{0} {1}'.format(_('Invisible'), text)
-        return text
-
-
-class AbcNormalRest(AbcRest):
-    pattern = AbcBaseNote.normal_rest_pattern
+class AbcChordSymbol(AbcBodyElement):
+    pattern = r'(?P<chordsymbol>"[^\^_<>@]((?:\\"|[^"])*)")'
     def __init__(self):
-        super(AbcNormalRest, self).__init__('Rest', AbcNormalRest.pattern)
-
-
-class AbcMeasureRest(AbcRest):
-    pattern = AbcBaseNote.measure_rest_pattern
-    def __init__(self):
-        super(AbcMeasureRest, self).__init__('MeasureRest', AbcMeasureRest.pattern)
-        self.__display_name = _('Measure rest')
+        super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern)
 
 
 class AbcGraceNotes(AbcBaseNote):
-    pattern = r'{/?([^}]*)}'
+    pattern = r'(?P<grace>{(?P<arp>/?)(?P<grnotes>[^}]*)})'
     def __init__(self):
         super(AbcBaseNote, self).__init__('Grace notes', AbcGraceNotes.pattern)
 
 
+class AbcNoteGroup(AbcBaseNote):
+    note_group_pattern_prefix = r'(?P<gracenotes>{0}?)(?P<chordsymbols>{1}?)(?:(?P<decorations>{2})|(?P<annotations>{3})*)'.format(
+                                AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern, AbcAnnotation.pattern)
+    note_group_pattern_postfix = AbcBaseNote.pair_pattern + AbcBaseNote.tie_pattern
+
+    note_pattern = note_group_pattern_prefix + AbcBaseNote.basic_note_pattern + AbcBaseNote.pair_pattern
+    normal_rest_pattern = note_group_pattern_prefix + AbcBaseNote.basic_rest_pattern + AbcBaseNote.pair_pattern
+    note_or_rest_pattern = note_group_pattern_prefix + '(?:{0}|{1})'.format(AbcBaseNote.basic_note_or_rest_pattern, AbcBaseNote.basic_measure_rest_pattern)
+    measure_rest_pattern = AbcBaseNote.basic_measure_rest_pattern
+    chord_pattern = r'(?P<chord>\[(?:{0}\s*)*\])'.format(replace_named_group(note_or_rest_pattern, 'length')) + AbcBaseNote.length_pattern + note_group_pattern_postfix
+    pattern = r'(?:{0}|{1}){2}'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern), AbcBaseNote.pair_pattern)
+    def __init__(self):
+        super(AbcNoteGroup, self).__init__('Note group', AbcNoteGroup.pattern) # '^{0}$'.format(AbcNoteGroup.pattern))
+        #self.exact_match_required = True
+
+
 class AbcChord(AbcBaseNote):
-    pattern = r'\[(?:{0}*{1})+\]'.format(AbcDecoration.pattern, AbcBaseNote.note_pattern)
+    pattern = AbcNoteGroup.chord_pattern
     def __init__(self):
         super(AbcBaseNote, self).__init__('Chord', AbcChord.pattern)
+        #self.exact_match_required = True
 
 
-class AbcNoteGroup(AbcBaseNote):
-    pattern = r'{0}?{1}?(?:{2}|{3})*{4}{5}'.format(AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern,
-                                                   AbcAnnotation.pattern, AbcBaseNote.note_pattern,
-                                                   replace_named_group(AbcBaseNote.pair_pattern, 'pair', 'grouppair'))
+class AbcNote(AbcBaseNote):
+    pattern = AbcNoteGroup.note_pattern
     def __init__(self):
-        super(AbcBaseNote, self).__init__('Note group', '^{0}$'.format(AbcNoteGroup.pattern))
-        self.exact_match_required = True
+        super(AbcNote, self).__init__('Note', AbcNote.pattern)
+        self.removable_match_groups = {
+            'grace': _('Grace notes'),
+            'chordsymbol': _('Chord symbol'),
+            'annotations': _('Annotation')
+        }
+
+
+class AbcNormatOrMeasureRest(AbcBaseNote):
+    pattern = AbcBaseNote.basic_note_or_rest_pattern
+
+
+class AbcNormalRest(AbcNormatOrMeasureRest):
+    pattern = AbcNoteGroup.normal_rest_pattern
+    def __init__(self):
+        super(AbcNormalRest, self).__init__('Rest', AbcNormalRest.pattern)
+
+
+class AbcMeasureRest(AbcNormatOrMeasureRest):
+    pattern = AbcNoteGroup.measure_rest_pattern
+    def __init__(self):
+        super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern, _('This rest spans an entire measure'))
+
 
 class AbcMultipleNotes(AbcBaseNote):
-    pattern = '(?:{0}|{1})(?:\s*(?:{0}|{1}))+'.format(remove_named_groups(AbcNoteGroup.pattern), remove_named_groups(AbcBaseNote.normal_rest_pattern))
+    pattern = AbcNoteGroup.pattern + '{2,}'
     def __init__(self):
-        super(AbcBaseNote, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern))
+        super(AbcMultipleNotes, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern))
         self.exact_match_required = True
 
 
@@ -813,6 +827,8 @@ class AbcStructure(object):
             AbcBar(),
             AbcDecoration(),
             AbcSlur(),
+            AbcChord(),
+            AbcMultipleNotes(),
             AbcNote(),
             AbcNormalRest(),
             AbcMeasureRest(),
@@ -821,9 +837,6 @@ class AbcStructure(object):
             AbcVoiceOverlay(),
             AbcBrokenRhythm(),
             AbcInvalidCharacter(),
-            AbcChord(),
-            AbcNoteGroup(),
-            AbcMultipleNotes(),
             TypesettingSpace(),
             RedefinableSymbol(),
             AbcSpace(),

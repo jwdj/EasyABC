@@ -194,6 +194,31 @@ class InsertValueAction(ValueChangeAction):
         return u''
 
 
+class RemoveValueAction(AbcAction):
+    def __init__(self, matchgroup=None):
+        super(RemoveValueAction, self).__init__('Remove', matchgroups)
+        self.matchgroups = matchgroups
+
+    def can_execute(self, context, params=None):
+        matchgroup = params.get('matchgroup', '')
+        if matchgroup:
+            return context.get_matchgroup(matchgroup)
+        else:
+            return True
+
+    def execute(self, context, params=None):
+        matchgroup = params.get('matchgroup', '')
+        context.replace_match_text('', matchgroup)
+
+
+
+
+
+##################################################################################################
+#  CHANGE ACTIONS
+##################################################################################################
+
+
 class AccidentalChangeAction(ValueChangeAction):
     accidentals = [
         CodeDescription('',   _('No accidental')),
@@ -240,11 +265,44 @@ class PitchAction(ValueChangeAction):
         super(PitchAction, self).__init__('Pitch', PitchAction.pitch_values, matchgroup='octave')
 
     def can_execute(self, context, params=None):
-        return True
+        value = params.get('value')
+        note = context.get_matchgroup('note')
+        octave = self.octave_abc_to_number(note, context.get_matchgroup('octave'))
+        if value == "'":
+            return octave < 4
+        elif value == ',':
+            return octave > -4
+        return False
+
+    def execute(self, context, params=None):
+        value = params.get('value')
+        note = context.get_matchgroup('note')
+        octave = context.get_matchgroup('octave')
+        octave_no = self.octave_abc_to_number(note, octave)
+        if value == "'":
+            octave_no += 1
+        elif value == ',':
+            octave_no -= 1
+
+        if octave_no > 0:
+            note = note.lower()
+        else:
+            note = note.upper()
+
+        if octave_no > 1:
+            octave = "'" * (octave_no-1)
+        elif octave_no < 0:
+            octave = "," * -octave_no
+        else:
+            octave = ''
+
+        context.replace_matchgroups([('note', note), ('octave', octave)])
 
     @staticmethod
-    def octave_abc_to_number(abc_octave):
+    def octave_abc_to_number(note, abc_octave):
         result = 0
+        if note.islower():
+            result += 1
         if abc_octave:
             for ch in abc_octave:
                 if ch == "'":
@@ -253,29 +311,11 @@ class PitchAction(ValueChangeAction):
                     result -= 1
         return result
 
-    @staticmethod
-    def octave_number_to_abc(octave):
-        if octave > 0:
-            return "'" * octave
-        elif octave < 0:
-            return "," * -octave
-        else:
-            return ''
-
-    def execute(self, context, params=None):
-        value = params.get('value')
-        octave = self.octave_abc_to_number(context.get_matchgroup('octave'))
-        if value == "'":
-            octave += 1
-        elif value == ',':
-            octave -= 1
-        text = self.octave_number_to_abc(octave)
-        context.replace_match_text(text, 'octave')
-
 
 class DurationAction(ValueChangeAction):
     denominator_re = re.compile('/(\d*)')
     duration_values = [
+        CodeDescription('', _('Default length')),
         CodeDescription('/', _('Halve note length')),
         CodeDescription('2', _('Double note length')),
         CodeDescription('3', _('Dotted note')),
@@ -312,20 +352,24 @@ class DurationAction(ValueChangeAction):
 
     def can_execute(self, context, params=None):
         value = params.get('value')
-        if value in '<>':
+        if not value:
+            return context.get_matchgroup('pair') or context.get_matchgroup('length')
+        elif value in '<>':
             return not value in context.get_matchgroup('pair', '')
         else:
             frac = self.length_to_fraction(context.get_matchgroup('length'))
             if value == '/':
                 return frac.denominator < 128
             elif value == '2':
-                return frac.numerator < 128
+                return frac.numerator < 16
             elif value == '3':
                 return self.is_power2(frac.numerator) and self.is_power2(frac.denominator)
 
     def execute(self, context, params=None):
         value = params.get('value')
-        if value in '/23':
+        if not value:
+            context.replace_matchgroups([('length', ''), ('pair', '')])
+        elif value in '/23':
             frac = self.length_to_fraction(context.get_matchgroup('length'))
             if value == '/':
                 frac.denominator *= 2
@@ -355,34 +399,28 @@ class DurationAction(ValueChangeAction):
 
 class TempoChangeAction(ValueChangeAction):
     tempo_names = {
-        'Larghissimo ' :  40,
-        'Adagissimo  ' :  44,
-        'Lentissimo  ' :  48,
-        'Largo       ' :  56,
-        'Adagio      ' :  59,
-        'Lento       ' :  62,
-        'Larghetto   ' :  66,
-        'Adagietto   ' :  76,
-        'Andante     ' :  88,
-        'Andantino   ' :  96,
-        'Moderato    ' : 104,
-        'Allegretto  ' : 112,
-        'Allegro     ' : 120,
-        'Vivace      ' : 168,
-        'Vivo        ' : 180,
-        'Presto      ' : 192,
+        'Larghissimo'  :  40,
+        'Adagissimo'   :  44,
+        'Lentissimo'   :  48,
+        'Largo'        :  56,
+        'Adagio'       :  59,
+        'Lento'        :  62,
+        'Larghetto'    :  66,
+        'Adagietto'    :  76,
+        'Andante'      :  88,
+        'Andantino'    :  96,
+        'Moderato'     : 104,
+        'Allegretto'   : 112,
+        'Allegro'      : 120,
+        'Vivace'       : 168,
+        'Vivo'         : 180,
+        'Presto'       : 192,
         'Allegrissimo' : 208,
-        'Vivacissimo ' : 220,
-        'Prestissimo ' : 240,
+        'Vivacissimo'  : 220,
+        'Prestissimo'  : 240,
     }
     def __init__(self):
-        super(TempoChangeAction, self).__init__('Change tempo', TempoChangeAction.tempo_names)
-
-    def can_execute(self, context, params=None):
-        return True
-
-    def execute(self, context, params=None):
-        context.replace_match_text('test')
+        super(TempoChangeAction, self).__init__('Change tempo', TempoChangeAction.tempo_names, 1)
 
 
 class AnnotationPositionAction(ValueChangeAction):
@@ -413,11 +451,26 @@ class BarChangeAction(ValueChangeAction):
         super(BarChangeAction, self).__init__('Change bar', BarChangeAction.values)
 
 
+class RestVisibilityChangeAction(ValueChangeAction):
+    values = [
+        CodeDescription('z',  _('Visible')),
+        CodeDescription('x',  _('Hidden')),
+    ]
+    def __init__(self):
+        super(RestVisibilityChangeAction, self).__init__('Change visibility', RestVisibilityChangeAction.values, 'rest')
+
+
+class MeasureRestVisibilityChangeAction(ValueChangeAction):
+    values = [
+        CodeDescription('Z',  _('Visible')),
+        CodeDescription('X',  _('Hidden')),
+    ]
+    def __init__(self):
+        super(MeasureRestVisibilityChangeAction, self).__init__('Change visibility', MeasureRestVisibilityChangeAction.values, 'measurerest')
 
 ##################################################################################################
-#  INSERT ACTIONS
+#  URL ACTIONS
 ##################################################################################################
-
 
 
 class UrlAction(AbcAction):
@@ -445,6 +498,7 @@ class Abc2MidiUrlAction(UrlAction):
     def __init__(self, keyword):
         url = 'http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_body.html#{0}'.format(urllib.quote(keyword))
         super(AbcAction, self).__init__(url)
+
 
 ##################################################################################################
 #  INSERT ACTIONS
@@ -487,7 +541,6 @@ class NewRestAction(InsertValueAction):
         CodeDescription('z', _('Normal rest')),
         CodeDescription('Z', _('Measure rest')),
         CodeDescription('x', _('Invisible rest')),
-        CodeDescription('X', _('Invisible measure rest'))
     ]
     def __init__(self):
         super(NewRestAction, self).__init__('abc_new_rest', supported_values=NewRestAction.values,
@@ -502,6 +555,14 @@ class InsertOptionalAccidental(InsertValueAction):
     ]
     def __init__(self):
         super(InsertOptionalAccidental, self).__init__('Insert annotation', InsertOptionalAccidental.values)
+
+
+##################################################################################################
+#  REMOVE ACTIONS
+##################################################################################################
+
+
+
 
 
 ##################################################################################################
@@ -555,7 +616,8 @@ class AbcActionHandlers(object):
             'Whitespace' : AbcActionHandler([NewNoteAction(), NewRestAction()]),
             'Note'       : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(),
                                              InsertOptionalAccidental()]),
-            'Rest'       : AbcActionHandler([DurationAction()]),
+            'Rest'       : AbcActionHandler([DurationAction(), RestVisibilityChangeAction()]),
+            'Measure rest': AbcActionHandler([MeasureRestVisibilityChangeAction()]),
             'Bar'        : AbcActionHandler([BarChangeAction()]),
             'M:'         : AbcActionHandler([MeterChangeAction()]),
             'Q:'         : AbcActionHandler([TempoChangeAction()]),

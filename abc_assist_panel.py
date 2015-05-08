@@ -99,6 +99,17 @@ class AbcContext(object):
             group_end = m.end(matchgroup)
             new_text = s[start:group_start] + new_text + s[group_end:end]
 
+        for (matchgroup, value) in values:
+            group_start = m.start(matchgroup)
+            group_end = m.end(matchgroup)
+            old_length = group_end-group_start
+            length_diff = len(value) - old_length
+            s = s[:group_start+offset] + value + s[group_end+offset:]
+            offset += length_diff
+        s = s[start:end+offset]
+        self.replace_in_editor(s, start, end)
+
+    def replace_in_editor(self, new_text, start, end):
         if self.current_element.exact_match_required:
             start += self.editor_sel_start
             end += self.editor_sel_start
@@ -108,20 +119,6 @@ class AbcContext(object):
 
         self.replace_selection(new_text, start, end)
         self.invalidate()
-
-    def replace_matchgroups(self, values):
-        m = self.current_match
-        start = m.start()
-        end = m.end()
-        s = m.string
-        new_text = ''
-        for matchgroup in values:
-            group_start = m.start(matchgroup)
-            group_end = m.end(matchgroup)
-            value = values[matchgroup]
-            new_text = s[start:group_start] + new_text + s[group_end:end]
-        new_text = ''.join(parts)
-        self.replace_match_text(new_text)
 
     def get_matchgroup(self, matchgroup, default=None):
         result = self.current_match.group(matchgroup)
@@ -232,24 +229,27 @@ table, th, td {
             return ABC_SECTION_FILE_HEADER
 
     def update_assist(self):
-        self.context = AbcContext(self.get_abc_section(), self._editor, on_invalidate=self.update_assist)
-        element, match = self.get_current_element()
-        self.context.current_element = element
-        self.context.current_match = match
-        if match:
-            self.context.match_text = match.string[match.start():match.end()]
-        else:
-            self.context.match_text = None
-        self.current_element = element
+        try:
+            self.context = AbcContext(self.get_abc_section(), self._editor, on_invalidate=self.update_assist)
+            element, match = self.get_current_element()
+            self.context.current_element = element
+            self.context.current_match = match
+            if match:
+                self.context.match_text = match.string[match.start():match.end()]
+            else:
+                self.context.match_text = None
+            self.current_element = element
 
-        html = self.html_header
-        if element is not None:
-            html += element.get_description_html(self.context)
-            action_html = self.actions_handlers.get_action_handler(element).get_action_html(self.context)
-            if action_html:
-                html += '<br>' + action_html
-        html += self.html_footer
-        self.set_html(html)
+            html = self.html_header
+            if element is not None:
+                html += element.get_description_html(self.context)
+                action_html = self.actions_handlers.get_action_handler(element).get_action_html(self.context)
+                if action_html:
+                    html += '<br>' + action_html
+            html += self.html_footer
+            self.set_html(html)
+        except Exception as ex:
+            print ex
 
     def set_html(self, html, save_scroll_pos=True):
         pos = self.current_html.GetViewStart()[1]
