@@ -1,5 +1,6 @@
 from tune_elements import *
 from tune_actions import *
+import logging
 import wx
 import wx.html
 import webbrowser
@@ -38,36 +39,116 @@ class AbcAssistControl(object):
         #    ctrl.SetHint(element.description.split('\n', 1)[0])
         self.control = ctrl
 
-
 class AbcContext(object):
     def __init__(self, abc_section, editor, on_invalidate=None):
         self._editor = editor
         self.abc_section = abc_section
-        line_no = editor.GetCurrentLine()
-        self.previous_line = None
-        if line_no > 0:
-            self.previous_line = editor.GetLine(line_no - 1)
         self.editor_sel_start, self.editor_sel_end = editor.GetSelection()
-        self.selected_text = editor.GetTextRange(self.editor_sel_start, self.editor_sel_end)
-        first_line_no = editor.LineFromPosition(self.editor_sel_start)
-        last_line_no = editor.LineFromPosition(self.editor_sel_end)
-        self.single_line_select = first_line_no == last_line_no
-        self.editor_lines_start = editor.PositionFromLine(first_line_no)
-        self.editor_lines_end = editor.GetLineEndPosition(last_line_no)
-        self.lines = editor.GetTextRange(self.editor_lines_start, self.editor_lines_end)
-        self.selection = (self.editor_sel_start - self.editor_lines_start, self.editor_sel_end - self.editor_lines_start)
         self.current_element = None
-        self.current_match = None
+        self._current_match = None
+        self.inner_match = None
         self.match_text = None
         self.match_text_start = None
+        self._tune_scope_info_getter = {
+            TuneScope.FullText: self.get_full_text,
+            TuneScope.SelectedText: self.get_selected_text,
+            TuneScope.SelectedLines: self.get_selected_lines,
+            #TuneScope.TuneHeader: get_tune_header,
+            #TuneScope.TuneBody: get_tune_body,
+            #TuneScope.FileHeader: get_file_header,
+            TuneScope.PreviousLine: self.get_previous_line,
+            TuneScope.MatchText: self.get_match_text
+        }
+        self._tune_scope_info = {}
+
         self.on_invalidate = on_invalidate
 
     @property
-    def empty_selection(self):
-        return self.selection[0] == self.selection[1]
+    def current_match(self):
+        return self._current_match
+
+    def set_current_match(self, match, tune_scope):
+        offset = self.get_scope_info(tune_scope).start
+        inner_match = None
+        if isinstance(match, tuple):
+            if len(match) > 1:
+                inner_match = match[len(match)-1]
+            match = match[0]
+
+        self._current_match = match
+        start = match.start()
+        stop = match.end()
+        if match:
+            scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+        else:
+            scope_info = TuneScopeInfo(None, None, None)
+        self._tune_scope_info[TuneScope.MatchText] = scope_info
+        inner_scope_info = scope_info
+        self.inner_match = None
+        if inner_match:
+            match = inner_match.match
+            self.inner_match = match
+            start = match.start()
+            stop = match.end()
+            offset += inner_match.offset
+            inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+        self._tune_scope_info[TuneScope.InnerText] = inner_scope_info
+
+    @property
+    def lines(self):
+        return self.get_scope_info(TuneScope.SelectedLines).text
+
+    @property
+    def selected_text(self):
+        return self.get_scope_info(TuneScope.SelectedText).text
+
+    @property
+    def previous_line(self):
+        return self.get_scope_info(TuneScope.PreviousLine).text
+
+    def get_scope_info(self, tune_scope):
+        result = self._tune_scope_info.get(tune_scope)
+        if result is None:
+            result = self._tune_scope_info_getter[tune_scope]()
+            self._tune_scope_info[tune_scope] = result
+        return result
+
+    def get_selection_within_scope(self, tune_scope):
+        return self.translate_range_for_scope(TuneScope.SelectedText, tune_scope)
+
+    def translate_range_for_scope(self, from_scope, to_scope):
+        f = self.get_scope_info(from_scope)
+        t = self.get_scope_info(to_scope)
+        return f.start-t.start, f.stop-t.start
 
     def get_full_text(self):
-        return self._editor.GetText()
+        return TuneScopeInfo(self._editor.GetText(), 0, self._editor.GetTextLength())
+
+    def get_selected_text(self):
+        start, stop = self._editor.GetSelection()
+        if start == stop:
+            return TuneScopeInfo('', start, stop)
+        else:
+            return TuneScopeInfo(self._editor.GetTextRange(start, stop), start, stop)
+
+    def get_selected_lines(self):
+        sel_start, sel_stop = self._editor.GetSelection()
+        first_line_no = self._editor.LineFromPosition(sel_start)
+        last_line_no = self._editor.LineFromPosition(sel_stop)
+        editor_lines_start = self._editor.PositionFromLine(first_line_no)
+        editor_lines_end = self._editor.GetLineEndPosition(last_line_no)
+        return TuneScopeInfo(self._editor.GetTextRange(editor_lines_start, editor_lines_end), editor_lines_start, editor_lines_end)
+
+    def get_previous_line(self):
+        line_no = self._editor.GetCurrentLine()
+        if line_no == 0:
+            return TuneScopeInfo(None, None, None)
+        else:
+            line_no -= 1
+            return TuneScopeInfo(self._editor.GetLine(line_no), self._editor.PositionFromLine(line_no), self._editor.GetLineEndPosition(line_no))
+
+    def get_match_text(self):
+        return TuneScopeInfo(None, None, None)
 
     def insert_text(self, text):
         self._editor.BeginUndoAction()
@@ -89,20 +170,25 @@ class AbcContext(object):
         self.invalidate()
 
     def replace_match_text(self, new_text, matchgroup=None):
+        tune_scope = TuneScope.MatchText
         m = self.current_match
-        start = m.start()
-        end = m.end()
+        if self.inner_match:
+            tune_scope = TuneScope.InnerText
+            m = self.inner_match
 
         if matchgroup:
             s = m.string
-            group_start = m.start(matchgroup)
-            group_end = m.end(matchgroup)
-            new_text = s[start:group_start] + new_text + s[group_end:end]
+            new_text = s[m.start():m.start(matchgroup)] + new_text + s[m.end(matchgroup):m.end()]
 
-        self.replace_in_editor(new_text, start, end)
+        self.replace_in_editor(new_text, tune_scope)
 
     def replace_matchgroups(self, values):
+        tune_scope = TuneScope.MatchText
         m = self.current_match
+        if self.inner_match:
+            tune_scope = TuneScope.InnerText
+            m = self.inner_match
+
         start = m.start()
         end = m.end()
         s = m.string
@@ -115,31 +201,24 @@ class AbcContext(object):
             s = s[:group_start+offset] + value + s[group_end+offset:]
             offset += length_diff
         s = s[start:end+offset]
-        self.replace_in_editor(s, start, end)
+        self.replace_in_editor(s, tune_scope)
 
-    def replace_in_editor(self, new_text, start, end):
-        if self.current_element.exact_match_required:
-            start += self.editor_sel_start
-            end += self.editor_sel_start
-        else:
-            start += self.editor_lines_start
-            end += self.editor_lines_start
-
-        self.replace_selection(new_text, start, end)
+    def replace_in_editor(self, new_text, tune_scope):
+        scope_info = self.get_scope_info(tune_scope)
+        self.replace_selection(new_text, scope_info.start, scope_info.stop)
         self.invalidate()
 
     def get_matchgroup(self, matchgroup, default=None):
-        result = self.current_match.group(matchgroup)
+        match = self.inner_match or self.current_match
+        result = match.group(matchgroup)
         if result is None:
             result = default
         return result
 
     def invalidate(self): # context has changed so is not valid anymore
-        self.lines = None
-        self.match_text = None
-        self.selected_text = None
+        self._tune_scope_info = {}
         self.current_element = None
-        self.selection = None
+        self.set_current_match = None
         if self.on_invalidate is not None:
             self.on_invalidate()
 
@@ -152,9 +231,19 @@ class AbcAssistPanel(wx.Panel):
 <html>
 <head>
 <style type="text/css">
-a { text-decoration:none }
+a {
+    text-decoration:none
+}
 table, th, td {
     border: 0px solid black;
+}
+img {
+    opacity: 0.4;
+    filter: alpha(opacity=40); /* For IE8 and earlier */
+}
+img:hover {
+    opacity: 1.0;
+    filter: alpha(opacity=100); /* For IE8 and earlier */
 }
 </style>
 </head>
@@ -170,7 +259,6 @@ table, th, td {
         self._editor = editor
         self.context = None
         self.abc_section = None
-        self.current_element = None
         self.elements = AbcStructure.generate_abc_elements(cwd)
         self.actions_handlers = AbcActionHandlers()
 
@@ -228,25 +316,21 @@ table, th, td {
         if self._editor.GetLine(start_line).startswith('X:'):
             body_start_line = self.get_body_start_line(start_line + 1)
             if line_no < body_start_line:
-                return ABC_SECTION_TUNE_HEADER
+                return AbcSection.TuneHeader
             elif line_no < self.get_body_end_line(body_start_line):
-                return ABC_SECTION_TUNE_BODY
+                return AbcSection.TuneBody
             else:
-                return ABC_SECTION_OUTSIDE_TUNE
+                return AbcSection.OutsideTune
         else:
-            return ABC_SECTION_FILE_HEADER
+            return AbcSection.FileHeader
 
     def update_assist(self):
         try:
             self.context = AbcContext(self.get_abc_section(), self._editor, on_invalidate=self.update_assist)
             element, match = self.get_current_element()
             self.context.current_element = element
-            self.context.current_match = match
-            if match:
-                self.context.match_text = match.string[match.start():match.end()]
-            else:
-                self.context.match_text = None
-            self.current_element = element
+            if element is not None:
+                self.context.set_current_match(match, element.tune_scope)
 
             html = self.html_header
             if element is not None:
@@ -257,14 +341,13 @@ table, th, td {
             html += self.html_footer
             self.set_html(html)
         except Exception as ex:
-            print ex
+            logging.exception(ex)
 
-    def set_html(self, html, save_scroll_pos=True):
-        pos = self.current_html.GetViewStart()[1]
+    def set_html(self, html):
+        scrollpos = self.current_html.GetViewStart()[1]
         self.current_html.Freeze()
         self.current_html.SetPage(html)
-        if save_scroll_pos:
-            self.current_html.Scroll(0, pos)
+        self.current_html.Scroll(0, scrollpos)
         self.current_html.Thaw()
 
     def get_current_element(self):
@@ -279,7 +362,7 @@ table, th, td {
         if href.startswith('http'):
             webbrowser.open(href)
         else:
-            action_handler = self.actions_handlers.get_action_handler(self.current_element)
+            action_handler = self.actions_handlers.get_action_handler(self.context.current_element)
             parts = href.split('?', 1)
             action_name = parts[0]
             if len(parts) > 1:

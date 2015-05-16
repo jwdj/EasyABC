@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6 2015/03/12
+# EasyABC V1.3.6.3 2015/05/10
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -1674,7 +1674,10 @@ class MidiThread(threading.Thread):
             # separate thread anymore.
             #time.sleep(0.5) # give abc2midi a chance to complete 2014-10-26 [SS]
             # 1.3.6.3 [SS] 2015-04-29
-            c = [midiplayer_path,  midi_file, midiplayer_parameters]
+            # 1.3.6.3 [SS] 2015-05-08
+            c = [midiplayer_path,  midi_file] + midiplayer_parameters
+            #note this is not the same as
+            #c = [midiplayer_path,  midi_file, midiplayer_parameters]
             try:
                 start_process_and_continue(c)
             except Exception as e:
@@ -4128,10 +4131,10 @@ class MainFrame(wx.Frame):
         self.toolbar.AddSeparator()
 
         # 1.3.6.3 [JWdJ] 2015-04-26 turned off abc assist for it is not finished yet
-        #abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'logo16.png')).ConvertToBitmap(), style=button_style)
-        #abc_assist.SetHelpText('ABC assist')
-        #self.toolbar.AddControl(abc_assist, label=_('ABC assist')).SetShortHelp(_('ABC assist')) # 1.3.6.2 [JWdJ] 2015-03
-        #self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
+        abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'logo16.png')).ConvertToBitmap(), style=button_style)
+        abc_assist.SetHelpText('ABC assist')
+        self.toolbar.AddControl(abc_assist, label=_('ABC assist')).SetShortHelp(_('ABC assist')) # 1.3.6.2 [JWdJ] 2015-03
+        self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
 
         ornamentations = self.toolbar.AddSimpleTool(self.id_ornamentations, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_ornamentations.png')).ConvertToBitmap(), 'Ornamentations')
         dynamics = self.toolbar.AddSimpleTool(self.id_dynamics, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_dynamics.png')).ConvertToBitmap(), 'Dynamics')
@@ -4454,6 +4457,9 @@ class MainFrame(wx.Frame):
         return filename
 
     def OnExportMidi(self, evt):
+        # 1.3.6.3 [SS] 2015-05-07
+        global execmessages
+
         tune = self.GetSelectedTune()
         if tune:
             # 1.3.6 [SS] 2014-11-16 2014-12-08
@@ -4467,6 +4473,9 @@ class MainFrame(wx.Frame):
                 try:
                     if dlg.ShowModal() == wx.ID_OK:
                         shutil.copy(midi_file, dlg.GetPath())
+                        # 1.3.6.3 [SS] 2015-05-07
+                        filepath = dlg.GetPath()
+                        execmessages = execmessages + u'creating '+ filepath.encode('utf-8') + u'\n'
                 finally:
                     dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
                     midi_tune.cleanup()
@@ -4476,6 +4485,9 @@ class MainFrame(wx.Frame):
 
     #Add an export all tunes to MIDI option
     def OnExportAllMidi(self, evt):
+        # 1.3.6.3 [SS] 2015-05-07
+        global execmessages
+
         dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         ntunes = self.tune_list.GetItemCount()
         outstring = _('There are {0} midi files to create').format(ntunes)
@@ -4513,6 +4525,10 @@ class MainFrame(wx.Frame):
                             shutil.copy(midi_file, filepath.encode('utf-8'))
                         except:
                             print 'failed to create ',filepath.encode('utf-8')
+
+                        # 1.3.6.3 [SS] 2015-05-07
+                        execmessages = execmessages + u'creating '+ filepath.encode('utf-8') + u'\n'
+
                         midi_tune.cleanup()
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
@@ -4702,6 +4718,8 @@ class MainFrame(wx.Frame):
                     filename = self.GetFileNameForTune(tune, '.xml')
                     filepath = os.path.join(dlg.GetPath(), filename)
                     errors = []
+                    # 1.3.6.3 [SS] 2015-05-07
+                    info_messages = []
                     try:
                         abc_to_xml(tune.header + os.linesep + tune.abc, filepath, mxl, pageFormat, info_messages)
                     except Exception as e:
@@ -4753,6 +4771,7 @@ class MainFrame(wx.Frame):
                 dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
     def OnExportAllHTML(self, evt):
+        global execmessages # 1.3.6.3 [SS] 2015-05-09
         tunes = []
         for i in range(self.tune_list.GetItemCount()):
             self.tune_list.Select(i)
@@ -4767,6 +4786,8 @@ class MainFrame(wx.Frame):
                 if dlg.ShowModal() == wx.ID_OK:
                     self.SetCursor(wx.HOURGLASS_CURSOR)
                     path = dlg.GetPath()
+                    # 1.3.6.3 [SS] 2015-05-09
+                    execmessages = u'creating ' + path  + '\n'
                     f = codecs.open(path, 'wb', 'UTF-8')
                     f.write('''<html xmlns="http://www.w3.org/1999/xhtml">''')
                     f.write('''<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>

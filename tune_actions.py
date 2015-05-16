@@ -12,51 +12,22 @@ import webbrowser
 from fraction import Fraction
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
-CodeDescription = namedtuple('CodeDescription', 'code description')
-
-
-key_ladder = 'Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B#'
-key_mode = {
-    _('Major'): -2,
-    _('Minor'): 1,
-    _('Ionian'): -2,
-    _('Aeolian'): 1,
-    _('Dorian'): 0,
-    _('Mixolydian'): -1,
-    _('Phrygian'): 2,
-    _('Lydian'): -3,
-    _('Locrian'): 3
-}
-
-key_base = {
-    _('6 sharps'):  	 6,
-    _('5 sharps'):       5,
-    _('4 sharps'):       4,
-    _('3 sharps'):       3,
-    _('2 sharps'):       2,
-    _('1 sharp'):  	     1,
-    _('0 sharps/flats'): 0,
-    _('1 flat'):       	-1,
-    _('2 flats'):       -2,
-    _('3 flats'):       -3,
-    _('4 flats'):       -4,
-    _('5 flats'):       -5,
-    _('6 flats'):       -6,
-}
-
+UrlImageTuple = namedtuple('UrlImageTuple', 'url src content')
 
 def html_enclose(tag, content):
-    return u'<%s>%s</%s>' % (tag, content, tag)
+    return u'<{0}>{1}</{0}>'.format(tag, content)
 
 def html_enclose_attr(tag, attributes, content):
     attr_text = u''
     for attribute in attributes:
-        attr_text += ' %s="%s"' % (attribute, attributes[attribute])
-    return u'<%s%s>%s</%s>' % (tag, attr_text, content, tag)
+        attr_text += ' {0}="{1}"'.format(attribute, attributes[attribute])
+    return u'<{0}{1}>{2}</{0}>'.format(tag, attr_text, content)
 
 def url_tuple_to_href(value):
-    if type(value) == UrlTuple:   # isinstance(obj, tuple)
+    if type(value) == UrlTuple:
         return html_enclose_attr('a', { 'href': value.url }, value.content)
+    elif type(value) == UrlImageTuple:
+        return html_enclose('a', { 'href': value.url }, '<img src="{0}" border="0" alt="{1}">'.format(value.src, value.content))
     return value
 
 def html_enclose_item(tag, item):
@@ -108,7 +79,7 @@ class AbcAction(object):
 
     def get_action_html(self, context):
         if self.can_execute(context):
-            return u'<a href="%s">%s</a>' % (self.name, escape(self.display_name))
+            return html_enclose_attr('a', { 'href': self.name }, escape(self.display_name))
         return u''
 
     def get_action_url(self, params=None):
@@ -128,7 +99,10 @@ class ValueChangeAction(AbcAction):
         value = params.get('value', '')
         if self.matchgroup:
             if context.current_match:
+                #try:
                 current_value = context.current_match.group(self.matchgroup)
+                #except IndexError:
+                #    return False
                 return value != current_value
         else:
             return value != context.match_text
@@ -150,6 +124,13 @@ class ValueChangeAction(AbcAction):
                     html_values.append(t)
                 else:
                     html_values.append(value)
+            elif isinstance(value, ValueDescription):
+                params = {'value': value.value}
+                if self.can_execute(context, params):
+                    t = UrlTuple(self.get_action_url(params), escape(value.description))
+                    html_values.append(t)
+                else:
+                    html_values.append(escape(value.description))
             elif isinstance(value, list):
                 columns = value
                 row = []
@@ -172,10 +153,12 @@ class ValueChangeAction(AbcAction):
         result += html_table(html_values)
         return result
 
+
 class InsertValueAction(ValueChangeAction):
-    def __init__(self, name, supported_values, valid_sections=None, display_name=None):
+    def __init__(self, name, supported_values, valid_sections=None, display_name=None, matchgroup=None):
         super(InsertValueAction, self).__init__(name, supported_values, display_name=display_name)
         self.valid_sections = valid_sections
+        self.matchgroup = matchgroup
 
     def can_execute(self, context, params=None):
         if self.valid_sections is None:
@@ -186,7 +169,13 @@ class InsertValueAction(ValueChangeAction):
             return context.abc_section == self.valid_sections
 
     def execute(self, context, params=None):
-        context.insert_text(params['value'])
+        value = params['value']
+        if self.matchgroup:
+            text = context.get_matchgroup(self.matchgroup)
+            text += value
+            context.replace_match_text(text, self.matchgroup)
+        else:
+            context.insert_text(value)
 
     def get_action_html(self, context):
         if self.can_execute(context):
@@ -195,23 +184,20 @@ class InsertValueAction(ValueChangeAction):
 
 
 class RemoveValueAction(AbcAction):
-    def __init__(self, matchgroup=None):
-        super(RemoveValueAction, self).__init__('Remove', matchgroups)
+    def __init__(self, matchgroups=None):
+        super(RemoveValueAction, self).__init__('Remove')
         self.matchgroups = matchgroups
 
     def can_execute(self, context, params=None):
         matchgroup = params.get('matchgroup', '')
-        if matchgroup:
-            return context.get_matchgroup(matchgroup)
+        if self.matchgroups is not None:
+            return matchgroup in self.matchgroups and context.get_matchgroup(matchgroup)
         else:
             return True
 
     def execute(self, context, params=None):
         matchgroup = params.get('matchgroup', '')
         context.replace_match_text('', matchgroup)
-
-
-
 
 
 ##################################################################################################
@@ -256,39 +242,60 @@ class UnitNoteLengthChangeAction(ValueChangeAction):
     def __init__(self):
         super(UnitNoteLengthChangeAction, self).__init__('Change note length', UnitNoteLengthChangeAction.values, matchgroup=1)
 
-class PitchAction(ValueChangeAction):
-    pitch_values = [
-        CodeDescription("'", _('Octave up')),
-        CodeDescription(",", _('Octave down')),
+
+class TempoNoteLengthChangeAction(ValueChangeAction):
+    values = [
+        CodeDescription('1/2',  _('half note')),
+        CodeDescription('1/4',  _('quarter note')),
+        CodeDescription('1/8',  _('eighth note')),
+        CodeDescription('1/16', _('sixteenth note'))
     ]
     def __init__(self):
-        super(PitchAction, self).__init__('Pitch', PitchAction.pitch_values, matchgroup='octave')
+        super(TempoNoteLengthChangeAction, self).__init__('Change note length', UnitNoteLengthChangeAction.values, matchgroup='notelength')
+
+
+class PitchAction(ValueChangeAction):
+    pitch_values = [
+        ValueDescription('noteup', _('Note up')),
+        ValueDescription('notedown', _('Note down')),
+        ValueDescription("'", _('Octave up')),
+        ValueDescription(",", _('Octave down'))
+    ]
+    all_notes = 'CDEFGABcdefgab'
+    def __init__(self):
+        super(PitchAction, self).__init__('Pitch', PitchAction.pitch_values)
 
     def can_execute(self, context, params=None):
         value = params.get('value')
         note = context.get_matchgroup('note')
-        octave = self.octave_abc_to_number(note, context.get_matchgroup('octave'))
-        if value == "'":
-            return octave < 4
-        elif value == ',':
-            return octave > -4
+        octave = context.get_matchgroup('octave')
+        note_no = self.octave_abc_to_number(note, octave)
+        if value == "'" or value == 'noteup':
+            return note_no < 4*7
+        elif value == ',' or value == 'notedown':
+            return note_no > -4*7
         return False
 
     def execute(self, context, params=None):
         value = params.get('value')
         note = context.get_matchgroup('note')
         octave = context.get_matchgroup('octave')
-        octave_no = self.octave_abc_to_number(note, octave)
-        if value == "'":
-            octave_no += 1
+        note_no = self.octave_abc_to_number(note, octave)
+        if value == 'noteup':
+            note_no += 1
+        elif value == 'notedown':
+            note_no -= 1
+        elif value == "'":
+            note_no += 7
         elif value == ',':
-            octave_no -= 1
+            note_no -= 7
 
-        if octave_no > 0:
-            note = note.lower()
-        else:
-            note = note.upper()
+        offset = 0
+        if note_no >= 7:
+            offset = 7
+        note = PitchAction.all_notes[(note_no % 7) + offset]
 
+        octave_no = note_no // 7
         if octave_no > 1:
             octave = "'" * (octave_no-1)
         elif octave_no < 0:
@@ -300,15 +307,13 @@ class PitchAction(ValueChangeAction):
 
     @staticmethod
     def octave_abc_to_number(note, abc_octave):
-        result = 0
-        if note.islower():
-            result += 1
+        result = PitchAction.all_notes.index(note)
         if abc_octave:
             for ch in abc_octave:
                 if ch == "'":
-                    result += 1
+                    result += 7
                 elif ch == ',':
-                    result -= 1
+                    result -= 7
         return result
 
 
@@ -397,32 +402,6 @@ class DurationAction(ValueChangeAction):
             context.replace_match_text(value, matchgroup='pair')
 
 
-class TempoChangeAction(ValueChangeAction):
-    tempo_names = {
-        'Larghissimo'  :  40,
-        'Adagissimo'   :  44,
-        'Lentissimo'   :  48,
-        'Largo'        :  56,
-        'Adagio'       :  59,
-        'Lento'        :  62,
-        'Larghetto'    :  66,
-        'Adagietto'    :  76,
-        'Andante'      :  88,
-        'Andantino'    :  96,
-        'Moderato'     : 104,
-        'Allegretto'   : 112,
-        'Allegro'      : 120,
-        'Vivace'       : 168,
-        'Vivo'         : 180,
-        'Presto'       : 192,
-        'Allegrissimo' : 208,
-        'Vivacissimo'  : 220,
-        'Prestissimo'  : 240,
-    }
-    def __init__(self):
-        super(TempoChangeAction, self).__init__('Change tempo', TempoChangeAction.tempo_names, 1)
-
-
 class AnnotationPositionAction(ValueChangeAction):
     values = [
         CodeDescription('^', _('Above')),
@@ -457,7 +436,7 @@ class RestVisibilityChangeAction(ValueChangeAction):
         CodeDescription('x',  _('Hidden')),
     ]
     def __init__(self):
-        super(RestVisibilityChangeAction, self).__init__('Change visibility', RestVisibilityChangeAction.values, 'rest')
+        super(RestVisibilityChangeAction, self).__init__('Visibility', RestVisibilityChangeAction.values, 'rest')
 
 
 class MeasureRestVisibilityChangeAction(ValueChangeAction):
@@ -466,7 +445,142 @@ class MeasureRestVisibilityChangeAction(ValueChangeAction):
         CodeDescription('X',  _('Hidden')),
     ]
     def __init__(self):
-        super(MeasureRestVisibilityChangeAction, self).__init__('Change visibility', MeasureRestVisibilityChangeAction.values, 'measurerest')
+        super(MeasureRestVisibilityChangeAction, self).__init__('Visibility', MeasureRestVisibilityChangeAction.values, 'measurerest')
+
+
+class AppoggiaturaOrAcciaccaturaChangeAction(ValueChangeAction):
+    values = [
+        CodeDescription('',   _('Appoggiatura')),
+        CodeDescription('/',  _('Acciaccatura')),
+    ]
+    def __init__(self):
+        super(AppoggiaturaOrAcciaccaturaChangeAction, self).__init__('Type', AppoggiaturaOrAcciaccaturaChangeAction.values, 'acciaccatura')
+
+
+class KeyChangeAction(ValueChangeAction):
+    _key_ladder = 'Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B#'.split(' ')
+    _mode_to_num = {
+        '':    -2,
+        'm':   +1,
+        'loc': +3,
+        'phr': +2,
+        'min': +1,
+        'dor':  0,
+        'mix': -1,
+        'maj': -2,
+        'lyd': -3
+    }
+
+    @staticmethod
+    def abc_mode_to_number(mode, default=None):
+        mode = mode[:3].lower()
+        return KeyChangeAction._mode_to_num.get(mode, default)
+
+
+class KeySignatureChangeAction(KeyChangeAction):
+    values = [
+        ValueDescription( 6, _('6 sharps')),
+        ValueDescription( 5, _('5 sharps')),
+        ValueDescription( 4, _('4 sharps')),
+        ValueDescription( 3, _('3 sharps')),
+        ValueDescription( 2, _('2 sharps')),
+        ValueDescription( 1, _('1 sharp')),
+        ValueDescription( 0, _('0 sharps/flats')),
+        ValueDescription(-1, _('1 flat')),
+        ValueDescription(-2, _('2 flats')),
+        ValueDescription(-3, _('3 flats')),
+        ValueDescription(-4, _('4 flats')),
+        ValueDescription(-5, _('5 flats')),
+        ValueDescription(-6, _('6 flats')),
+        ValueDescription('none', _('None')),
+    ]
+    def __init__(self):
+        super(KeySignatureChangeAction, self).__init__('Signature', KeySignatureChangeAction.values, 1)
+
+    def can_execute(self, context, params=None):
+        if context.inner_match is None:
+            return False
+        tonic = context.get_matchgroup('tonic')
+
+        value = params.get('value')
+        if value == 'none':
+            return tonic != value
+        else:
+            value = int(value)
+            middle_idx = len(KeyChangeAction._key_ladder) // 2
+            try:
+                tonic_idx = KeyChangeAction._key_ladder.index(tonic)
+            except ValueError:
+                return True
+
+            mode = context.get_matchgroup('mode')
+            mode_idx = self.abc_mode_to_number(mode)
+            if mode_idx is None:
+                return False
+
+            if tonic_idx >= 0 and mode_idx is not None:
+                current_value = tonic_idx - middle_idx - mode_idx
+                return current_value != value
+            else:
+                return True
+
+    def execute(self, context, params=None):
+        value = params.get('value')
+        if value == 'none':
+            context.replace_match_text(value)
+        else:
+            value = int(value)
+            middle_idx = len(KeyChangeAction._key_ladder) // 2
+            new_value = middle_idx + value
+            mode = context.get_matchgroup('mode')
+            mode_idx = self.abc_mode_to_number(mode)
+            if mode_idx is None:
+                new_value -= 2 # assume major scale
+                tonic = KeyChangeAction._key_ladder[new_value]
+                context.replace_match_text(tonic)
+            else:
+                new_value += mode_idx
+                tonic = KeyChangeAction._key_ladder[new_value]
+                context.replace_match_text(tonic, matchgroup='tonic')
+
+
+class KeyModeChangeAction(KeyChangeAction):
+    values = [
+        ValueDescription(-2, _('Major (Ionian)')),
+        ValueDescription(1,  _('Minor (Aeolian)')),
+        ValueDescription(0,  _('Dorian')),
+        ValueDescription(-1, _('Mixolydian')),
+        ValueDescription(2,  _('Phrygian')),
+        ValueDescription(-3, _('Lydian')),
+        ValueDescription(3,  _('Locrian'))
+    ]
+    def __init__(self):
+        super(KeyModeChangeAction, self).__init__('Mode', KeyModeChangeAction.values, 'mode')
+
+    def can_execute(self, context, params=None):
+        if context.inner_match is None:
+            return False
+        tonic = context.get_matchgroup('tonic')
+        if tonic in KeyChangeAction._key_ladder:
+            value = int(params.get('value'))
+            mode = context.get_matchgroup(self.matchgroup)
+            current_value = self.abc_mode_to_number(mode)
+            return value != current_value
+        else:
+            return False
+
+    def execute(self, context, params=None):
+        value = int(params.get('value'))
+        tonic = context.get_matchgroup('tonic')
+        mode = context.get_matchgroup(self.matchgroup)
+        current_mode = self.abc_mode_to_number(mode)
+        ladder = KeyChangeAction._key_ladder
+        tonic = ladder[ladder.index(tonic) - current_mode + value]
+        for mode, num in KeyChangeAction._mode_to_num.iteritems():
+            if num == value:
+                context.replace_matchgroups([('tonic', tonic), ('mode', mode)])
+                break
+
 
 ##################################################################################################
 #  URL ACTIONS
@@ -516,7 +630,7 @@ class NewTuneAction(AbcAction):
 
     def execute(self, context, params=None):
         last_tune_id = 0
-        for m in NewTuneAction.tune_re.finditer(context.get_full_text()):
+        for m in NewTuneAction.tune_re.finditer(context.get_scope_info(TuneScope.FullText).text):
             last_tune_id = max(last_tune_id, int(m.group(1)))
 
         new_tune_id = last_tune_id + 1
@@ -529,11 +643,27 @@ class NewTuneAction(AbcAction):
         context.insert_text(text)
 
 
+class FixCharactersAction(AbcAction):
+    def __init__(self):
+        super(FixCharactersAction, self).__init__('fix_characters', display_name=_('Replace invalid characters'))
+        self.matchgroup = 1
+
+    def can_execute(self, context, params=None):
+        text = context.get_matchgroup(self.matchgroup)
+        new_text = unicode_text_to_abc(text)
+        return text != new_text
+
+    def execute(self, context, params=None):
+        text = context.get_matchgroup(self.matchgroup)
+        new_text = unicode_text_to_abc(text)
+        context.replace_match_text(new_text, matchgroup=self.matchgroup)
+
+
 class NewNoteAction(InsertValueAction):
     values = ['c d e f g a b'.split(' '), 'C D E F G A B'.split(' ')]
     def __init__(self):
         super(NewNoteAction, self).__init__('abc_new_note', supported_values=NewNoteAction.values,
-                                            valid_sections=ABC_SECTION_TUNE_BODY, display_name=_('Add note'))
+                                            valid_sections=AbcSection.TuneBody, display_name=_('Add note'))
 
 
 class NewRestAction(InsertValueAction):
@@ -544,18 +674,84 @@ class NewRestAction(InsertValueAction):
     ]
     def __init__(self):
         super(NewRestAction, self).__init__('abc_new_rest', supported_values=NewRestAction.values,
-                                            valid_sections=ABC_SECTION_TUNE_BODY, display_name=_('Add rest'))
+                                            valid_sections=AbcSection.TuneBody, display_name=_('Add rest'))
 
 
 class InsertOptionalAccidental(InsertValueAction):
     values = [
+        CodeDescription('"^"', _('Empty')),
         CodeDescription('"<(\u266f)"', _('Optional sharp')),
         CodeDescription('"<(\u266e)"', _('Optional natural')),
         CodeDescription('"<(\u266d)"', _('Optional flat'))
     ]
     def __init__(self):
-        super(InsertOptionalAccidental, self).__init__('Insert annotation', InsertOptionalAccidental.values)
+        super(InsertOptionalAccidental, self).__init__('Insert annotation', InsertOptionalAccidental.values, matchgroup='decoanno')
 
+
+class AddDecorationAction(InsertValueAction):
+    def __init__(self):
+        super(AddDecorationAction, self).__init__('Insert decoration', AbcDecoration.values, matchgroup='decoanno')
+
+    def get_action_html(self, context):
+        return u''
+
+    def get_action_html(self, context):
+        result = u''
+        return result
+
+        for value in self.supported_values:
+            if isinstance(value, CodeDescription):
+                params = {'value': value.code}
+                if self.can_execute(context, params):
+                    t = (html_enclose('code', escape(value.code)), UrlTuple(self.get_action_url(params), escape(value.description)))
+                    html_values.append(t)
+                else:
+                    html_values.append(value)
+            elif isinstance(value, ValueDescription):
+                params = {'value': value.value}
+                if self.can_execute(context, params):
+                    t = UrlTuple(self.get_action_url(params), escape(value.description))
+                    html_values.append(t)
+                else:
+                    html_values.append(escape(value.description))
+            elif isinstance(value, list):
+                columns = value
+                row = []
+                for column in columns:
+                    params = {'value': column}
+                    html_column = html_enclose('code', escape(column))
+                    if self.can_execute(context, params):
+                        t = UrlTuple(self.get_action_url(params), html_column)
+                        row.append(t)
+                    else:
+                        row.append(html_column)
+                html_values.append(row)
+            else:
+                params = {'value': value}
+                if self.can_execute(context, params):
+                    t = UrlTuple(self.get_action_url(params), escape(value))
+                    html_values.append(t)
+                else:
+                    html_values.append(escape(value))
+        result += html_table(html_values)
+        return result
+
+
+        if self.can_execute(context):
+            return super(InsertValueAction, self).get_action_html(context)
+        return u''
+
+
+
+class AddSlurAction(AbcAction):
+    def __init__(self):
+        super(AddSlurAction, self).__init__('Add slur')
+
+    def can_execute(self, context, params=None):
+        return True
+
+    def execute(self, context, params=None):
+        context.replace_match_text('({0})'.format(context.match_text))
 
 ##################################################################################################
 #  REMOVE ACTIONS
@@ -592,38 +788,24 @@ class AbcActionHandler(object):
         return result
 
 
-class KeyActionHandler(AbcActionHandler):
-    def __init__(self):
-        super(KeyActionHandler, self).__init__()
-        action = AbcAction('c', 'hallo')
-        self.add_action(action)
-
-    def row(self, content):
-        return html_enclose('tr', content)
-
-    def get_action_html(self, context):
-        headers = (_('Tonic'), _('Mode'), _('Sharps/flats'))
-        result = self.row(html_enclose_items('th', headers))
-        return html_enclose('table', result)
-
-
 class AbcActionHandlers(object):
     def __init__(self):
         self.default_action_handler = AbcActionHandler()
         self.action_handlers = {
-            'K:'         : KeyActionHandler(),
-            'Empty line' : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
-            'Whitespace' : AbcActionHandler([NewNoteAction(), NewRestAction()]),
-            'Note'       : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(),
-                                             InsertOptionalAccidental()]),
-            'Rest'       : AbcActionHandler([DurationAction(), RestVisibilityChangeAction()]),
+            'Empty line'  : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
+            'Whitespace'  : AbcActionHandler([NewNoteAction(), NewRestAction()]),
+            'Note'        : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
+            'Rest'        : AbcActionHandler([DurationAction(), RestVisibilityChangeAction()]),
             'Measure rest': AbcActionHandler([MeasureRestVisibilityChangeAction()]),
-            'Bar'        : AbcActionHandler([BarChangeAction()]),
-            'M:'         : AbcActionHandler([MeterChangeAction()]),
-            'Q:'         : AbcActionHandler([TempoChangeAction()]),
-            'Annotation' : AbcActionHandler([AnnotationPositionAction()]),
-            'L:'         : AbcActionHandler([UnitNoteLengthChangeAction()]),
-
+            'Bar'         : AbcActionHandler([BarChangeAction()]),
+            'Annotation'  : AbcActionHandler([AnnotationPositionAction()]),
+            'Chord'       : AbcActionHandler([DurationAction()]),
+            'Grace notes' : AbcActionHandler([AppoggiaturaOrAcciaccaturaChangeAction()]),
+            'Multiple notes': AbcActionHandler([AddSlurAction()]),
+            'K:'          : AbcActionHandler([KeySignatureChangeAction(), KeyModeChangeAction()]),
+            'L:'          : AbcActionHandler([UnitNoteLengthChangeAction()]),
+            'M:'          : AbcActionHandler([MeterChangeAction()]),
+            '%'           : AbcActionHandler([FixCharactersAction()]),
         }
 
     def get_action_handler(self, element):

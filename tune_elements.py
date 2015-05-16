@@ -2,6 +2,8 @@ import re
 import os
 import io
 import urllib
+import logging
+from collections import namedtuple
 from wx import GetTranslation as _
 try:
     from html import escape  # py3
@@ -40,9 +42,133 @@ X:|reference number  |no     |first  |no     |no     |instruction |X:1, X:2
 Z:|transcription     |yes    |yes    |no     |no     |string      |Z:John Smith, <j.s@mail.com>
 """
 
+unicode_char_to_abc = {
+    r'\u00c0': r'\`A',
+    r'\u00e0': r'\`a',
+    r'\u00c8': r'\`E',
+    r'\u00e8': r'\`e',
+    r'\u00cc': r'\`I',
+    r'\u00ec': r'\`i',
+    r'\u00d2': r'\`O',
+    r'\u00f2': r'\`o',
+    r'\u00d9': r'\`U',
+    r'\u00f9': r'\`u',
+    r'\u00c1': r"\'A",
+    r'\u00e1': r"\'a",
+    r'\u00c9': r"\'E",
+    r'\u00e9': r"\'e",
+    r'\u00cd': r"\'I",
+    r'\u00ed': r"\'i",
+    r'\u00d3': r"\'O",
+    r'\u00f3': r"\'o",
+    r'\u00da': r"\'U",
+    r'\u00fa': r"\'u",
+    r'\u00dd': r"\'Y",
+    r'\u00fd': r"\'y",
+    r'\u00c2': r'\^A',
+    r'\u00e2': r'\^a',
+    r'\u00ca': r'\^E',
+    r'\u00ea': r'\^e',
+    r'\u00ce': r'\^I',
+    r'\u00ee': r'\^i',
+    r'\u00d4': r'\^O',
+    r'\u00f4': r'\^o',
+    r'\u00db': r'\^U',
+    r'\u00fb': r'\^u',
+    r'\u0176': r'\^Y',
+    r'\u0177': r'\^y',
+    r'\u00c3': r'\~A',
+    r'\u00e3': r'\~a',
+    r'\u00d1': r'\~N',
+    r'\u00f1': r'\~n',
+    r'\u00d5': r'\~O',
+    r'\u00f5': r'\~o',
+    r'\u00c4': r'\"A',
+    r'\u00e4': r'\"a',
+    r'\u00cb': r'\"E',
+    r'\u00eb': r'\"e',
+    r'\u00cf': r'\"I',
+    r'\u00ef': r'\"i',
+    r'\u00d6': r'\"O',
+    r'\u00f6': r'\"o',
+    r'\u00dc': r'\"U',
+    r'\u00fc': r'\"u',
+    r'\u0178': r'\"Y',
+    r'\u00ff': r'\"y',
+    r'\u00c7': r'\cC',
+    r'\u00e7': r'\cc',
+    r'\u00c5': r'\AA',
+    r'\u00e5': r'\aa',
+    r'\u00d8': r'\/O',
+    r'\u00f8': r'\/o',
+    r'\u0102': r'\uA',
+    r'\u0103': r'\ua',
+    r'\u0114': r'\uE',
+    r'\u0115': r'\ue',
+    r'\u0160': r'\vS',
+    r'\u0161': r'\vs',
+    r'\u017d': r'\vZ',
+    r'\u017e': r'\vz',
+    r'\u0150': r'\HO',
+    r'\u0151': r'\Ho',
+    r'\u0170': r'\HU',
+    r'\u0171': r'\Hu',
+    r'\u00c6': r'\AE',
+    r'\u00e6': r'\ae',
+    r'\u0152': r'\OE',
+    r'\u0153': r'\oe',
+    r'\u00df': r'\ss',
+    r'\u00d0': r'\DH',
+    r'\u00f0': r'\dh',
+    r'\u00de': r'\TH',
+    r'\u00fe': r'\th'
+}
+
+def unicode_text_to_abc(text):
+    result = text
+    for ustr in unicode_char_to_abc:
+        ch = unicode(ustr, 'unicode-escape')
+        result = result.replace(ch, unicode_char_to_abc[ustr])
+    return result
+
+def unicode_text_to_html_abc(text):
+    result = text
+    for ustr in unicode_char_to_abc:
+        ch = unicode(ustr, 'unicode-escape')
+        html = escape(ch)
+        result = result.replace(ch, html)
+        result = result.replace(ch, unicode_char_to_abc[ustr])
+    return result
+
+def abc_text_to_unicode(text):
+    result = unicode(text)
+    for ustr in unicode_char_to_abc:
+        ch = unicode(ustr, 'unicode-escape')
+        html = escape(ch)
+        result = result.replace(html, ch)
+        result = result.replace(unicode_char_to_abc[ustr], ch)
+    return result
+
+abc_inner_pattern = {
+    'K:': r' ?(?P<tonic>(?:[A-G][b#]?|none)?) ?(?P<mode>[A-Za-z]*)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)',
+    'Q:': r' ?(?P<pre_name>"\w*"?) ?(?P<notelength>\d+/\d+)=(?P<bpm>\d+) ?(?P<post_name>"\w*"?)'
+}
+
 name_to_display_text = {
     'staves' : _('Staff layout'),
 }
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
+
+TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText')
+TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
+InnerMatch = namedtuple('InnerMatch', 'match offset')
+
+ValueDescription = namedtuple('ValueDescription', 'value description')
+CodeDescription = namedtuple('CodeDescription', 'code description')
+ImageDescription = namedtuple('ImageDescription', 'image description')
 
 decorations = {
     '.'                : _('staccato mark'),
@@ -122,7 +248,6 @@ decorations = {
     '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down')
 }
 
-
 ABC_TUNE_HEADER_NO = 0
 ABC_TUNE_HEADER_FIRST = 1
 ABC_TUNE_HEADER_SECOND = 2
@@ -130,15 +255,12 @@ ABC_TUNE_HEADER_YES = 3
 ABC_TUNE_HEADER_LAST = 4
 tune_header_lookup = {'no': ABC_TUNE_HEADER_NO, 'first': ABC_TUNE_HEADER_FIRST, 'second': ABC_TUNE_HEADER_SECOND, 'yes': ABC_TUNE_HEADER_YES, 'last': ABC_TUNE_HEADER_LAST}
 
-ABC_SECTION_FILE_HEADER = 0
-ABC_SECTION_TUNE_HEADER = 1
-ABC_SECTION_TUNE_BODY = 2
-ABC_SECTION_OUTSIDE_TUNE = 3
+AbcSection = enum('FileHeader', 'TuneHeader', 'TuneBody', 'OutsideTune')
 ABC_SECTIONS = [
-    ABC_SECTION_FILE_HEADER,
-    ABC_SECTION_TUNE_HEADER,
-    ABC_SECTION_TUNE_BODY,
-    ABC_SECTION_OUTSIDE_TUNE
+    AbcSection.FileHeader,
+    AbcSection.TuneHeader,
+    AbcSection.TuneBody,
+    AbcSection.OutsideTune
 ]
 
 
@@ -165,6 +287,7 @@ def replace_named_group(pattern, old_group, new_group=None):
         replace_value = 'P<{0}>'.format(new_group)
     return re.sub(r'(?<=\(\?)P\<{0}>'.format(old_group), replace_value, pattern)
 
+
 class AbcElement(object):
     def __init__(self, name, keyword=None, group_name=None, display_name=None, description=None, validation_pattern=None):
         self.name = name
@@ -184,11 +307,9 @@ class AbcElement(object):
         self.validation_pattern = validation_pattern
         self.__validation_re = None
         self.supported_values = None
-        self.exact_match_required = False
+        self.tune_scope = TuneScope.SelectedLines
         self.visible_match_group = None
         self.removable_match_groups = {}
-
-        #self.html_cache_name = os.path.join(cache_path, "".join([x if x.isalnum() else "_" for x in name]))
 
     @staticmethod
     def get_inline_pattern(keyword):
@@ -205,23 +326,24 @@ class AbcElement(object):
 
     def matches(self, context):
         regex = self._search_re.get(context.abc_section, None)
+        result = None
         if regex is not None:
-            if self.exact_match_required:
-                text = context.selected_text
-            else:
-                text = context.lines
-            p1, p2 = context.selection
+            text = context.get_scope_info(self.tune_scope).text
+            p1, p2 = context.get_selection_within_scope(self.tune_scope)
+
             if p1 == p2 or (0 <= p1 < len(text) and text[p1] in ' \r\n\t'):
                 for m in regex.finditer(text):
-                    if m.start() <= context.selection[0] <= context.selection[1] <= m.end():
-                        return m
+                    if m.start() <= p1 <= p2 <= m.end():
+                        result = m
+                        break
             else:
                 if p1 > len(text):
                     print 'Selection past length: %d %d %s' % (p1, len(text), text)
                 for m in regex.finditer(text):
-                    if m.start() <= context.selection[0] <= context.selection[1] < m.end():
-                        return m
-        return None
+                    if m.start() <= p1 <= p2 < m.end():
+                        result = m
+                        break
+        return result
 
     def matches_text(self, context, text):
         regex = self._search_re.get(context.abc_section, None)
@@ -235,10 +357,6 @@ class AbcElement(object):
     @property
     def display_name(self):
         return self.__display_name
-
-    @property
-    def validation_regex(self):
-        return self.__validation_regex
 
     def get_description_url(self, context):
         return None
@@ -276,7 +394,7 @@ class AbcElement(object):
                 element_text = context.match_text
                 if len(groups) == 1 and groups[0]:
                     element_text = groups[0]
-
+                element_text = abc_text_to_unicode(element_text)
                 result += '<code>%s</code><br>' % escape(element_text)
 
             #for matchtext in context.current_match.groups():
@@ -328,24 +446,47 @@ class AbcUnknown(AbcElement):
 
 
 class AbcInformationField(AbcElement):
-    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples):
+    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples, inner_pattern=None):
         super(AbcInformationField, self).__init__(name, keyword, group_name='ABC information')
         self.file_header = file_header
         self.tune_header = tune_header
         self.tune_body = tune_body
         self.inline = inline
         self.examples = examples
+        self.inner_pattern = inner_pattern or ''
+        self.inner_re = None
+        self.visible_match_group = 1
 
         line_pattern = r'(?m)^' + re.escape(self.keyword) + self.rest_of_line_pattern
         if file_header:
-            self._search_pattern[ABC_SECTION_FILE_HEADER] = line_pattern
+            self._search_pattern[AbcSection.FileHeader] = line_pattern
         if tune_header in [ABC_TUNE_HEADER_YES, ABC_TUNE_HEADER_FIRST, ABC_TUNE_HEADER_SECOND, ABC_TUNE_HEADER_LAST]:
-            self._search_pattern[ABC_SECTION_TUNE_HEADER] = line_pattern
+            self._search_pattern[AbcSection.TuneHeader] = line_pattern
         if tune_body or inline:
             pattern = line_pattern
             if inline:
                 pattern += '|' + self.get_inline_pattern(keyword)
-            self._search_pattern[ABC_SECTION_TUNE_BODY] = pattern
+            self._search_pattern[AbcSection.TuneBody] = pattern
+
+    def freeze(self):
+        super(AbcInformationField, self).freeze()
+        if self.inner_pattern:
+            self.inner_re = re.compile(self.inner_pattern)
+
+    def matches(self, context):
+        match = super(AbcInformationField, self).matches(context)
+        result = match
+        if self.inner_re and match is not None:
+            i = 1
+            inner_text = match.group(i)
+            if inner_text is None:
+                i += 1
+                inner_text = match.group(i)
+            m = self.inner_re.search(inner_text)
+            if m:
+                result = (match, InnerMatch(m, match.start(i)))
+
+        return result
 
 
 class AbcDirective(CompositeElement):
@@ -360,10 +501,9 @@ class AbcStringField(AbcInformationField):
     def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples):
         super(AbcStringField, self).__init__(name, keyword, file_header, tune_header, tune_body, inline, examples)
 
-
 class AbcInstructionField(AbcInformationField):
-    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples):
-        super(AbcInstructionField, self).__init__(name, keyword, file_header, tune_header, tune_body, inline, examples)
+    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples, inner_pattern=None):
+        super(AbcInstructionField, self).__init__(name, keyword, file_header, tune_header, tune_body, inline, examples, inner_pattern)
 
 
 class AbcMidiDirective(CompositeElement):
@@ -425,22 +565,23 @@ class AbcComment(AbcElement):
         super(AbcComment, self).__init__('Comment', '%')
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcComment.pattern
-        self._search_pattern[ABC_SECTION_TUNE_BODY] += '|`+'
+        self._search_pattern[AbcSection.TuneBody] += '|`+'
+        self.visible_match_group = 1
 
     def get_header_text(self, context):
-        if context.match_text.startswith('%%'):
+        if context.match_text and context.match_text.startswith('%%'):
             return _('Stylesheet directive')
         else:
             return super(AbcComment, self).get_header_text(context)
 
     def get_description_text(self, context):
-        if context.match_text.startswith('%%'):
+        if context.match_text and context.match_text.startswith('%%'):
             return _('A stylesheet directive is a line that starts with %%, followed by a directive that gives instructions to typesetting or player programs.')
         else:
             return super(AbcComment, self).get_description_text(context)
 
     def remove_comments(self, abc):
-        return self._search_re[ABC_SECTION_TUNE_BODY].sub('', abc)
+        return self._search_re[AbcSection.TuneBody].sub('', abc)
 
 
 class AbcEmptyLine(AbcElement):
@@ -454,7 +595,7 @@ class AbcEmptyLine(AbcElement):
 class AbcBodyElement(AbcElement):
     def __init__(self, name, pattern, description=None):
         super(AbcBodyElement, self).__init__(name, group_name='Music code', description=description)
-        self._search_pattern[ABC_SECTION_TUNE_BODY] = pattern
+        self._search_pattern[AbcSection.TuneBody] = pattern
         self.pattern = pattern
 
 
@@ -476,12 +617,6 @@ class AbcSlur(AbcBodyElement):
         super(AbcSlur, self).__init__('Slur', AbcSlur.pattern)
 
 
-class AbcGrace(AbcBodyElement):
-    pattern = '{/?|}'
-    def __init__(self):
-        super(AbcGrace, self).__init__('Grace notes', AbcGrace.pattern, description=_('Grace notes can be written by enclosing them in curly braces. To distinguish between appoggiaturas and acciaccaturas, the latter are notated with a forward slash immediately following the open brace.'))
-
-
 class TypesettingSpace(AbcBodyElement):
     pattern = 'y'
     def __init__(self):
@@ -496,6 +631,7 @@ class RedefinableSymbol(AbcBodyElement):
 
 class AbcDecoration(AbcBodyElement):
     pattern = r"!([^!]+)!|\+([^!]+)\+|[\.~HLMOPSTuv]"
+    values = decorations
     def __init__(self):
         super(AbcDecoration, self).__init__('Decoration', AbcDecoration.pattern)
 
@@ -587,13 +723,13 @@ class AbcChordSymbol(AbcBodyElement):
 
 
 class AbcGraceNotes(AbcBaseNote):
-    pattern = r'(?P<grace>{(?P<arp>/?)(?P<grnotes>[^}]*)})'
+    pattern = r'(?P<grace>{(?P<acciaccatura>/?)(?P<gracenote>[^}]*)})'
     def __init__(self):
         super(AbcBaseNote, self).__init__('Grace notes', AbcGraceNotes.pattern)
 
 
 class AbcNoteGroup(AbcBaseNote):
-    note_group_pattern_prefix = r'(?P<gracenotes>{0}?)(?P<chordsymbols>{1}?)(?:(?P<decorations>{2})|(?P<annotations>{3})*)'.format(
+    note_group_pattern_prefix = r'(?P<gracenotes>{0}?)(?P<chordsymbols>{1}?)(?P<decoanno>(?P<decorations>{2})|(?P<annotations>{3})*)'.format(
                                 AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern, AbcAnnotation.pattern)
     note_group_pattern_postfix = AbcBaseNote.pair_pattern + AbcBaseNote.tie_pattern
 
@@ -643,10 +779,11 @@ class AbcMeasureRest(AbcNormatOrMeasureRest):
 
 
 class AbcMultipleNotes(AbcBaseNote):
-    pattern = AbcNoteGroup.pattern + '{2,}'
+    #pattern = AbcNoteGroup.pattern + '{2,}'
+    pattern = AbcNoteGroup.pattern + '[A-Ga-g]{2,}'
     def __init__(self):
         super(AbcMultipleNotes, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern))
-        self.exact_match_required = True
+        self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 
 class AbcStructure(object):
@@ -728,6 +865,8 @@ class AbcStructure(object):
         directive = AbcDirective()
         midi_directive = AbcMidiDirective()
         directive.add_element(midi_directive)
+
+        # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result = [
             AbcEmptyLine(),
             directive,
@@ -747,7 +886,7 @@ class AbcStructure(object):
             abc_type = parts[6].strip()
             examples = parts[7].strip()
             if abc_type == 'instruction':
-                element = AbcInstructionField(name, keyword, file_header, tune_header, tune_body, inline, examples)
+                element = AbcInstructionField(name, keyword, file_header, tune_header, tune_body, inline, examples, abc_inner_pattern.get(keyword))
             elif abc_type == 'string':
                 element = AbcStringField(name, keyword, file_header, tune_header, tune_body, inline, examples)
             else:
@@ -819,6 +958,7 @@ class AbcStructure(object):
     #         Abcm2psElement('setbarnb', _('First measure number'), 'int'),
     #         Abcm2psElement('measurenb', _('Measure numbers'), 'int', measure_number_options),
 
+        # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result += [
             AbcChordSymbol(),
             AbcAnnotation(),
@@ -826,13 +966,13 @@ class AbcStructure(object):
             AbcVariantEnding(),
             AbcBar(),
             AbcDecoration(),
+            AbcGraceNotes(),
             AbcSlur(),
-            AbcChord(),
             AbcMultipleNotes(),
             AbcNote(),
             AbcNormalRest(),
             AbcMeasureRest(),
-            AbcGrace(),
+            AbcChord(),
             AbcChordBeginAndEnd(),
             AbcVoiceOverlay(),
             AbcBrokenRhythm(),
@@ -846,8 +986,10 @@ class AbcStructure(object):
         for element in result:
             try:
                 element.freeze()
-            except Exception as e:
-                print 'Exception in %s: %s    ->   %s' % (element.name, element.pattern,  e)
+            except Exception as ex:
+                print 'Exception in element {0}: {1}'.format(element.name, ex)
+                logging.exception(ex)
+
 
         return result
 
