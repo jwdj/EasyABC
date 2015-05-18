@@ -18,6 +18,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
+# New V1.3.6.4
+# - Recent files menu
+# - Font from .svg file now rendered properly
+#
+#
 # New V1.3.6.3
 # When the cursor moves outside the current page, the correct page is automatically chosen
 # Unique filenames for midi and svg to prevent problems when multiple editor windows are used
@@ -3440,7 +3445,7 @@ class MainFrame(wx.Frame):
         self.app_dir = app_dir
         self.cache_dir = os.path.join(self.app_dir, 'cache')
         self.settings_file = os.path.join(self.app_dir, 'settings1.3.dat')
-        self.current_file = None
+        self._current_file = None
         self.untitled_number = 1
         self.document_name = _('Untitled') + ' %d' % self.untitled_number
         self.author = ''
@@ -3644,6 +3649,23 @@ class MainFrame(wx.Frame):
         self.__current_page_index = value
         if self.cur_page_combo.GetSelection() != value:
             self.cur_page_combo.Select(value)
+
+    @property
+    def current_file(self):
+        return self._current_file
+
+    @current_file.setter
+    def current_file(self, value):
+        self._current_file = value
+        if value:
+            recent_files = self.settings.get('recentfiles', '').split('|')
+            if value in recent_files:
+                recent_files.remove(value)
+            recent_files.insert(0, value)
+            if len(recent_files) > 10:
+                recent_files = recent_files[:10]
+            self.settings['recentfiles'] = '|'.join(recent_files)
+            self.update_recent_files_menu()
 
     def OnPageSetup(self, evt):
         psdd = wx.PageSetupDialogData(self.printData)
@@ -5429,6 +5451,9 @@ class MainFrame(wx.Frame):
         menu1.Append(1022, _("&Print preview\tCtrl+Shift+P"))
         menu1.Append(1023, _("P&age Setup..."), _("Change the printer and printing options"))
         menu1.AppendSeparator()
+        self.recent_menu = wx.Menu()
+        menu1.AppendMenu(-1, _('&Recent files'), self.recent_menu)
+        menu1.AppendSeparator()
         menu1.Append(wx.ID_EXIT, _("&Quit\tCtrl+Q"), _("Exit the application (prompt to save files)"))
 
         menu2 = wx.Menu()
@@ -7148,6 +7173,8 @@ class MainFrame(wx.Frame):
         self.settings.update(settings)
         self.Maximize(settings.get('is_maximized', False))
 
+        self.update_recent_files_menu()
+
         for i, width in enumerate(self.settings.get('tune_col_widths', [37, 100])):
             self.tune_list.SetColumnWidth(i, width)
 
@@ -7358,14 +7385,33 @@ class MainFrame(wx.Frame):
             else:
                 self.settings[term] = value
 
-
-
         self.settings['gchord'] = 'default' # 1.3.6 [SS] 2014-11-26
 
+    def update_recent_files_menu(self):
+        recent_files = self.settings.get('recentfiles', '').split('|')
+        while self.recent_menu.MenuItemCount > 0:
+            self.recent_menu.DeleteItem(self.recent_menu.FindItemByPosition(0))
 
+        if len(recent_files) > 0:
+            mru_index = 0
+            recent_files_menu_id = 1100
+            for path in recent_files:
+                if path and os.path.exists(path):
+                    menu_item = self.recent_menu.Append(recent_files_menu_id, '&{0}: {1}'.format(mru_index, path))
+                    self.Bind(wx.EVT_MENU, self.on_recent_file, menu_item)
+                    recent_files_menu_id += 1
+                    mru_index += 1
 
-
-
+    def on_recent_file(self, evt):
+        recent_files_menu_id = 1100
+        mru_index = evt.Id - recent_files_menu_id
+        recent_files = self.settings.get('recentfiles', '').split('|')
+        path = recent_files[mru_index]
+        if not self.editor.GetModify() and not self.current_file:  # if a new unmodified document
+            self.load(path)
+        else:
+            frame = self.OnNew()
+            frame.load(path)
 
 
 class MyFileDropTarget(wx.FileDropTarget):
