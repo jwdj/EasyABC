@@ -703,7 +703,10 @@ class SvgRenderer(object):
             }
 
             svg_font_family = attr.get('font-family', 'serif').lower()
-            font_family = svg_to_wx_font_family.get(svg_font_family, wx.FONTFAMILY_DEFAULT)
+            font_family = svg_to_wx_font_family.get(svg_font_family)
+            if font_family is None:
+                font_family = wx.FONTFAMILY_DEFAULT
+                font_face = svg_font_family # 1.3.6.4 [JWDJ] if font family is not known then assume it is a font face
 
             ##print repr(text), font_face, attr.get('font-size'), attr.get('font-weight')
             wxfont = wx.Font(font_size, font_family, style, weight, False, font_face, wx.FONTENCODING_DEFAULT)
