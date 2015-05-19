@@ -40,9 +40,9 @@ class AbcAssistControl(object):
         self.control = ctrl
 
 class AbcContext(object):
-    def __init__(self, abc_section, editor, on_invalidate=None):
+    def __init__(self, editor, on_invalidate=None):
         self._editor = editor
-        self.abc_section = abc_section
+        self.on_invalidate = on_invalidate
         self.editor_sel_start, self.editor_sel_end = editor.GetSelection()
         self.current_element = None
         self._current_match = None
@@ -50,18 +50,68 @@ class AbcContext(object):
         self.match_text = None
         self.match_text_start = None
         self._tune_scope_info_getter = {
-            TuneScope.FullText: self.get_full_text,
-            TuneScope.SelectedText: self.get_selected_text,
-            TuneScope.SelectedLines: self.get_selected_lines,
-            #TuneScope.TuneHeader: get_tune_header,
-            #TuneScope.TuneBody: get_tune_body,
-            #TuneScope.FileHeader: get_file_header,
-            TuneScope.PreviousLine: self.get_previous_line,
-            TuneScope.MatchText: self.get_match_text
+            TuneScope.FullText: self.get_scope_full_text,
+            TuneScope.SelectedText: self.get_scope_selected_text,
+            TuneScope.SelectedLines: self.get_scope_selected_lines,
+            TuneScope.TuneHeader: self.get_scope_tune_header,
+            TuneScope.TuneBody: self.get_scope_tune_body,
+            TuneScope.FileHeader: self.get_scope_file_header,
+            TuneScope.PreviousLine: self.get_scope_previous_line,
+            TuneScope.MatchText: self.get_empty_scope_info
         }
         self._tune_scope_info = {}
 
-        self.on_invalidate = on_invalidate
+        line_no = self._editor.GetCurrentLine()
+        self.tune_start_line = self.get_tune_start_line(line_no)
+        self.body_start_line = None
+        self.body_end_line = None
+
+        if self.tune_start_line is None:
+            self.abc_section = AbcSection.FileHeader
+        else:
+            self.body_start_line = self.get_body_start_line(self.tune_start_line + 1)
+            if self.body_start_line is None:
+                self.abc_section = AbcSection.TuneHeader
+            else:
+                self.body_end_line = self.get_body_end_line(self.body_start_line)
+                if line_no < self.body_start_line:
+                    self.abc_section = AbcSection.TuneHeader
+                elif line_no < self.body_end_line:
+                    self.abc_section = AbcSection.TuneBody
+                else:
+                    self.abc_section = AbcSection.OutsideTune
+
+    def get_tune_start_line(self, current_line):
+        start_line = current_line
+        while not self._editor.GetLine(start_line).startswith('X:'):
+            start_line -= 1
+            if start_line < 0:
+                return None
+        return start_line
+
+    def get_body_start_line(self, tune_start_line):
+        key_line = tune_start_line
+        line_count = self._editor.GetLineCount()
+        while key_line < line_count and not self._editor.GetLine(key_line).startswith('K:'):
+            key_line += 1
+
+        body_line = None
+        if self._editor.GetLine(key_line).startswith('K:'):
+            body_line = key_line + 1
+        return body_line
+
+    def get_body_end_line(self, body_start_line):
+        end_line_no = body_start_line
+        line_count = self._editor.GetLineCount()
+        end_found = False
+        while not end_found and end_line_no < line_count:
+            line = self._editor.GetLine(end_line_no)
+            if line.startswith('X:'):
+                end_found = True
+            else:
+                end_found = not line.strip() # last empty line is also part of the body
+                end_line_no += 1
+        return end_line_no
 
     @property
     def current_match(self):
@@ -81,7 +131,7 @@ class AbcContext(object):
         if match:
             scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
         else:
-            scope_info = TuneScopeInfo(None, None, None)
+            scope_info = self.get_empty_scope_info()
         self._tune_scope_info[TuneScope.MatchText] = scope_info
         inner_scope_info = scope_info
         self.inner_match = None
@@ -121,17 +171,17 @@ class AbcContext(object):
         t = self.get_scope_info(to_scope)
         return f.start-t.start, f.stop-t.start
 
-    def get_full_text(self):
+    def get_scope_full_text(self):
         return TuneScopeInfo(self._editor.GetText(), 0, self._editor.GetTextLength())
 
-    def get_selected_text(self):
+    def get_scope_selected_text(self):
         start, stop = self._editor.GetSelection()
         if start == stop:
             return TuneScopeInfo('', start, stop)
         else:
             return TuneScopeInfo(self._editor.GetTextRange(start, stop), start, stop)
 
-    def get_selected_lines(self):
+    def get_scope_selected_lines(self):
         sel_start, sel_stop = self._editor.GetSelection()
         first_line_no = self._editor.LineFromPosition(sel_start)
         last_line_no = self._editor.LineFromPosition(sel_stop)
@@ -139,15 +189,41 @@ class AbcContext(object):
         editor_lines_end = self._editor.GetLineEndPosition(last_line_no)
         return TuneScopeInfo(self._editor.GetTextRange(editor_lines_start, editor_lines_end), editor_lines_start, editor_lines_end)
 
-    def get_previous_line(self):
+    def get_scope_previous_line(self):
         line_no = self._editor.GetCurrentLine()
         if line_no == 0:
-            return TuneScopeInfo(None, None, None)
+            return self.get_empty_scope_info()
         else:
             line_no -= 1
             return TuneScopeInfo(self._editor.GetLine(line_no), self._editor.PositionFromLine(line_no), self._editor.GetLineEndPosition(line_no))
 
-    def get_match_text(self):
+    def get_scope_file_header(self):
+        start_line = 0
+        line_count = self._editor.GetLineCount()
+        while start_line < line_count and not self._editor.GetLine(start_line).startswith('X:'):
+            start_line += 1
+        tune_start_pos = self._editor.PositionFromLine(start_line)
+        return TuneScopeInfo(self._editor.GetTextRange(0, tune_start_pos), 0, tune_start_pos)
+
+    def get_scope_tune_header(self):
+        if self.tune_start_line is None:
+            return self.get_empty_scope_info()
+        start_pos = self._editor.PositionFromLine(self.tune_start_line)
+        if self.body_start_line is not None:
+            end_pos = self._editor.PositionFromLine(self.body_start_line)
+        else:
+            end_pos = self._editor.GetTextLength()
+        return TuneScopeInfo(self._editor.GetTextRange(start_pos, end_pos), start_pos, end_pos)
+
+    def get_scope_tune_body(self):
+        if self.body_start_line is None:
+            return self.get_empty_scope_info()
+        else:
+            tune_start_pos = self._editor.PositionFromLine(self.body_start_line)
+            tune_end_pos = self._editor.PositionFromLine(self.body_end_line)
+            return TuneScopeInfo(self._editor.GetTextRange(tune_start_pos, tune_end_pos), tune_start_pos, tune_end_pos)
+
+    def get_empty_scope_info(self):
         return TuneScopeInfo(None, None, None)
 
     def insert_text(self, text):
@@ -169,11 +245,17 @@ class AbcContext(object):
         self._editor.EndUndoAction()
         self.invalidate()
 
-    def replace_match_text(self, new_text, matchgroup=None):
-        tune_scope = TuneScope.MatchText
+    def get_tune_scope(self, tune_scope):
+        if tune_scope is None:
+            tune_scope = TuneScope.MatchText
+            if self.inner_match:
+                tune_scope = TuneScope.InnerText
+        return tune_scope
+
+    def replace_match_text(self, new_text, matchgroup=None, tune_scope=None):
+        tune_scope = self.get_tune_scope(tune_scope)
         m = self.current_match
-        if self.inner_match:
-            tune_scope = TuneScope.InnerText
+        if tune_scope == TuneScope.InnerText:
             m = self.inner_match
 
         if matchgroup:
@@ -182,11 +264,10 @@ class AbcContext(object):
 
         self.replace_in_editor(new_text, tune_scope)
 
-    def replace_matchgroups(self, values):
-        tune_scope = TuneScope.MatchText
+    def replace_matchgroups(self, values, tune_scope=None):
+        tune_scope = self.get_tune_scope(tune_scope)
         m = self.current_match
-        if self.inner_match:
-            tune_scope = TuneScope.InnerText
+        if tune_scope == TuneScope.InnerText:
             m = self.inner_match
 
         start = m.start()
@@ -218,7 +299,7 @@ class AbcContext(object):
     def invalidate(self): # context has changed so is not valid anymore
         self._tune_scope_info = {}
         self.current_element = None
-        self.set_current_match = None
+        self._current_match = None
         if self.on_invalidate is not None:
             self.on_invalidate()
 
@@ -229,24 +310,6 @@ class AbcAssistPanel(wx.Panel):
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <html>
-<head>
-<style type="text/css">
-a {
-    text-decoration:none
-}
-table, th, td {
-    border: 0px solid black;
-}
-img {
-    opacity: 0.4;
-    filter: alpha(opacity=40); /* For IE8 and earlier */
-}
-img:hover {
-    opacity: 1.0;
-    filter: alpha(opacity=100); /* For IE8 and earlier */
-}
-</style>
-</head>
 <body>
 """
     html_footer = "</body></html>"
@@ -260,7 +323,7 @@ img:hover {
         self.context = None
         self.abc_section = None
         self.elements = AbcStructure.generate_abc_elements(cwd)
-        self.actions_handlers = AbcActionHandlers()
+        self.actions_handlers = AbcActionHandlers(self.elements)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
@@ -286,7 +349,19 @@ img:hover {
         #current_element_sizer.Add(self.current_description, 1, wx.ALL | wx.EXPAND)
         #self.current_description.Hide()
 
-        self.current_html = wx.html.HtmlWindow(panel, -1)
+        if wx.Platform == "__WXMSW__":
+            font_size = 10
+        else:
+            font_size = 14
+
+        h1_size = font_size * 5 // 3
+        h2_size = font_size * 3 // 2
+        h3_h4_size = font_size * 5 // 4
+        h5_h6_size = font_size * 5 // 4
+
+        self.current_html = wx.html.HtmlWindow(panel, -1, style=wx.html.HW_SCROLLBAR_AUTO | wx.html.HW_NO_SELECTION)
+        self.current_html.SetFonts('', '', sizes=[font_size, font_size, font_size, h5_h6_size, h3_h4_size, h2_size, h1_size])
+
         panel_sizer.Add(self.current_html, 1, wx.ALL | wx.EXPAND)
         self.current_html.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.on_link_clicked)
 
@@ -310,23 +385,9 @@ img:hover {
         #     row += 1
         # self.element_panel.SetupScrolling()
 
-    def get_abc_section(self):
-        line_no = self._editor.GetCurrentLine()
-        start_line = self.get_tune_start_line(line_no)
-        if self._editor.GetLine(start_line).startswith('X:'):
-            body_start_line = self.get_body_start_line(start_line + 1)
-            if line_no < body_start_line:
-                return AbcSection.TuneHeader
-            elif line_no < self.get_body_end_line(body_start_line):
-                return AbcSection.TuneBody
-            else:
-                return AbcSection.OutsideTune
-        else:
-            return AbcSection.FileHeader
-
     def update_assist(self):
         try:
-            self.context = AbcContext(self.get_abc_section(), self._editor, on_invalidate=self.update_assist)
+            self.context = AbcContext(self._editor, on_invalidate=self.update_assist)
             element, match = self.get_current_element()
             self.context.current_element = element
             if element is not None:
@@ -383,48 +444,3 @@ img:hover {
         event.Skip()
         self.queue_number_update_assist += 1
         wx.CallLater(250, self.__on_editor_update_delayed, self.queue_number_update_assist)
-
-    def get_tune_start_line(self, offset_line):
-        start_line = offset_line
-        while start_line > 0 and not self._editor.GetLine(start_line).startswith('X:'):
-            start_line -= 1
-        return start_line
-
-    def get_body_start_line(self, offset_line):
-        key_line = offset_line
-        line_count = self._editor.GetLineCount()
-        while key_line < line_count and not self._editor.GetLine(key_line).startswith('K:'):
-            key_line += 1
-
-        body_line = None
-        if self._editor.GetLine(key_line).startswith('K:'):
-            body_line = key_line + 1
-        return body_line
-
-    def get_body_end_line(self, offset_line):
-        end_line_no = offset_line
-        line_count = self._editor.GetLineCount()
-        end_found = False
-        while not end_found and end_line_no < line_count:
-            line = self._editor.GetLine(end_line_no)
-            if line.startswith('X:'):
-                end_found = True
-            else:
-                end_found = not line.strip() # last empty line is also part of the body
-                end_line_no += 1
-        return end_line_no
-
-    def get_tune_start(self, offset):
-        start_line = self.get_tune_start_line(self._editor.LineFromPosition(offset))
-        start_position = self._editor.PositionFromLine(start_line)
-        return start_position
-
-    def get_tune_end(self, offset):
-        position = offset
-        start_line = self._editor.LineFromPosition(position)
-        end_line = start_line + 1
-        line_count = self._editor.GetLineCount()
-        while end_line < line_count and not self._editor.GetLine(end_line).startswith('X:'):
-            end_line += 1
-        end_position = self._editor.GetLineEndPosition(end_line - 1)
-        return end_position

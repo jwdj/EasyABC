@@ -27,7 +27,7 @@ def url_tuple_to_href(value):
     if type(value) == UrlTuple:
         return html_enclose_attr('a', { 'href': value.url }, value.content)
     elif type(value) == UrlImageTuple:
-        return html_enclose('a', { 'href': value.url }, '<img src="{0}" border="0" alt="{1}">'.format(value.src, value.content))
+        return html_enclose_attr('a', { 'href': value.url }, '<img src="{0}" border="0" alt="{1}">'.format(value.src, value.content))
     return value
 
 def html_enclose_item(tag, item):
@@ -79,7 +79,7 @@ class AbcAction(object):
 
     def get_action_html(self, context):
         if self.can_execute(context):
-            return html_enclose_attr('a', { 'href': self.name }, escape(self.display_name))
+            return u'<br>' + html_enclose_attr('a', { 'href': self.name }, escape(self.display_name))
         return u''
 
     def get_action_url(self, params=None):
@@ -90,31 +90,65 @@ class AbcAction(object):
 
 
 class ValueChangeAction(AbcAction):
-    def __init__(self, name, supported_values, matchgroup=None, display_name=None):
+    def __init__(self, name, supported_values, matchgroup=None, display_name=None, valid_sections=None, use_inner_match=False):
         super(ValueChangeAction, self).__init__(name, display_name=display_name)
         self.supported_values = supported_values
         self.matchgroup = matchgroup
+        self.use_inner_match = use_inner_match
+        self.valid_sections = valid_sections
 
     def can_execute(self, context, params=None):
         value = params.get('value', '')
         if self.matchgroup:
-            if context.current_match:
-                #try:
-                current_value = context.current_match.group(self.matchgroup)
-                #except IndexError:
-                #    return False
+            match = self.get_match(context)
+            if match:
+                current_value = match.group(self.matchgroup)
                 return value != current_value
         else:
             return value != context.match_text
 
+    def get_match(self, context):
+        if self.use_inner_match:
+            return context.inner_match
+        else:
+            return context.current_match
+
+    def get_tune_scope(self):
+        if self.use_inner_match:
+            return TuneScope.InnerText
+        else:
+            return TuneScope.MatchText
+
     def execute(self, context, params=None):
         value = params.get('value', '')
-        context.replace_match_text(value, self.matchgroup)
+        context.replace_match_text(value, self.matchgroup, tune_scope=self.get_tune_scope())
 
     def get_action_html(self, context):
         result = u''
+        if self.valid_sections is not None:
+            if isinstance(self.valid_sections, list):
+                if not context.abc_section in self.valid_sections:
+                    return result
+            else:
+                if context.abc_section != self.valid_sections:
+                    return result
+
+        match = self.get_match(context)
+        if match is None:
+            return result
+        elif self.matchgroup is not None:
+            try:
+                start = match.start(self.matchgroup)
+            except IndexError:
+                start = -1
+            if start == -1:
+                return result # don't show action if matchgroup not present in match
+
         if self.display_name:
             result = html_enclose('h4', escape(self.display_name))
+        else:
+            result = '<br>'
+
         html_values = []
         for value in self.supported_values:
             if isinstance(value, CodeDescription):
@@ -156,17 +190,7 @@ class ValueChangeAction(AbcAction):
 
 class InsertValueAction(ValueChangeAction):
     def __init__(self, name, supported_values, valid_sections=None, display_name=None, matchgroup=None):
-        super(InsertValueAction, self).__init__(name, supported_values, display_name=display_name)
-        self.valid_sections = valid_sections
-        self.matchgroup = matchgroup
-
-    def can_execute(self, context, params=None):
-        if self.valid_sections is None:
-            return True
-        if isinstance(self.valid_sections, list):
-            return context.abc_section in self.valid_sections
-        else:
-            return context.abc_section == self.valid_sections
+        super(InsertValueAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
 
     def execute(self, context, params=None):
         value = params['value']
@@ -177,10 +201,10 @@ class InsertValueAction(ValueChangeAction):
         else:
             context.insert_text(value)
 
-    def get_action_html(self, context):
-        if self.can_execute(context):
-            return super(InsertValueAction, self).get_action_html(context)
-        return u''
+    #def get_action_html(self, context):
+    #    if self.can_execute(context):
+    #        return super(InsertValueAction, self).get_action_html(context)
+    #    return u''
 
 
 class RemoveValueAction(AbcAction):
@@ -495,7 +519,7 @@ class KeySignatureChangeAction(KeyChangeAction):
         ValueDescription('none', _('None')),
     ]
     def __init__(self):
-        super(KeySignatureChangeAction, self).__init__('Signature', KeySignatureChangeAction.values, 1)
+        super(KeySignatureChangeAction, self).__init__('Signature', KeySignatureChangeAction.values, 1, use_inner_match=True)
 
     def can_execute(self, context, params=None):
         if context.inner_match is None:
@@ -555,7 +579,7 @@ class KeyModeChangeAction(KeyChangeAction):
         ValueDescription(3,  _('Locrian'))
     ]
     def __init__(self):
-        super(KeyModeChangeAction, self).__init__('Mode', KeyModeChangeAction.values, 'mode')
+        super(KeyModeChangeAction, self).__init__('Mode', KeyModeChangeAction.values, 'mode', use_inner_match=True)
 
     def can_execute(self, context, params=None):
         if context.inner_match is None:
@@ -580,6 +604,93 @@ class KeyModeChangeAction(KeyChangeAction):
             if num == value:
                 context.replace_matchgroups([('tonic', tonic), ('mode', mode)])
                 break
+
+
+class ClefChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('', _('Default')),
+        ValueDescription('treble', _('Treble')),
+        ValueDescription('alto', _('Alto')),
+        ValueDescription('tenor', _('Tenor')),
+        ValueDescription('bass', _('Bass')),
+        ValueDescription('perc', _('Percussion')),
+        ValueDescription('none', _('None'))
+    ]
+    def __init__(self):
+        super(ClefChangeAction, self).__init__('Clef', ClefChangeAction.values, 'clef', use_inner_match=True, valid_sections=AbcSection.TuneHeader)
+
+    def can_execute(self, context, params=None):
+        if super(ClefChangeAction, self).can_execute(context, params):
+            value = params.get('value', '')
+            match = self.get_match(context)
+            return match is None or value != match.group('clefname')
+        return False
+
+    def execute(self, context, params=None):
+        value = params.get('value', '')
+        if value and context.inner_match and context.inner_match.start('clefname') >= 0:
+            context.replace_match_text(value, 'clefname', tune_scope=self.get_tune_scope())
+        else:
+            if value:
+                params['value'] = ' clef=' + value
+            super(ClefChangeAction, self).execute(context, params)
+
+
+class StaffTransposeChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('',   _('Default')),
+        ValueDescription('+8', _('Octave higher (8va)')),
+        ValueDescription('-8', _('Octave lower (8va bassa)')),
+    ]
+    def __init__(self):
+        super(StaffTransposeChangeAction, self).__init__('Staff transpose', StaffTransposeChangeAction.values, 'stafftranspose', use_inner_match=True, valid_sections=AbcSection.TuneHeader)
+
+    #def get_action_html(self, context):
+    #    try:
+    #        if context.get_matchgroup('clef') and context.get_matchgroup('clefname') in ['treble', 'alto', 'tenor', 'bass']:
+    #            return super(StaffTransposeChangeAction, self).get_action_html(context)
+    #    except IndexError:
+    #        pass
+    #    return u''
+
+
+class ClefLineChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('',   _('Default')),
+        ValueDescription('2', _('Second line')),
+        ValueDescription('3', _('Third line')),
+        ValueDescription('4', _('Fourth line')),
+    ]
+    def __init__(self):
+        super(ClefLineChangeAction, self).__init__('Clef line', ClefLineChangeAction.values, 'clefline', use_inner_match=True, valid_sections=AbcSection.TuneHeader)
+
+    ##def get_action_html(self, context):
+    ##    try:
+    ##        if context.get_matchgroup('clef') and context.get_matchgroup('clefname') in ['treble', 'alto', 'tenor', 'bass']:
+    ##            return super(ClefLineChangeAction, self).get_action_html(context)
+    ##    except IndexError:
+    ##        pass
+    ##    return u''
+
+
+class PlaybackTransposeChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('', _('Default')),
+        ValueDescription(' transpose=12', _('Octave up')),
+        ValueDescription(' transpose=-12', _('Octave down')),
+    ]
+    def __init__(self):
+        super(PlaybackTransposeChangeAction, self).__init__('Playback transpose', PlaybackTransposeChangeAction.values, 'playtranspose', use_inner_match=True, valid_sections=AbcSection.TuneHeader)
+
+
+class AbcOctaveChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('', _('Default')),
+        ValueDescription(' octave=1', _('Octave up')),
+        ValueDescription(' octave=-1', _('Octave down')),
+    ]
+    def __init__(self):
+        super(AbcOctaveChangeAction, self).__init__('Octave shift', AbcOctaveChangeAction.values, 'octave', use_inner_match=True, valid_sections=AbcSection.TuneHeader)
 
 
 ##################################################################################################
@@ -643,20 +754,37 @@ class NewTuneAction(AbcAction):
         context.insert_text(text)
 
 
+class NewVoiceAction(AbcAction):
+    voice_re = re.compile(r'(?m)^V:\s*(\d+)')
+    def __init__(self):
+        super(NewVoiceAction, self).__init__('add_voice', display_name=_('Add voice'))
+
+    def can_execute(self, context, params=None):
+        return True
+
+    def execute(self, context, params=None):
+        last_voice_id = 0
+        for m in NewVoiceAction.voice_re.finditer(context.get_scope_info(TuneScope.TuneHeader).text):
+            last_voice_id = max(last_voice_id, int(m.group(1)))
+
+        text = u'V:{0} clef=treble'.format(last_voice_id + 1)
+        context.insert_text(text)
+
+
 class FixCharactersAction(AbcAction):
     def __init__(self):
         super(FixCharactersAction, self).__init__('fix_characters', display_name=_('Replace invalid characters'))
-        self.matchgroup = 1
 
     def can_execute(self, context, params=None):
-        text = context.get_matchgroup(self.matchgroup)
+        text = context.get_scope_info(TuneScope.MatchText).text
         new_text = unicode_text_to_abc(text)
         return text != new_text
 
     def execute(self, context, params=None):
-        text = context.get_matchgroup(self.matchgroup)
+        scope_info = context.get_scope_info(TuneScope.MatchText)
+        text = scope_info.text
         new_text = unicode_text_to_abc(text)
-        context.replace_match_text(new_text, matchgroup=self.matchgroup)
+        context.replace_selection(new_text, scope_info.start, scope_info.start + len(text.encode('utf-8')))
 
 
 class NewNoteAction(InsertValueAction):
@@ -789,7 +917,7 @@ class AbcActionHandler(object):
 
 
 class AbcActionHandlers(object):
-    def __init__(self):
+    def __init__(self, elements):
         self.default_action_handler = AbcActionHandler()
         self.action_handlers = {
             'Empty line'  : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
@@ -808,9 +936,29 @@ class AbcActionHandlers(object):
             '%'           : AbcActionHandler([FixCharactersAction()]),
         }
 
+        for key in ['V:', 'K:']:
+            self.add_actions(key, [ClefChangeAction(), StaffTransposeChangeAction(), PlaybackTransposeChangeAction(), AbcOctaveChangeAction(), ClefLineChangeAction()])
+
+        #for key in ['X:', 'T:']:
+        #    self.add_actions(key, [NewVoiceAction()])
+
+        for element in elements:
+            if type(element) == AbcStringField:
+                key = element.keyword or element.name
+                self.add_actions(key, [FixCharactersAction()])
+
+
     def get_action_handler(self, element):
         if element:
             key = element.keyword or element.name
             return self.action_handlers.get(key, self.default_action_handler)
         return self.default_action_handler
+
+    def add_actions(self, key, actions):
+        action_handler = self.action_handlers.get(key)
+        if action_handler is None:
+            self.action_handlers[key] = AbcActionHandler(actions)
+        else:
+            for action in actions:
+                action_handler.add_action(action)
 

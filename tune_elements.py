@@ -10,148 +10,48 @@ try:
 except ImportError:
     from cgi import escape  # py2
 
+# this file contains many regular expression patterns
+# for understanding these regular expressions:
+# https://regex101.com/#python
+
 #  http://abcnotation.com/wiki/abc:standard:v2.1#information_field_definition
-# keyword | name |file header | tune header | tune body | inline | type | examples and notes
+# keyword | name |file header | tune header | tune body | inline | type
 abc_keywords = """\
-A:|area              |yes    |yes    |no     |no     |string      |A:Donegal, A:Bampton (deprecated)
-B:|book              |yes    |yes    |no     |no     |string      |B:O'Neills
-C:|composer          |yes    |yes    |no     |no     |string      |C:Robert Jones, C:Trad.
-D:|discography       |yes    |yes    |no     |no     |string      |D:Chieftains IV
-F:|file url          |yes    |yes    |no     |no     |string      |F:http://a.b.c/file.abc
-G:|group             |yes    |yes    |no     |no     |string      |G:flute
-H:|history           |yes    |yes    |no     |no     |string      |H:The story behind this tune
-I:|instruction       |yes    |yes    |yes    |yes    |instruction |I:papersize A4, I:newpage
-K:|key               |no     |last   |yes    |yes    |instruction |K:G, K:Dm, K:AMix
-L:|unit note length  |yes    |yes    |yes    |yes    |instruction |L:1/4, L:1/8
-M:|meter             |yes    |yes    |yes    |yes    |instruction |M:3/4, M:4/4
-m:|macro             |yes    |yes    |yes    |yes    |instruction |m: ~G2 = {A}G{F}G
-N:|notes             |yes    |yes    |yes    |yes    |string      |N:see also O'Neills - 234
-O:|origin            |yes    |yes    |no     |no     |string      |O:UK; Yorkshire; Bradford
-P:|parts             |no     |yes    |yes    |yes    |instruction |P:A, P:ABAC, P:(A2B)3
-Q:|tempo             |no     |yes    |yes    |yes    |instruction |Q:"allegro" 1/4=120
-R:|rhythm            |yes    |yes    |yes    |yes    |string      |R:R, R:reel
-r:|remark            |yes    |yes    |yes    |yes    |string      |r:I love abc
-S:|source            |yes    |yes    |no     |no     |string      |S:collected in Brittany
-s:|symbol line       |no     |no     |yes    |no     |instruction |s: !pp! ** !f!
-T:|tune title        |no     |second |yes    |no     |string      |T:Paddy O'Rafferty
-U:|user defined      |yes    |yes    |yes    |yes    |instruction |U: T = !trill!
-V:|voice             |no     |yes    |yes    |yes    |instruction |V:4 clef=bass
-W:|words             |no     |yes    |yes    |no     |string      |W:lyrics printed after the end of the tune
-w:|words             |no     |no     |yes    |no     |string      |w:lyrics printed aligned with the notes of a tune
-X:|reference number  |no     |first  |no     |no     |instruction |X:1, X:2
-Z:|transcription     |yes    |yes    |no     |no     |string      |Z:John Smith, <j.s@mail.com>
+A:|area              |yes    |yes    |no     |no     |string
+B:|book              |yes    |yes    |no     |no     |string
+C:|composer          |yes    |yes    |no     |no     |string
+D:|discography       |yes    |yes    |no     |no     |string
+F:|file url          |yes    |yes    |no     |no     |string
+G:|group             |yes    |yes    |no     |no     |string
+H:|history           |yes    |yes    |no     |no     |string
+I:|instruction       |yes    |yes    |yes    |yes    |instruction
+K:|key               |no     |last   |yes    |yes    |instruction
+L:|unit note length  |yes    |yes    |yes    |yes    |instruction
+M:|meter             |yes    |yes    |yes    |yes    |instruction
+m:|macro             |yes    |yes    |yes    |yes    |instruction
+N:|notes             |yes    |yes    |yes    |yes    |string
+O:|origin            |yes    |yes    |no     |no     |string
+P:|parts             |no     |yes    |yes    |yes    |instruction
+Q:|tempo             |no     |yes    |yes    |yes    |instruction
+R:|rhythm            |yes    |yes    |yes    |yes    |string
+r:|remark            |yes    |yes    |yes    |yes    |string
+S:|source            |yes    |yes    |no     |no     |string
+s:|symbol line       |no     |no     |yes    |no     |instruction
+T:|tune title        |no     |second |yes    |no     |string
+U:|user defined      |yes    |yes    |yes    |yes    |instruction
+V:|voice             |no     |yes    |yes    |yes    |instruction
+W:|words             |no     |yes    |yes    |no     |string
+w:|words             |no     |no     |yes    |no     |string
+X:|reference number  |no     |first  |no     |no     |instruction
+Z:|transcription     |yes    |yes    |no     |no     |string
 """
 
-unicode_char_to_abc = {
-    r'\u00c0': r'\`A',
-    r'\u00e0': r'\`a',
-    r'\u00c8': r'\`E',
-    r'\u00e8': r'\`e',
-    r'\u00cc': r'\`I',
-    r'\u00ec': r'\`i',
-    r'\u00d2': r'\`O',
-    r'\u00f2': r'\`o',
-    r'\u00d9': r'\`U',
-    r'\u00f9': r'\`u',
-    r'\u00c1': r"\'A",
-    r'\u00e1': r"\'a",
-    r'\u00c9': r"\'E",
-    r'\u00e9': r"\'e",
-    r'\u00cd': r"\'I",
-    r'\u00ed': r"\'i",
-    r'\u00d3': r"\'O",
-    r'\u00f3': r"\'o",
-    r'\u00da': r"\'U",
-    r'\u00fa': r"\'u",
-    r'\u00dd': r"\'Y",
-    r'\u00fd': r"\'y",
-    r'\u00c2': r'\^A',
-    r'\u00e2': r'\^a',
-    r'\u00ca': r'\^E',
-    r'\u00ea': r'\^e',
-    r'\u00ce': r'\^I',
-    r'\u00ee': r'\^i',
-    r'\u00d4': r'\^O',
-    r'\u00f4': r'\^o',
-    r'\u00db': r'\^U',
-    r'\u00fb': r'\^u',
-    r'\u0176': r'\^Y',
-    r'\u0177': r'\^y',
-    r'\u00c3': r'\~A',
-    r'\u00e3': r'\~a',
-    r'\u00d1': r'\~N',
-    r'\u00f1': r'\~n',
-    r'\u00d5': r'\~O',
-    r'\u00f5': r'\~o',
-    r'\u00c4': r'\"A',
-    r'\u00e4': r'\"a',
-    r'\u00cb': r'\"E',
-    r'\u00eb': r'\"e',
-    r'\u00cf': r'\"I',
-    r'\u00ef': r'\"i',
-    r'\u00d6': r'\"O',
-    r'\u00f6': r'\"o',
-    r'\u00dc': r'\"U',
-    r'\u00fc': r'\"u',
-    r'\u0178': r'\"Y',
-    r'\u00ff': r'\"y',
-    r'\u00c7': r'\cC',
-    r'\u00e7': r'\cc',
-    r'\u00c5': r'\AA',
-    r'\u00e5': r'\aa',
-    r'\u00d8': r'\/O',
-    r'\u00f8': r'\/o',
-    r'\u0102': r'\uA',
-    r'\u0103': r'\ua',
-    r'\u0114': r'\uE',
-    r'\u0115': r'\ue',
-    r'\u0160': r'\vS',
-    r'\u0161': r'\vs',
-    r'\u017d': r'\vZ',
-    r'\u017e': r'\vz',
-    r'\u0150': r'\HO',
-    r'\u0151': r'\Ho',
-    r'\u0170': r'\HU',
-    r'\u0171': r'\Hu',
-    r'\u00c6': r'\AE',
-    r'\u00e6': r'\ae',
-    r'\u0152': r'\OE',
-    r'\u0153': r'\oe',
-    r'\u00df': r'\ss',
-    r'\u00d0': r'\DH',
-    r'\u00f0': r'\dh',
-    r'\u00de': r'\TH',
-    r'\u00fe': r'\th'
-}
-
-def unicode_text_to_abc(text):
-    result = text
-    for ustr in unicode_char_to_abc:
-        ch = unicode(ustr, 'unicode-escape')
-        result = result.replace(ch, unicode_char_to_abc[ustr])
-    return result
-
-def unicode_text_to_html_abc(text):
-    result = text
-    for ustr in unicode_char_to_abc:
-        ch = unicode(ustr, 'unicode-escape')
-        html = escape(ch)
-        result = result.replace(ch, html)
-        result = result.replace(ch, unicode_char_to_abc[ustr])
-    return result
-
-def abc_text_to_unicode(text):
-    result = unicode(text)
-    for ustr in unicode_char_to_abc:
-        ch = unicode(ustr, 'unicode-escape')
-        html = escape(ch)
-        result = result.replace(html, ch)
-        result = result.replace(unicode_char_to_abc[ustr], ch)
-    return result
+clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>treble|alto|tenor|bass|perc|none)(?P<clefline>\d?)(?P<stafftranspose>(?:[+-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?)'
 
 abc_inner_pattern = {
-    'K:': r' ?(?P<tonic>(?:[A-G][b#]?|none)?) ?(?P<mode>[A-Za-z]*)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)',
-    'Q:': r' ?(?P<pre_name>"\w*"?) ?(?P<notelength>\d+/\d+)=(?P<bpm>\d+) ?(?P<post_name>"\w*"?)'
+    'K:': r' ?(?P<tonic>(?:[A-G][b#]?|none)?) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)' + clef_pattern,
+    'Q:': r' ?(?P<pre_name>"\w*"?) ?(?P<notelength>\d+/\d+)=(?P<bpm>\d+) ?(?P<post_name>"\w*"?)',
+    'V:': r' ?(?P<name>\w+)' + clef_pattern
 }
 
 name_to_display_text = {
@@ -263,24 +163,74 @@ ABC_SECTIONS = [
     AbcSection.OutsideTune
 ]
 
+unicode_char_to_abc = {
+    r'\u00c0': r'\`A', r'\u00e0': r'\`a', r'\u00c8': r'\`E', r'\u00e8': r'\`e', r'\u00cc': r'\`I', r'\u00ec': r'\`i',
+    r'\u00d2': r'\`O', r'\u00f2': r'\`o', r'\u00d9': r'\`U', r'\u00f9': r'\`u', r'\u00c1': r"\'A", r'\u00e1': r"\'a",
+    r'\u00c9': r"\'E", r'\u00e9': r"\'e", r'\u00cd': r"\'I", r'\u00ed': r"\'i", r'\u00d3': r"\'O", r'\u00f3': r"\'o",
+    r'\u00da': r"\'U", r'\u00fa': r"\'u", r'\u00dd': r"\'Y", r'\u00fd': r"\'y", r'\u00c2': r'\^A', r'\u00e2': r'\^a',
+    r'\u00ca': r'\^E', r'\u00ea': r'\^e', r'\u00ce': r'\^I', r'\u00ee': r'\^i', r'\u00d4': r'\^O', r'\u00f4': r'\^o',
+    r'\u00db': r'\^U', r'\u00fb': r'\^u', r'\u0176': r'\^Y', r'\u0177': r'\^y', r'\u00c3': r'\~A', r'\u00e3': r'\~a',
+    r'\u00d1': r'\~N', r'\u00f1': r'\~n', r'\u00d5': r'\~O', r'\u00f5': r'\~o', r'\u00c4': r'\"A', r'\u00e4': r'\"a',
+    r'\u00cb': r'\"E', r'\u00eb': r'\"e', r'\u00cf': r'\"I', r'\u00ef': r'\"i', r'\u00d6': r'\"O', r'\u00f6': r'\"o',
+    r'\u00dc': r'\"U', r'\u00fc': r'\"u', r'\u0178': r'\"Y', r'\u00ff': r'\"y', r'\u00c7': r'\cC', r'\u00e7': r'\cc',
+    r'\u00c5': r'\AA', r'\u00e5': r'\aa', r'\u00d8': r'\/O', r'\u00f8': r'\/o', r'\u0102': r'\uA', r'\u0103': r'\ua',
+    r'\u0114': r'\uE', r'\u0115': r'\ue', r'\u0160': r'\vS', r'\u0161': r'\vs', r'\u017d': r'\vZ', r'\u017e': r'\vz',
+    r'\u0150': r'\HO', r'\u0151': r'\Ho', r'\u0170': r'\HU', r'\u0171': r'\Hu', r'\u00c6': r'\AE', r'\u00e6': r'\ae',
+    r'\u0152': r'\OE', r'\u0153': r'\oe', r'\u00df': r'\ss', r'\u00d0': r'\DH', r'\u00f0': r'\dh', r'\u00de': r'\TH',
+    r'\u00fe': r'\th' }
+
+def unicode_text_to_abc(text):
+    result = text
+    if text:
+        for ustr in unicode_char_to_abc:
+            ch = unicode(ustr, 'unicode-escape')
+            result = result.replace(ch, unicode_char_to_abc[ustr])
+    return result
+
+def unicode_text_to_html_abc(text):
+    result = text
+    if text:
+        for ustr in unicode_char_to_abc:
+            ch = unicode(ustr, 'unicode-escape')
+            html = escape(ch)
+            result = result.replace(ch, html)
+            result = result.replace(ch, unicode_char_to_abc[ustr])
+    return result
+
+def abc_text_to_unicode(text):
+    result = unicode(text)
+    if text:
+        for ustr in unicode_char_to_abc:
+            ch = unicode(ustr, 'unicode-escape')
+            html = escape(ch)
+            result = result.replace(html, ch)
+            result = result.replace(unicode_char_to_abc[ustr], ch)
+    return result
 
 def replace_text(text, replacements):
     """
-    Args:
-        text: text that requires replacements
-        replacements: A sequence of tuples in the form (compiled regular expression object, replacement value)
-
-    Returns:
-        the original text with all replacements applied
+    :param text: text that requires replacements
+    :param replacements: A sequence of tuples in the form (compiled regular expression object, replacement value)
+    :return: the original text with all replacements applied
     """
     for regex, replace_value in replacements:
         text = regex.sub(replace_value, text)
     return text
 
 def remove_named_groups(pattern):
+    """
+    :param pattern: regular expression pattern
+    :return: regular expression pattern where named groups are removed
+    """
     return re.sub(r'(?<=\(\?)P\<[^\>]+\>', ':', pattern)
 
 def replace_named_group(pattern, old_group, new_group=None):
+    """
+    :param pattern: regular expression pattern (containing named groups)
+    :param old_group: original groupname
+    :param new_group: desired groupname
+    :return: regular expression pattern where named group old_group is replaced by new_group
+    """
     if new_group is None:
         replace_value = ':'
     else:
@@ -289,6 +239,9 @@ def replace_named_group(pattern, old_group, new_group=None):
 
 
 class AbcElement(object):
+    """
+    Base class for each element in abc-code where element is a piece of structured abc-code
+    """
     def __init__(self, name, keyword=None, group_name=None, display_name=None, description=None, validation_pattern=None):
         self.name = name
         self.group_name = group_name
@@ -331,16 +284,16 @@ class AbcElement(object):
             text = context.get_scope_info(self.tune_scope).text
             p1, p2 = context.get_selection_within_scope(self.tune_scope)
 
-            if p1 == p2 or (0 <= p1 < len(text) and text[p1] in ' \r\n\t'):
+            if p1 == p2 and 0 <= p1 < len(text) and text[p1] not in ' \r\n\t':
                 for m in regex.finditer(text):
-                    if m.start() <= p1 <= p2 <= m.end():
+                    if m.start() <= p1 <= p2 < m.end():
                         result = m
                         break
             else:
                 if p1 > len(text):
                     print 'Selection past length: %d %d %s' % (p1, len(text), text)
                 for m in regex.finditer(text):
-                    if m.start() <= p1 <= p2 < m.end():
+                    if m.start() <= p1 <= p2 <= m.end():
                         result = m
                         break
         return result
@@ -384,18 +337,23 @@ class AbcElement(object):
         if url:
             result = self.get_html_from_url(url)
         if not result:
-            result = u'<h3>%s</h3>' % escape(self.get_header_text(context))
+            result = u'<h1>%s</h1>' % escape(self.get_header_text(context))
             description = self.get_description_text(context)
+            new_line = ''
             if description:
-                result += escape(description) + '<br>'
+                result += escape(description)
+                new_line = '<br>'
 
             if self.visible_match_group is not None:
-                groups = context.current_match.groups()
-                element_text = context.match_text
-                if len(groups) == 1 and groups[0]:
-                    element_text = groups[0]
-                element_text = abc_text_to_unicode(element_text)
-                result += '<code>%s</code><br>' % escape(element_text)
+                # groups = context.current_match.groups()
+                # element_text = context.match_text
+                # if len(groups) == 1 and groups[0]:
+                #    element_text = groups[0]
+                element_text = context.get_matchgroup(self.visible_match_group)
+                if element_text:
+                    element_text = abc_text_to_unicode(element_text).strip()
+                    if element_text:
+                        result += '{0}<code>{1}</code>'.format(new_line, escape(element_text))
 
             #for matchtext in context.current_match.groups():
             #    if matchtext:
@@ -446,14 +404,13 @@ class AbcUnknown(AbcElement):
 
 
 class AbcInformationField(AbcElement):
-    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples, inner_pattern=None):
+    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, inner_pattern=None):
         super(AbcInformationField, self).__init__(name, keyword, group_name='ABC information')
         self.file_header = file_header
         self.tune_header = tune_header
         self.tune_body = tune_body
         self.inline = inline
-        self.examples = examples
-        self.inner_pattern = inner_pattern or ''
+        self.inner_pattern = inner_pattern
         self.inner_re = None
         self.visible_match_group = 1
 
@@ -498,12 +455,13 @@ class AbcDirective(CompositeElement):
 
 
 class AbcStringField(AbcInformationField):
-    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples):
-        super(AbcStringField, self).__init__(name, keyword, file_header, tune_header, tune_body, inline, examples)
+    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline):
+        super(AbcStringField, self).__init__(name, keyword, file_header, tune_header, tune_body, inline)
+
 
 class AbcInstructionField(AbcInformationField):
-    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, examples, inner_pattern=None):
-        super(AbcInstructionField, self).__init__(name, keyword, file_header, tune_header, tune_body, inline, examples, inner_pattern)
+    def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, inner_pattern=None):
+        super(AbcInstructionField, self).__init__(name, keyword, file_header, tune_header, tune_body, inline, inner_pattern)
 
 
 class AbcMidiDirective(CompositeElement):
@@ -639,7 +597,7 @@ class AbcDecoration(AbcBodyElement):
         html = super(AbcDecoration, self).get_description_html(context)
         html += '<br>'
         symbol = context.match_text
-        if symbol[0] == symbol[-1] == '+': # convert old notation to new
+        if symbol and symbol[0] == symbol[-1] == '+': # convert old notation to new
             symbol = '!%s!' % symbol[1:-1]
         html += decorations.get(symbol, _('Unknown symbol'))
         html += '<br>'
@@ -738,10 +696,11 @@ class AbcNoteGroup(AbcBaseNote):
     note_or_rest_pattern = note_group_pattern_prefix + '(?:{0}|{1})'.format(AbcBaseNote.basic_note_or_rest_pattern, AbcBaseNote.basic_measure_rest_pattern)
     measure_rest_pattern = AbcBaseNote.basic_measure_rest_pattern
     chord_pattern = r'(?P<chord>\[(?:{0}\s*)*\])'.format(replace_named_group(note_or_rest_pattern, 'length')) + AbcBaseNote.length_pattern + note_group_pattern_postfix
-    pattern = r'(?:{0}|{1}){2}'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern), AbcBaseNote.pair_pattern)
+    pattern = r'({0}|{1}){2}'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern), AbcBaseNote.pair_pattern)
     def __init__(self):
         super(AbcNoteGroup, self).__init__('Note group', AbcNoteGroup.pattern) # '^{0}$'.format(AbcNoteGroup.pattern))
         #self.exact_match_required = True
+        self.visible_match_group = 1
 
 
 class AbcChord(AbcBaseNote):
@@ -754,12 +713,13 @@ class AbcChord(AbcBaseNote):
 class AbcNote(AbcBaseNote):
     pattern = AbcNoteGroup.note_pattern
     def __init__(self):
-        super(AbcNote, self).__init__('Note', AbcNote.pattern)
+        super(AbcNote, self).__init__('Note', '({0})'.format(AbcNote.pattern))
         self.removable_match_groups = {
             'grace': _('Grace notes'),
             'chordsymbol': _('Chord symbol'),
             'annotations': _('Annotation')
         }
+        self.visible_match_group = 1
 
 
 class AbcNormatOrMeasureRest(AbcBaseNote):
@@ -884,11 +844,10 @@ class AbcStructure(object):
             tune_body = parts[4].strip() == 'yes'
             inline = parts[5].strip() == 'yes'
             abc_type = parts[6].strip()
-            examples = parts[7].strip()
             if abc_type == 'instruction':
-                element = AbcInstructionField(name, keyword, file_header, tune_header, tune_body, inline, examples, abc_inner_pattern.get(keyword))
+                element = AbcInstructionField(name, keyword, file_header, tune_header, tune_body, inline, abc_inner_pattern.get(keyword))
             elif abc_type == 'string':
-                element = AbcStringField(name, keyword, file_header, tune_header, tune_body, inline, examples)
+                element = AbcStringField(name, keyword, file_header, tune_header, tune_body, inline)
             else:
                 raise Exception('Unknown abc-type')
             result.append(element)
@@ -982,6 +941,8 @@ class AbcStructure(object):
             AbcSpace(),
             AbcUnknown()
         ]
+
+        elements_by_keyword['V:'].visible_match_group = 'name'
 
         for element in result:
             try:
