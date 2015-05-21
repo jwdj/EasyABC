@@ -47,7 +47,6 @@ class AbcContext(object):
         self.current_element = None
         self._current_match = None
         self.inner_match = None
-        self.match_text = None
         self.match_text_start = None
         self._tune_scope_info_getter = {
             TuneScope.FullText: self.get_scope_full_text,
@@ -143,6 +142,10 @@ class AbcContext(object):
             offset += inner_match.offset
             inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
         self._tune_scope_info[TuneScope.InnerText] = inner_scope_info
+
+    @property
+    def match_text(self):
+        return self.get_scope_info(TuneScope.MatchText).text
 
     @property
     def lines(self):
@@ -291,7 +294,11 @@ class AbcContext(object):
 
     def get_matchgroup(self, matchgroup, default=None):
         match = self.inner_match or self.current_match
-        result = match.group(matchgroup)
+        try:
+            result = match.group(matchgroup)
+        except IndexError:
+            result = None
+
         if result is None:
             result = default
         return result

@@ -49,7 +49,7 @@ Z:|transcription     |yes    |yes    |no     |no     |string
 clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>treble|alto|tenor|bass|perc|none)(?P<clefline>\d?)(?P<stafftranspose>(?:[+-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?)'
 
 abc_inner_pattern = {
-    'K:': r' ?(?P<tonic>(?:[A-G][b#]?|none)?) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)' + clef_pattern,
+    'K:': r' ?(?P<tonic>(?:[A-G][b#]?|none)) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)' + clef_pattern,
     'Q:': r' ?(?P<pre_name>"\w*"?) ?(?P<notelength>\d+/\d+)=(?P<bpm>\d+) ?(?P<post_name>"\w*"?)',
     'V:': r' ?(?P<name>\w+)' + clef_pattern
 }
@@ -70,7 +70,7 @@ ValueDescription = namedtuple('ValueDescription', 'value description')
 CodeDescription = namedtuple('CodeDescription', 'code description')
 ImageDescription = namedtuple('ImageDescription', 'image description')
 
-decorations = {
+decoration_to_description = {
     '.'                : _('staccato mark'),
     '~'                : _('Irish roll'),
     'H'                : _('fermata'),
@@ -277,25 +277,31 @@ class AbcElement(object):
         if self.validation_pattern is not None:
             self.__validation_re = re.compile(self.validation_pattern)
 
+    @property
+    def valid_sections(self):
+        return [section for section in ABC_SECTIONS if self._search_pattern.get(section) is not None]
+
     def matches(self, context):
         regex = self._search_re.get(context.abc_section, None)
-        result = None
-        if regex is not None:
-            text = context.get_scope_info(self.tune_scope).text
-            p1, p2 = context.get_selection_within_scope(self.tune_scope)
+        if regex is None:
+            return None
 
-            if p1 == p2 and 0 <= p1 < len(text) and text[p1] not in ' \r\n\t':
-                for m in regex.finditer(text):
-                    if m.start() <= p1 <= p2 < m.end():
-                        result = m
-                        break
-            else:
-                if p1 > len(text):
-                    print 'Selection past length: %d %d %s' % (p1, len(text), text)
-                for m in regex.finditer(text):
-                    if m.start() <= p1 <= p2 <= m.end():
-                        result = m
-                        break
+        result = None
+        text = context.get_scope_info(self.tune_scope).text
+        p1, p2 = context.get_selection_within_scope(self.tune_scope)
+
+        if p1 == p2 and 0 <= p1 < len(text) and text[p1] not in ' \r\n\t':
+            for m in regex.finditer(text):
+                if m.start() <= p1 <= p2 < m.end():
+                    result = m
+                    break
+        else:
+            if p1 > len(text):
+                print 'Selection past length: %d %d %s' % (p1, len(text), text)
+            for m in regex.finditer(text):
+                if m.start() <= p1 <= p2 <= m.end():
+                    result = m
+                    break
         return result
 
     def matches_text(self, context, text):
@@ -564,9 +570,10 @@ class AbcSpace(AbcBodyElement):
 
 
 class AbcAnnotation(AbcBodyElement):
-    pattern = r'(?P<annotation>"(?P<pos>[\^_<>@])((?:\\"|[^"])*)")'
+    pattern = r'(?P<annotation>"(?P<pos>[\^_<>@])(?P<text>(?:\\"|[^"])*)")'
     def __init__(self):
-        super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern) #, description=_('An annotation'))
+        super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern)
+        self.visible_match_group = 'text'
 
 
 class AbcSlur(AbcBodyElement):
@@ -589,7 +596,7 @@ class RedefinableSymbol(AbcBodyElement):
 
 class AbcDecoration(AbcBodyElement):
     pattern = r"!([^!]+)!|\+([^!]+)\+|[\.~HLMOPSTuv]"
-    values = decorations
+    values = decoration_to_description
     def __init__(self):
         super(AbcDecoration, self).__init__('Decoration', AbcDecoration.pattern)
 
@@ -599,9 +606,22 @@ class AbcDecoration(AbcBodyElement):
         symbol = context.match_text
         if symbol and symbol[0] == symbol[-1] == '+': # convert old notation to new
             symbol = '!%s!' % symbol[1:-1]
-        html += decorations.get(symbol, _('Unknown symbol'))
+        html += decoration_to_description.get(symbol, _('Unknown symbol'))
         html += '<br>'
         return html
+
+
+class AbcDynamicsDecoration(AbcDecoration):
+    values = [
+        'ffff', 'fff', 'ff', 'f', 'mf', 'mp', 'p', 'pp', 'ppp', 'pppp', 'sfz',
+        'crescendo(',  '<(',
+        'crescendo)',  '<)',
+        'diminuendo(', '>(',
+        'diminuendo)', '>)'
+    ]
+    pattern = r'(?P<deco>\+|!)(?P<dynmark>{0})(?P=deco)'.format('|'.join(values))
+    def __init__(self):
+        super(AbcDecoration, self).__init__('Dynamics', AbcDynamicsDecoration.pattern)
 
 
 class AbcBrokenRhythm(AbcBodyElement):
@@ -675,7 +695,7 @@ class AbcChordBeginAndEnd(AbcBodyElement):
 
 
 class AbcChordSymbol(AbcBodyElement):
-    pattern = r'(?P<chordsymbol>"[^\^_<>@]((?:\\"|[^"])*)")'
+    pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@]((?:\\"|[^"])*))")'
     def __init__(self):
         super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern)
 
@@ -924,6 +944,7 @@ class AbcStructure(object):
             AbcTuplet(),
             AbcVariantEnding(),
             AbcBar(),
+            AbcDynamicsDecoration(),
             AbcDecoration(),
             AbcGraceNotes(),
             AbcSlur(),
