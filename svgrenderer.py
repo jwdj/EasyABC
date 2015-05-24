@@ -611,6 +611,8 @@ class SvgRenderer(object):
         else:
             # 1.3.6.3 [JWDJ] 2015-3 Only set fill if fill is specified (where 'none' is not the same as None)
             fill = attr.get('fill')
+            if fill is None and name=='circle':
+                fill = current_color # 1.3.6.4 To draw the two dots in !segno!
             if fill is not None:
                 if fill == 'currentColor':
                     fill = current_color

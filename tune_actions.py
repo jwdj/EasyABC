@@ -12,7 +12,6 @@ import webbrowser
 from fraction import Fraction
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
-UrlImageTuple = namedtuple('UrlImageTuple', 'url src content')
 
 def html_enclose(tag, content):
     return u'<{0}>{1}</{0}>'.format(tag, content)
@@ -26,8 +25,6 @@ def html_enclose_attr(tag, attributes, content):
 def url_tuple_to_href(value):
     if type(value) == UrlTuple:
         return html_enclose_attr('a', { 'href': value.url }, value.content)
-    elif type(value) == UrlImageTuple:
-        return html_enclose_attr('a', { 'href': value.url }, '<img src="{0}" border="0" alt="{1}">'.format(value.src, value.content))
     return value
 
 def html_enclose_item(tag, item):
@@ -180,11 +177,16 @@ class ValueChangeAction(AbcAction):
                 else:
                     t = (code_html, self.html_selected_item(context, value.code, desc))
                 html_values.append(t)
-            elif isinstance(value, ValueDescription):
+            elif isinstance(value, ValueDescription) or isinstance(value, ValueImageDescription):
                 params = {'value': value.value}
                 desc = escape(value.description)
                 if self.can_execute(context, params):
-                    t = UrlTuple(self.get_action_url(params), desc)
+                    if isinstance(value, ValueImageDescription):
+                        image_src = 'img/{0}.png'.format(value.image_name)
+                        image_html = '<img src="{0}" border="0" alt="{1}">'.format(image_src, desc)
+                        t = UrlTuple(self.get_action_url(params), image_html)
+                    else:
+                        t = UrlTuple(self.get_action_url(params), desc)
                 else:
                     t = self.html_selected_item(context, value, desc)
                 html_values.append(t)
@@ -222,6 +224,7 @@ class ValueChangeAction(AbcAction):
 class InsertValueAction(ValueChangeAction):
     def __init__(self, name, supported_values, valid_sections=None, display_name=None, matchgroup=None):
         super(InsertValueAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
+        self.relative_selection = None
 
     def execute(self, context, params=None):
         value = params['value']
@@ -231,6 +234,8 @@ class InsertValueAction(ValueChangeAction):
             context.replace_match_text(text, self.matchgroup)
         else:
             context.insert_text(value)
+        if self.relative_selection is not None:
+            context.set_relative_selection(self.relative_selection)
 
 
 class RemoveValueAction(AbcAction):
@@ -279,7 +284,7 @@ class AccidentalChangeAction(ValueChangeAction):
         CodeDescription('__', _('Double flat'))
     ]
     def __init__(self):
-        super(AccidentalChangeAction, self).__init__('Accidental', AccidentalChangeAction.accidentals, matchgroup='accidental')
+        super(AccidentalChangeAction, self).__init__('Change accidental', AccidentalChangeAction.accidentals, matchgroup='accidental')
 
 
 class MeterChangeAction(ValueChangeAction):
@@ -329,7 +334,7 @@ class PitchAction(ValueChangeAction):
     ]
     all_notes = 'CDEFGABcdefgab'
     def __init__(self):
-        super(PitchAction, self).__init__('Pitch', PitchAction.pitch_values)
+        super(PitchAction, self).__init__('Change pitch', PitchAction.pitch_values)
 
     def can_execute(self, context, params=None):
         value = params.get('value')
@@ -394,7 +399,7 @@ class DurationAction(ValueChangeAction):
         CodeDescription('<', _('This note halved, next note dotted'))
     ]
     def __init__(self):
-        super(DurationAction, self).__init__('Duration', DurationAction.duration_values)
+        super(DurationAction, self).__init__('Change duration', DurationAction.duration_values)
 
     @staticmethod
     def length_to_fraction(length):
@@ -598,7 +603,7 @@ class KeySignatureChangeAction(KeyChangeAction):
     def execute(self, context, params=None):
         value = params.get('value')
         if value == 'none':
-            context.replace_match_text(value)
+            context.replace_match_text(value, tune_scope=TuneScope.InnerText)
         else:
             value = int(value)
             middle_idx = len(KeyChangeAction._key_ladder) // 2
@@ -628,9 +633,13 @@ class KeyModeChangeAction(KeyChangeAction):
     def __init__(self):
         super(KeyModeChangeAction, self).__init__('Mode', KeyModeChangeAction.values, 'mode', use_inner_match=True)
 
-    def can_execute(self, context, params=None):
+    def is_action_allowed(self, context):
         if context.inner_match is None:
             return False
+        tonic = context.get_matchgroup('tonic')
+        return tonic in KeyChangeAction._key_ladder
+
+    def can_execute(self, context, params=None):
         tonic = context.get_matchgroup('tonic')
         if tonic in KeyChangeAction._key_ladder:
             value = int(params.get('value'))
@@ -657,9 +666,12 @@ class ClefChangeAction(ValueChangeAction):
     values = [
         ValueDescription('', _('Default')),
         ValueDescription('treble', _('Treble')),
-        ValueDescription('alto', _('Alto')),
-        ValueDescription('tenor', _('Tenor')),
         ValueDescription('bass', _('Bass')),
+        ValueDescription('bass3', _('Baritone')),
+        ValueDescription('tenor', _('Tenor')),
+        ValueDescription('alto', _('Alto')),
+        ValueDescription('alto2', _('Mezzosoprano')),
+        ValueDescription('alto1', _('Soprano')),
         ValueDescription('perc', _('Percussion')),
         ValueDescription('none', _('None'))
     ]
@@ -693,17 +705,6 @@ class StaffTransposeChangeAction(ValueChangeAction):
         super(StaffTransposeChangeAction, self).__init__('Staff transpose', StaffTransposeChangeAction.values, 'stafftranspose', use_inner_match=True)
 
 
-class ClefLineChangeAction(ValueChangeAction):
-    values = [
-        ValueDescription('',   _('Default')),
-        ValueDescription('2', _('Second line')),
-        ValueDescription('3', _('Third line')),
-        ValueDescription('4', _('Fourth line')),
-    ]
-    def __init__(self):
-        super(ClefLineChangeAction, self).__init__('Clef line', ClefLineChangeAction.values, 'clefline', use_inner_match=True)
-
-
 class PlaybackTransposeChangeAction(ValueChangeAction):
     values = [
         ValueDescription('', _('Default')),
@@ -728,7 +729,8 @@ class DynamicsDecorationChangeAction(ValueChangeAction):
     def __init__(self):
         values = []
         for mark in AbcDynamicsDecoration.values:
-            values.append(ValueDescription(mark, decoration_to_description['!{0}!'.format(mark)]))
+            value = ValueImageDescription(mark, mark, decoration_to_description['!{0}!'.format(mark)])
+            values.append(value)
         super(DynamicsDecorationChangeAction, self).__init__('Change dynamics mark', values, 'dynmark')
 
 
@@ -855,18 +857,20 @@ class NewRestAction(InsertValueAction):
 
 class InsertOptionalAccidental(InsertValueAction):
     values = [
-        CodeDescription('"^"', _('Empty')),
-        CodeDescription('"<(\u266f)"', _('Optional sharp')),
-        CodeDescription('"<(\u266e)"', _('Optional natural')),
-        CodeDescription('"<(\u266d)"', _('Optional flat'))
+        ValueDescription('"^"', _('Empty')),
+        ValueDescription('"<(\u266f)"', _('Optional sharp')),
+        ValueDescription('"<(\u266e)"', _('Optional natural')),
+        ValueDescription('"<(\u266d)"', _('Optional flat'))
     ]
     def __init__(self):
         super(InsertOptionalAccidental, self).__init__('Insert annotation', InsertOptionalAccidental.values, matchgroup='decoanno')
+        self.relative_selection = -1
 
 
 class AddDecorationAction(InsertValueAction):
     def __init__(self):
         super(AddDecorationAction, self).__init__('Insert decoration', AbcDecoration.values, matchgroup='decoanno')
+        self.relative_selection = -1
 
     def get_action_html(self, context):
         return u''
@@ -968,6 +972,7 @@ class AbcActionHandlers(object):
     def __init__(self, elements):
         self.default_action_handler = AbcActionHandler()
         self.action_handlers = {
+            'Empty document': AbcActionHandler([NewTuneAction()]),
             'Empty line'    : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
             'Whitespace'    : AbcActionHandler([NewNoteAction(), NewRestAction()]),
             'Note'          : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),

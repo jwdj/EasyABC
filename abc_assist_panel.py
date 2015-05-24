@@ -125,15 +125,25 @@ class AbcContext(object):
             match = match[0]
 
         self._current_match = match
-        start = match.start()
-        stop = match.end()
         if match:
+            start = match.start()
+            stop = match.end()
             scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
         else:
             scope_info = self.get_empty_scope_info()
         self._tune_scope_info[TuneScope.MatchText] = scope_info
-        inner_scope_info = scope_info
+
         self.inner_match = None
+        inner_scope_info = scope_info
+        if match:
+            try:
+                start = match.start('inner')
+                if start >= 0:
+                    stop = match.end('inner')
+                    inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+            except IndexError:
+                pass # no group named inner present
+
         if inner_match:
             match = inner_match.match
             self.inner_match = match
@@ -231,8 +241,13 @@ class AbcContext(object):
 
     def insert_text(self, text):
         self._editor.BeginUndoAction()
+        sel = self._editor
         self._editor.AddText(text)
         self._editor.EndUndoAction()
+
+    def set_relative_selection(self, relative_selection):
+        selection_end = self._editor.GetSelectionEnd() + relative_selection
+        self._editor.SetSelectionEnd(selection_end)
 
     def replace_selection(self, text, selection_start=None, selection_end=None):
         self._editor.BeginUndoAction()
@@ -244,11 +259,22 @@ class AbcContext(object):
         elif selection_end is not None:
             self._editor.SetSelectionEnd(selection_end)
 
+        selection_start, selection_end = self._editor.GetSelection()
+        selected_text = self._editor.GetTextRange(selection_start, selection_end)
+        i = 0
+        while i < len(selected_text) and i < len(text) and selected_text[-(1 + i)] == text[-(1 + i)]:
+            i += 1
+
+        if i > 0:
+            selection_end -= i
+            self._editor.SetSelectionEnd(selection_end)
+            text = text[:-i]
+
         self._editor.ReplaceSelection(text)
         self._editor.EndUndoAction()
         self.invalidate()
 
-    def get_tune_scope(self, tune_scope):
+    def ensure_tune_scope(self, tune_scope):
         if tune_scope is None:
             tune_scope = TuneScope.MatchText
             if self.inner_match:
@@ -256,9 +282,9 @@ class AbcContext(object):
         return tune_scope
 
     def replace_match_text(self, new_text, matchgroup=None, tune_scope=None):
-        tune_scope = self.get_tune_scope(tune_scope)
+        tune_scope = self.ensure_tune_scope(tune_scope)
         m = self.current_match
-        if tune_scope == TuneScope.InnerText:
+        if tune_scope == TuneScope.InnerText and self.inner_match:
             m = self.inner_match
 
         if matchgroup:
@@ -268,7 +294,7 @@ class AbcContext(object):
         self.replace_in_editor(new_text, tune_scope)
 
     def replace_matchgroups(self, values, tune_scope=None):
-        tune_scope = self.get_tune_scope(tune_scope)
+        tune_scope = self.ensure_tune_scope(tune_scope)
         m = self.current_match
         if tune_scope == TuneScope.InnerText:
             m = self.inner_match

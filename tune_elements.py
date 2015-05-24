@@ -46,7 +46,7 @@ X:|reference number  |no     |first  |no     |no     |instruction
 Z:|transcription     |yes    |yes    |no     |no     |string
 """
 
-clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>treble|alto|tenor|bass|perc|none)(?P<clefline>\d?)(?P<stafftranspose>(?:[+-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?)'
+clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>treble|bass3|bass|tenor|alto2|alto1|alto|perc|none)(?P<stafftranspose>(?:[+-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?)'
 
 abc_inner_pattern = {
     'K:': r' ?(?P<tonic>(?:[A-G][b#]?|none)) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)' + clef_pattern,
@@ -68,7 +68,7 @@ InnerMatch = namedtuple('InnerMatch', 'match offset')
 
 ValueDescription = namedtuple('ValueDescription', 'value description')
 CodeDescription = namedtuple('CodeDescription', 'code description')
-ImageDescription = namedtuple('ImageDescription', 'image description')
+ValueImageDescription = namedtuple('ValueImageDescription', 'value image_name description')
 
 decoration_to_description = {
     '.'                : _('staccato mark'),
@@ -197,9 +197,15 @@ def unicode_text_to_html_abc(text):
             result = result.replace(ch, unicode_char_to_abc[ustr])
     return result
 
+unicode_re = re.compile(r'\\u[0-9a-fA-F]{4}')
+
 def abc_text_to_unicode(text):
     result = unicode(text)
     if text:
+        for m in unicode_re.finditer(text):
+            ustr = m.group()
+            ch = unicode(str(ustr), 'unicode-escape')
+            result = result.replace(ustr, ch)
         for ustr in unicode_char_to_abc:
             ch = unicode(ustr, 'unicode-escape')
             html = escape(ch)
@@ -253,7 +259,7 @@ class AbcElement(object):
         self.description = description
         self.mandatory = False
         self.default = None
-        self.rest_of_line_pattern = r'(.*?)(?:(?<!\\)%.*)?$'
+        self.rest_of_line_pattern = r'(?P<inner>.*?)(?:(?<!\\)%.*)?$'
         self._search_pattern = {}
         self._search_re = {} # compiled regex
         self.params = []
@@ -348,7 +354,7 @@ class AbcElement(object):
             new_line = ''
             if description:
                 result += escape(description)
-                new_line = '<br>'
+                new_line = u'<br>'
 
             if self.visible_match_group is not None:
                 # groups = context.current_match.groups()
@@ -359,7 +365,7 @@ class AbcElement(object):
                 if element_text:
                     element_text = abc_text_to_unicode(element_text).strip()
                     if element_text:
-                        result += '{0}<code>{1}</code>'.format(new_line, escape(element_text))
+                        result += u'{0}<code>{1}</code>'.format(new_line, escape(element_text))
 
             #for matchtext in context.current_match.groups():
             #    if matchtext:
@@ -548,6 +554,16 @@ class AbcComment(AbcElement):
         return self._search_re[AbcSection.TuneBody].sub('', abc)
 
 
+class AbcEmptyDocument(AbcElement):
+    pattern = r'^$'
+    def __init__(self):
+        super(AbcEmptyDocument, self).__init__('Empty document', display_name='Welcome to EasyABC',
+            description=_('Creating an abc-file from scratch can be difficult. This assist panel tries to help by providing hints and actions. But remember, typing is usually faster.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcEmptyLine.pattern
+        self.tune_scope = TuneScope.FullText
+
+
 class AbcEmptyLine(AbcElement):
     pattern = r'^\s*$'
     def __init__(self):
@@ -695,7 +711,8 @@ class AbcChordBeginAndEnd(AbcBodyElement):
 
 
 class AbcChordSymbol(AbcBodyElement):
-    pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@]((?:\\"|[^"])*))")'
+    #pattern = r'(?P<chordsymbol>"(?P<chordname>((?:\\"|[^"])*))")'
+    pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
     def __init__(self):
         super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern)
 
@@ -848,6 +865,7 @@ class AbcStructure(object):
 
         # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result = [
+            AbcEmptyDocument(),
             AbcEmptyLine(),
             directive,
             AbcComment(),
