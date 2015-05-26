@@ -1499,10 +1499,7 @@ class MusicPrintout(wx.Printout):
         self.painted_on_screen = painted_on_screen
 
     def HasPage(self, page):
-        if page <= len(self.svg_files):
-            return True
-        else:
-            return False
+        return page <= len(self.svg_files)
 
     def GetPageInfo(self):
         minPage = 1
@@ -3947,6 +3944,7 @@ class MainFrame(wx.Frame):
 
     def stop_playing(self):
         if self.mc:
+            self.play_button.SetBitmap(self.play_bitmap)
             self.mc.Stop()
             self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
 
@@ -4010,8 +4008,10 @@ class MainFrame(wx.Frame):
         self.OnBpmSlider(None)
         def play():
             self.normalize_volume()
-            # time.sleep(0.3)
+            if wx.Platform == "__WXMAC__":
+                time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
             #self.mc.Seek(self.play_start_offset, wx.FromStart)
+            self.play_button.SetBitmap(self.pause_bitmap)
             self.play()
             self.update_playback_rate()
 
@@ -4138,7 +4138,9 @@ class MainFrame(wx.Frame):
 
         button_style = platebtn.PB_STYLE_DEFAULT | platebtn.PB_STYLE_NOBG
 
-        self.play_button = play =  platebtn.PlateButton(self.toolbar, self.id_play, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_play.png')).ConvertToBitmap(), style=button_style)
+        self.play_bitmap = wx.Image(os.path.join(cwd, 'img', 'toolbar_play.png')).ConvertToBitmap()
+        self.pause_bitmap = wx.Image(os.path.join(cwd, 'img', 'toolbar_pause.png')).ConvertToBitmap()
+        self.play_button = play =  platebtn.PlateButton(self.toolbar, self.id_play, "", self.play_bitmap, style=button_style)
         self.stop_button = stop =  platebtn.PlateButton(self.toolbar, self.id_stop, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_stop.png')).ConvertToBitmap(), style=button_style)
         self.record_btn = record = platebtn.PlateButton(self.toolbar, self.id_record, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_record.png')).ConvertToBitmap(), style=button_style)
         ##self.refresh = refresh = platebtn.PlateButton(self.toolbar, self.id_refresh, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_refresh.png')).ConvertToBitmap(), style=button_style)
@@ -4153,7 +4155,7 @@ class MainFrame(wx.Frame):
         self.toolbar.AddSeparator()
 
         # 1.3.6.3 [JWdJ] 2015-04-26 turned off abc assist for it is not finished yet
-        abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'logo16.png')).ConvertToBitmap(), style=button_style)
+        abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'bulb.png')).ConvertToBitmap(), style=button_style)
         abc_assist.SetHelpText('ABC assist')
         self.toolbar.AddControl(abc_assist, label=_('ABC assist')).SetShortHelp(_('ABC assist')) # 1.3.6.2 [JWdJ] 2015-03
         self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
@@ -4979,8 +4981,10 @@ class MainFrame(wx.Frame):
     def OnToolPlay(self, evt):
         if self.is_playing():
             self.mc.Pause()
+            self.play_button.SetBitmap(self.play_bitmap)
         elif self.is_paused():
             self.mc.Play()
+            self.play_button.SetBitmap(self.pause_bitmap)
         else:
             remove_repeats = evt.ControlDown() or evt.CmdDown()
             # 1.3.6.3 [SS] 2015-05-04

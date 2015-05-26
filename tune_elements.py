@@ -67,8 +67,19 @@ TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
 ValueDescription = namedtuple('ValueDescription', 'value description')
-CodeDescription = namedtuple('CodeDescription', 'code description')
+CodeDescription = namedtuple('CodeDescription', 'value description')
 ValueImageDescription = namedtuple('ValueImageDescription', 'value image_name description')
+CodeImageDescription = namedtuple('CodeImageDescription', 'value image_name description')
+
+decoration_aliases = {
+    '!>!'       : '!accent!',
+    '!emphasis!': '!accent!',
+    '!<(!'      : '!crescendo(!',
+    '!<)!'      : '!crescendo)!',
+    '!>(!'      : '!diminuendo(!',
+    '!>)!'      : '!diminuendo)!',
+    '!+!'       : '!plus!',
+}
 
 decoration_to_description = {
     '.'                : _('staccato mark'),
@@ -82,41 +93,41 @@ decoration_to_description = {
     'T'                : _('trill'),
     'u'                : _('up-bow'),
     'v'                : _('down-bow'),
-    '!trill!'          : _('"tr" (trill mark)'),
+    '!trill!'          : _('trill'),
     '!trill(!'         : _('start of an extended trill'),
     '!trill)!'         : _('end of an extended trill'),
-    '!lowermordent!'   : _('short /|/|/ squiggle with a vertical line through it'),
-    '!uppermordent!'   : _('short /|/|/ squiggle'),
-    '!mordent!'        : _('short /|/|/ squiggle with a vertical line through it'),
-    '!pralltriller!'   : _('short /|/|/ squiggle'),
-    '!roll!'           : _('a roll mark (arc) as used in Irish music'),
-    '!turn!'           : _('a turn mark (also known as gruppetto)'),
+    '!lowermordent!'   : _('lower mordent'),
+    '!uppermordent!'   : _('upper mordent'),
+    '!mordent!'        : _('mordent'),
+    '!pralltriller!'   : _('pralltriller'),
+    '!roll!'           : _('Irish roll'),
+    '!turn!'           : _('turn or gruppetto'),
     '!turnx!'          : _('a turn mark with a line through it'),
     '!invertedturn!'   : _('an inverted turn mark'),
     '!invertedturnx!'  : _('an inverted turn mark with a line through it'),
-    '!arpeggio!'       : _('vertical squiggle'),
-    '!>!'              : _('> mark'),
-    '!accent!'         : _('> mark'),
-    '!emphasis!'       : _('> mark'),
-    '!fermata!'        : _('fermata or hold (arc above dot)'),
+    '!arpeggio!'       : _('arpeggio'),
+    '!>!'              : _('accent or emphasis'),
+    '!accent!'         : _('accent or emphasis'),
+    '!emphasis!'       : _('accent or emphasis'),
+    '!fermata!'        : _('fermata or hold'),
     '!invertedfermata!': _('upside down fermata'),
-    '!tenuto!'         : _('horizontal line to indicate holding note for full duration'),
-    '!0!'              : _('fingering (none)'),
-    '!1!'              : _('fingering (thumb)'),
-    '!2!'              : _('fingering (index finger)'),
-    '!3!'              : _('fingering (middle finger)'),
-    '!4!'              : _('fingering (ring finger)'),
-    '!5!'              : _('fingering (pinky)'),
-    '!+!'              : _('left-hand pizzicato, or rasp for French horns'),
-    '!plus!'           : _('left-hand pizzicato, or rasp for French horns'),
-    '!snap!'           : _('snap-pizzicato mark, visually similar to !thumb!'),
-    '!slide!'          : _('slide up to a note, visually similar to a half slur'),
-    '!wedge!'          : _('small filled-in wedge mark'),
-    '!upbow!'          : _('V mark'),
-    '!downbow!'        : _('squared n mark'),
-    '!open!'           : _('small circle above note indicating open string or harmonic'),
+    '!tenuto!'         : _('tenuto'),
+    '!0!'              : _('no finger'),
+    '!1!'              : _('thumb'),
+    '!2!'              : _('index finger'),
+    '!3!'              : _('middle finger'),
+    '!4!'              : _('ring finger'),
+    '!5!'              : _('little finger'),
+    '!+!'              : _('left-hand pizzicato'),
+    '!plus!'           : _('left-hand pizzicato'),
+    '!snap!'           : _('snap-pizzicato'),
+    '!slide!'          : _('slide up to a note'),
+    '!wedge!'          : _('staccatissimo or spiccato'),
+    '!upbow!'          : _('up-bow'),
+    '!downbow!'        : _('down-bow'),
+    '!open!'           : _('open string or harmonic'),
     '!thumb!'          : _('cello thumb symbol'),
-    '!breath!'         : _('a breath mark (apostrophe-like) after note'),
+    '!breath!'         : _('breath mark'),
     '!pppp!'           : _('pianissimo possibile'),
     '!ppp!'            : _('pianississimo'),
     '!pp!'             : _('pianissimo'),
@@ -130,14 +141,14 @@ decoration_to_description = {
     '!sfz!'            : _('sforzando'),
     '!crescendo(!'     : _('start of a < crescendo mark'),
     '!<(!'             : _('start of a < crescendo mark'),
-    '!crescendo)!'     : _('end of a < crescendo mark, placed after the last note'),
-    '!<)!'             : _('end of a < crescendo mark, placed after the last note'),
+    '!crescendo)!'     : _('end of a < crescendo mark'),
+    '!<)!'             : _('end of a < crescendo mark'),
     '!diminuendo(!'    : _('start of a > diminuendo mark'),
     '!>(!'             : _('start of a > diminuendo mark'),
-    '!diminuendo)!'    : _('end of a > diminuendo mark, placed after the last note'),
-    '!>)!'             : _('end of a > diminuendo mark, placed after the last note'),
-    '!segno!'          : _('2 ornate s-like symbols separated by a diagonal line'),
-    '!coda!'           : _('a ring with a cross in it'),
+    '!diminuendo)!'    : _('end of a > diminuendo mark'),
+    '!>)!'             : _('end of a > diminuendo mark'),
+    '!segno!'          : _('segno'),
+    '!coda!'           : _('coda'),
     '!D.S.!'           : _('the letters D.S. (=Da Segno)'),
     '!D.C.!'           : _('the letters D.C. (=either Da Coda or Da Capo)'),
     '!dacoda!'         : _('the word "Da" followed by a Coda sign'),
@@ -611,10 +622,20 @@ class RedefinableSymbol(AbcBodyElement):
 
 
 class AbcDecoration(AbcBodyElement):
-    pattern = r"!([^!]+)!|\+([^!]+)\+|[\.~HLMOPSTuv]"
+    pattern = r"!([^!]+)!|\+([^!]+)\+|\."
     values = decoration_to_description
-    def __init__(self):
-        super(AbcDecoration, self).__init__('Decoration', AbcDecoration.pattern)
+    def __init__(self, name=None, subset=None):
+        if name is None:
+            name = 'Decoration'
+        if subset is None:
+            pattern = AbcDecoration.pattern
+        else:
+            with_exclamation = '|'.join(re.escape(value[1:-1]) for value in subset if value[0] == '!')
+            without_exclamation = '|'.join(re.escape(value) for value in subset if value[0] != '!')
+            if without_exclamation:
+                without_exclamation = '|' + without_exclamation
+            pattern = r'(?P<decoration>(?P<decomark>\+|!)(?P<deconame>{0})(?P=decomark){1})'.format(with_exclamation, without_exclamation)
+        super(AbcDecoration, self).__init__(name, pattern)
 
     def get_description_html(self, context):
         html = super(AbcDecoration, self).get_description_html(context)
@@ -622,22 +643,82 @@ class AbcDecoration(AbcBodyElement):
         symbol = context.match_text
         if symbol and symbol[0] == symbol[-1] == '+': # convert old notation to new
             symbol = '!%s!' % symbol[1:-1]
-        html += decoration_to_description.get(symbol, _('Unknown symbol'))
+        html += escape(decoration_to_description.get(symbol, _('Unknown symbol')))
         html += '<br>'
         return html
 
 
 class AbcDynamicsDecoration(AbcDecoration):
     values = [
-        'ffff', 'fff', 'ff', 'f', 'mf', 'mp', 'p', 'pp', 'ppp', 'pppp', 'sfz',
-        'crescendo(',  '<(',
-        'crescendo)',  '<)',
-        'diminuendo(', '>(',
-        'diminuendo)', '>)'
+        '!ffff!', '!fff!', '!ff!', '!f!', '!mf!', '!mp!', '!p!', '!pp!', '!ppp!', '!pppp!', '!sfz!',
+        '!crescendo(!',  '!<(!',
+        '!crescendo)!',  '!<)!',
+        '!diminuendo(!', '!>(!',
+        '!diminuendo)!', '!>)!'
     ]
-    pattern = r'(?P<deco>\+|!)(?P<dynmark>{0})(?P=deco)'.format('|'.join(values))
     def __init__(self):
-        super(AbcDecoration, self).__init__('Dynamics', AbcDynamicsDecoration.pattern)
+        super(AbcDynamicsDecoration, self).__init__('Dynamics', AbcDynamicsDecoration.values)
+
+
+class AbcFingeringDecoration(AbcDecoration):
+    values = ['!0!', '!1!', '!2!', '!3!', '!4!', '!5!']
+    def __init__(self):
+        super(AbcFingeringDecoration, self).__init__('Fingering', AbcFingeringDecoration.values)
+
+
+class AbcOrnamentDecoration(AbcDecoration):
+    values = [
+        '!trill!',
+        '!trill(!',
+        '!trill)!',
+        '!lowermordent!',
+        '!uppermordent!',
+        '!mordent!',
+        '!pralltriller!',
+        '!roll!',
+        '!turn!',
+        '!turnx!',
+        '!invertedturn!',
+        '!invertedturnx!',
+        '!arpeggio!'
+    ]
+    def __init__(self):
+        super(AbcOrnamentDecoration, self).__init__('Ornament', AbcOrnamentDecoration.values)
+
+
+class AbcNavigationDecoration(AbcDecoration):
+    values = [
+        '!segno!',
+        '!coda!',
+        '!D.S.!',
+        '!D.C.!',
+        '!dacoda!',
+        '!dacapo!',
+        '!fine!'
+    ]
+    def __init__(self):
+        super(AbcNavigationDecoration, self).__init__('Navigation', AbcNavigationDecoration.values)
+
+
+class AbcArticulationDecoration(AbcDecoration):
+    values = [
+        '.',
+        '!tenuto!',
+        '!accent!', '!>!', '!emphasis!',
+        '!wedge!',
+        '!invertedfermata!',
+        '!fermata!',
+        '!plus!', '!+!',
+        '!snap!',
+        '!slide!',
+        '!upbow!',
+        '!downbow!',
+        '!open!',
+        '!thumb!',
+        '!breath!',
+    ]
+    def __init__(self):
+        super(AbcArticulationDecoration, self).__init__('Articulation', AbcArticulationDecoration.values)
 
 
 class AbcBrokenRhythm(AbcBodyElement):
@@ -721,6 +802,7 @@ class AbcGraceNotes(AbcBaseNote):
     pattern = r'(?P<grace>{(?P<acciaccatura>/?)(?P<gracenote>[^}]*)})'
     def __init__(self):
         super(AbcBaseNote, self).__init__('Grace notes', AbcGraceNotes.pattern)
+        self.visible_match_group = 'gracenote'
 
 
 class AbcNoteGroup(AbcBaseNote):
@@ -963,6 +1045,10 @@ class AbcStructure(object):
             AbcVariantEnding(),
             AbcBar(),
             AbcDynamicsDecoration(),
+            AbcFingeringDecoration(),
+            AbcOrnamentDecoration(),
+            AbcNavigationDecoration(),
+            AbcArticulationDecoration(),
             AbcDecoration(),
             AbcGraceNotes(),
             AbcSlur(),
@@ -990,67 +1076,4 @@ class AbcStructure(object):
                 print 'Exception in element {0}: {1}'.format(element.name, ex)
                 logging.exception(ex)
 
-
         return result
-
-#def create_abc_elements():
-#    index_element = AbcStructureElement('X:', _('Index'))
-#    index_element.mandatory = True
-#    title_element = AbcTextElement('T:', _('Title'), multiline=True)
-#    title_element.mandatory = True
-#    title_element.default = _('Untitled')
-#
-#    key_supported_options = {'': 'C'}
-#    key_validation_pattern = r'(?i)^[A-G](#|b)?\s?(major|minor|ionian|aeolian|mixolydian|dorian|phrygian|lydian|locrian|m|maj|min|ion|aeo|mix|dor|phr|lyd|loc)'
-#    key_element = AbcStructureElement('K:', _('Key'), supported_values=key_supported_options, validation_pattern=key_validation_pattern)
-#    key_element.mandatory = True
-#
-#    meter_options = ['C', 'C|', '4/4', '3/4', '2/4', '2/2', '6/8', '9/8', '12/8', '5/8']
-#
-#    elements = [
-#        # identification
-#        index_element,
-#        title_element,
-#        AbcTextElement('C:', _('Composer'), multiline=True),
-#        AbcTextElement('O:', _('Origin'), multiline=True),
-#        AbcTextElement('R:', _('Rhythm')),
-#        # background
-#        AbcTextElement('B:', _('Book')),
-#        AbcTextElement('D:', _('Discography'), multiline=True),
-#        AbcTextElement('F:', _('File URL')),
-#        AbcTextElement('G:', _('Group')),
-#        AbcTextElement('H:', _('History'), multiline=True, use_line_continuation=True),
-#        AbcTextElement('N:', _('Notes')),
-#        AbcTextElement('S:', _('Source')),
-#        AbcTextElement('Z:', _('Transcription'), multiline=True),
-#        AbcTextElement('+:', _('Field continuation')),
-#        AbcTextElement('s:', _('Symbol line')),
-#        # structure
-#        AbcStructureElement('P:', _('Parts'), description=_('How parts are repeated')),
-#        AbcStructureElement('V:', _('Voices'), description=_('Which voices are present')),
-#        AbcStructureElement('M:', _('Meter'), supported_values=meter_options),
-#        AbcStructureElement('L:', _('Unit note length'), description=_('How long one unit is')),
-#        AbcStructureElement('Q:', _('Tempo')),
-#        key_element
-#    ]
-#    return elements
-
-
-# def create_abcm2ps_elements():
-#     measure_number_options = {'None': None, 'Start of every line': 0, 'Every measure': 1, 'Every 2 measures': 2, 'Every 3 measures': 3, 'Every 4 measures': 4, 'Every 5 measures': 5, 'Every 8 measures': 8, 'Every 10 measures': 10}
-#     elements = [
-#         Abcm2psElement('pagewidth', _('Page width'), 'unit'),
-#         Abcm2psElement('pageheight', _('Page height'), 'unit'),
-#         Abcm2psElement('topmargin', _('Top margin'), 'unit'),
-#         Abcm2psElement('botmargin', _('Bottom margin'), 'unit'),
-#         Abcm2psElement('leftmargin', _('Left margin'), 'unit'),
-#         Abcm2psElement('rightmargin', _('Right margin'), 'unit'),
-#         Abcm2psElement('staffwidth', _('Staff width'), 'unit'),
-#         Abcm2psElement('landscape', _('Landscape'), 'bool'),
-#         Abcm2psElement('scale', _('Page scale factor'), 'float'),
-#         Abcm2psElement('staffscale', _('Staff scale factor'), 'float'),
-#         Abcm2psElement('setbarnb', _('First measure number'), 'int'),
-#         Abcm2psElement('measurenb', _('Measure numbers'), 'int', measure_number_options),
-#         Abcm2psElement('measurebox', _('Box around measure number'), 'bool')
-#     ]
-#     return elements

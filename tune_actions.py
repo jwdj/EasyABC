@@ -164,32 +164,39 @@ class ValueChangeAction(AbcAction):
     def get_values(self, context):
         return self.supported_values
 
+    def enclose_action_url(self, action_url, value):
+        if action_url is not None:
+            return UrlTuple(action_url, value)
+        return value
+
     def get_values_html(self, context):
         result = u''
         html_values = []
         for value in self.get_values(context):
-            if isinstance(value, CodeDescription):
-                params = {'value': value.code}
-                code_html = html_enclose('code', escape(value.code))
+            if isinstance(value, (CodeDescription, ValueDescription, CodeImageDescription, ValueImageDescription)):
                 desc = escape(value.description)
-                if self.can_execute(context, params):
-                    t = (code_html, UrlTuple(self.get_action_url(params), desc))
-                else:
-                    t = (code_html, self.html_selected_item(context, value.code, desc))
-                html_values.append(t)
-            elif isinstance(value, ValueDescription) or isinstance(value, ValueImageDescription):
                 params = {'value': value.value}
-                desc = escape(value.description)
-                if self.can_execute(context, params):
-                    if isinstance(value, ValueImageDescription):
-                        image_src = 'img/{0}.png'.format(value.image_name)
+                can = self.can_execute(context, params)
+                action_url = None
+                if can:
+                    action_url = self.get_action_url(params)
+                columns = []
+                if isinstance(value, (CodeDescription, CodeImageDescription)):
+                    columns += [html_enclose('code', escape(value.value))]
+
+                if isinstance(value, (CodeImageDescription, ValueImageDescription)):
+                    image_html = ''
+                    image_src = 'img/' + value.image_name
+                    if os.path.exists(image_src):
                         image_html = '<img src="{0}" border="0" alt="{1}">'.format(image_src, desc)
-                        t = UrlTuple(self.get_action_url(params), image_html)
-                    else:
-                        t = UrlTuple(self.get_action_url(params), desc)
+                    columns += [self.enclose_action_url(action_url, image_html)]
+
+                if can:
+                    columns += [self.enclose_action_url(action_url, desc)]
                 else:
-                    t = self.html_selected_item(context, value, desc)
-                html_values.append(t)
+                    columns += [self.html_selected_item(context, value.value, desc)]
+
+                html_values.append(tuple(columns))
             elif isinstance(value, list):
                 columns = value
                 row = []
@@ -725,13 +732,65 @@ class AbcOctaveChangeAction(ValueChangeAction):
         super(AbcOctaveChangeAction, self).__init__('Octave shift', AbcOctaveChangeAction.values, 'octave', use_inner_match=True)
 
 
-class DynamicsDecorationChangeAction(ValueChangeAction):
-    def __init__(self):
+class BaseDecorationChangeAction(ValueChangeAction):
+    def __init__(self, name, decoration_values):
         values = []
-        for mark in AbcDynamicsDecoration.values:
-            value = ValueImageDescription(mark, mark, decoration_to_description['!{0}!'.format(mark)])
+        for mark in decoration_values:
+            value = ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark])
             values.append(value)
-        super(DynamicsDecorationChangeAction, self).__init__('Change dynamics mark', values, 'dynmark')
+        super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration')
+
+
+    def is_current_value(self, context, value):
+        match = self.get_match(context)
+        current_value = match.group(self.matchgroup)
+        current_value = decoration_aliases.get(current_value, current_value)
+        return value == current_value
+
+    def get_values(self, context):
+        values = super(BaseDecorationChangeAction, self).get_values(context)
+        return [v for v in values if decoration_aliases.get(v.value) is None]  # prevent doubles by filtering out aliases
+
+    @staticmethod
+    def get_image_name(mark):
+        name_lookup = {
+            '.': 'staccato',
+            '!upbow!': 'v',
+            '!downbow!': 'u',
+            '!lowermordent!': 'mordent',
+            '!uppermordent!': 'pralltriller'
+        }
+        image_name = name_lookup.get(mark)
+        if image_name is not None:
+            image_name += '.png'
+        elif mark[0] == '!':
+            image_name = mark[1:-1] + '.png'
+        return image_name
+
+
+class DynamicsDecorationChangeAction(BaseDecorationChangeAction):
+    def __init__(self):
+        super(DynamicsDecorationChangeAction, self).__init__('Change dynamics mark', AbcDynamicsDecoration.values)
+
+
+class FingeringDecorationChangeAction(BaseDecorationChangeAction):
+    def __init__(self):
+        super(FingeringDecorationChangeAction, self).__init__('Change fingering', AbcFingeringDecoration.values)
+
+
+class OrnamentDecorationChangeAction(BaseDecorationChangeAction):
+    def __init__(self):
+        super(OrnamentDecorationChangeAction, self).__init__('Change ornament', AbcOrnamentDecoration.values)
+
+
+class NavigationDecorationChangeAction(BaseDecorationChangeAction):
+    def __init__(self):
+        super(NavigationDecorationChangeAction, self).__init__('Change navigation marker', AbcNavigationDecoration.values)
+
+
+class ArticulationDecorationChangeAction(BaseDecorationChangeAction):
+    def __init__(self):
+        super(ArticulationDecorationChangeAction, self).__init__('Change articulation marker', AbcArticulationDecoration.values)
 
 
 class ChordChangeAction(ValueChangeAction):
@@ -742,6 +801,32 @@ class ChordChangeAction(ValueChangeAction):
         values = [
             ValueDescription('', _('No chord'))
         ]
+        return values
+
+
+class RedefinableSymbolChangeAction(ValueChangeAction):
+    def __init__(self):
+        super(RedefinableSymbolChangeAction, self).__init__('Change redefinable symbol', [])
+
+    def get_values(self, context):
+        defaults = {
+            '~': '!roll!',
+            'H': '!fermata!',
+            'L': '!accent!',
+            'M': '!lowermordent!',
+            'O': '!coda!',
+            'P': '!uppermordent!',
+            'S': '!segno!',
+            'T': '!trill!',
+            'u': '!upbow!',
+            'v': '!downbow!'
+        }
+        values = []
+        for symbol in defaults:
+            decoration = defaults[symbol]
+            image_name = BaseDecorationChangeAction.get_image_name(decoration)
+            desc = decoration_to_description.get(decoration, '')
+            values.append(CodeImageDescription(symbol, image_name, desc))
         return values
 
 
@@ -868,59 +953,16 @@ class InsertOptionalAccidental(InsertValueAction):
 
 
 class AddDecorationAction(InsertValueAction):
+    values = [
+        ValueImageDescription('!mf!', 'mf.png', _('Dynamics')),
+        ValueImageDescription('!trill!', 'trill.png', _('Ornament')),
+        ValueImageDescription('!fermata!', 'fermata.png', _('Articulation')),
+        ValueImageDescription('!segno!', 'segno.png', _('Navigation')),
+        ValueImageDescription('!5!', '5.png', _('Fingering'))
+    ]
     def __init__(self):
-        super(AddDecorationAction, self).__init__('Insert decoration', AbcDecoration.values, matchgroup='decoanno')
+        super(AddDecorationAction, self).__init__('Insert decoration', AddDecorationAction.values, matchgroup='decoanno')
         self.relative_selection = -1
-
-    def get_action_html(self, context):
-        return u''
-
-    def get_action_html(self, context):
-        result = u''
-        return result
-#<img src="img/fermata.png">
-
-        for value in self.supported_values:
-            if isinstance(value, CodeDescription):
-                params = {'value': value.code}
-                if self.can_execute(context, params):
-                    t = (html_enclose('code', escape(value.code)), UrlTuple(self.get_action_url(params), escape(value.description)))
-                    html_values.append(t)
-                else:
-                    html_values.append(value)
-            elif isinstance(value, ValueDescription):
-                params = {'value': value.value}
-                if self.can_execute(context, params):
-                    t = UrlTuple(self.get_action_url(params), escape(value.description))
-                    html_values.append(t)
-                else:
-                    html_values.append(escape(value.description))
-            elif isinstance(value, list):
-                columns = value
-                row = []
-                for column in columns:
-                    params = {'value': column}
-                    html_column = html_enclose('code', escape(column))
-                    if self.can_execute(context, params):
-                        t = UrlTuple(self.get_action_url(params), html_column)
-                        row.append(t)
-                    else:
-                        row.append(html_column)
-                html_values.append(row)
-            else:
-                params = {'value': value}
-                if self.can_execute(context, params):
-                    t = UrlTuple(self.get_action_url(params), escape(value))
-                    html_values.append(t)
-                else:
-                    html_values.append(escape(value))
-        result += html_table(html_values)
-        return result
-
-
-        if self.can_execute(context):
-            return super(InsertValueAction, self).get_action_html(context)
-        return u''
 
 
 class AddSlurAction(AbcAction):
@@ -972,23 +1014,28 @@ class AbcActionHandlers(object):
     def __init__(self, elements):
         self.default_action_handler = AbcActionHandler()
         self.action_handlers = {
-            'Empty document': AbcActionHandler([NewTuneAction()]),
-            'Empty line'    : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
-            'Whitespace'    : AbcActionHandler([NewNoteAction(), NewRestAction()]),
-            'Note'          : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
-            'Rest'          : AbcActionHandler([DurationAction(), RestVisibilityChangeAction()]),
-            'Measure rest'  : AbcActionHandler([MeasureRestVisibilityChangeAction()]),
-            'Bar'           : AbcActionHandler([BarChangeAction()]),
-            'Annotation'    : AbcActionHandler([AnnotationPositionAction()]),
-            'Chord'         : AbcActionHandler([DurationAction(), ChordChangeAction()]),
-            'Chord symbol'  : AbcActionHandler([ConvertToAnnotationAction()]),
-            'Grace notes'   : AbcActionHandler([AppoggiaturaOrAcciaccaturaChangeAction()]),
-            'Multiple notes': AbcActionHandler([AddSlurAction()]),
-            'K:'            : AbcActionHandler([KeySignatureChangeAction(), KeyModeChangeAction()]),
-            'L:'            : AbcActionHandler([UnitNoteLengthChangeAction()]),
-            'M:'            : AbcActionHandler([MeterChangeAction()]),
-            '%'             : AbcActionHandler([FixCharactersAction()]),
-            'Dynamics'      : AbcActionHandler([DynamicsDecorationChangeAction()])
+            'Empty document'     : AbcActionHandler([NewTuneAction()]),
+            'Empty line'         : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
+            'Whitespace'         : AbcActionHandler([NewNoteAction(), NewRestAction()]),
+            'Note'               : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
+            'Rest'               : AbcActionHandler([DurationAction(), RestVisibilityChangeAction()]),
+            'Measure rest'       : AbcActionHandler([MeasureRestVisibilityChangeAction()]),
+            'Bar'                : AbcActionHandler([BarChangeAction()]),
+            'Annotation'         : AbcActionHandler([AnnotationPositionAction()]),
+            'Chord'              : AbcActionHandler([DurationAction(), ChordChangeAction()]),
+            'Chord symbol'       : AbcActionHandler([ConvertToAnnotationAction()]),
+            'Grace notes'        : AbcActionHandler([AppoggiaturaOrAcciaccaturaChangeAction()]),
+            'Multiple notes'     : AbcActionHandler([AddSlurAction()]),
+            'Dynamics'           : AbcActionHandler([DynamicsDecorationChangeAction()]),
+            'Articulation'       : AbcActionHandler([ArticulationDecorationChangeAction()]),
+            'Ornament'           : AbcActionHandler([OrnamentDecorationChangeAction()]),
+            'Navigation'         : AbcActionHandler([NavigationDecorationChangeAction()]),
+            'Fingering'          : AbcActionHandler([FingeringDecorationChangeAction()]),
+            'Redefinable symbol' : AbcActionHandler([RedefinableSymbolChangeAction()]),
+            'K:'                 : AbcActionHandler([KeySignatureChangeAction(), KeyModeChangeAction()]),
+            'L:'                 : AbcActionHandler([UnitNoteLengthChangeAction()]),
+            'M:'                 : AbcActionHandler([MeterChangeAction()]),
+            '%'                  : AbcActionHandler([FixCharactersAction()])
         }
 
         for key in ['V:', 'K:']:
