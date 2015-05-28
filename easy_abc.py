@@ -4102,12 +4102,15 @@ class MainFrame(wx.Frame):
     def flip_tempobox(self,state):
         ''' rearranges the toolbar depending on whether a midi file is played using the
             mc media player'''
-        self.tempobox.Show(self.tempotext,state)
-        self.tempobox.Show(self.bpm_slider,state)
-        self.tempobox.Show(self.playpostext,state)
-        self.tempobox.Show(self.media_slider,state)
-        self.tempobox.Show(self.bpmbox,not state)
+        self.show_toolbar_panel(self.bpm_slider.Parent, state)
+        self.show_toolbar_panel(self.media_slider.Parent, state)
+        self.show_toolbar_panel(self.beatsperminute_slider.Parent, not state)
         self.toolbar.Realize()
+
+    def show_toolbar_panel(self, panel, visible):
+        #for sizer_item in panel.Sizer.Children:
+        #    sizer_item.Show(visible)
+        panel.Show(visible)
 
     def setup_toolbar(self):
         self.toolbar = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize)#, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
@@ -4171,66 +4174,24 @@ class MainFrame(wx.Frame):
         directions = self.toolbar.AddSimpleTool(self.id_directions, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_directions.png')).ConvertToBitmap(), 'Directions')
         self.toolbar.AddSeparator()
 
-        panel = wx.Panel(self.toolbar, -1)
-        self.zoom_slider = wx.Slider(panel, -1, 1000, 500, 3000, (30, 60), (130, 22))
+        self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, 1000, 500, 3000, (30, 60), (130, 22))
         self.zoom_slider.SetTickFreq(10, 0)
-
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.StaticText(panel, -1, _('Zoom:')), flag=wx.ALIGN_CENTER_VERTICAL)
-        box.Add(self.zoom_slider)
-        panel.SetSizer(box)
-        panel.SetAutoLayout(True)
-        self.toolbar.AddControl(panel)
         self.Bind(wx.EVT_SLIDER, self.OnZoomSlider, self.zoom_slider)
 
         # 1.3.6.2 [JWdJ] 2015-02-15 text 'Page' was drawn multiple times. Replaced StaticLabel with StaticText
-        self.cur_page_label = wx.StaticText(self.toolbar, -1, '     ' + _('Page: '))
-        self.cur_page_combo = wx.ComboBox(self.toolbar, -1, choices=['99 / 99'], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cur_page_combo = self.add_combobox_to_toolbar(_('Page'), choices=['99 / 99'], style=wx.CB_DROPDOWN | wx.CB_READONLY)
         self.cur_page_combo.Select(0)
-        self.toolbar.AddControl(self.cur_page_label)
-        self.toolbar.AddControl(self.cur_page_combo)
         self.Bind(wx.EVT_COMBOBOX, self.OnPageSelected, self.cur_page_combo)
 
         # 1.3.6.3 [SS] 2015-05-03
-        self.play_panel = panel = wx.Panel(self.toolbar, -1)
-        self.tempotext = wx.StaticText(panel, -1, _('Tempo:'))
-        self.bpm_slider = wx.Slider(panel, -1, 100, 33, 230, (-1, -1), (130, 22))
-        self.playpostext = wx.StaticText(panel, -1, _('Play position:'))
-        self.media_slider = wx.Slider(panel, -1, 25, 1, 100, (-1, -1), (130, 22))
-        self.bpmtext = wx.StaticText(panel, -1, _('Beats/minute:'))
-        bpmtempo = '120'
-        self.beatsperminute_slider  = wx.Slider(panel, value=int(bpmtempo), minValue=60, maxValue=240,
-                                size=(130, 22), style=wx.SL_HORIZONTAL )
-        self.beatsperminute_value = wx.StaticText(panel,-1,bpmtempo)
+        self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, 100, 33, 230, (-1, -1), (130, 22))
+        self.media_slider = self.add_slider_to_toolbar(_('Play position'), False, 25, 1, 100, (-1, -1), (130, 22))
+        self.beatsperminute_slider, self.beatsperminute_value = self.add_slider_to_toolbar(_('Beats/minute'), True, value=120, minValue=60, maxValue=240, size=(130, 22), style=wx.SL_HORIZONTAL)
 
-        # 1.3.6.3 [SS] 2015-05-03
-        self.tempobox = wx.BoxSizer(wx.HORIZONTAL)
-        self.bpmbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.tempobox.SetMinSize((400,25))
-        self.tempobox.AddSpacer(20)
-        self.tempobox.Add(self.tempotext, flag=wx.ALIGN_CENTER_VERTICAL)
-        self.tempobox.Add(self.bpm_slider)
-        self.tempobox.AddSpacer(20)
-        self.tempobox.Add(self.playpostext, flag=wx.ALIGN_CENTER_VERTICAL)
-        self.tempobox.Add(self.media_slider)
-        self.tempobox.AddSpacer(20)
-        self.bpmbox.Add(self.bpmtext,flag=wx.ALIGN_CENTER_VERTICAL)
-        self.bpmbox.Add(self.beatsperminute_slider)
-        self.bpmbox.Add(self.beatsperminute_value)
-        self.tempobox.Add(self.bpmbox)
-
-        panel.SetSizer(self.tempobox)
-        panel.SetAutoLayout(True)
-        self.play_panel.Show(True)
-        self.flip_tempobox(False)
-
-
-        self.toolbar.AddControl(panel)
         self.Bind(wx.EVT_SLIDER, self.OnSeek, self.media_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBeatsPerMinute,self.beatsperminute_slider)
         self.bpm_slider.Bind(wx.EVT_LEFT_DOWN, self.OnBpmSliderClick)
-
 
         self.Bind(wx.EVT_TOOL, self.OnToolDynamics, dynamics)
         self.Bind(wx.EVT_TOOL, self.OnToolOrnamentation, ornamentations)
@@ -4245,14 +4206,42 @@ class MainFrame(wx.Frame):
         self.popup_upload = self.create_upload_context_menu()
 
         # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
-        self.toolbar.Realize()
-        #self.play_panel.Show(False) 
-        self.cur_page_label.Show(False)
-        self.cur_page_combo.Show(False)
+        self.flip_tempobox(False)
+        #self.play_panel.Show(False)
+        self.cur_page_combo.Parent.Show(False)
 
         self.manager.AddPane(self.toolbar, aui.AuiPaneInfo().
                             Name("tb2").Caption("Toolbar2").
                             ToolbarPane().Top().Floatable(True).Dockable(False))
+
+    def add_slider_to_toolbar(self, label_text, show_value, *args, **kwargs):
+        panel = wx.Panel(self.toolbar, -1)
+        controls = [wx.Slider(panel, -1, *args, **kwargs)]
+        if show_value:
+            controls.append(wx.StaticText(panel, -1, str(kwargs['value'])))
+        self.add_label_and_controls_to_panel(panel, label_text, controls)
+        self.toolbar.AddControl(panel)
+        if len(controls) == 1:
+            return controls[0]
+        else:
+            return tuple(controls)
+
+    def add_combobox_to_toolbar(self, label_text, *args, **kwargs):
+        panel = wx.Panel(self.toolbar, -1)
+        control = wx.ComboBox(panel, -1, *args, **kwargs)
+        self.add_label_and_controls_to_panel(panel, label_text, [control])
+        self.toolbar.AddControl(panel)
+        return control
+
+    @staticmethod
+    def add_label_and_controls_to_panel(panel, label_text, controls):
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        box.Add(wx.StaticText(panel, -1, u'{0}: '.format(label_text)), flag=wx.ALIGN_CENTER_VERTICAL)
+        for control in controls:
+            box.Add(control, flag=wx.ALIGN_CENTER_VERTICAL)
+        box.AddSpacer(20)
+        panel.SetSizer(box)
+        panel.SetAutoLayout(True)
 
     def OnViewRythm(self, evt):
         pass
@@ -6706,8 +6695,7 @@ class MainFrame(wx.Frame):
 
             # hide page controls if there are less than 2 pages
             # 1.3.6.2 [JWdJ] 2015-02
-            self.cur_page_label.Show(pages > 1)
-            self.cur_page_combo.Show(pages > 1)
+            self.cur_page_combo.Parent.Show(pages > 1)
             if wx.Platform != "__WXMSW__":
                 self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug on Windows
 
