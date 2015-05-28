@@ -2183,6 +2183,8 @@ class AbcFileSettingsFrame(wx.Panel):
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
     def OnChangePath(self, evt):
+        if wx.Platform == "__WXMAC__":
+            self.statusbar.SetStatusText('Updating path') # for Mac-users to see
         control = evt.EventObject
         name = self.control_to_name[control]
         setting_name = '%s_path' % name
@@ -4013,8 +4015,8 @@ class MainFrame(wx.Frame):
         self.OnBpmSlider(None)
         def play():
             self.normalize_volume()
-            if wx.Platform == "__WXMAC__":
-                time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
+            # if wx.Platform == "__WXMAC__":
+            #    time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
             #self.mc.Seek(self.play_start_offset, wx.FromStart)
             self.play_button.SetBitmap(self.pause_bitmap)
             self.play()
