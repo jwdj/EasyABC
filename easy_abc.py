@@ -315,7 +315,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.3 2015-05-10'
+program_name = 'EasyABC 1.3.6.3 2015-05-27'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -2027,12 +2027,13 @@ class NewTuneFrame(wx.Dialog):
 #2014-10-14
 class MyNoteBook(wx.Frame):
     ''' Settings Notebook '''
-    def __init__(self,settings):
+    def __init__(self, settings, statusbar):
         wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, "Abc Settings",style=wx.DEFAULT_FRAME_STYLE,name='settingsbook')
         # Add a panel so it looks the correct on all platforms
         p = wx.Panel(self)
         nb = wx.Notebook(p)
-        abcsettings = AbcFileSettingsFrame(nb,settings)
+        # 1.3.6.3 [SS] 2015-05-26 added statusbar
+        abcsettings = AbcFileSettingsFrame(nb,settings,statusbar)
         chordpage = MyChordPlayPage(nb,settings)
         voicepage = MyVoicePage(nb,settings)
         # 1.3.6.1 [SS] 2015-02-02
@@ -2055,10 +2056,12 @@ class MyNoteBook(wx.Frame):
 # to include setting the path to ghostscript, ps2pdf, and a
 # midiplayer.  2014-10-14 [SS]
 class AbcFileSettingsFrame(wx.Panel):
-    def __init__(self, parent, settings):
+    # 1.3.6.4 [SS] 2015-05-26 added statusbar
+    def __init__(self, parent, settings, statusbar):
         wx.Panel.__init__(self, parent)
         # -1, _('ABC settings'), wx.DefaultPosition, wx.Size(530, 500))
         self.settings = settings
+        self.statusbar = statusbar
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
         border = 4
 
@@ -2070,8 +2073,8 @@ class AbcFileSettingsFrame(wx.Panel):
             PathEntry('abc2midi', _('abc2midi executable:'), _('This executable is used to make the midi file'), True),
             PathEntry('abc2abc', _('abc2abc executable:'), _('This executable is used to transpose the music'), True),
             PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False),
-            PathEntry('nwc2xml', _('nwc2xml executable:'), None, False),
-            PathEntry('midiplayer', _('midiplayer:'), None, False)
+            PathEntry('nwc2xml', _('nwc2xml executable:'),_('For NoteWorthy Composer - Windows only'), False),
+            PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False)
         ]
 
         if wx.Platform == "__WXMSW__":
@@ -2188,6 +2191,8 @@ class AbcFileSettingsFrame(wx.Panel):
         self.settings[setting_name] = path
         paths = self.append_exe(path, control.Items)
         self.settings[setting_name_choices] = '|'.join(paths)
+        # 1.3.6.4 [SS] 2015-05-26 
+        self.statusbar.SetStatusText(setting_name + ' was updated to '+ path)
         if setting_name == 'midiplayer_path':
             app = wx.GetApp()
             app.frame.update_play_button() # 1.3.6.3 [JWDJ] 2015-04-21 playbutton enabling centralized
@@ -4057,7 +4062,8 @@ class MainFrame(wx.Frame):
         #self.play_panel.Show(False)
         self.flip_tempobox(False)
         self.reset_BpmSlider()
-        # self.toolbar.Realize() # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
+        if wx.Platform != "__WXMSW__":
+            self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
         if self.record_thread and self.record_thread.is_running:
             self.OnToolRecord(None)
 
@@ -4188,9 +4194,9 @@ class MainFrame(wx.Frame):
         # 1.3.6.3 [SS] 2015-05-03
         self.play_panel = panel = wx.Panel(self.toolbar, -1)
         self.tempotext = wx.StaticText(panel, -1, _('Tempo:'))
-        self.bpm_slider = wx.Slider(panel, -1, 100, 33, 230, (30, 60), (130, 22))
+        self.bpm_slider = wx.Slider(panel, -1, 100, 33, 230, (-1, -1), (130, 22))
         self.playpostext = wx.StaticText(panel, -1, _('Play position:'))
-        self.media_slider = wx.Slider(panel, -1, 25, 1, 100, (30, 60), (130, 22))
+        self.media_slider = wx.Slider(panel, -1, 25, 1, 100, (-1, -1), (130, 22))
         self.bpmtext = wx.StaticText(panel, -1, _('Beats/minute:'))
         bpmtempo = '120'
         self.beatsperminute_slider  = wx.Slider(panel, value=int(bpmtempo), minValue=60, maxValue=240,
@@ -5878,7 +5884,7 @@ class MainFrame(wx.Frame):
     #p09 revised to use MyNoteBook
     def OnAbcm2psSettings(self, evt):
         old_format_path = self.settings.get('abcm2ps_format_path', '')
-        self.book = MyNoteBook(self.settings)
+        self.book = MyNoteBook(self.settings, self.statusbar)
         self.book.Show()
         # refresh music image if format file was changed
         #if old_format_path != self.settings.get('abcm2ps_format_path', ''):
@@ -6702,7 +6708,8 @@ class MainFrame(wx.Frame):
             # 1.3.6.2 [JWdJ] 2015-02
             self.cur_page_label.Show(pages > 1)
             self.cur_page_combo.Show(pages > 1)
-            # self.toolbar.Realize() # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
+            if wx.Platform != "__WXMSW__":
+                self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug on Windows
 
         # 1.3.6.2 [JWdJ] 2015-02
         try:
