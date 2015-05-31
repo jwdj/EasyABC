@@ -3445,6 +3445,7 @@ class MainFrame(wx.Frame):
         self.midi_tunes = AbcTunes()
         self.__current_page_index = 0 # 1.3.6.2 [JWdJ] 2015-02
         self.loop_midi_playback = False
+        self.applied_tempo_multiplier = 1.0 # 1.3.6.4 [JWdJ] 2015-05
         self.is_closed = False
         self.app_dir = app_dir
         self.cache_dir = os.path.join(self.app_dir, 'cache')
@@ -3595,9 +3596,9 @@ class MainFrame(wx.Frame):
         self.restore_settings()
 
         # 1.3.6.3 [SS] 2015-05-03
-        bpmtempo = settings['bpmtempo']
-        self.beatsperminute_slider.SetValue(int(bpmtempo))
-        self.beatsperminute_value.SetLabel(bpmtempo)
+        # bpmtempo = settings['bpmtempo']
+        # self.beatsperminute_slider.SetValue(int(bpmtempo))
+        # self.beatsperminute_value.SetLabel(bpmtempo)
 
         # 1.3.6.3 [JWdJ] show abc-assist
         self.manager.DetachPane(self.abc_assist_panel)
@@ -3962,32 +3963,33 @@ class MainFrame(wx.Frame):
         return self.mc and self.mc.GetState() == wx.media.MEDIASTATE_PAUSED
 
     def set_playback_rate(self, playback_rate):
-        if self.is_playing() or wx.Platform != "__WXMAC__":
+        if self.mc and (self.is_playing() or wx.Platform != "__WXMAC__"):
             self.mc.PlaybackRate = playback_rate
-            self.normalize_volume()
+            # self.normalize_volume() # [JWDJ] why here?
 
     def update_playback_rate(self):
-        self.set_playback_rate(float(self.bpm_slider.GetValue()) / 100)
+        tempo_multiplier = self.get_tempo_multiplier() / self.applied_tempo_multiplier
+        self.set_playback_rate(tempo_multiplier)
 
     def OnBpmSlider(self, evt):
         self.update_playback_rate()
 
     def OnBpmSliderClick(self, evt):
         if evt.ControlDown() or evt.ShiftDown():
-            self.bpm_slider.SetValue(100)
+            self.bpm_slider.SetValue(0)
             self.OnBpmSlider(None)
         else:
             evt.Skip()
 
-    def OnBeatsPerMinute(self, evt):
-        value = self.beatsperminute_slider.GetValue()
-        self.beatsperminute_value.SetLabel(str(value))
-        self.settings['bpmtempo'] = str(value)
+    #def OnBeatsPerMinute(self, evt):
+    #    value = self.beatsperminute_slider.GetValue()
+    #    self.beatsperminute_value.SetLabel(str(value))
+    #    self.settings['bpmtempo'] = str(value)
 
     # 1.3.6.3 [SS] 2015-05-05
     def reset_BpmSlider(self):
-        self.bpm_slider.SetValue(100)
-        self.settings['tempo'] = 100
+        self.bpm_slider.SetValue(0)
+        self.update_playback_rate() # 1.3.6.4 [JWDJ]
 
     def start_midi_out(self, midifile):
         ''' Starts the Midi Player which runs as a separate thread in order not to
@@ -4104,9 +4106,9 @@ class MainFrame(wx.Frame):
     def flip_tempobox(self,state):
         ''' rearranges the toolbar depending on whether a midi file is played using the
             mc media player'''
-        self.show_toolbar_panel(self.bpm_slider.Parent, state)
+        # self.show_toolbar_panel(self.bpm_slider.Parent, state)
         self.show_toolbar_panel(self.media_slider.Parent, state)
-        self.show_toolbar_panel(self.beatsperminute_slider.Parent, not state)
+        # self.show_toolbar_panel(self.beatsperminute_slider.Parent, not state)
         self.toolbar.Realize()
 
     def show_toolbar_panel(self, panel, visible):
@@ -4186,13 +4188,15 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.OnPageSelected, self.cur_page_combo)
 
         # 1.3.6.3 [SS] 2015-05-03
-        self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, 100, 33, 230, (-1, -1), (130, 22))
+        self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, 0, -100, 100, (-1, -1), (130, 22))
+        if wx.Platform == "__WXMSW__":
+            self.bpm_slider.SetTick(0)  # place a tick in the middle for neutral tempo
         self.media_slider = self.add_slider_to_toolbar(_('Play position'), False, 25, 1, 100, (-1, -1), (130, 22))
-        self.beatsperminute_slider, self.beatsperminute_value = self.add_slider_to_toolbar(_('Beats/minute'), True, value=120, minValue=60, maxValue=240, size=(130, 22), style=wx.SL_HORIZONTAL)
+        # self.beatsperminute_slider, self.beatsperminute_value = self.add_slider_to_toolbar(_('Beats/minute'), True, value=120, minValue=60, maxValue=240, size=(130, 22), style=wx.SL_HORIZONTAL)
 
         self.Bind(wx.EVT_SLIDER, self.OnSeek, self.media_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
-        self.Bind(wx.EVT_SLIDER, self.OnBeatsPerMinute,self.beatsperminute_slider)
+        # self.Bind(wx.EVT_SLIDER, self.OnBeatsPerMinute,self.beatsperminute_slider)
         self.bpm_slider.Bind(wx.EVT_LEFT_DOWN, self.OnBpmSliderClick)
 
         self.Bind(wx.EVT_TOOL, self.OnToolDynamics, dynamics)
@@ -4484,7 +4488,7 @@ class MainFrame(wx.Frame):
         tune = self.GetSelectedTune()
         if tune:
             # 1.3.6 [SS] 2014-11-16 2014-12-08
-            tempo_multiplier=float(self.bpm_slider.GetValue()) / 100
+            tempo_multiplier = self.get_tempo_multiplier()
             midi_tune = AbcToMidi(tune.abc, tune.header, self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
 
             if midi_tune:
@@ -4533,7 +4537,7 @@ class MainFrame(wx.Frame):
                         break
 
                     # 1.3.6 [SS] 2014-11-16 2014-12-08
-                    tempo_multiplier=float(self.bpm_slider.GetValue()) / 100
+                    tempo_multiplier = self.get_tempo_multiplier()
                     midi_tune = AbcToMidi(tune.abc, tune.header, self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
 
                     if midi_tune:
@@ -5000,7 +5004,10 @@ class MainFrame(wx.Frame):
             wx.CallAfter(play)
 
     def OnToolPlayLoop(self, evt):
-        self.loop_midi_playback = True
+        if not self.settings['midiplayer_path']:
+            self.loop_midi_playback = True
+        else:
+            wx.MessageBox(_('Looping is not possible when using an external midi player. Empty the midiplayer path in Settings -> ABC Settings -> File Settings to regain the looping ability when you double click the play button'), _('Looping unavailable'), wx.OK | wx.ICON_INFORMATION)
         self.OnToolPlay(evt)
 
     def OnToolRefresh(self, evt):
@@ -6637,10 +6644,11 @@ class MainFrame(wx.Frame):
             abc = abc.replace('|:', '').replace(':|', '').replace('::', '')
             execmessages += '\n*removing repeats*'
 
-        tempo_multiplier=float(self.bpm_slider.GetValue()) / 100
+        tempo_multiplier = self.get_tempo_multiplier()
 
         # 1.3.6 [SS] 2014-11-15 2014-12-08
         self.current_midi_tune = AbcToMidi(abc, tune.header ,self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
+        self.applied_tempo_multiplier = tempo_multiplier
         self.midi_tunes.add(self.current_midi_tune)
         midi_file = self.current_midi_tune.midi_file
 
@@ -7157,7 +7165,7 @@ class MainFrame(wx.Frame):
             if perspective:
                 self.manager.LoadPerspective(perspective)
         #self.bpm_slider.SetValue(settings.get('tempo', 100))
-        self.bpm_slider.SetValue(100)
+        self.bpm_slider.SetValue(0)
         self.zoom_slider.SetValue(settings.get('score_zoom', 1100))
         self.author = settings.get('author', '')
         self.mni_auto_refresh.Check(settings.get('auto_refresh', True))
@@ -7204,6 +7212,9 @@ class MainFrame(wx.Frame):
 
         self.music_pane.reset_scrolling()
 
+    def get_tempo_multiplier(self):
+        return 2.0 ** (float(self.bpm_slider.GetValue()) / 100)
+
     def save_settings(self):
         settings = self.settings
         settings['zoom'] = self.editor.GetZoom()
@@ -7211,7 +7222,7 @@ class MainFrame(wx.Frame):
         settings['window_width'], settings['window_height'] = self.GetSizeTuple()
         settings['perspective'] = self.manager.SavePerspective()
         settings['author'] = self.author
-        settings['tempo'] = self.bpm_slider.GetValue()
+        settings['tempo'] = int(100.0 * self.get_tempo_multiplier()) # 1.3.6.4 [JWDJ] not really necessary since setting 'tempo' is not used anymore
         settings['score_zoom'] = self.zoom_slider.GetValue()
         settings['auto_refresh'] = self.mni_auto_refresh.IsChecked()
         settings['reduced_margins'] = self.mni_reduced_margins.IsChecked()
@@ -7290,6 +7301,11 @@ class MainFrame(wx.Frame):
         midiplayer_path = settings.get('midiplayer_path')
         if not midiplayer_path:
             settings['midiplayer_path'] = ''
+        else:
+            # 1.3.6.4 [SS] 2015-05-27
+            if not os.path.exists(midiplayer_path):
+                dlg = wx.MessageDialog(self,_('The midiplayer was not found. You will not be able to play the MIDI file'),_('Warning'),wx.OK)
+                dlg.ShowModal() 
 
         gs_path = settings.get('gs_path')
         # 1.3.6.1 [SS] 2015-01-28

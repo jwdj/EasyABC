@@ -93,6 +93,7 @@ class ValueChangeAction(AbcAction):
         self.matchgroup = matchgroup
         self.use_inner_match = use_inner_match
         self.valid_sections = valid_sections
+        self.relative_selection = None
 
     def can_execute(self, context, params=None):
         value = params.get('value', '')
@@ -123,6 +124,8 @@ class ValueChangeAction(AbcAction):
     def execute(self, context, params=None):
         value = params.get('value', '')
         context.replace_match_text(value, self.matchgroup, tune_scope=self.get_tune_scope())
+        if self.relative_selection is not None:
+            context.set_relative_selection(self.relative_selection)
 
     def is_action_allowed(self, context):
         valid_sections = self.valid_sections
@@ -231,7 +234,6 @@ class ValueChangeAction(AbcAction):
 class InsertValueAction(ValueChangeAction):
     def __init__(self, name, supported_values, valid_sections=None, display_name=None, matchgroup=None):
         super(InsertValueAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
-        self.relative_selection = None
 
     def execute(self, context, params=None):
         value = params['value']
@@ -739,6 +741,7 @@ class BaseDecorationChangeAction(ValueChangeAction):
             value = ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark])
             values.append(value)
         super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration')
+        self.relative_selection = -1
 
 
     def is_current_value(self, context, value):

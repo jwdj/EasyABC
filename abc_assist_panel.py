@@ -246,8 +246,12 @@ class AbcContext(object):
         self._editor.EndUndoAction()
 
     def set_relative_selection(self, relative_selection):
-        selection_end = self._editor.GetSelectionEnd() + relative_selection
-        self._editor.SetSelectionEnd(selection_end)
+        if relative_selection:
+            selection_start, selection_end = self._editor.GetSelection()
+            selection_end += relative_selection
+            if selection_start > selection_end:
+               selection_start = selection_end
+            self._editor.SetSelection(selection_start, selection_end)
 
     def replace_selection(self, text, selection_start=None, selection_end=None):
         self._editor.BeginUndoAction()
@@ -316,7 +320,7 @@ class AbcContext(object):
     def replace_in_editor(self, new_text, tune_scope):
         scope_info = self.get_scope_info(tune_scope)
         self.replace_selection(new_text, scope_info.start, scope_info.stop)
-        self.invalidate()
+        wx.CallAfter(self.invalidate)
 
     def get_matchgroup(self, matchgroup, default=None):
         match = self.inner_match or self.current_match
