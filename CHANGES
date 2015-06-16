@@ -416,3 +416,15 @@ For an upcoming feature called 'ABC assist' three new files have been added:
 - tune_actions.py
 - tune_elements.py
 
+
+1.3.6.4
+
+Changes to the user interface were made in order to address, the numerous
+problems encountered on the Mac system. These problems include, the toolbar
+containing the tempo controller and play position not being displayed
+correctly. In addition, the comboboxes in the ABC Settings/ File Settings
+did not register a change in the entry boxes.
+
+The Abc Assist function has been improved. Sliders to change the Bass
+and Chordal volumes for the accompaniment were introduced.
+

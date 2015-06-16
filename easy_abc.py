@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.3 2015/05/10
+# EasyABC V1.3.6.3 2015/06/11
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -21,6 +21,7 @@
 # New V1.3.6.4
 # - Recent files menu
 # - Font from .svg file now rendered properly
+# - Some fixes to accommodate 1.3.6.3 issues on the Mac.
 #
 #
 # New V1.3.6.3
@@ -204,7 +205,8 @@
 #class MyChordPlayPage()
 #   OnPlayChords(), OnNodynamics(), OnNofermatas(), OnNograce(), OnBarfly()
 #   OnMidi_Program(), On_midi_chord_program(), On_midi_bass_program,
-#   SetGchordChoices(), OnGchordSelection()
+#   SetGchordChoices(), OnGchordSelection(), OnBeatsPerMinute(),
+#   OnTranspose(), OnTuning(), OnChordVol(), OnBassVol()
 
 #class MyVoicePage()
 #  OnProgramSelection(), OnSliderScroll(), OnResetDefault()
@@ -249,7 +251,7 @@
 #   parse_desc(), get_num_extra_header_lines(),OnNoteSelectionChangeDesc(),
 #   transpose_selected_note(), OnResetView(), OnSettingsChanged(),
 #   OnToggleMusicPaneMaximize(), OnMouseWheel(), update_playback_rate()
-#   OnBpmSlider(), OnBeatsPerMinute(), OnBpmSliderClick(), start_midi_out(),
+#   OnBpmSlider(), OnBpmSliderClick(), start_midi_out(),
 #   do_load_media_file(), OnMediaLoaded(),
 #   OnMediaStop(), OnMediaFinished(), OnToolRecord(),
 #   OnToolStop(), OnSeek(), OnZoomSlider(), OnPlayTimer(),
@@ -315,7 +317,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.3 2015-05-27'
+program_name = 'EasyABC 1.3.6.4 2015-06-14'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -1209,6 +1211,9 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     default_midi_program   = settings.get('midi_program')
     default_midi_chordprog = settings.get('midi_chord_program')
     default_midi_bassprog  = settings.get('midi_bass_program')
+    # 1.3.6.4 [SS] 2015-06-07
+    default_midi_chordvol  = settings.get('chordvol')
+    default_midi_bassvol   = settings.get('bassvol')
     # 1.3.6.3 [SS] 2015-05-04
     default_tempo          = settings.get('bpmtempo')
     add_meta_data          = False
@@ -1287,6 +1292,9 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     if add_midi_chordprog_extra_line:
         extra_lines.append('%%%%MIDI chordprog %d' % default_midi_chordprog)
         extra_lines.append('%%%%MIDI bassprog %d' % default_midi_bassprog)
+        # 1.3.6.4 [SS] 2015-06-07
+        extra_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
+        extra_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
 
     # 1.3.6.3 [SS] 2015-03-19
     if settings.get('transposition', '0') != '0':
@@ -1640,17 +1648,22 @@ class MusicUpdateThread(threading.Thread):
 def frac_mod(fractional_number, modulo):
     return fractional_number - modulo * int(fractional_number / modulo)
 
-def start_process_and_continue(cmd):
-    """ Starts a process and does not wait for it to finish
+def start_process(cmd):
+    """ Starts a process
     :param cmd: tuple containing executable and command line parameter
     :return: nothing
     """
-    # 1.3.6.3 [SS] 2015-05-01
+    global execmessages # 1.3.6.4 [SS] 2015-05-27
+    # 1.3.6.4 [SS] 2015-05-01
     if wx.Platform == "__WXMSW__":
         creationflags = win32process.DETACHED_PROCESS
     else:
         creationflags = 0
-    p = subprocess.Popen(cmd,shell=False,stdin=None,stdout=None,stderr=None,close_fds=True,creationflags=creationflags)
+    # 1.3.6.4 [SS] 2015-05-27
+    #process = subprocess.Popen(cmd,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,close_fds=True,creationflags=creationflags)
+    process = subprocess.Popen(cmd,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=creationflags)
+    stdout_value, stderr_value = process.communicate()
+    execmessages += '\n'+stderr_value + stdout_value
     return
 
 # p09 new class for playing midi files if self.mc is not working 2014-10-14
@@ -1664,14 +1677,16 @@ class MidiThread(threading.Thread):
         self.settings = settings
         self.__want_abort = False # 1.3.6.3 [JWdJ]
         self.start()
+        self.__is_busy = False
 
     def run(self):
         while not self.__want_abort:
+            self.__is_busy = False
             command, params = self.queue.get()
+            self.__is_busy = True
             midiplayer_path = params[0]
             midi_file = params[1]
             midiplayer_parameters = params[2].split()
-            self.queue.task_done()
             # 1.3.6.2 [SS] sleep no longer needed. abcToMidi not run as a
             # separate thread anymore.
             #time.sleep(0.5) # give abc2midi a chance to complete 2014-10-26 [SS]
@@ -1681,9 +1696,10 @@ class MidiThread(threading.Thread):
             #note this is not the same as
             #c = [midiplayer_path,  midi_file, midiplayer_parameters]
             try:
-                start_process_and_continue(c)
+                start_process(c)
             except Exception as e:
                 print e
+            self.queue.task_done()
 
     #p09 new function for playing midi files as a last resort 2014-10-14 [SS]
     def play_midi(self, midi_file):
@@ -1710,6 +1726,11 @@ class MidiThread(threading.Thread):
 
     def abort(self):
         self.__want_abort = True
+
+    @property
+    def is_busy(self):
+        return self.__is_busy
+
 
 class RecordThread(threading.Thread):
     def __init__(self, notify_window, midi_in_device_ID, midi_out_device_ID=None, metre_1=3, metre_2=4, bpm = 70):
@@ -2032,7 +2053,7 @@ class MyNoteBook(wx.Frame):
         # Add a panel so it looks the correct on all platforms
         p = wx.Panel(self)
         nb = wx.Notebook(p)
-        # 1.3.6.3 [SS] 2015-05-26 added statusbar
+        # 1.3.6.4 [SS] 2015-05-26 added statusbar
         abcsettings = AbcFileSettingsFrame(nb,settings,statusbar)
         chordpage = MyChordPlayPage(nb,settings)
         voicepage = MyVoicePage(nb,settings)
@@ -2260,17 +2281,32 @@ class MyChordPlayPage (wx.Panel):
         border = 4
         self.settings = settings
 
+        # 1.3.6.4 [SS] 2015-05-28 shrunk width from 250 to 200
         self.chkPlayChords = wx.CheckBox(self, -1, _('Play chords'))
-        self.cmbMidiProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(250, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.cmbMidiChordProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(250, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.cmbMidiBassProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(250, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiChordProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiBassProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
         #1.3.6 [SS] 2014-11-15
 
-        #1.3.6.3 [SS] 2015-03-19
+        #1.3.6.4 [SS] 2015-06-10
+        self.sliderbeatsperminute = wx.Slider(self, value=120, minValue=60, maxValue=240,
+                                size=(80, -1), style=wx.SL_HORIZONTAL)
         self.slidertranspose=wx.Slider(self, value=0, minValue=-11, maxValue=11,
-                                size=(80, -1), style=wx.SL_HORIZONTAL | wx.SL_LABELS)
+                                size=(80, -1), style=wx.SL_HORIZONTAL)
         self.slidertuning=wx.Slider(self, value=440, minValue=415, maxValue=466,
-                                size=(80, -1), style=wx.SL_HORIZONTAL | wx.SL_LABELS)
+                                size=(80, -1), style=wx.SL_HORIZONTAL)
+        self.beatsperminutetxt = wx.StaticText(self,-1," ")
+        self.transposetxt      = wx.StaticText(self,-1," ")
+        self.tuningtxt         = wx.StaticText(self,-1," ")
+
+        #1.3.6.4 [SS] 2015-06-07
+        self.sliderChordVol=wx.Slider(self, value=96, minValue=0, maxValue=127,
+                                size=(128, -1), style=wx.SL_HORIZONTAL)
+        self.ChordVoltxt = wx.StaticText(self,-1," ")
+        self.sliderBassVol=wx.Slider(self, value=96, minValue=0, maxValue=127,
+                                size=(128, -1), style=wx.SL_HORIZONTAL)
+        self.BassVoltxt = wx.StaticText(self,-1," ")
+
 
         #1.3.6 [SS] 2014-11-21
         self.nodynamics = wx.CheckBox(self, -1, _('Ignore Dynamics'))
@@ -2289,34 +2325,62 @@ class MyChordPlayPage (wx.Panel):
         midi_box.Add(self.cmbMidiProgram, row=0, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(wx.StaticText(self, -1, _("Instrument for chord's playback: ")), row=1, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiChordProgram, row=1, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderChordVol,row=1,col=2,flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.ChordVoltxt,row=1,col=3,flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(wx.StaticText(self, -1, _("Instrument for bass chord's playback: ")), row=2, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiBassProgram, row=2, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, -1, _("Transposition: ")), row=3, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.slidertranspose,row=3, col = 1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, -1, _("Tuning: ")), row=4, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.slidertuning,row=4, col = 1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.chkPlayChords, row=5, col=0, flag=wx.ALL | wx.EXPAND,border=border)
-        midi_box.Add(self.nodynamics, row=5,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.nofermatas, row=6,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.nograce, row=6,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.barfly, row=7,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(gchordtxt, row=8,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.gchordcombo, row=8,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderBassVol,row=2,col=2,flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.BassVoltxt,row=2,col=3,flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+ 
+        # 1.3.6.4 [SS] 2015-06-10
+        midi_box.Add(wx.StaticText(self, -1, _("Default Tempo: ")), row=3, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderbeatsperminute,row=3, col = 1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border) 
+        midi_box.Add(self.beatsperminutetxt,row=3, col = 2, flag= wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,border=border) 
+        midi_box.Add(wx.StaticText(self, -1, _("Transposition: ")), row=4, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.slidertranspose,row=4, col = 1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.transposetxt,row=4, col = 2, flag= wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,border=border) 
+        midi_box.Add(wx.StaticText(self, -1, _("Tuning: ")), row=5, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.slidertuning,row=5, col = 1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.tuningtxt,row=5, col = 2, flag= wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,border=border) 
+
+        midi_box.Add(self.chkPlayChords, row=6, col=0, flag=wx.ALL | wx.EXPAND,border=border)
+        midi_box.Add(self.nodynamics, row=6,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.nofermatas, row=7,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.nograce, row=7,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.barfly, row=8,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(gchordtxt, row=9,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.gchordcombo, row=9,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         self.chkPlayChords.SetValue(self.settings.get('play_chords', False))
         self.slidertranspose.SetValue(self.settings.get('transposition',0))
+        self.transposetxt.SetLabel(str(self.settings.get('transposition','0')))
         self.slidertuning.SetValue(self.settings.get('tuning',440))
+        self.tuningtxt.SetLabel(str(self.settings.get('tuning','440')))
+        self.sliderChordVol.SetValue(int(self.settings.get('chordvol',96)))
+        self.ChordVoltxt.SetLabel(str(self.settings.get('chordvol','96')))
+        self.sliderBassVol.SetValue(int(self.settings.get('bassvol',96)))
+        self.BassVoltxt.SetLabel(str(self.settings.get('bassvol','96')))
         self.nodynamics.SetValue(self.settings.get('nodynamics',False))
         self.nofermatas.SetValue(self.settings.get('nofermatas',False))
         self.nograce.SetValue(self.settings.get('nograce',False))
         self.barfly.SetValue(self.settings.get('barfly',True))
+        # 1.3.6.4 [SS] 2015-06-10
+        self.sliderbeatsperminute.SetValue(int(self.settings.get('bpmtempo',120)))
+        self.beatsperminutetxt.SetLabel(str(self.settings.get('bpmtempo','120')))
 
+        beatsperminute_toolTip = _('Quarter notes per minute')
+        ChordVol_toolTip = _('Volume level for chordal accompaniment')
+        BassVol_toolTip  = _('Volume level for bass accompaniment')
         barfly_toolTip = _('The Barfly stress model is enabled provided the rhythm designator (R:) is recognized')
         nodynamics_toolTip = _('Dynamic markings like ff mp pp etc. are ignored if enabled')
         nofermatas_toolTip = _('Fermata markings are ignored if enabled')
         nograce_toolTip = _('Grace notes are ignored if enabled')
         transpose_toolTip = _('Transpose by the number of semitones')
         tuning_toolTip = _('Key of A tuning in Hz')
+        
+        self.sliderbeatsperminute.SetToolTip(wx.ToolTip(beatsperminute_toolTip))
+        self.sliderChordVol.SetToolTip(wx.ToolTip(ChordVol_toolTip))
+        self.sliderBassVol.SetToolTip(wx.ToolTip(BassVol_toolTip))
         self.nodynamics.SetToolTip(wx.ToolTip(nodynamics_toolTip))
         self.nofermatas.SetToolTip(wx.ToolTip(nofermatas_toolTip))
         self.nograce.SetToolTip(wx.ToolTip(nograce_toolTip))
@@ -2345,8 +2409,12 @@ class MyChordPlayPage (wx.Panel):
         self.nofermatas.Bind(wx.EVT_CHECKBOX,self.OnNofermatas)
         self.nograce.Bind(wx.EVT_CHECKBOX,self.OnNograce)
         self.barfly.Bind(wx.EVT_CHECKBOX,self.OnBarfly)
+        self.sliderbeatsperminute.Bind(wx.EVT_SCROLL, self.OnBeatsPerMinute)
         self.slidertranspose.Bind(wx.EVT_SCROLL, self.OnTranspose)
         self.slidertuning.Bind(wx.EVT_SCROLL, self.OnTuning)
+        #1.3.6.4 [SS] 2015-06-07
+        self.sliderChordVol.Bind(wx.EVT_SCROLL, self.OnChordVol)
+        self.sliderBassVol.Bind(wx.EVT_SCROLL, self.OnBassVol)
 
         #1.3.6 [SS] 2014-11-26
         self.gchordcombo.Bind(wx.EVT_COMBOBOX,self.OnGchordSelection,self.gchordcombo)
@@ -2405,14 +2473,31 @@ class MyChordPlayPage (wx.Panel):
         ''' saves the gchord string selection '''
         self.settings['gchord']  =   self.gchordcombo.GetValue()
 
+# 1.3.6.4 [SS] 2015-06-10
+    def OnBeatsPerMinute(self, evt):
+        self.settings['bpmtempo'] = str(self.sliderbeatsperminute.GetValue())
+        self.beatsperminutetxt.SetLabel(str(self.settings['bpmtempo']))
+
+
 # 1.3.6.3 [SS] 2015-03-19
     def OnTranspose(self,evt):
         self.settings['transposition'] = self.slidertranspose.GetValue()
+        self.transposetxt.SetLabel(str(self.settings['transposition']))
 
 # 1.3.6.3 [SS] 2015-03-19
     def OnTuning(self,evt):
         self.settings['tuning'] = self.slidertuning.GetValue()
+        self.tuningtxt.SetLabel(str(self.settings['tuning']))
 
+#1.3.6.4 [SS] 2015-06-07
+    def OnChordVol(self,evt):
+        self.settings['chordvol'] = self.sliderChordVol.GetValue()
+        self.ChordVoltxt.SetLabel(str(self.sliderChordVol.GetValue()))
+
+#1.3.6.4 [SS] 2015-06-07
+    def OnBassVol(self,evt):
+        self.settings['bassvol'] = self.sliderBassVol.GetValue()
+        self.BassVoltxt.SetLabel(str(self.sliderBassVol.GetValue()))
 
 
 
@@ -2423,6 +2508,7 @@ class MyVoicePage(wx.Panel):
     def __init__(self, parent, settings):
         wx.Panel.__init__(self,parent)
         self.settings = settings
+
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
         border = 4
         channel = 1
@@ -3574,6 +3660,7 @@ class MainFrame(wx.Frame):
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnTimer)
         self.timer.Start(2000, wx.TIMER_CONTINUOUS)
+
         self.tune_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnTuneSelected)
         self.tune_list.Bind(wx.EVT_LEFT_DCLICK, self.OnTuneDoubleClicked)
         self.tune_list.Bind(wx.EVT_LEFT_DOWN, self.OnTuneListClick)
@@ -3594,11 +3681,6 @@ class MainFrame(wx.Frame):
 
         self.load_settings(load_window_size_pos=True)
         self.restore_settings()
-
-        # 1.3.6.3 [SS] 2015-05-03
-        # bpmtempo = settings['bpmtempo']
-        # self.beatsperminute_slider.SetValue(int(bpmtempo))
-        # self.beatsperminute_value.SetLabel(bpmtempo)
 
         # 1.3.6.3 [JWdJ] show abc-assist
         self.manager.DetachPane(self.abc_assist_panel)
@@ -3981,11 +4063,6 @@ class MainFrame(wx.Frame):
         else:
             evt.Skip()
 
-    #def OnBeatsPerMinute(self, evt):
-    #    value = self.beatsperminute_slider.GetValue()
-    #    self.beatsperminute_value.SetLabel(str(value))
-    #    self.settings['bpmtempo'] = str(value)
-
     # 1.3.6.3 [SS] 2015-05-05
     def reset_BpmSlider(self):
         self.bpm_slider.SetValue(0)
@@ -3997,6 +4074,10 @@ class MainFrame(wx.Frame):
         '''
         if self.play_music_thread is None:
             self.play_music_thread = MidiThread(self.settings)
+        elif self.play_music_thread.is_busy:
+            self.play_music_thread.abort()
+            self.play_music_thread = MidiThread(self.settings)
+
         self.play_music_thread.play_midi(midifile)
 
     def do_load_media_file(self, path):
@@ -4108,7 +4189,6 @@ class MainFrame(wx.Frame):
             mc media player'''
         # self.show_toolbar_panel(self.bpm_slider.Parent, state)
         self.show_toolbar_panel(self.media_slider.Parent, state)
-        # self.show_toolbar_panel(self.beatsperminute_slider.Parent, not state)
         self.toolbar.Realize()
 
     def show_toolbar_panel(self, panel, visible):
@@ -4192,11 +4272,9 @@ class MainFrame(wx.Frame):
         if wx.Platform == "__WXMSW__":
             self.bpm_slider.SetTick(0)  # place a tick in the middle for neutral tempo
         self.media_slider = self.add_slider_to_toolbar(_('Play position'), False, 25, 1, 100, (-1, -1), (130, 22))
-        # self.beatsperminute_slider, self.beatsperminute_value = self.add_slider_to_toolbar(_('Beats/minute'), True, value=120, minValue=60, maxValue=240, size=(130, 22), style=wx.SL_HORIZONTAL)
 
         self.Bind(wx.EVT_SLIDER, self.OnSeek, self.media_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
-        # self.Bind(wx.EVT_SLIDER, self.OnBeatsPerMinute,self.beatsperminute_slider)
         self.bpm_slider.Bind(wx.EVT_LEFT_DOWN, self.OnBpmSliderClick)
 
         self.Bind(wx.EVT_TOOL, self.OnToolDynamics, dynamics)
@@ -6791,6 +6869,10 @@ class MainFrame(wx.Frame):
         #print 'evt = '+ str(evt) + '  ' + str(self.tune_list.GetFirstSelected())
         #print traceback.extract_stack(None, 5)
         #self.execmessage_time set by OnDropFile(self, filename)
+
+        # 1.3.6.4 [SS] 2015-06-11 -- to maintain consistency for different media players
+        self.reset_BpmSlider()
+
         dt = datetime.now() - self.execmessage_time # 1.3.6 [SS] 2014-12-11
         dtime = dt.seconds*1000 + dt.microseconds/1000
         if evt is not None and dtime > 20000:
@@ -7390,7 +7472,7 @@ class MainFrame(wx.Frame):
                         ('abcm2ps_scale', '0.75'), ('abcm2ps_clean', False),
                         ('abcm2ps_defaults', True), ('abcm2ps_pagewidth', '21.59'),
                         ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', ''),
-                        ('bpmtempo', '120')
+                        ('bpmtempo', '120'), ('chordvol', '96'), ('bassvol', '96')
                        ]
 
         # 1.3.6 [SS] 2014-12-16
