@@ -22,7 +22,7 @@
 # - Recent files menu
 # - Font from .svg file now rendered properly
 # - Some fixes to accommodate 1.3.6.3 issues on the Mac.
-#
+# - On Windows the 'Input Processed Tune' window was not updated correctly (since 1.3.6.3)
 #
 # New V1.3.6.3
 # When the cursor moves outside the current page, the correct page is automatically chosen
@@ -2122,19 +2122,24 @@ class AbcFileSettingsFrame(wx.Panel):
         self.control_to_name = {}
         for entry in self.needed_path_entries:
             setting_name = '%s_path' % entry.name
-            setting_name_choices = '%s_path_choices' % entry.name
-            path_choices = self.settings.get(setting_name_choices, '').split('|')
-            path_choices = self.keep_existing_paths(path_choices)
             current_path = self.settings.get(setting_name, '')
-            path_choices = self.append_exe(current_path, path_choices)
-            if entry.add_default:
-                path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
-            control = wx.ComboBox(self, -1, choices=path_choices, style=wx.CB_DROPDOWN)
+            if wx.Platform == "__WXMAC__":
+                control = wx.TextCtrl(self)
+            else:
+                setting_name_choices = '%s_path_choices' % entry.name
+                path_choices = self.settings.get(setting_name_choices, '').split('|')
+                path_choices = self.keep_existing_paths(path_choices)
+                path_choices = self.append_exe(current_path, path_choices)
+                if entry.add_default:
+                    path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
+                control = wx.ComboBox(self, -1, choices=path_choices, style=wx.CB_DROPDOWN)
+
+            control.SetValue(current_path)
+            control.Bind(wx.EVT_TEXT, self.OnChangePath, control)
 
             self.control_to_name[control] = entry.name
             if entry.tooltip:
                 control.SetToolTip(wx.ToolTip(entry.tooltip))
-            control.SetValue(current_path)
 
             browse_button = wx.Button(self, -1, _('Browse...'))
             self.browsebutton_to_control[browse_button] = control
@@ -2142,8 +2147,7 @@ class AbcFileSettingsFrame(wx.Panel):
             sizer.Add(control, row=r, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
             sizer.Add(browse_button, row=r, col=2,  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-            control.Bind(wx.EVT_TEXT, self.OnChangePath)
-            browse_button.Bind(wx.EVT_BUTTON, self.OnBrowse)
+            browse_button.Bind(wx.EVT_BUTTON, self.OnBrowse, browse_button)
 
             r += 1
 
@@ -2209,11 +2213,12 @@ class AbcFileSettingsFrame(wx.Panel):
         control = evt.EventObject
         name = self.control_to_name[control]
         setting_name = '%s_path' % name
-        setting_name_choices = '%s_path_choices' % name
-        path = control.GetValue()
+        path = evt.String
         self.settings[setting_name] = path
-        paths = self.append_exe(path, control.Items)
-        self.settings[setting_name_choices] = '|'.join(paths)
+        if isinstance(control, wx.ComboBox):
+            setting_name_choices = '%s_path_choices' % name
+            paths = self.append_exe(path, control.Items)
+            self.settings[setting_name_choices] = '|'.join(paths)
         # 1.3.6.4 [SS] 2015-05-26 
         self.statusbar.SetStatusText(setting_name + ' was updated to '+ path)
         if setting_name == 'midiplayer_path':
@@ -7692,12 +7697,11 @@ class MyAbcFrame(wx.Frame):
         sizer.Fit(self)
 
     def ShowText(self, text):
-        self.basicText.ClearAll()
         try:
             self.basicText.SetEditable(True)
         except:
             pass
-        self.basicText.AppendText(text)
+        self.basicText.SetText(text)
         try:
             self.basicText.SetEditable(False) # 1.3.6.3 [JWdJ] 2015-04-22 abc code not editable
         except:
