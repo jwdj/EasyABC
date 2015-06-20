@@ -364,8 +364,7 @@ class AbcElement(object):
             description = self.get_description_text(context)
             new_line = ''
             if description:
-                result += escape(description)
-                new_line = u'<br>'
+                result += u'{0}<br>'.format(escape(description))
 
             if self.visible_match_group is not None:
                 # groups = context.current_match.groups()
@@ -376,7 +375,7 @@ class AbcElement(object):
                 if element_text:
                     element_text = abc_text_to_unicode(element_text).strip()
                     if element_text:
-                        result += u'{0}<code>{1}</code>'.format(new_line, escape(element_text))
+                        result += u'<code>{0}</code><br>'.format(escape(element_text))
 
             #for matchtext in context.current_match.groups():
             #    if matchtext:
@@ -471,7 +470,7 @@ class AbcInformationField(AbcElement):
 
 class AbcDirective(CompositeElement):
     def __init__(self):
-        super(AbcDirective, self).__init__('stylesheet directive', group_name='stylesheet directive', description=_('A stylesheet directive is a line that starts with %%, followed by a directive that gives instructions to typesetting or player programs.'))
+        super(AbcDirective, self).__init__('Stylesheet directive', group_name='stylesheet directive', description=_('A stylesheet directive is a line that starts with %%, followed by a directive that gives instructions to typesetting or player programs.'))
         pattern = r'(?m)^(?:%%|I:)(?!%)' + self.rest_of_line_pattern + '|' + self.get_inline_pattern('I:')
         for section in ABC_SECTIONS:
             self._search_pattern[section] = pattern
@@ -841,20 +840,22 @@ class AbcNote(AbcBaseNote):
         self.visible_match_group = 1
 
 
-class AbcNormatOrMeasureRest(AbcBaseNote):
+class AbcNormalOrMeasureRest(AbcBaseNote):
     pattern = AbcBaseNote.basic_note_or_rest_pattern
 
 
-class AbcNormalRest(AbcNormatOrMeasureRest):
+class AbcNormalRest(AbcNormalOrMeasureRest):
     pattern = AbcNoteGroup.normal_rest_pattern
     def __init__(self):
         super(AbcNormalRest, self).__init__('Rest', AbcNormalRest.pattern)
+        self.visible_match_group = 0
 
 
-class AbcMeasureRest(AbcNormatOrMeasureRest):
+class AbcMeasureRest(AbcNormalOrMeasureRest):
     pattern = AbcNoteGroup.measure_rest_pattern
     def __init__(self):
         super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern, _('This rest spans an entire measure'))
+        self.visible_match_group = 0
 
 
 class AbcMultipleNotes(AbcBaseNote):

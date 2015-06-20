@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.3 2015/06/11
+# EasyABC V1.3.6.3 2015/06/17
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -182,9 +182,11 @@
 #class MusicUpdateThread()
 #   run(), ConvertAbcToSvg(), abort()
 
+#  frac_mod(), start_process()
+
 #class MidiThread()
 #   run(), play_midi, clear_queue, queue_task
-#   abort
+#   abort, is_busy()
 
 #class RecordThread()
 #   timedelta_microseconds(), beat_duration(), run(), quantize_swinged_16th(),
@@ -317,7 +319,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-06-14'
+program_name = 'EasyABC 1.3.6.4 2015-06-17'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -1206,6 +1208,13 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
 
 # 1.3.6.3 [JWDJ] 2015-04-21 split up AbcToMidi into 2 functions: preprocessing (process_abc_for_midi) and actual midi generation (abc_to_midi)
 def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier):
+
+    ''' This function inserts extra lines in the abc tune controlling the assignment of musical instruments to the different voices
+        per the instructions in the ABC Settings/abc2midi and voices. If the tune already contains these instructions, eg. %%MIDI program,
+        %%MIDI chordprog, etc. then the function avoids changing these assignments by suppressing the output of the additional commands.
+        Note that these assignments can also be embedded in the body of the tune using the instruction [I: MIDI = program 10] for
+        examples see http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html and click link [I:MIDI=...].
+    '''
     #print traceback.extract_stack(None, 5)
     play_chords            = settings.get('play_chords')
     default_midi_program   = settings.get('midi_program')
@@ -1267,10 +1276,10 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         for channel in range(len(midi_program_ch), 16+1):
             midi_program_ch.append([default_midi_program,64,64])
 
-    #defines extra_lines to be added in the header.
-    #these are to define MIDI program for each channel and volume and balance for first one.
-    #shouldn't be needed as instruction are added for each voice afterwards
-    if add_midi_program_extra_line:
+    # Though these instructions shouldn't be needed (they are added for each voice afterwards),
+    # there is a problem with QuickTime on the Mac and these lines ensure that the MIDI file is
+    # played correctly.
+    if wx.Platform == "__WXMAC__":
         for channel in range(16):
             extra_lines.append('%%%%MIDI program %d %d' % (channel+1, midi_program_ch[channel][0]))
         extra_lines.append('%%%%MIDI program %d ' %  default_midi_program) # 1.3.6 [SS] 2014-11-16
@@ -1289,6 +1298,19 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         else:
             extra_lines.append('%%MIDI gchordoff')
     #add extra instruction to define instrument for guitar chords and bass
+    # These lines should be added to only the voices that have guitar chords. However,
+    # unless we scan the voice in advance, we do not know whether it does have guitar
+    # chords. There is nothing wrong in including these commands in every voice since
+    # they will be ignored if nonapplicable; but it makes a rather messy processed for
+    # midi file which is harder to interpret. Note a guitar chord looks like
+    # one of these "A" "Ab" "F#m", "G/B","f", and etc. The following may appear
+    # and are not processed as guitar chords: "part A", "^A" or "_A" where 
+    # ^ and _ indicate to abcm2ps whether to show this annotation above or below
+    # the staff.
+
+    # The extra_lines are added after X:1 in case the tune is not multivoice but
+    # has guitar chords embedded. If it is a multivoice tune or the tune does not
+    # have guitar chords, these lines are not necessary but do not do any harm.
     if add_midi_chordprog_extra_line:
         extra_lines.append('%%%%MIDI chordprog %d' % default_midi_chordprog)
         extra_lines.append('%%%%MIDI bassprog %d' % default_midi_bassprog)
@@ -1324,6 +1346,10 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                 voice_parse=voice_def.split()
                 voice_ID=voice_parse[0]
                 if voice_ID not in list_voice:
+                    # 1.3.6.4 [SS] 2015-06-19
+                    # ideally you should determine whether gchords are present in this voice
+                    voice_has_gchords = True
+
                     #as it's a new voice, add MIDI program instruction
                     list_voice.append(voice_ID)
                     #if
@@ -1332,17 +1358,19 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                     if add_midi_volume_extra_line:
                         new_lines.append('%%%%MIDI control 7 %d' % (midi_program_ch[voice][1]))
                         new_lines.append('%%%%MIDI control 10 %d' % (midi_program_ch[voice][2]))
-                    #under Mac, if instruction regarding gchord is not repeated after each voice definition
-                    #and guitar chord are define in another voice Voice 1 then gchord instruction are not recognize
-                    #that's why they are added for each voice.
-                    if add_midi_gchord_extra_line:
-                        if play_chords:
-                            new_lines.append('%%MIDI gchordon')
-                        else:
-                            new_lines.append('%%MIDI gchordoff')
-                    if add_midi_chordprog_extra_line:
-                        new_lines.append('%%%%MIDI chordprog %d' % (default_midi_chordprog))
-                        new_lines.append('%%%%MIDI bassprog %d' % (default_midi_bassprog))
+
+                    if voice_has_gchords:
+                        if add_midi_gchord_extra_line:
+                            if play_chords:
+                                new_lines.append('%%MIDI gchordon')
+                            else:
+                                new_lines.append('%%MIDI gchordoff')
+                        if add_midi_chordprog_extra_line:
+                            new_lines.append('%%%%MIDI chordprog %d' % (default_midi_chordprog))
+                            new_lines.append('%%%%MIDI bassprog %d' % (default_midi_bassprog))
+                            # 1.3.6.4 [SS] 2015-06-19
+                            new_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
+                            new_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
                     voice+=1
         abc_code = os.linesep.join([l.strip() for l in new_lines])
 
@@ -7701,7 +7729,8 @@ class MyAbcFrame(wx.Frame):
             self.basicText.SetEditable(True)
         except:
             pass
-        self.basicText.SetText(text)
+        self.basicText.ClearAll() # 1.3.6.4 [SS] 2015-06-17
+        self.basicText.AppendText(text)
         try:
             self.basicText.SetEditable(False) # 1.3.6.3 [JWdJ] 2015-04-22 abc code not editable
         except:

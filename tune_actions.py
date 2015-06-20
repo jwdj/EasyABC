@@ -13,25 +13,32 @@ from fraction import Fraction
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
 
-def html_enclose(tag, content):
-    return u'<{0}>{1}</{0}>'.format(tag, content)
+def html_enclose(tag, content, attributes=None):
+    if attributes is None:
+        return u'<{0}>{1}</{0}>'.format(tag, content)
+    else:
+        attr_text = u''
+        for attribute in attributes:
+            value = attributes[attribute]
+            if value is None:
+                attr_text += ' {0}'.format(attribute)
+            else:
+                attr_text += ' {0}="{1}"'.format(attribute, value)
+        return u'<{0}{1}>{2}</{0}>'.format(tag, attr_text, content)
 
 def html_enclose_attr(tag, attributes, content):
-    attr_text = u''
-    for attribute in attributes:
-        attr_text += ' {0}="{1}"'.format(attribute, attributes[attribute])
-    return u'<{0}{1}>{2}</{0}>'.format(tag, attr_text, content)
+    return html_enclose(tag, content, attributes)
 
 def url_tuple_to_href(value):
     if type(value) == UrlTuple:
         return html_enclose_attr('a', { 'href': value.url }, value.content)
     return value
 
-def html_enclose_item(tag, item):
+def html_enclose_item(tag, item, attributes=None):
     item = url_tuple_to_href(item)
-    return html_enclose(tag, item)
+    return html_enclose(tag, item, attributes)
 
-def html_enclose_items(tag, items):
+def html_enclose_items(tag, items, attributes=None):
     items = url_tuple_to_href(items)
     #if isinstance(items, CodeDescription):
     #    items = (html_enclose('code', escape(items.code)), escape(items.description))
@@ -39,24 +46,27 @@ def html_enclose_items(tag, items):
     if isinstance(items, (list, tuple)):
         result = u''
         for item in items:
-            result += html_enclose_item(tag, item)
+            result += html_enclose_item(tag, item, attributes)
     elif isinstance(items, dict):
         result = u''
         for item in items:
-            result += html_enclose_items(tag, items[item])
+            result += html_enclose_items(tag, items[item], attributes)
     else:
-        result = html_enclose_item(tag, items)
+        result = html_enclose_item(tag, items, attributes)
     return result
 
-def html_table(rows, headers=None):
+def html_table(rows, headers=None, cellpadding=0, row_has_td=False, indent=0):
     result = u''
     if headers:
         result = html_enclose_items('th', headers)
     for row in rows:
-        row_data = html_enclose_items('td', row)
-        result += html_enclose('tr', row_data)
+        if not row_has_td:
+            row = html_enclose_items('td', row, { 'nowrap': None, 'align': 'left' })
+        if indent:
+            row = html_enclose('td', '', { 'width': indent}) + row
+        result += html_enclose('tr', row)
 
-    return html_enclose('table', result)
+    return html_enclose_attr('table', { 'cellpadding': cellpadding, 'cellspacing': 0, 'border': 0, 'align': 'left'}, result)
 
 
 class AbcAction(object):
@@ -155,14 +165,14 @@ class ValueChangeAction(AbcAction):
         result = u''
         if not self.is_action_allowed(context):
             return result
-
+        rows = []
         if self.display_name:
-            result = html_enclose('h4', escape(self.display_name))
-        else:
-            result = '<br>'
+            row = html_enclose('b', escape(self.display_name))
+            rows.append(row)
 
-        result += self.get_values_html(context)
-        return result
+        row = self.get_values_html(context)
+        rows.append(row)
+        return html_table(rows)
 
     def get_values(self, context):
         return self.supported_values
@@ -173,8 +183,7 @@ class ValueChangeAction(AbcAction):
         return value
 
     def get_values_html(self, context):
-        result = u''
-        html_values = []
+        rows = []
         for value in self.get_values(context):
             if isinstance(value, (CodeDescription, ValueDescription, CodeImageDescription, ValueImageDescription)):
                 desc = escape(value.description)
@@ -199,7 +208,7 @@ class ValueChangeAction(AbcAction):
                 else:
                     columns += [self.html_selected_item(context, value.value, desc)]
 
-                html_values.append(tuple(columns))
+                rows.append(tuple(columns))
             elif isinstance(value, list):
                 columns = value
                 row = []
@@ -212,7 +221,7 @@ class ValueChangeAction(AbcAction):
                         row.append(t)
                     else:
                         row.append(html_column)
-                html_values.append(row)
+                rows.append(row)
             else:
                 params = {'value': value}
                 desc = escape(value)
@@ -220,8 +229,11 @@ class ValueChangeAction(AbcAction):
                     t = UrlTuple(self.get_action_url(params), desc)
                 else:
                     t = self.html_selected_item(context, value, desc)
-                html_values.append(t)
-        result += html_table(html_values)
+                rows.append(t)
+
+        result = html_table(rows, cellpadding=2, indent=20)
+        if result is None:
+            result = ''
         return result
 
     @staticmethod
@@ -234,6 +246,9 @@ class ValueChangeAction(AbcAction):
 class InsertValueAction(ValueChangeAction):
     def __init__(self, name, supported_values, valid_sections=None, display_name=None, matchgroup=None):
         super(InsertValueAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
+
+    def can_execute(self, context, params=None):
+        return True
 
     def execute(self, context, params=None):
         value = params['value']
@@ -930,7 +945,7 @@ class FixCharactersAction(AbcAction):
 class NewNoteAction(InsertValueAction):
     values = ['c d e f g a b'.split(' '), 'C D E F G A B'.split(' ')]
     def __init__(self):
-        super(NewNoteAction, self).__init__('Add note', supported_values=NewNoteAction.values, valid_sections=AbcSection.TuneBody)
+        super(NewNoteAction, self).__init__('New note', supported_values=NewNoteAction.values, valid_sections=AbcSection.TuneBody)
 
 
 class NewRestAction(InsertValueAction):
@@ -940,7 +955,7 @@ class NewRestAction(InsertValueAction):
         CodeDescription('x', _('Invisible rest')),
     ]
     def __init__(self):
-        super(NewRestAction, self).__init__('Add rest', supported_values=NewRestAction.values, valid_sections=AbcSection.TuneBody)
+        super(NewRestAction, self).__init__('New rest', supported_values=NewRestAction.values, valid_sections=AbcSection.TuneBody)
 
 
 class InsertOptionalAccidental(InsertValueAction):
@@ -1007,10 +1022,10 @@ class AbcActionHandler(object):
         return self._actions_by_name.get(name)
 
     def get_action_html(self, context):
-        result = u''
+        rows = []
         for action in self._actions_ordered:
-            result += action.get_action_html(context)
-        return result
+            rows.append(action.get_action_html(context))
+        return html_table(rows)
 
 
 class AbcActionHandlers(object):
@@ -1020,8 +1035,8 @@ class AbcActionHandlers(object):
             'Empty document'     : AbcActionHandler([NewTuneAction()]),
             'Empty line'         : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
             'Whitespace'         : AbcActionHandler([NewNoteAction(), NewRestAction()]),
-            'Note'               : AbcActionHandler([AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
-            'Rest'               : AbcActionHandler([DurationAction(), RestVisibilityChangeAction()]),
+            'Note'               : AbcActionHandler([NewNoteAction(), NewRestAction(), AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
+            'Rest'               : AbcActionHandler([NewNoteAction(), NewRestAction(), DurationAction(), RestVisibilityChangeAction()]),
             'Measure rest'       : AbcActionHandler([MeasureRestVisibilityChangeAction()]),
             'Bar'                : AbcActionHandler([BarChangeAction()]),
             'Annotation'         : AbcActionHandler([AnnotationPositionAction()]),
