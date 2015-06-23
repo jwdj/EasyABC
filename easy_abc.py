@@ -161,7 +161,8 @@
 #   copy_bar_symbols_from_first_voice(), process_MCM(), get_hash_code(),
 #   change_abc_tempo(), add_table_of_contents_to_postscript_file(),
 #   sort_abc_tunes(), process_abc_code(), AbcToPS, GetSvgFileList(),
-#   AbcToSvg(), AbcToAbc(), set_gs_path_for_platform(), AbcToPDF(), AbcToMidi(),
+#   AbcToSvg(), AbcToAbc(), MidiToMftext(),  set_gs_path_for_platform(),
+#   AbcToPDF(), AbcToMidi(),
 #   add_abc2midi_options(), str2bool(), fix_boxmarks(), change_texts_into_chords()
 #   NWCToXml(), frac_mod()
 
@@ -200,7 +201,7 @@
 #class MyNoteBook()
 
 #class AbcFileSettingsFrame()
-#   OnBrowse(), On_Chk_IncludeHeader()
+#   OnBrowse(), OnChangePath(), change_path_for_control(), On_Chk_IncludeHeader()
 #   OnPath_midiplayer(), OnRestoreSettings()
 #   append_exe(), keep_existing_paths(), get_default_path()
 
@@ -311,6 +312,9 @@
 #class MyAbcFrame()
 #   ShowText(), update_text()
 
+#class MyMidiTextTree
+#   LoadMidiData
+
 #class MyApp()
 #   CheckCanDrawSharpFlat(), NewMainFrame(), UnRegisterFrame(),
 #   GetAllFrames(), MacOpenFile(), OnInit(),
@@ -319,7 +323,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-06-17'
+program_name = 'EasyABC 1.3.6.4 2015-06-22'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -1116,6 +1120,26 @@ def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):
     else:
         return (None, stderr_value)
 
+# 1.3.6.4 [SS] 2015-06-22
+def MidiToMftext (midi2abc_path, midifile):
+    ' dissasemble midi file to text using midi2abc'
+    global execmessages
+    creationflags = 0
+    cmd1 = [midi2abc_path, midifile, '-mftext']
+    execmessages += '\nMidiToMftext\n' + " ".join(cmd1)
+
+    if os.path.exists(midi2abc_path):
+        process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
+        stdout_value, stderr_value = process.communicate()
+        #print stdout_value
+
+        midiframe = MyMidiTextTree('Disassembled Midi File')
+        midiframe.Show(True)
+        midi_data = stdout_value
+        midi_lines = midi_data.splitlines()
+        midiframe.LoadMidiData(midi_lines)
+    else:
+        wx.MessageBox(_("Cannot find the executable midi2abc. Be sure it is in your bin folder and its path is defined in ABC Setup/File Settings."), ("Error") ,wx.ICON_ERROR | wx.OK)
 
 
 # p09 2014-10-14 [SS]
@@ -1281,11 +1305,11 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     # played correctly.
     if wx.Platform == "__WXMAC__":
         for channel in range(16):
-            extra_lines.append('%%%%MIDI program %d %d' % (channel+1, midi_program_ch[channel][0]))
-        extra_lines.append('%%%%MIDI program %d ' %  default_midi_program) # 1.3.6 [SS] 2014-11-16
+            extra_lines.append('%%MIDI program {0} {1}'.format(channel+1, midi_program_ch[channel][0]))
+        extra_lines.append('%%MIDI program {0}'.format(default_midi_program)) # 1.3.6 [SS] 2014-11-16
     if add_midi_volume_extra_line:
-        extra_lines.append('%%%%MIDI control 7 %d' % (midi_program_ch[0][1]))
-        extra_lines.append('%%%%MIDI control 10 %d' % (midi_program_ch[0][2]))
+        extra_lines.append('%%MIDI control 7 {0}'.format(midi_program_ch[0][1]))
+        extra_lines.append('%%MIDI control 10 {0}'.format(midi_program_ch[0][2]))
 
     #add extra instruction to play guitar chords
     if add_midi_gchord_extra_line:
@@ -1312,15 +1336,15 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     # has guitar chords embedded. If it is a multivoice tune or the tune does not
     # have guitar chords, these lines are not necessary but do not do any harm.
     if add_midi_chordprog_extra_line:
-        extra_lines.append('%%%%MIDI chordprog %d' % default_midi_chordprog)
-        extra_lines.append('%%%%MIDI bassprog %d' % default_midi_bassprog)
+        extra_lines.append('%%MIDI chordprog {0}'.format(default_midi_chordprog))
+        extra_lines.append('%%MIDI bassprog {0}'.format(default_midi_bassprog))
         # 1.3.6.4 [SS] 2015-06-07
         extra_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
         extra_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
 
     # 1.3.6.3 [SS] 2015-03-19
     if settings.get('transposition', '0') != '0':
-        extra_lines.append('%%%%MIDI transpose %s' % settings['transposition'])
+        extra_lines.append('%%MIDI transpose {0}'.format(settings['transposition']))
 
     # 1.3.6.3 [SS] 2015-05-04
     if default_tempo != 120:
@@ -1354,10 +1378,10 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                     list_voice.append(voice_ID)
                     #if
                     if add_midi_program_extra_line:
-                        new_lines.append('%%%%MIDI program %d' % (midi_program_ch[voice][0]))
+                        new_lines.append('%%MIDI program {0}'.format(midi_program_ch[voice][0]))
                     if add_midi_volume_extra_line:
-                        new_lines.append('%%%%MIDI control 7 %d' % (midi_program_ch[voice][1]))
-                        new_lines.append('%%%%MIDI control 10 %d' % (midi_program_ch[voice][2]))
+                        new_lines.append('%%MIDI control 7 {0}'.format(midi_program_ch[voice][1]))
+                        new_lines.append('%%MIDI control 10 {0}'.format(midi_program_ch[voice][2]))
 
                     if voice_has_gchords:
                         if add_midi_gchord_extra_line:
@@ -1366,8 +1390,8 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                             else:
                                 new_lines.append('%%MIDI gchordoff')
                         if add_midi_chordprog_extra_line:
-                            new_lines.append('%%%%MIDI chordprog %d' % (default_midi_chordprog))
-                            new_lines.append('%%%%MIDI bassprog %d' % (default_midi_bassprog))
+                            new_lines.append('%%MIDI chordprog {0}'.format(default_midi_chordprog))
+                            new_lines.append('%%MIDI bassprog {0}'.format(default_midi_bassprog))
                             # 1.3.6.4 [SS] 2015-06-19
                             new_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
                             new_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
@@ -2121,6 +2145,8 @@ class AbcFileSettingsFrame(wx.Panel):
             PathEntry('abcm2ps', _('abcm2ps executable:'), _('This executable is used to display the music'), True),
             PathEntry('abc2midi', _('abc2midi executable:'), _('This executable is used to make the midi file'), True),
             PathEntry('abc2abc', _('abc2abc executable:'), _('This executable is used to transpose the music'), True),
+            # 1.3.6.4 [SS] 2015-06-22
+            PathEntry('midi2abc', _('midi2abc executable:'), _('This executable is used to disassemble the output midi file'), True),
             PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False),
             PathEntry('nwc2xml', _('nwc2xml executable:'),_('For NoteWorthy Composer - Windows only'), False),
             PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False)
@@ -2231,7 +2257,11 @@ class AbcFileSettingsFrame(wx.Panel):
                 self, message=_("Choose a file"), defaultDir=default_dir, defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
-                control.SetValue(dlg.GetPath())
+                path = dlg.GetPath()
+                control.SetValue(path)
+                if wx.Platform != "__WXMSW__":
+                    # 1.3.6.4 [SS] 2015-06-23
+                    self.change_path_for_control(control, path)  # 1.3.6.4 [JWDJ] 2015-06-23 in case control.SetValue(path) does not trigger OnChangePath
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
@@ -2239,9 +2269,12 @@ class AbcFileSettingsFrame(wx.Panel):
         if wx.Platform == "__WXMAC__":
             self.statusbar.SetStatusText('Updating path') # for Mac-users to see
         control = evt.EventObject
+        path = evt.String
+        self.change_path_for_control(control, path)
+
+    def change_path_for_control(self, control, path):
         name = self.control_to_name[control]
         setting_name = '%s_path' % name
-        path = evt.String
         self.settings[setting_name] = path
         if isinstance(control, wx.ComboBox):
             setting_name_choices = '%s_path_choices' % name
@@ -5656,6 +5689,7 @@ class MainFrame(wx.Frame):
         menu7 = wx.Menu() #p09 2014-10-22
         menu7.Append(7001, _("Messages"), _("Show warnings and errors"))
         menu7.Append(7002, _("Input processed tune"),'')
+        menu7.Append(7004, _("Output midi file"),'')
         menu7.Append(7003, _("Show settings status"),'')
 
         menuBar.Append(menu1, _("&File"))
@@ -5735,6 +5769,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnShowMessages, id=7001)
         self.Bind(wx.EVT_MENU, self.OnShowAbcTune,  id=7002)
         self.Bind(wx.EVT_MENU, self.OnShowSettings, id=7003)
+        self.Bind(wx.EVT_MENU, self.OnShowMidiFile, id=7004)
 
     def ShowMessages(self):
         global execmessages
@@ -5774,6 +5809,15 @@ class MainFrame(wx.Frame):
             execmessages += line
         # 1.3.6.1 [JWdJ] 2015-01-30 When messages window is lost it will be focused again
         self.ShowMessages()
+
+    #1.3.6.4 [SS] 2015-06-22
+    def OnShowMidiFile(self,evt):
+        midi2abc_path = self.settings['midi2abc_path']
+        if hasattr(self.current_midi_tune,'midi_file'):
+            MidiToMftext (midi2abc_path,self.current_midi_tune.midi_file)
+        else:
+            wx.MessageBox(_("You need to create the midi file by playing the tune"), ("Error") ,wx.ICON_ERROR | wx.OK)
+
 
     def OnCloseFile(self, evt):
         self.Close()
@@ -7406,6 +7450,19 @@ class MainFrame(wx.Frame):
             else:
                 abc2abc_path = os.path.join(cwd, 'bin', 'abc2abc')
 
+        midi2abc_path = settings.get('midi2abc_path')
+
+        #1.3.6.4 [SS] 2015-06-22
+        if not midi2abc_path:
+            if wx.Platform == "__WXMSW__":
+                midi2abc_path = os.path.join(cwd, 'bin', 'midi2abc.exe')
+            elif wx.Platform == "__WXMAC__":
+                midi2abc_path = os.path.join(cwd, 'bin', 'midi2abc')
+            else:
+                midi2abc_path = os.path.join(cwd, 'bin', 'midi2abc')
+
+        settings['midi2abc_path'] = midi2abc_path
+
         if os.path.exists(abc2abc_path):
             settings['abc2abc_path'] = abc2abc_path # 1.3.6 [SS] 2014-11-12
         else:
@@ -7743,6 +7800,40 @@ class MyAbcFrame(wx.Frame):
         win = wx.FindWindowByName('abctuneframe')
         if win is not None:
             win.ShowText(visible_abc_code)
+
+
+#1.3.6.4 [SS] 2015-06-22
+class MyMidiTextTree(wx.Frame):
+    def __init__(self,title):
+        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, title, wx.DefaultPosition, wx.Size(450, 350))
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        panel1 = wx.Panel(self, -1)
+
+        self.tree = wx.TreeCtrl(panel1, 1, wx.DefaultPosition, (-1,-1), wx.TR_HAS_BUTTONS )
+        vbox.Add(self.tree, 1, wx.EXPAND)
+        hbox.Add(panel1, 1, wx.EXPAND)
+        panel1.SetSizer(vbox)
+        self.SetSizer(hbox)
+        self.Centre()
+
+    def LoadMidiData(self,data):
+        self.tree.DeleteAllItems()
+        tracknum = '0'
+        trk = {}
+        for line in data:
+            col = line.find('Track')
+            if col == 0:
+                words = line.split(' ')
+                tracknum = words[1]
+                trk[tracknum] = self.tree.AppendItem(self.root,line)
+            else:
+                if tracknum == '0':
+                    self.root = self.tree.AddRoot(line)
+                    continue 
+                self.tree.AppendItem(trk[tracknum],line) 
+        self.tree.Expand(self.root)
 
 
 class MyApp(wx.App):
