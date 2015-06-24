@@ -53,11 +53,11 @@ class ABCStyler:
         self.styling_startpos = start
         self.e.StartStyling(start, 31)   # only style the text style bits
         i = start
+        ch = chr(self.e.GetCharAt(i))
+        chNext = chr(self.e.GetCharAt(i+1))
+        chPrev = chr(self.e.GetCharAt(i-1))
         while i <= lengthDoc:
-            ch = chr(self.e.GetCharAt(i))
-            chNext = chr(self.e.GetCharAt(i+1))
-            chPrev = chr(self.e.GetCharAt(i-1))
-
+            advance = True
             if state == self.STYLE_DEFAULT:
                 if (ch == '|' or (ch == ':' and chNext in '|:')) or (ch == '[' and chNext in '1234'):
                     self.ColorTo(i-1, state)
@@ -100,7 +100,7 @@ class ABCStyler:
                 if ch not in '|[]:1234':
                     self.ColorTo(i-1, state)
                     state = self.STYLE_DEFAULT
-                    i -= 1
+                    advance = False
             elif state in [self.STYLE_FIELD, self.STYLE_EMBEDDED_FIELD, self.STYLE_FIELD_INDEX, self.STYLE_FIELD_VALUE, self.STYLE_EMBEDDED_FIELD_VALUE, self.STYLE_COMMENT_NORMAL, self.STYLE_COMMENT_SPECIAL]:
 #Do not check for ] in other case thant STYLE EMBEDDED to avoid going in default style if used in comments or commands like %%staves/%%scores
 #                if ch in '\r\n]' or (state == self.STYLE_EMBEDDED_FIELD_VALUE and ch == ']'):
@@ -147,5 +147,10 @@ class ABCStyler:
                 self.ColorTo(i, state)
                 state = self.STYLE_DEFAULT
 
-            i += 1
+            if advance:
+                i += 1
+                chPrev = ch
+                ch = chNext
+                chNext = chr(self.e.GetCharAt(i+1))
+
         self.ColorTo(end, state)
