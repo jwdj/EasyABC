@@ -2177,16 +2177,16 @@ class AbcFileSettingsFrame(wx.Panel):
         for entry in self.needed_path_entries:
             setting_name = '%s_path' % entry.name
             current_path = self.settings.get(setting_name, '')
-            if wx.Platform == "__WXMAC__":
-                control = wx.TextCtrl(self)
-            else:
-                setting_name_choices = '%s_path_choices' % entry.name
-                path_choices = self.settings.get(setting_name_choices, '').split('|')
-                path_choices = self.keep_existing_paths(path_choices)
-                path_choices = self.append_exe(current_path, path_choices)
-                if entry.add_default:
-                    path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
-                control = wx.ComboBox(self, -1, choices=path_choices, style=wx.CB_DROPDOWN)
+            #if wx.Platform == "__WXMAC__":
+            #    control = wx.TextCtrl(self)
+            #else:
+            setting_name_choices = '%s_path_choices' % entry.name
+            path_choices = self.settings.get(setting_name_choices, '').split('|')
+            path_choices = self.keep_existing_paths(path_choices)
+            path_choices = self.append_exe(current_path, path_choices)
+            if entry.add_default:
+                path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
+            control = wx.ComboBox(self, -1, choices=path_choices, style=wx.CB_DROPDOWN)
 
             control.SetValue(current_path)
             control.Bind(wx.EVT_TEXT, self.OnChangePath, control)
