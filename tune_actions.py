@@ -993,6 +993,19 @@ class AddSlurAction(AbcAction):
     def execute(self, context, params=None):
         context.replace_match_text('({0})'.format(context.match_text))
 
+class InsertAlignSymbolAction(InsertValueAction):
+    values = [
+        CodeDescription('-', _('break between syllables within a word')),
+        CodeDescription('_', _('previous syllable is to be held for an extra note')),
+        CodeDescription('*', _('one note is skipped (* is equivalent to a blank syllable)')),
+        CodeDescription('~', _('appears as a space; aligns multiple words under one note')),
+        CodeDescription(r'\-', _('appears as hyphen; aligns multiple syllables under one note')),
+        CodeDescription('|', _('advances to the next bar'))
+    ]
+    def __init__(self):
+        super(InsertAlignSymbolAction, self).__init__('Insert align symbol', InsertAlignSymbolAction.values)
+
+
 ##################################################################################################
 #  REMOVE ACTIONS
 ##################################################################################################
@@ -1050,6 +1063,7 @@ class AbcActionHandlers(object):
             'Navigation'         : AbcActionHandler([NavigationDecorationChangeAction()]),
             'Fingering'          : AbcActionHandler([FingeringDecorationChangeAction()]),
             'Redefinable symbol' : AbcActionHandler([RedefinableSymbolChangeAction()]),
+            'w:'                 : AbcActionHandler([InsertAlignSymbolAction()]),
             'K:'                 : AbcActionHandler([KeySignatureChangeAction(), KeyModeChangeAction()]),
             'L:'                 : AbcActionHandler([UnitNoteLengthChangeAction()]),
             'M:'                 : AbcActionHandler([MeterChangeAction()]),
