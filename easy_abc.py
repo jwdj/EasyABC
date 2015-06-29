@@ -1068,7 +1068,7 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     #cmd1 = [arg.encode(fse) if isinstance(arg,unicode) else arg for arg in cmd1]
 
     # t = datetime.now() # 1.3.6.3 [JWDJ] 2015-04-21 not used anymore
-    execmessages += '\nAbcToSvg\n' + " ".join(cmd1)
+    execmessages = '\nAbcToSvg\n' + " ".join(cmd1) # 1.3.6.4 [JWDJ] 2015-06-29 fixes that statusbar says there are errors in previous renders
     process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, universal_newlines=True, cwd=os.path.dirname(svg_file))
     stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
     execmessages += '\n' + stdout_value + stderr_value
@@ -1335,6 +1335,11 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     # The extra_lines are added after X:1 in case the tune is not multivoice but
     # has guitar chords embedded. If it is a multivoice tune or the tune does not
     # have guitar chords, these lines are not necessary but do not do any harm.
+    # 
+    # 1.3.6.4 [SS] 2015-06-29
+    if add_midi_program_extra_line:
+        extra_lines.append('%%MIDI program {0}'.format(default_midi_program))
+
     if add_midi_chordprog_extra_line:
         extra_lines.append('%%MIDI chordprog {0}'.format(default_midi_chordprog))
         extra_lines.append('%%MIDI bassprog {0}'.format(default_midi_bassprog))
