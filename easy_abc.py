@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.3 2015/06/17
+# EasyABC V1.3.6.3 2015/07/07
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -285,7 +285,7 @@
 #   OnFindReplace(), OnFindReplaceAll(), OnFindNextABC(),
 #   OnFindNext(), OnAbout(), OnEasyABCHelp(), OnABCStandard(),
 #   OnABCLearn(), OnAbcm2psHelp(), OnClearCache(), OnMidiSettings(),
-#   OnAbcm2psSettings(), OnChangeFont(), OnViewFieldReference(),
+#   OnAbcSettings(), OnChangeFont(), OnViewFieldReference(),
 #   OnFieldReferenceItemDClick(), OnUseDefaultFont(),
 #   ScrollMusicPaneToMatchEditor(), OnMovedToDifferentLine(),
 #   AutoInsertXNum(), DoReMiToNote(), OnCharEvent(),
@@ -324,7 +324,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-06-22'
+program_name = 'EasyABC 1.3.6.4 2015-07-07'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -1069,7 +1069,7 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     #cmd1 = [arg.encode(fse) if isinstance(arg,unicode) else arg for arg in cmd1]
 
     # t = datetime.now() # 1.3.6.3 [JWDJ] 2015-04-21 not used anymore
-    execmessages = '\nAbcToSvg\n' + " ".join(cmd1) # 1.3.6.4 [JWDJ] 2015-06-29 fixes that statusbar says there are errors in previous renders
+    execmessages += '\nAbcToSvg\n' + " ".join(cmd1)
     process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, universal_newlines=True, cwd=os.path.dirname(svg_file))
     stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
     execmessages += '\n' + stdout_value + stderr_value
@@ -1376,7 +1376,13 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         Note that these assignments can also be embedded in the body of the tune using the instruction [I: MIDI = program 10] for
         examples see http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html and click link [I:MIDI=...].
     '''
+    global execmessages
     #print traceback.extract_stack(None, 5)
+
+
+
+    ####   set all the control flags which determine which %%MIDI commands are written
+
     play_chords            = settings.get('play_chords')
     default_midi_program   = settings.get('midi_program')
     default_midi_chordprog = settings.get('midi_chord_program')
@@ -1396,33 +1402,21 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     for channel in range(16):
         default_midi_program_ch.append(settings.get(midi_program_ch_list[channel]))
 
-    # add some extra lines to header (whether chords are on/off and what default midi program to use for each channel)
-    global execmessages
-    extra_lines = []
-
-    #print 'default_midi_program = ',default_midi_program
-    #print default_midi_program_ch
-
-
     #this flag is added just in case none would have been set but shouldn't be the case.
     if not default_midi_bassprog:
         default_midi_bassprog=default_midi_chordprog
 
     # verify if MIDI instructions are already present if yes, no extra command should be added
+
     add_midi_program_extra_line = True
     add_midi_volume_extra_line = True # 1.3.6.3 [JWDJ] 2015-04-21 added so that when abc contains instrument selection, the volume from the settings can still be used
     add_midi_gchord_extra_line = True
     add_midi_chordprog_extra_line = True
     add_midi_introduction = settings.get('midi_intro')  # 1.3.6.4 [SS] 2015-07-05
-
-    # 1.3.6.4 [SS] 2015-07-03
-    if add_midi_introduction:
-    	midi_introduction = make_abc_introduction(abc_code)
-
     # 1.3.6.3 [JWDJ] 2015-04-17 header was forgotten when checking for MIDI directives
-    lines = re.split('\r\n|\r|\n', header + abc_code)
-    for i in range(len(lines)):
-        line = lines[i]
+    abclines = re.split('\r\n|\r|\n', header + abc_code)
+    for i in range(len(abclines)):
+        line = abclines[i]
         if line.startswith('%%MIDI program'):
             add_midi_program_extra_line=False
         elif line.startswith('%%MIDI control 7 '):
@@ -1433,7 +1427,13 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             add_midi_chordprog_extra_line=False
         if not (add_midi_program_extra_line or add_midi_volume_extra_line or add_midi_gchord_extra_line or add_midi_chordprog_extra_line): break
 
-    lines = re.split('\r\n|\r|\n', abc_code) # 1.3.6.3 [JWDJ] 2015-04-17 header was forgotten when checking for MIDI directives
+
+
+
+    #### create the abc_header which will be placed in front of the processed abc file
+    # extra_lines is a list of all the MIDI commands to be put in abcheader
+
+    extra_lines = []
 
     # build default list of midi_program
     # this is needed in case no instrument per voices where defined or in case option "use default one for all voices" is checked
@@ -1463,16 +1463,12 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
         else:
             extra_lines.append('%%MIDI gchordoff')
-    #add extra instruction to define instrument for guitar chords and bass
+    # add extra instruction to define instrument for guitar chords and bass
     # These lines should be added to only the voices that have guitar chords. However,
     # unless we scan the voice in advance, we do not know whether it does have guitar
     # chords. There is nothing wrong in including these commands in every voice since
     # they will be ignored if nonapplicable; but it makes a rather messy processed for
-    # midi file which is harder to interpret. Note a guitar chord looks like
-    # one of these "A" "Ab" "F#m", "G/B","f", and etc. The following may appear
-    # and are not processed as guitar chords: "part A", "^A" or "_A" where 
-    # ^ and _ indicate to abcm2ps whether to show this annotation above or below
-    # the staff.
+    # midi file which is harder to interpret.
 
     # The extra_lines are added after X:1 in case the tune is not multivoice but
     # has guitar chords embedded. If it is a multivoice tune or the tune does not
@@ -1491,34 +1487,43 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     # 1.3.6.3 [SS] 2015-03-19
     if settings.get('transposition', '0') != '0':
-        extra_lines.append('%%MIDI transpose {0}'.format(settings['transposition']))
+         extra_lines.append('%%MIDI transpose {0}'.format(settings['transposition']))
 
     # 1.3.6.3 [SS] 2015-05-04
     if default_tempo != 120:
         extra_lines.append('Q:1/4 = %s' % default_tempo)
 
-    header = os.linesep.join(extra_lines + [header.strip()])
+    abcheader = os.linesep.join(extra_lines + [header.strip()])
 
-    # modify abc_code to add MIDI instruction just after voice definition
+    # 1.3.6.4 [SS] 2015-07-03
+    if add_midi_introduction:
+        midi_introduction = make_abc_introduction(abc_code)
+
+
+
+    ####  modify abc_code to add MIDI instruction just after voice definition
     # (because using channel only in header doesn't seem to allow association with voice
-    if add_midi_program_extra_line or add_midi_gchord_extra_line:
-        list_voice=[]
-        new_lines=[]
+
+    abclines = re.split('\r\n|\r|\n', abc_code) # 1.3.6.3 [JWDJ] 2015-04-17 split abc_code without header
+
+    if add_midi_program_extra_line or add_midi_gchord_extra_line or add_midi_introduction:
+        list_voice=[] # keeps track of the voices we have already seen
+        new_abc_lines=[] # contains the new processed abc tune
         voice=0
         header_finished=False
-        for i in range(len(lines)):
-            new_lines.append(lines[i])
+        for i in range(len(abclines)):
+            new_abc_lines.append(abclines[i])
             # do not take into account the definition present in the header (maybe it would be better... to be further analysed)
-            if lines[i].startswith('K:'):
+            if abclines[i].startswith('K:'):
                 # 1.3.6.4 [SS] 2015-07-03
                 if not header_finished and add_midi_introduction:
                     for j in range(len(midi_introduction)):
-                        new_lines.append(midi_introduction[j])
+                        new_abc_lines.append(midi_introduction[j])
                 header_finished=True
             # 1.3.6.3 [JWDJ] 2015-04-21
-            if (lines[i].startswith('V:') or lines[i].startswith('[V:')) and header_finished:
+            if (abclines[i].startswith('V:') or abclines[i].startswith('[V:')) and header_finished:
                 #extraction of the voice ID
-                voice_def=lines[i][2:].strip()
+                voice_def=abclines[i][2:].strip()
                 voice_parse=voice_def.split()
                 voice_ID=voice_parse[0]
                 if voice_ID not in list_voice:
@@ -1530,52 +1535,70 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                     list_voice.append(voice_ID)
                     #if
                     if add_midi_program_extra_line:
-                        new_lines.append('%%MIDI program {0}'.format(midi_program_ch[voice][0]))
+                        new_abc_lines.append('%%MIDI program {0}'.format(midi_program_ch[voice][0]))
                     if add_midi_volume_extra_line:
-                        new_lines.append('%%MIDI control 7 {0}'.format(midi_program_ch[voice][1]))
-                        new_lines.append('%%MIDI control 10 {0}'.format(midi_program_ch[voice][2]))
+                        new_abc_lines.append('%%MIDI control 7 {0}'.format(midi_program_ch[voice][1]))
+                        new_abc_lines.append('%%MIDI control 10 {0}'.format(midi_program_ch[voice][2]))
 
                     if voice_has_gchords:
                         if add_midi_gchord_extra_line:
                             if play_chords:
-                                new_lines.append('%%MIDI gchordon')
+                                new_abc_lines.append('%%MIDI gchordon')
                             else:
-                                new_lines.append('%%MIDI gchordoff')
+                                new_abc_lines.append('%%MIDI gchordoff')
                         if add_midi_chordprog_extra_line:
-                            new_lines.append('%%MIDI chordprog {0}'.format(default_midi_chordprog))
-                            new_lines.append('%%MIDI bassprog {0}'.format(default_midi_bassprog))
+                            new_abc_lines.append('%%MIDI chordprog {0}'.format(default_midi_chordprog))
+                            new_abc_lines.append('%%MIDI bassprog {0}'.format(default_midi_bassprog))
                             # 1.3.6.4 [SS] 2015-06-19
-                            new_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
-                            new_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
+                            new_abc_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
+                            new_abc_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
                     voice+=1
-        abc_code = os.linesep.join([l.strip() for l in new_lines])
+        abc_code = os.linesep.join([l.strip() for l in new_abc_lines])
 
+
+
+    #### assemble everything together
+
+    # 1.3.6.4 [SS] 2014-07-07 replacement for process_abc_code
+    # we do not want any abcm2ps options added
+    sections = []
+    sections.append(abcheader.rstrip() + os.linesep)
+    sections.append(abc_code)
+    abc_code = ''.join(sections) # put it together
+    abc_code = re.sub(r'\[\[(.*/)(.+?)\]\]', r'\2', abc_code)  # strip PmWiki links and just include the link text
+    if tempo_multiplier:
+        abc_code = change_abc_tempo(abc_code, tempo_multiplier)
+    abc_code = process_MCM(abc_code)
+    # 1.3.6.3 [JWdJ] 2015-04-22 fixing newlines to part of process_abc_code
+    abc_code = re.sub(r'\r\n|\r', '\n', abc_code)  ## TEST
     # 1.3.6 [SS] 2014-12-17
-    abc_code = process_abc_code(settings,abc_code, header, tempo_multiplier=tempo_multiplier, minimal_processing=True)
+    #abc_code = process_abc_code(settings,abc_code, abcheader, tempo_multiplier=tempo_multiplier, minimal_processing=True)
+
     abc_code = abc_code.replace(r'\"', ' ')  # replace escaped " characters with space since abc2midi doesn't understand them
 
     # make sure that X field is on the first line since abc2midi doesn't seem to support
     # fields and instructions that come before the X field
-    lines = re.split('\r\n|\r|\n', abc_code)
-    for i in range(len(lines)):
-        if lines[i].startswith('X:'):
-            line = lines[i]
-            del lines[i]
-            lines.insert(0, line)
+    abclines = re.split('\r\n|\r|\n', abc_code) # take it apart again
+    for i in range(len(abclines)):
+        if abclines[i].startswith('X:'):
+            line = abclines[i]
+            del abclines[i]
+            abclines.insert(0, line)
             break
-    abc_code = os.linesep.join([l.strip() for l in lines])
+    abc_code = os.linesep.join([l.strip() for l in abclines]) # put it back together
 
-    # old_stress_model = any(l for l in lines if l.startswith('%%MIDI stressmodel 1')) # 1.3.6.3 [JWDJ] no longer used
 
-    #hash = get_hash_code(abc_code + str(bool(add_meta_data))) # 1.3.6 [SS] 2014-11-13
-
+    #### for debugging
     #Write temporary abc_file (for debug purpose)
     #temp_abc_file =  os.path.abspath(os.path.join(cache_dir, 'temp_%s.abc' % hash)) 1.3.6 [SS] 2014-11-13
     temp_abc_file =  os.path.abspath(os.path.join(cache_dir, 'temp.abc')) # 1.3.6 [SS] 2014-11-13
     f = codecs.open(temp_abc_file, 'wb', 'UTF-8') #p08 patch
     f.write(abc_code)
     f.close()
+
     return abc_code
+
+
 
 # 1.3.6.3 [JWDJ] 2015-04-21 split up AbcToMidi into 2 functions: preprocessing (process_abc_for_midi) and actual midi generation (abc_to_midi)
 def abc_to_midi(abc_code, settings, midi_file_name):
@@ -5906,7 +5929,7 @@ class MainFrame(wx.Frame):
         ##self.Bind(wx.EVT_MENU, self.OnAbout, id=4001)
         self.Bind(wx.EVT_MENU, self.OnAbout, id=wx.ID_ABOUT)
         self.Bind(wx.EVT_MENU, self.OnMidiSettings, id=5001)
-        self.Bind(wx.EVT_MENU, self.OnAbcm2psSettings, id=5002)
+        self.Bind(wx.EVT_MENU, self.OnAbcSettings, id=5002)
         self.Bind(wx.EVT_MENU, self.OnClearCache, id=5007)
         self.Bind(wx.EVT_MENU, self.OnColdRestart, id=5005) # 1.3.6.1 [SS] 2014-12-28
         self.Bind(wx.EVT_MENU, self.OnResetView, id=6001)
@@ -6199,14 +6222,15 @@ class MainFrame(wx.Frame):
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
     #p09 revised to use MyNoteBook
-    def OnAbcm2psSettings(self, evt):
-        old_format_path = self.settings.get('abcm2ps_format_path', '')
-        self.book = MyNoteBook(self.settings, self.statusbar)
-        self.book.Show()
-        # refresh music image if format file was changed
-        #if old_format_path != self.settings.get('abcm2ps_format_path', ''):
-            #for frame in wx.GetApp().GetAllFrames():
-                #frame.OnToolRefresh(None)
+    def OnAbcSettings(self, evt):
+        # 1.3.6.4 [SS] 2015-07-07
+        win = wx.FindWindowByName('settingsbook')
+        if win is None:
+            self.book = MyNoteBook(self.settings, self.statusbar)
+            self.book.Show()
+        else:
+            self.book.Iconize(False)
+            self.book.Raise()
 
     def OnChangeFont(self, evt):
         font = wx.GetFontFromUser(self, self.editor.GetFont(), _('Select a font for the ABC editor'))
