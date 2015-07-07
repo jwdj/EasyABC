@@ -162,7 +162,8 @@
 #   change_abc_tempo(), add_table_of_contents_to_postscript_file(),
 #   sort_abc_tunes(), process_abc_code(), AbcToPS, GetSvgFileList(),
 #   AbcToSvg(), AbcToAbc(), MidiToMftext(),  set_gs_path_for_platform(),
-#   AbcToPDF(), AbcToMidi(),
+#   AbcToPDF(), list_voices_in(), grab_time_signature(), drum_intro(),
+#   need_left_repeat(), make_abc_introduction(),  AbcToMidi(),
 #   add_abc2midi_options(), str2bool(), fix_boxmarks(), change_texts_into_chords()
 #   NWCToXml(), frac_mod()
 
@@ -207,9 +208,9 @@
 
 #class MyChordPlayPage()
 #   OnPlayChords(), OnNodynamics(), OnNofermatas(), OnNograce(), OnBarfly()
-#   OnMidi_Program(), On_midi_chord_program(), On_midi_bass_program,
-#   SetGchordChoices(), OnGchordSelection(), OnBeatsPerMinute(),
-#   OnTranspose(), OnTuning(), OnChordVol(), OnBassVol()
+#   OnMidiIntro(), OnMidi_Program(), On_midi_chord_program(),
+#   On_midi_bass_program, SetGchordChoices(), OnGchordSelection(),
+#   OnBeatsPerMinute(),  OnTranspose(), OnTuning(), OnChordVol(), OnBassVol()
 
 #class MyVoicePage()
 #  OnProgramSelection(), OnSliderScroll(), OnResetDefault()
@@ -1197,6 +1198,142 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
         return pdf_file
 
 
+
+# 1.3.6.4 [SS] 2015-07-03
+def list_voices_in (abccode):
+    ''' The function scans the entire abccode searching for V:
+        and extracts the voice identifier (assuming it is not
+        too long). A list of all the unique identifiers are
+        returned.
+    '''
+
+    start = 0;
+    voices = []
+    while start != -1:
+        loc = abccode.find('V:',start)
+        if loc == -1:
+            break
+        segment = abccode[loc+2:loc+12]
+        # in case of inline V: eg [V:3] replace ] with white space
+        segment = segment.replace(']',' ')
+        elemlist = segment.split()
+        elem1 = elemlist[0]
+        if elem1 not in voices:
+            voices.append(elem1)
+        start = loc+2
+
+    return voices
+
+
+# 1.3.6.4 [SS] 2015-07-03
+def grab_time_signature (abccode):
+    ''' The function detects the first time signature M: n/m in 
+        abccode and returns [n, m].
+    '''    
+    fracpat = re.compile('(\d+)/(\d+)')
+    loc = abccode.find('M:')
+    meter = abccode[loc+2:loc+10]
+    meter = meter.lstrip()
+    if meter.find('C') >= 0 :
+        return [4,4]
+    m = fracpat.match(meter)
+    if m:
+        num = int(m.group(1))
+        den = int(m.group(2))
+    else:  #no M: in tune
+        num = 4
+        den = 4
+    return [num, den]
+
+
+# 1.3.6.4 [SS] 2015-07-03
+def drum_intro (timesig):
+    ''' Depending on the numerator of the time signature, the function
+        returns a MIDI drum command which produces a sequence of clicks.
+    '''
+    n = timesig[0]
+    if n == 2:
+        d = '%%MIDI drum dd 77 76'
+    elif n == 3:
+        d = '%%MIDI drum dd 77 76 76'
+    elif n == 4:
+        d = '%%MIDI drum dddd 77 76 77 76 110 50 60 50'
+    elif n == 6:
+        d = '%%MIDI drum dddddd 77 76 76 77 76 76 110 50 50 60 50 50'
+    elif n == 9:
+        d = '%%MIDI drum ddddddddd 77 76 76 77 76 76 77 76 76 110 50 50 60 50 50 60 50 50'
+    else:
+        d = '%%MIDI drum d 77'
+    return d
+
+
+#1.3.6.4 [SS] 2015-07-05
+def need_left_repeat (abccode):
+    ''' Determine whether a left repeat |: is missing. If there
+        are no right repeats (either :| or ::) then we do not need
+        a left repeat. If a right repeat is found then we need
+        to find a left repeat that appears before the first right
+        repeat. Otherwise it is missing.
+     '''
+    loc1 = abccode.find(r':|')
+    loc2 = abccode.find(r'::')
+    if loc1 != -1 and loc2 != -1:
+        loc = min(loc1,loc2)
+    elif loc1 != -1:
+        loc = loc1
+    elif loc2 != -1:
+        loc = loc2
+    else:
+        # no right repeat found
+        return False
+
+    loc1 = abccode.find(r'|:')
+    if loc1 == -1:
+        # left repeat missing but right repeat found
+        return True
+    if loc1 < loc:
+        return False
+    # left repeat found after right repeat. (Left repeat
+    # missing for first repeat block.)
+    return True
+
+
+
+# 1.3.6.4 [SS] 2015-07-03
+def make_abc_introduction (abccode):
+    ''' Given the music in abc notation, the function creates a sequence
+        of clicks which counts in the tune. The function needs to determine
+        the time signature and a list of all the voice names in the tune.
+        If there are no voices, the sequence is in inserted after the first K:;
+        otherwise, the sequence is inserted into the first voice and the
+        other voices are padded with silent measures. Frequently, the
+        left repeat symbol is omitted. We need to put a left repeat after
+        the clicking sequence so that clicking sequence is not repeated. 
+    '''
+    intro = []
+    meter = grab_time_signature(abccode)
+    voicelist = list_voices_in(abccode)
+
+    if voicelist:
+        intro.append("V: {0}".format(voicelist[0]))
+    intro.append(drum_intro(meter))
+    intro.append("%%MIDI drumon")
+    if need_left_repeat(abccode):
+        intro.append("Z|Z|:\\")
+    else:
+        intro.append("Z|Z|\\")
+    intro.append("%%MIDI drumoff")
+
+    if voicelist: 
+        for v in voicelist[1:]:
+            intro.append("V: {0}".format(v))
+            if need_left_repeat(abccode):
+                intro.append("Z|Z|:\\")
+            else:
+                intro.append("Z|Z|\\")
+    return intro
+
+
 # 1.3.6  [SS] simplified the calling sequence 2014-11-15
 def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier, midi_file_name=None):
     global execmessages, visible_abc_code
@@ -1276,6 +1413,11 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     add_midi_volume_extra_line = True # 1.3.6.3 [JWDJ] 2015-04-21 added so that when abc contains instrument selection, the volume from the settings can still be used
     add_midi_gchord_extra_line = True
     add_midi_chordprog_extra_line = True
+    add_midi_introduction = settings.get('midi_intro')  # 1.3.6.4 [SS] 2015-07-05
+
+    # 1.3.6.4 [SS] 2015-07-03
+    if add_midi_introduction:
+    	midi_introduction = make_abc_introduction(abc_code)
 
     # 1.3.6.3 [JWDJ] 2015-04-17 header was forgotten when checking for MIDI directives
     lines = re.split('\r\n|\r|\n', header + abc_code)
@@ -1367,7 +1509,12 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         for i in range(len(lines)):
             new_lines.append(lines[i])
             # do not take into account the definition present in the header (maybe it would be better... to be further analysed)
-            if lines[i].startswith('K:'): header_finished=True
+            if lines[i].startswith('K:'):
+                # 1.3.6.4 [SS] 2015-07-03
+                if not header_finished and add_midi_introduction:
+                    for j in range(len(midi_introduction)):
+                        new_lines.append(midi_introduction[j])
+                header_finished=True
             # 1.3.6.3 [JWDJ] 2015-04-21
             if (lines[i].startswith('V:') or lines[i].startswith('[V:')) and header_finished:
                 #extraction of the voice ID
@@ -2384,6 +2531,7 @@ class MyChordPlayPage (wx.Panel):
         self.nofermatas = wx.CheckBox(self, -1, _('Ignore Fermatas'))
         self.nograce    = wx.CheckBox(self, -1, _('No Grace Notes'))
         self.barfly     = wx.CheckBox(self, -1, _('Barfly Mode'))
+        self.midi_intro = wx.CheckBox(self, -1, _('Count in'))
 
         #1.3.6 [SS] 2014-11-26
         gchordtxt = wx.StaticText(self,-1,"gchord pattern")
@@ -2419,6 +2567,7 @@ class MyChordPlayPage (wx.Panel):
         midi_box.Add(self.nofermatas, row=7,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.nograce, row=7,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.barfly, row=8,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.midi_intro, row=8,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(gchordtxt, row=9,col=0,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.gchordcombo, row=9,col=1,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
@@ -2435,6 +2584,8 @@ class MyChordPlayPage (wx.Panel):
         self.nofermatas.SetValue(self.settings.get('nofermatas',False))
         self.nograce.SetValue(self.settings.get('nograce',False))
         self.barfly.SetValue(self.settings.get('barfly',True))
+        # 1.3.6.4 [SS[ 2015-07-05
+        self.midi_intro.SetValue(self.settings.get('midi_intro',False))
         # 1.3.6.4 [SS] 2015-06-10
         self.sliderbeatsperminute.SetValue(int(self.settings.get('bpmtempo',120)))
         self.beatsperminutetxt.SetLabel(str(self.settings.get('bpmtempo','120')))
@@ -2448,6 +2599,7 @@ class MyChordPlayPage (wx.Panel):
         nograce_toolTip = _('Grace notes are ignored if enabled')
         transpose_toolTip = _('Transpose by the number of semitones')
         tuning_toolTip = _('Key of A tuning in Hz')
+        count_toolTip  = _('Two rest bars before music starts')
         
         self.sliderbeatsperminute.SetToolTip(wx.ToolTip(beatsperminute_toolTip))
         self.sliderChordVol.SetToolTip(wx.ToolTip(ChordVol_toolTip))
@@ -2456,6 +2608,7 @@ class MyChordPlayPage (wx.Panel):
         self.nofermatas.SetToolTip(wx.ToolTip(nofermatas_toolTip))
         self.nograce.SetToolTip(wx.ToolTip(nograce_toolTip))
         self.barfly.SetToolTip(wx.ToolTip(barfly_toolTip))
+        self.midi_intro.SetToolTip(wx.ToolTip(count_toolTip))
         self.slidertranspose.SetToolTip(wx.ToolTip(transpose_toolTip))
         self.slidertuning.SetToolTip(wx.ToolTip(tuning_toolTip))
 
@@ -2486,6 +2639,8 @@ class MyChordPlayPage (wx.Panel):
         #1.3.6.4 [SS] 2015-06-07
         self.sliderChordVol.Bind(wx.EVT_SCROLL, self.OnChordVol)
         self.sliderBassVol.Bind(wx.EVT_SCROLL, self.OnBassVol)
+        #1.3.6.4 [SS] 2015-07-05
+        self.midi_intro.Bind(wx.EVT_CHECKBOX,self.OnMidiIntro)
 
         #1.3.6 [SS] 2014-11-26
         self.gchordcombo.Bind(wx.EVT_COMBOBOX,self.OnGchordSelection,self.gchordcombo)
@@ -2523,6 +2678,10 @@ class MyChordPlayPage (wx.Panel):
 
     def OnBarfly(self,evt):
         self.settings['barfly']                = self.barfly.GetValue()
+
+# 1.3.6.4 [SS] 2015-07-05
+    def OnMidiIntro(self,evt):
+        self.settings['midi_intro']            = self.midi_intro.GetValue()
 
     def OnMidi_Program(self,evt):
         self.settings['midi_program']          = self.cmbMidiProgram.GetSelection()
@@ -7567,7 +7726,8 @@ class MainFrame(wx.Frame):
                         ('abcm2ps_scale', '0.75'), ('abcm2ps_clean', False),
                         ('abcm2ps_defaults', True), ('abcm2ps_pagewidth', '21.59'),
                         ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', ''),
-                        ('bpmtempo', '120'), ('chordvol', '96'), ('bassvol', '96')
+                        ('bpmtempo', '120'), ('chordvol', '96'), ('bassvol', '96'),
+                        ('midi_intro', 0)
                        ]
 
         # 1.3.6 [SS] 2014-12-16
