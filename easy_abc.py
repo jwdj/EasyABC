@@ -1552,9 +1552,10 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         voice=0
         header_finished=False
         for i in range(len(abclines)):
-            new_abc_lines.append(abclines[i])
+            line = abclines[i]
+            new_abc_lines.append(line)
             # do not take into account the definition present in the header (maybe it would be better... to be further analysed)
-            if abclines[i].startswith('K:'):
+            if line.startswith('K:'):
                 # 1.3.6.4 [SS] 2015-07-09
                 if not header_finished and len(voicelist) == 0:
                     new_abc_lines.append('%%MIDI control 7 {0}'.format(int(settings['melodyvol'])))
@@ -1564,47 +1565,51 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                         new_abc_lines.append(midi_introduction[j])
                 header_finished=True
             # 1.3.6.3 [JWDJ] 2015-04-21
-            if (abclines[i].startswith('V:') or abclines[i].startswith('[V:')) and header_finished:
+            if (line.startswith('V:') or line.startswith('[V:')) and header_finished:
                 #extraction of the voice ID
-                voice_def=abclines[i][3:].strip()
-                voice_parse=voice_def.split()
-                voice_ID = voice_parse[0].rstrip(']')
-                if voice_ID not in list_voice:
-                    # 1.3.6.4 [SS] 2015-07-08
-                    # if it is an inline voice, we are not want to include the following notes before
-                    # specifying the %%MIDI parameters
-                    if abclines[i].startswith('[V:'):
-                        # remove last line in new_abc and put it back afterwards
-                        removedline = new_abc_lines.pop()
-                        new_abc_lines.append('V: {0}'.format(voice_ID))
-                    
-                    # 1.3.6.4 [SS] 2015-06-19
-                    # ideally you should determine whether gchords are present in this voice
-                    voice_has_gchords = True
+                if line.startswith('V:'):
+                    voice_def=line[2:].strip()
+                else:
+                    voice_def=line[3:].strip()
+                voice_parse = voice_def.split()
+                if voice_parse:
+                    voice_ID = voice_parse[0].rstrip(']')
+                    if voice_ID not in list_voice:
+                        # 1.3.6.4 [SS] 2015-07-08
+                        # if it is an inline voice, we are not want to include the following notes before
+                        # specifying the %%MIDI parameters
+                        if line.startswith('[V:'):
+                            # remove last line in new_abc and put it back afterwards
+                            removedline = new_abc_lines.pop()
+                            new_abc_lines.append('V: {0}'.format(voice_ID))
 
-                    #as it's a new voice, add MIDI program instruction
-                    list_voice.append(voice_ID)
-                    if add_midi_program_extra_line:
-                        new_abc_lines.append('%%MIDI program {0}'.format(midi_program_ch[voice][0]))
-                    if add_midi_volume_extra_line:
-                        new_abc_lines.append('%%MIDI control 7 {0}'.format(midi_program_ch[voice][1]))
-                        new_abc_lines.append('%%MIDI control 10 {0}'.format(midi_program_ch[voice][2]))
+                        # 1.3.6.4 [SS] 2015-06-19
+                        # ideally you should determine whether gchords are present in this voice
+                        voice_has_gchords = True
 
-                    if voice_has_gchords:
-                        if add_midi_gchord_extra_line:
-                            if play_chords:
-                                new_abc_lines.append('%%MIDI gchordon')
-                            else:
-                                new_abc_lines.append('%%MIDI gchordoff')
-                        if add_midi_chordprog_extra_line:
-                            new_abc_lines.append('%%MIDI chordprog {0}'.format(default_midi_chordprog))
-                            new_abc_lines.append('%%MIDI bassprog {0}'.format(default_midi_bassprog))
-                            # 1.3.6.4 [SS] 2015-06-19
-                            new_abc_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
-                            new_abc_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
-                    if abclines[i].startswith('[V:'):
-                        new_abc_lines.append(removedline)
-                    voice+=1
+                        #as it's a new voice, add MIDI program instruction
+                        list_voice.append(voice_ID)
+                        if add_midi_program_extra_line:
+                            new_abc_lines.append('%%MIDI program {0}'.format(midi_program_ch[voice][0]))
+                        if add_midi_volume_extra_line:
+                            new_abc_lines.append('%%MIDI control 7 {0}'.format(midi_program_ch[voice][1]))
+                            new_abc_lines.append('%%MIDI control 10 {0}'.format(midi_program_ch[voice][2]))
+
+                        if voice_has_gchords:
+                            if add_midi_gchord_extra_line:
+                                if play_chords:
+                                    new_abc_lines.append('%%MIDI gchordon')
+                                else:
+                                    new_abc_lines.append('%%MIDI gchordoff')
+                            if add_midi_chordprog_extra_line:
+                                new_abc_lines.append('%%MIDI chordprog {0}'.format(default_midi_chordprog))
+                                new_abc_lines.append('%%MIDI bassprog {0}'.format(default_midi_bassprog))
+                                # 1.3.6.4 [SS] 2015-06-19
+                                new_abc_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
+                                new_abc_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
+                        if line.startswith('[V:'):
+                            new_abc_lines.append(removedline)
+                        voice += 1
 
         abc_code = os.linesep.join([l.strip() for l in new_abc_lines])
 
