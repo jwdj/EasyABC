@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.3 2015/07/07
+# EasyABC V1.3.6.3 2015/07/10
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -23,6 +23,9 @@
 # - Font from .svg file now rendered properly
 # - Some fixes to accommodate 1.3.6.3 issues on the Mac.
 # - On Windows the 'Input Processed Tune' window was not updated correctly (since 1.3.6.3)
+# - Added an option to play a short introduction (count in) before the music is played.
+# - Added volume controls for the guitar bass/chord accompaniment
+# - Added to internals show output midi file (an advanced feature for debugging)
 #
 # New V1.3.6.3
 # When the cursor moves outside the current page, the correct page is automatically chosen
@@ -162,10 +165,11 @@
 #   change_abc_tempo(), add_table_of_contents_to_postscript_file(),
 #   sort_abc_tunes(), process_abc_code(), AbcToPS, GetSvgFileList(),
 #   AbcToSvg(), AbcToAbc(), MidiToMftext(),  set_gs_path_for_platform(),
-#   AbcToPDF(), list_voices_in(), grab_time_signature(), drum_intro(),
-#   need_left_repeat(), make_abc_introduction(),  AbcToMidi(),
-#   add_abc2midi_options(), str2bool(), fix_boxmarks(), change_texts_into_chords()
-#   NWCToXml(), frac_mod()
+#   AbcToPDF(), test_for_guitar_chords(), list_voices_in(),
+#   grab_time_signature(), drum_intro(),  need_left_repeat(),
+#   make_abc_introduction(),  AbcToMidi(), process_abc_for_midi(),
+#   add_abc2midi_options(), str2bool(), fix_boxmarks(),
+#   change_texts_into_chords(), NWCToXml(), frac_mod()
 
 #class AbcTune()
 #    abc_code()
@@ -324,7 +328,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-07-07'
+program_name = 'EasyABC 1.3.6.4 2015-07-10'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -1068,8 +1072,9 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     #fse = sys.getfilesystemencoding()
     #cmd1 = [arg.encode(fse) if isinstance(arg,unicode) else arg for arg in cmd1]
 
-    # t = datetime.now() # 1.3.6.3 [JWDJ] 2015-04-21 not used anymore
-    execmessages += '\nAbcToSvg\n' + " ".join(cmd1)
+    # clear execmessages any time the music panel is refreshed
+    # execmessages += '\nAbcToSvg\n' + " ".join(cmd1) 1.3.6.4 [JWdJ]
+    execmessages = '\nAbcToSvg\n' + " ".join(cmd1)
     process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, universal_newlines=True, cwd=os.path.dirname(svg_file))
     stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
     execmessages += '\n' + stdout_value + stderr_value
@@ -1197,6 +1202,35 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
     if os.path.exists(pdf_file):
         return pdf_file
 
+# 1.3.6.4 [SS] 2015-07-10
+gchordpat = re.compile('\"[^\"]+\"')
+keypat    =  re.compile('([A-G]|[a-g]|)(#|b?)')
+def test_for_guitar_chords (abccode):
+    ''' The function returns False if there are no guitar chords
+        in the tune abccode; otherwise it returns True. It is
+        not sufficient to just find a token with enclosed by
+        double quotes. The token must begin with a letter between
+        A-G or a-g. We try up to 5 times in case, the token is
+        used to present other information above the staff.
+
+        The function is used to create a cleaner processed file
+        for MIDI by eliminating unnecessary %%MIDI commands.
+    '''
+    i = 0
+    k = 0
+    found = False
+    while k < 5:
+        m = gchordpat.search(abccode,i)
+        if m:
+            token = m.group(0)
+            i = m.end() + 1
+            if keypat.match(token[1:-1]):
+                found = True
+                break
+        else:
+            break
+        k = k + 1 
+    return found
 
 
 # 1.3.6.4 [SS] 2015-07-03
@@ -1300,7 +1334,7 @@ def need_left_repeat (abccode):
 
 
 # 1.3.6.4 [SS] 2015-07-03
-def make_abc_introduction (abccode):
+def make_abc_introduction (abccode,voicelist):
     ''' Given the music in abc notation, the function creates a sequence
         of clicks which counts in the tune. The function needs to determine
         the time signature and a list of all the voice names in the tune.
@@ -1312,7 +1346,6 @@ def make_abc_introduction (abccode):
     '''
     intro = []
     meter = grab_time_signature(abccode)
-    voicelist = list_voices_in(abccode)
 
     if voicelist:
         intro.append("V: {0}".format(voicelist[0]))
@@ -1413,6 +1446,11 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     add_midi_gchord_extra_line = True
     add_midi_chordprog_extra_line = True
     add_midi_introduction = settings.get('midi_intro')  # 1.3.6.4 [SS] 2015-07-05
+
+    if test_for_guitar_chords (abc_code) == False:
+        add_midi_chordprog_extra_line  = False
+        add_midi_gchord_extra_line = False
+
     # 1.3.6.3 [JWDJ] 2015-04-17 header was forgotten when checking for MIDI directives
     abclines = re.split('\r\n|\r|\n', header + abc_code)
     for i in range(len(abclines)):
@@ -1495,9 +1533,11 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     abcheader = os.linesep.join(extra_lines + [header.strip()])
 
+    # 1.3.6.4 [SS] 2015-07-07
+    voicelist = list_voices_in(abc_code)
     # 1.3.6.4 [SS] 2015-07-03
     if add_midi_introduction:
-        midi_introduction = make_abc_introduction(abc_code)
+        midi_introduction = make_abc_introduction(abc_code,voicelist)
 
 
 
@@ -1515,6 +1555,9 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             new_abc_lines.append(abclines[i])
             # do not take into account the definition present in the header (maybe it would be better... to be further analysed)
             if abclines[i].startswith('K:'):
+                # 1.3.6.4 [SS] 2015-07-09
+                if not header_finished and len(voicelist) == 0:
+                    new_abc_lines.append('%%MIDI control 7 {0}'.format(int(settings['melodyvol'])))
                 # 1.3.6.4 [SS] 2015-07-03
                 if not header_finished and add_midi_introduction:
                     for j in range(len(midi_introduction)):
@@ -1523,17 +1566,24 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             # 1.3.6.3 [JWDJ] 2015-04-21
             if (abclines[i].startswith('V:') or abclines[i].startswith('[V:')) and header_finished:
                 #extraction of the voice ID
-                voice_def=abclines[i][2:].strip()
+                voice_def=abclines[i][3:].strip()
                 voice_parse=voice_def.split()
-                voice_ID=voice_parse[0]
+                voice_ID = voice_parse[0].rstrip(']')
                 if voice_ID not in list_voice:
+                    # 1.3.6.4 [SS] 2015-07-08
+                    # if it is an inline voice, we are not want to include the following notes before
+                    # specifying the %%MIDI parameters
+                    if abclines[i].startswith('[V:'):
+                        # remove last line in new_abc and put it back afterwards
+                        removedline = new_abc_lines.pop()
+                        new_abc_lines.append('V: {0}'.format(voice_ID))
+                    
                     # 1.3.6.4 [SS] 2015-06-19
                     # ideally you should determine whether gchords are present in this voice
                     voice_has_gchords = True
 
                     #as it's a new voice, add MIDI program instruction
                     list_voice.append(voice_ID)
-                    #if
                     if add_midi_program_extra_line:
                         new_abc_lines.append('%%MIDI program {0}'.format(midi_program_ch[voice][0]))
                     if add_midi_volume_extra_line:
@@ -1552,7 +1602,10 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                             # 1.3.6.4 [SS] 2015-06-19
                             new_abc_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
                             new_abc_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
+                    if abclines[i].startswith('[V:'):
+                        new_abc_lines.append(removedline)
                     voice+=1
+
         abc_code = os.linesep.join([l.strip() for l in new_abc_lines])
 
 
@@ -2299,10 +2352,7 @@ class MyNoteBook(wx.Frame):
         p.SetSizer(sizer)
         sizer.Fit(self)
 
-# p09 formerly Abcm2psSettingsFrame. It was initially a wx.dialog.
-# Now it is a page in a wx.notebook. The panel has been expanded
-# to include setting the path to ghostscript, ps2pdf, and a
-# midiplayer.  2014-10-14 [SS]
+
 class AbcFileSettingsFrame(wx.Panel):
     # 1.3.6.4 [SS] 2015-05-26 added statusbar
     def __init__(self, parent, settings, statusbar):
@@ -2540,6 +2590,10 @@ class MyChordPlayPage (wx.Panel):
         self.transposetxt      = wx.StaticText(self,-1," ")
         self.tuningtxt         = wx.StaticText(self,-1," ")
 
+        #1.3.6.4 [SS] 2015-07-08
+        self.sliderVol=wx.Slider(self, value=96, minValue=0, maxValue=127,
+                                size=(128, -1), style=wx.SL_HORIZONTAL)
+        self.Voltxt = wx.StaticText(self,-1," ")
         #1.3.6.4 [SS] 2015-06-07
         self.sliderChordVol=wx.Slider(self, value=96, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
@@ -2564,6 +2618,8 @@ class MyChordPlayPage (wx.Panel):
 
 
         midi_box.Add(wx.StaticText(self, -1, _('Instrument for playback: ')), row=0, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderVol, row=0, col=2,flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,border=border)
+        midi_box.Add(self.Voltxt,row=0,col=3,flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiProgram, row=0, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(wx.StaticText(self, -1, _("Instrument for chord's playback: ")), row=1, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiChordProgram, row=1, col=1,  flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
@@ -2599,6 +2655,8 @@ class MyChordPlayPage (wx.Panel):
         self.transposetxt.SetLabel(str(self.settings.get('transposition','0')))
         self.slidertuning.SetValue(self.settings.get('tuning',440))
         self.tuningtxt.SetLabel(str(self.settings.get('tuning','440')))
+        self.sliderVol.SetValue(int(self.settings.get('melodyvol',96)))
+        self.Voltxt.SetLabel(str(self.settings.get('melodyvol','96')))
         self.sliderChordVol.SetValue(int(self.settings.get('chordvol',96)))
         self.ChordVoltxt.SetLabel(str(self.settings.get('chordvol','96')))
         self.sliderBassVol.SetValue(int(self.settings.get('bassvol',96)))
@@ -2623,6 +2681,7 @@ class MyChordPlayPage (wx.Panel):
         transpose_toolTip = _('Transpose by the number of semitones')
         tuning_toolTip = _('Key of A tuning in Hz')
         count_toolTip  = _('Two rest bars before music starts')
+        vol_toolTip = _('Volume of melody line if the tune does not have any voices.')
         
         self.sliderbeatsperminute.SetToolTip(wx.ToolTip(beatsperminute_toolTip))
         self.sliderChordVol.SetToolTip(wx.ToolTip(ChordVol_toolTip))
@@ -2634,6 +2693,7 @@ class MyChordPlayPage (wx.Panel):
         self.midi_intro.SetToolTip(wx.ToolTip(count_toolTip))
         self.slidertranspose.SetToolTip(wx.ToolTip(transpose_toolTip))
         self.slidertuning.SetToolTip(wx.ToolTip(tuning_toolTip))
+        self.sliderVol.SetToolTip(wx.ToolTip(vol_toolTip))
 
         #1.3.6 [SS] 2014-11-15
         #self.chkSameInstrumentVoice.SetValue(self.settings.get('one_instrument_only', True))
@@ -2664,6 +2724,8 @@ class MyChordPlayPage (wx.Panel):
         self.sliderBassVol.Bind(wx.EVT_SCROLL, self.OnBassVol)
         #1.3.6.4 [SS] 2015-07-05
         self.midi_intro.Bind(wx.EVT_CHECKBOX,self.OnMidiIntro)
+        #1.3.6.4 [SS] 2015-07-09
+        self.sliderVol.Bind(wx.EVT_SCROLL,self.OnMelodyVol)
 
         #1.3.6 [SS] 2014-11-26
         self.gchordcombo.Bind(wx.EVT_COMBOBOX,self.OnGchordSelection,self.gchordcombo)
@@ -2752,6 +2814,13 @@ class MyChordPlayPage (wx.Panel):
         self.settings['bassvol'] = self.sliderBassVol.GetValue()
         self.BassVoltxt.SetLabel(str(self.sliderBassVol.GetValue()))
 
+#1.3.6.4 [SS] 2015-07-09
+    def OnMelodyVol(self,evt):
+        melodyvol = self.sliderVol.GetValue()
+        self.settings['melodyvol'] = melodyvol
+        self.Voltxt.SetLabel(str(melodyvol))
+        
+        
 
 
 
@@ -7751,7 +7820,7 @@ class MainFrame(wx.Frame):
                         ('abcm2ps_defaults', True), ('abcm2ps_pagewidth', '21.59'),
                         ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', ''),
                         ('bpmtempo', '120'), ('chordvol', '96'), ('bassvol', '96'),
-                        ('midi_intro', 0)
+                        ('melodyvol', '96'), ('midi_intro', 0)
                        ]
 
         # 1.3.6 [SS] 2014-12-16
