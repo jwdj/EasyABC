@@ -4060,6 +4060,10 @@ class MainFrame(wx.Frame):
     # 1.3.6.2 [JWdJ] 2015-02
     @current_page_index.setter
     def current_page_index(self, value):
+        if self.__current_page_index != value:
+            self.selected_note_indices = [] # 1.3.6.4 [JWDJ] 2015-07-11 having notes selected and switching to a different page resulted in (almost) nothing being played
+            self.selected_note_descs = []
+
         self.__current_page_index = value
         if self.cur_page_combo.GetSelection() != value:
             self.cur_page_combo.Select(value)
