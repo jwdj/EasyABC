@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.3 2015/07/10
+# EasyABC V1.3.6.4 2015/07/16
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -328,7 +328,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-07-10'
+program_name = 'EasyABC 1.3.6.4 2015-07-16'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -7670,6 +7670,17 @@ class MainFrame(wx.Frame):
     # to ghostscript if it is installed.  2014-10-14 [SS]
     def restore_settings(self):
         settings = self.settings
+
+        # 1.3.6.4 [SS] 2015-07-16 ensure that EasyAbc links to the latest binaries
+        # when the user starts version 1.3.6.4 for the first time.
+        version = settings.get('version','0')
+        if version != '1.3.6.4':
+            abcm2ps_path  = None
+            abc2midi_path = None
+            abc2abc_path  = None 
+            midi2abc_path = None
+
+ 
         abcm2ps_path = settings.get('abcm2ps_path')
 
         if not abcm2ps_path:
@@ -7829,7 +7840,7 @@ class MainFrame(wx.Frame):
                         ('abcm2ps_defaults', True), ('abcm2ps_pagewidth', '21.59'),
                         ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', ''),
                         ('bpmtempo', '120'), ('chordvol', '96'), ('bassvol', '96'),
-                        ('melodyvol', '96'), ('midi_intro', 0)
+                        ('melodyvol', '96'), ('midi_intro', 0), ('version', '1.3.6.4')
                        ]
 
         # 1.3.6 [SS] 2014-12-16
