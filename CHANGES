@@ -428,3 +428,10 @@ did not register a change in the entry boxes.
 The Abc Assist function has been improved. Sliders to change the Bass
 and Chordal volumes for the accompaniment were introduced.
 
+Added an option to cue the music with two metronome bars before playing
+the tune. 
+
+Added in Internals, a function to view the generated MIDI file in
+text form.
+
+
