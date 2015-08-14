@@ -7864,7 +7864,7 @@ class MainFrame(wx.Frame):
             recent_files_menu_id = 1100
             for path in recent_files:
                 if path and os.path.exists(path):
-                    menu_item = self.recent_menu.Append(recent_files_menu_id, '&{0}: {1}'.format(mru_index, path))
+                    menu_item = self.recent_menu.Append(recent_files_menu_id, u'&{0}: {1}'.format(mru_index, path))
                     self.Bind(wx.EVT_MENU, self.on_recent_file, menu_item)
                     recent_files_menu_id += 1
                     mru_index += 1
