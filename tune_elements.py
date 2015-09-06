@@ -314,7 +314,7 @@ class AbcElement(object):
                     break
         else:
             if p1 > len(text):
-                print 'Selection past length: %d %d %s' % (p1, len(text), text)
+                print u'Selection past length: {0} {1} {2}'.format(p1, len(text), text)
             for m in regex.finditer(text):
                 if m.start() <= p1 <= p2 <= m.end():
                     result = m
@@ -362,7 +362,6 @@ class AbcElement(object):
         if not result:
             result = u'<h1>%s</h1>' % escape(self.get_header_text(context))
             description = self.get_description_text(context)
-            new_line = ''
             if description:
                 result += u'{0}<br>'.format(escape(description))
 
@@ -507,20 +506,6 @@ class Abcm2psDirective(AbcElement):
     """ Elements defined by abcm2ps """
     anchor_replacement = (re.compile('<a (?:href|name)="[^"]*">|</a>', re.IGNORECASE), '')
     table_replacement = (re.compile('<table>.*?</table>', re.IGNORECASE | re.DOTALL), '')
-
-    # r''
-    # <table border="1">
-    # <tr align="center">
-    # <td width="25%">Default</td>
-    # <td width="25%">Command line</td><td width="25%">Scope</td>
-    # <td width="25%">Available in</td>
-    # </tr>
-    # <tr align="center">
-    # <td>false</td>
-    # <td>trailing 'b'<br/>at end of <code>-j</code> or <code>-k</code></td>
-    # <td>generation</td><td>abcm2ps<br/>abc2svg</td>
-    # </tr>
-    # </table>
 
     def __init__(self, keyword, name, description=None):
         super(Abcm2psDirective, self).__init__(keyword, name, group_name='abcm2ps', description=description)

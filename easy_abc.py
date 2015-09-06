@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.4 2015/07/16
+# EasyABC V1.3.6.4 2015/09/06
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -328,7 +328,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-07-16'
+program_name = 'EasyABC 1.3.6.4 2015-09-06'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -1289,7 +1289,8 @@ def drum_intro (timesig):
     if n == 2:
         d = '%%MIDI drum dd 77 76'
     elif n == 3:
-        d = '%%MIDI drum dd 77 76 76'
+        # 1.3.6.4 [SS] 2015-09-06
+        d = '%%MIDI drum ddd 77 76 76'
     elif n == 4:
         d = '%%MIDI drum dddd 77 76 77 76 110 50 60 50'
     elif n == 6:
@@ -7162,12 +7163,19 @@ class MainFrame(wx.Frame):
         if self.settings.get('abc_include_file_header', True):
             # collect all header lines
             lines = []
+            # 1.3.6.4 [SS] 2015-09-06
+            getall = False
             for i in range(self.editor.GetLineCount()):
                 line = self.editor.GetLine(i)
                 if line.startswith('X:') or line.startswith('T:'):
                     break
+                elif re.match(r'%%beginps',line):
+                    getall = True
+                    lines.append(line) 
                 elif re.match(r'%%.*|[a-zA-Z_]:.*', line):
                     lines.append(line)
+                if re.match(r'%%endps',line):
+                    getall = False
             abc = ''.join(lines)
             # remove certain fields that are probably only used for title fields
             abc = re.sub(r'(?ms)(^%%multicol start.*%%multicol end[ \t]*?[\r\n]+)', '', abc)
