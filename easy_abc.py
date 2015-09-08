@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.4 2015/09/06
+# EasyABC V1.3.6.4 2015/09/07
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -7163,7 +7163,7 @@ class MainFrame(wx.Frame):
         if self.settings.get('abc_include_file_header', True):
             # collect all header lines
             lines = []
-            # 1.3.6.4 [SS] 2015-09-06
+            # 1.3.6.4 [SS] 2015-09-07
             getall = False
             for i in range(self.editor.GetLineCount()):
                 line = self.editor.GetLine(i)
@@ -7173,6 +7173,8 @@ class MainFrame(wx.Frame):
                     getall = True
                     lines.append(line) 
                 elif re.match(r'%%.*|[a-zA-Z_]:.*', line):
+                    lines.append(line)
+                elif getall:
                     lines.append(line)
                 if re.match(r'%%endps',line):
                     getall = False
