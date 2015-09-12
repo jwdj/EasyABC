@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.4 2015/09/07
+# EasyABC V1.3.6.4 2015/09/11
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -328,7 +328,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-09-06'
+program_name = 'EasyABC 1.3.6.4 2015-09-11'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -3079,7 +3079,11 @@ class MyAbcm2psPage(wx.Panel):
         extras = wx.StaticText(self,-1,"Extra Parameters")
         self.extras = wx.TextCtrl(self,-1,size=(350,22))
         formatf = wx.StaticText(self,-1,"Format File")
-        self.formatf = wx.TextCtrl(self,-1,size=(350,22))
+        # 1.3.6.4 [SS] 2015-09-11
+        self.format_choices = self.settings.get('abcm2ps_format_choices','').split('|') 
+        # 1.3.6.4 [SS] 2015-09-11
+        self.formatf  = wx.ComboBox(self,-1,choices=self.format_choices,size = (350,-1),style=wx.CB_DROPDOWN)
+        
         self.browsef = wx.Button(self,-1, _('Browse...'),size = (-1,22))
 
         scalefact  = wx.StaticText(self,-1, "Scale Factor (eg. 0.8)")
@@ -3319,7 +3323,13 @@ class MyAbcm2psPage(wx.Panel):
             self.settings['abcm2ps_pageheight'] = val
 
     def OnFormat(self,evt):
-        self.settings['abcm2ps_format_path'] = self.formatf.GetValue()
+        path = evt.String
+        #self.settings['abcm2ps_format_path'] = self.formatf.GetValue()
+        self.settings['abcm2ps_format_path'] =  path
+        # 1.3.6.4 [SS] 2015-09-11
+        if path and not path in self.format_choices and os.path.isfile(path) and os.access(path, os.R_OK):
+            self.format_choices.append(path)
+            self.settings['abcm2ps_format_choices'] = '|'.join(self.format_choices)
 
     def On_extra_params(self,evt):
         self.settings['abcm2ps_extra_params'] = self.extras.GetValue()
@@ -3329,7 +3339,12 @@ class MyAbcm2psPage(wx.Panel):
                 self, message=_("Find PostScript format file"), defaultFile="",  style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
-                self.formatf.SetValue(dlg.GetPath())
+                path = dlg.GetPath()
+                self.formatf.SetValue(path)
+                # 1.3.6.4 [SS] 2015-09-11
+                if path and not path in self.format_choices and os.path.isfile(path) and os.access(path, os.R_OK):
+                    self.format_choices.append(dlg.GetPath())
+                    self.settings['abcm2ps_format_choices'] = '|'.join(self.format_choices)
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
