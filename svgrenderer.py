@@ -104,6 +104,17 @@ class SvgPage(object):
                 m = self.renderer.viewbox_re.match(viewbox)
                 if m:
                     self.svg_width, self.svg_height = float(m.group(1)), float(m.group(2))
+            else:
+                # 1.3.6.5 [JWdJ] 2015-11-05 newer versions abcm2ps no longer have viewBox but do specify width and height in pixels
+                width_in_pixels = self.svg.get('width')
+                m = self.renderer.float_px_re.match(width_in_pixels)
+                if m:
+                    self.svg_width = float(m.group(1))
+
+                height_in_pixels = self.svg.get('height')
+                m = self.renderer.float_px_re.match(height_in_pixels)
+                if m:
+                    self.svg_height = float(m.group(1))
 
             self.process_xml_tree()
             self.id_to_element = {}
@@ -122,20 +133,27 @@ class SvgPage(object):
         if class_name:
             class_attr = self.class_attributes.get(class_name, {})
             attributes.update(class_attr)
+        # 1.3.6.5 [JWdJ] 2015-11-05 added parsing style property
+        style = element.attrib.get('style')
+        if style:
+            attributes.update(self.parse_css_props(style))
         attributes.update(element.attrib)
+        return attributes
+
+    def parse_css_props(self, props):
+        attributes = {}
+        for prop_match in css_prop_re.finditer(props):
+            prop_name = prop_match.group('name')
+            prop_value = prop_match.group('value')
+            attributes[prop_name] = prop_value
         return attributes
 
     def parse_css(self, css):
         # css = css_comment_re.sub(css, '') # remove comments
         for match in css_class_re.finditer(css):
             class_name = match.group('class')
-            attributes = {}
             props = match.group('props')
-            for prop_match in css_prop_re.finditer(props):
-                prop_name = prop_match.group('name')
-                prop_value = prop_match.group('value')
-                attributes[prop_name] = prop_value
-            self.class_attributes[class_name] = attributes
+            self.class_attributes[class_name] = self.parse_css_props(props)
 
     def parse_elements(self, elements, parent_attributes):
         result = []
@@ -299,6 +317,7 @@ class SvgRenderer(object):
         self.color_re = re.compile(r'color:(#[0-9a-f]{6})')
         self.scale_re = re.compile(r'scale\((.+?)\)')
         self.viewbox_re = re.compile(r'0 0 (\d+) (\d+)')
+        self.float_px_re = re.compile(r'^(\d*(?:\.\d+))?px$')
         self.zoom = 2.0
         self.min_width = 1
         self.min_height = 1
