@@ -3896,6 +3896,7 @@ class MainFrame(wx.Frame):
         self.find_data = wx.FindReplaceData()
         self.find_dialog = None
         self.replace_dialog = None
+        self.settingsbook = None
         self.find_data.SetFlags(wx.FR_DOWN)
         self.execmessage_time = datetime.now() # 1.3.6 [SS] 2014-12-11
 
@@ -6320,11 +6321,11 @@ class MainFrame(wx.Frame):
         # 1.3.6.4 [SS] 2015-07-07
         win = wx.FindWindowByName('settingsbook')
         if win is None:
-            self.book = MyNoteBook(self.settings, self.statusbar)
-            self.book.Show()
+            self.settingsbook = MyNoteBook(self.settings, self.statusbar)
+            self.settingsbook.Show()
         else:
-            self.book.Iconize(False)
-            self.book.Raise()
+            self.settingsbook.Iconize(False)
+            self.settingsbook.Raise()
 
     def OnChangeFont(self, evt):
         font = wx.GetFontFromUser(self, self.editor.GetFont(), _('Select a font for the ABC editor'))
@@ -6793,7 +6794,7 @@ class MainFrame(wx.Frame):
                     any_duration_specified = True
                     break
             if not any_duration_specified:
-                total_duration = get_bar_length(text, default_len)
+                total_duration = get_bar_length(text, default_len, metre)
                 durations = []  # new durations to assign to notes
                 if metre.denominator == 4 and total_duration != Fraction(1, 4):
                     if '(3' in text:
@@ -6847,7 +6848,7 @@ class MainFrame(wx.Frame):
             if re.match(r"^[XZ]\d*$", text):
                 duration = metre
             else:
-                duration = get_bar_length(text, default_len)
+                duration = get_bar_length(text, default_len, metre)
 
             if (duration >= metre and not bar_sep.match(rest_of_line) and
                     not (text.rstrip() and text.rstrip()[-1] in '[]:|')):
