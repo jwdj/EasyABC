@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.4 2015/09/11
+# EasyABC V1.3.6.4 2015/12/23
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -328,7 +328,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-09-11'
+program_name = 'EasyABC 1.3.6.4 2015-12-23'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -2418,8 +2418,9 @@ class AbcFileSettingsFrame(wx.Panel):
             if entry.add_default:
                 path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
             control = wx.ComboBox(self, -1, choices=path_choices, style=wx.CB_DROPDOWN)
-
-            control.SetValue(current_path)
+            # [SS] 1.3.6.4 2015-12-23
+            if current_path:
+                control.SetValue(current_path)
             control.Bind(wx.EVT_TEXT, self.OnChangePath, control)
 
             self.control_to_name[control] = entry.name
@@ -3079,8 +3080,11 @@ class MyAbcm2psPage(wx.Panel):
         extras = wx.StaticText(self,-1,"Extra Parameters")
         self.extras = wx.TextCtrl(self,-1,size=(350,22))
         formatf = wx.StaticText(self,-1,"Format File")
-        # 1.3.6.4 [SS] 2015-09-11
-        self.format_choices = self.settings.get('abcm2ps_format_choices','').split('|') 
+        # 1.3.6.4 [SS] 2015-09-11 2015-09-21
+        try:
+            self.format_choices = self.settings.get('abcm2ps_format_choices','').split('|') 
+        except:
+            self.format_choices = []
         # 1.3.6.4 [SS] 2015-09-11
         self.formatf  = wx.ComboBox(self,-1,choices=self.format_choices,size = (350,-1),style=wx.CB_DROPDOWN)
         
@@ -3108,6 +3112,7 @@ class MyAbcm2psPage(wx.Panel):
         topmargin_toolTip = _('The default is 1.00')
         botmargin_toolTip = _('The default is 1.00')
         extras_toolTip = _('Additional command line parameters to abcm2ps')
+        formatf_toolTip = _('Right click the mouse to remove all choices')
         self.pagewidth.SetToolTip(wx.ToolTip(pagewidth_toolTip))
         self.pageheight.SetToolTip(wx.ToolTip(pageheight_toolTip))
         self.leftmargin.SetToolTip(wx.ToolTip(leftmargin_toolTip))
@@ -3115,6 +3120,7 @@ class MyAbcm2psPage(wx.Panel):
         self.topmargin.SetToolTip(wx.ToolTip(topmargin_toolTip))
         self.botmargin.SetToolTip(wx.ToolTip(botmargin_toolTip))
         self.extras.SetToolTip(wx.ToolTip(extras_toolTip))
+        self.formatf.SetToolTip(wx.ToolTip(formatf_toolTip))
 
         chkm2psdef_toolTip = _('Use the factory page settings of easyabc')
         self.chkm2psdef.SetToolTip(wx.ToolTip(chkm2psdef_toolTip))
@@ -3150,6 +3156,7 @@ class MyAbcm2psPage(wx.Panel):
         self.botmargin.Bind(wx.EVT_TEXT,self.OnPSbotmarg,self.botmargin)
         # 1.3.6.1 [SS] 2015-01-28
         self.formatf.Bind(wx.EVT_TEXT,self.OnFormat,self.formatf)
+        self.formatf.Bind(wx.EVT_RIGHT_DOWN,self.OnClean,self.formatf) #1.3.6.4
         self.extras.Bind(wx.EVT_TEXT,self.On_extra_params,self.extras)
         self.browsef.Bind(wx.EVT_BUTTON,self.OnBrowse_format,self.browsef)
         # 1.3.6.1 [SS] 2015-01-29
@@ -3324,12 +3331,26 @@ class MyAbcm2psPage(wx.Panel):
 
     def OnFormat(self,evt):
         path = evt.String
-        #self.settings['abcm2ps_format_path'] = self.formatf.GetValue()
         self.settings['abcm2ps_format_path'] =  path
         # 1.3.6.4 [SS] 2015-09-11
         if path and not path in self.format_choices and os.path.isfile(path) and os.access(path, os.R_OK):
             self.format_choices.append(path)
             self.settings['abcm2ps_format_choices'] = '|'.join(self.format_choices)
+            # [SS] the SetItems does not work correctly in wxpython 2.7
+            #self.formatf.SetItems(str(self.settings['abcm2ps_format_choices']))
+
+    # 1.3.6.4 [SS] 2015-09-21
+    def OnClean(self,evt):
+        #print "right click"
+        #if evt.ControlDown():
+            #print "control down"
+        result = wx.MessageBox(_("This will remove the selections in the combobox."),_("Proceed?"), wx.ICON_QUESTION | wx.YES | wx.NO)
+        #print self.formatf.GetItems()
+        if result == wx.YES:
+            #self.formatf.Clear()
+            self.formatf.SetItems([])
+            self.settings['abcm2ps_format_choices'] =  self.formatf.GetItems()
+
 
     def On_extra_params(self,evt):
         self.settings['abcm2ps_extra_params'] = self.extras.GetValue()
@@ -3345,6 +3366,11 @@ class MyAbcm2psPage(wx.Panel):
                 if path and not path in self.format_choices and os.path.isfile(path) and os.access(path, os.R_OK):
                     self.format_choices.append(dlg.GetPath())
                     self.settings['abcm2ps_format_choices'] = '|'.join(self.format_choices)
+                    if wx.Platform != "__WXMSW__":
+                        self.settings['abcm2ps_format_path'] = path  # 1.3.6.4 [SS] 2015-09-17 in case control.SetValue(path) does not trigger OnChangePath
+
+
+
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
@@ -6770,15 +6796,26 @@ class MainFrame(wx.Frame):
         lines = re.split('\r\n|\r|\n', abc_up_to_selection)
         default_len = Fraction(1, 8)
         metre = Fraction(4, 4)
+        meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
         for line in lines:
             m = re.match(r'^L:\s*(\d+)/(\d+)', line)
             if m:
                 default_len = Fraction(int(m.group(1)), int(m.group(2)))
-            m = re.search(r'^M:\s*(\d+)/(\d+)', line)
+            m = re.search(r'^{0}'.format(meter_pattern), line)
             if m:
-                metre = Fraction(int(m.group(1)), int(m.group(2)))
-            for m in re.finditer(r'\[M:\s*(\d+)/(\d+)\]', line):
-                metre = Fraction(int(m.group(1)), int(m.group(2)))
+                if m.group(1) is not None:
+                    metre = Fraction(int(m.group(1)), int(m.group(2)))
+                elif m.group(3) == 'C':
+                    metre = Fraction(4, 4)
+                elif m.group(3) == 'C|':
+                    metre = Fraction(2, 2)
+            for m in re.finditer(r'\[{0}\]'.format(meter_pattern), line):
+                if m.group(1) is not None:
+                    metre = Fraction(int(m.group(1)), int(m.group(2)))
+                elif m.group(3) == 'C':
+                    metre = Fraction(4, 4)
+                elif m.group(3) == 'C|':
+                    metre = Fraction(2, 2)
             for m in re.finditer(r'\[L:\s*(\d+)/(\d+)\]', line):
                 default_len = Fraction(int(m.group(1)), int(m.group(2)))
 

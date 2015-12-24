@@ -420,7 +420,8 @@ class DurationAction(ValueChangeAction):
         CodeDescription('2', _('Double note length')),
         CodeDescription('3', _('Dotted note')),
         CodeDescription('>', _('This note dotted, next note halved')),
-        CodeDescription('<', _('This note halved, next note dotted'))
+        CodeDescription('<', _('This note halved, next note dotted')),
+        CodeDescription('-', _('Tie / untie'))
     ]
     def __init__(self):
         super(DurationAction, self).__init__('Change duration', DurationAction.duration_values)
@@ -454,8 +455,10 @@ class DurationAction(ValueChangeAction):
         value = params.get('value')
         if not value:
             return context.get_matchgroup('pair') or context.get_matchgroup('length')
+        elif value == '-':
+            return True
         elif value in '<>':
-            return not value in context.get_matchgroup('pair', '')
+            return True # not value in context.get_matchgroup('pair', '')
         else:
             frac = self.length_to_fraction(context.get_matchgroup('length'))
             if value == '/':
@@ -494,7 +497,19 @@ class DurationAction(ValueChangeAction):
                     text += '/{0}'.format(frac.denominator)
             context.replace_match_text(text, matchgroup='length')
         elif value in '<>':
-            context.replace_match_text(value, matchgroup='pair')
+            current_value = context.get_matchgroup('pair', '')
+            if current_value == value:
+                new_value = value * 2
+            else:
+                new_value = value
+            context.replace_match_text(new_value, matchgroup='pair')
+            if len(current_value) < 2 or current_value[0] != new_value[0]:
+                context.set_relative_selection(-1)
+        elif value == '-':
+            if context.get_matchgroup('tie') == value:
+                context.replace_match_text('', matchgroup='tie')
+            else:
+                context.replace_match_text(value, matchgroup='tie')
 
 
 class AnnotationPositionAction(ValueChangeAction):
@@ -514,12 +529,14 @@ class BarChangeAction(ValueChangeAction):
         CodeDescription('|',  _('Bar line')),
         CodeDescription('||', _('Double bar line')),
         CodeDescription('|]', _('Thin-thick double bar line')),
+        CodeDescription('.|', _('Dotted bar')),
         CodeDescription('[|', _('Thick-thin double bar line')),
         CodeDescription('|:', _('Start of repeated section')),
         CodeDescription(':|', _('End of repeated section')),
         CodeDescription('|1', _('First ending')),
         CodeDescription(':|2', _('Second ending')),
-        CodeDescription('&',  _('Voice overlay'))
+        CodeDescription('&',  _('Voice overlay')),
+        CodeDescription('[|]', _('Invisible bar'))
     ]
     def __init__(self):
         super(BarChangeAction, self).__init__('Change bar', BarChangeAction.values)
@@ -993,6 +1010,98 @@ class AddSlurAction(AbcAction):
     def execute(self, context, params=None):
         context.replace_match_text('({0})'.format(context.match_text))
 
+
+class CombineToChordAction(AbcAction):
+    def __init__(self):
+        super(CombineToChordAction, self).__init__('Combine to chord')
+
+    def can_execute(self, context, params=None):
+        return True
+
+    def execute(self, context, params=None):
+        context.replace_match_text('[{0}]'.format(context.match_text))
+
+
+class MakeTripletsAction(AbcAction):
+    notes_re = re.compile(AbcNoteGroup.note_or_chord_pattern)
+    def __init__(self):
+        super(MakeTripletsAction, self).__init__('Make triplets')
+
+    def can_execute(self, context, params=None):
+        note_matches = self.notes_re.findall(context.match_text)
+        return len(note_matches) == 3
+
+    def execute(self, context, params=None):
+        context.replace_match_text('(3{0}'.format(context.match_text))
+
+
+class PageFormatDirectiveChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('pagewidth', _('Page width')),
+        ValueDescription('pageheight', _('Page height')),
+        ValueDescription('topmargin', _('Top margin')),
+        ValueDescription('botmargin', _('Bottom margin')),
+        ValueDescription('leftmargin', _('Page width')),
+        ValueDescription('rightmargin', _('Page width')),
+        ValueDescription('staffwidth', _('Staff width')),
+        ValueDescription('landscape', _('Landscape'))
+    ]
+    def __init__(self):
+        super(PageFormatDirectiveChangeAction, self).__init__('Change page format', PageFormatDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+
+
+class MeasureDirectiveChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('setbarnb', _('First measure number')),
+        ValueDescription('measurenb', _('Bar numbers every n measures')),
+        ValueDescription('measurebox', _('Box around measure numbers'))
+    ]
+    def __init__(self):
+        super(MeasureDirectiveChangeAction, self).__init__('Change measure directive', MeasureDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+
+
+class FontDirectiveChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('titlefont', _('Title font')),
+        ValueDescription('subtitlefont', _('Subtitle font')),
+        ValueDescription('composerfont', _('Composer font')),
+        ValueDescription('partsfont', _('Parts font')),
+        ValueDescription('tempofont', _('Tempo font')),
+        ValueDescription('gchordfont', _('Guitar chord font')),
+        ValueDescription('annotationfont', _('Annotation font')),
+        ValueDescription('infofont', _('Info font')),
+        ValueDescription('textfont', _('Text font')),
+        ValueDescription('vocalfont', _('Vocal font')),
+        ValueDescription('wordsfont', _('Words font')),
+        ValueDescription('setfont-1', _('Custom font 1')),
+        ValueDescription('setfont-2', _('Custom font 2')),
+        ValueDescription('setfont-3', _('Custom font 3')),
+        ValueDescription('setfont-4', _('Custom font 4'))
+    ]
+    def __init__(self):
+        super(FontDirectiveChangeAction, self).__init__('Change font directive', FontDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+
+
+class ScaleDirectiveChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('scale', _('Page scale factor')),
+        ValueDescription('staffscale', _('Staff scale factor'))
+    ]
+    def __init__(self):
+        super(ScaleDirectiveChangeAction, self).__init__('Change scale directive', ScaleDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+
+
+class InsertDirectiveAction(InsertValueAction):
+    values = [
+        ValueDescription('MIDI', _('MIDI')),
+        ValueDescription('pagewidth', _('Page layout')),
+        ValueDescription('scale', _('Scale')),
+        ValueDescription('titlefont', _('Font'))
+    ]
+    def __init__(self):
+        super(InsertDirectiveAction, self).__init__('Insert directive', InsertDirectiveAction.values)
+
+
 class InsertAlignSymbolAction(InsertValueAction):
     values = [
         CodeDescription('-', _('break between syllables within a word')),
@@ -1056,13 +1165,15 @@ class AbcActionHandlers(object):
             'Chord'              : AbcActionHandler([DurationAction(), ChordChangeAction()]),
             'Chord symbol'       : AbcActionHandler([ConvertToAnnotationAction()]),
             'Grace notes'        : AbcActionHandler([AppoggiaturaOrAcciaccaturaChangeAction()]),
-            'Multiple notes'     : AbcActionHandler([AddSlurAction()]),
+            'Multiple notes'     : AbcActionHandler([AddSlurAction(), MakeTripletsAction(), CombineToChordAction()]),
+            'Multiple notes/chords' : AbcActionHandler([AddSlurAction(), MakeTripletsAction()]),
             'Dynamics'           : AbcActionHandler([DynamicsDecorationChangeAction()]),
             'Articulation'       : AbcActionHandler([ArticulationDecorationChangeAction()]),
             'Ornament'           : AbcActionHandler([OrnamentDecorationChangeAction()]),
             'Navigation'         : AbcActionHandler([NavigationDecorationChangeAction()]),
             'Fingering'          : AbcActionHandler([FingeringDecorationChangeAction()]),
             'Redefinable symbol' : AbcActionHandler([RedefinableSymbolChangeAction()]),
+            #'Stylesheet directive': AbcActionHandler([InsertDirectiveAction()]),
             'w:'                 : AbcActionHandler([InsertAlignSymbolAction()]),
             'K:'                 : AbcActionHandler([KeySignatureChangeAction(), KeyModeChangeAction()]),
             'L:'                 : AbcActionHandler([UnitNoteLengthChangeAction()]),
