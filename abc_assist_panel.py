@@ -266,8 +266,8 @@ class AbcContext(object):
         selection_start, selection_end = self._editor.GetSelection()
         selected_text = self._editor.GetTextRange(selection_start, selection_end)
         i = 0
-        while i < len(selected_text) and i < len(text) and selected_text[-(1 + i)] == text[-(1 + i)]:
-            i += 1
+        # while i < len(selected_text) and i < len(text) and selected_text[-(1 + i)] == text[-(1 + i)]:
+        #     i += 1
 
         if i > 0:
             selection_end -= i

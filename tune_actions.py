@@ -456,7 +456,7 @@ class DurationAction(ValueChangeAction):
         if not value:
             return context.get_matchgroup('pair') or context.get_matchgroup('length')
         elif value == '-':
-            return True
+            return context.get_matchgroup('note') is not None
         elif value in '<>':
             return True # not value in context.get_matchgroup('pair', '')
         else:
@@ -503,8 +503,8 @@ class DurationAction(ValueChangeAction):
             else:
                 new_value = value
             context.replace_match_text(new_value, matchgroup='pair')
-            if len(current_value) < 2 or current_value[0] != new_value[0]:
-                context.set_relative_selection(-1)
+            #if len(current_value) < 2 or current_value[0] != new_value[0]:
+            #    context.set_relative_selection(-1)
         elif value == '-':
             if context.get_matchgroup('tie') == value:
                 context.replace_match_text('', matchgroup='tie')
@@ -773,7 +773,7 @@ class BaseDecorationChangeAction(ValueChangeAction):
             value = ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark])
             values.append(value)
         super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration')
-        self.relative_selection = -1
+        #self.relative_selection = -1
 
 
     def is_current_value(self, context, value):
@@ -984,7 +984,7 @@ class InsertOptionalAccidental(InsertValueAction):
     ]
     def __init__(self):
         super(InsertOptionalAccidental, self).__init__('Insert annotation', InsertOptionalAccidental.values, matchgroup='decoanno')
-        self.relative_selection = -1
+        #self.relative_selection = -1
 
 
 class AddDecorationAction(InsertValueAction):
@@ -997,7 +997,7 @@ class AddDecorationAction(InsertValueAction):
     ]
     def __init__(self):
         super(AddDecorationAction, self).__init__('Insert decoration', AddDecorationAction.values, matchgroup='decoanno')
-        self.relative_selection = -1
+        #self.relative_selection = -1
 
 
 class AddSlurAction(AbcAction):
