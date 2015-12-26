@@ -456,7 +456,7 @@ class DurationAction(ValueChangeAction):
         if not value:
             return context.get_matchgroup('pair') or context.get_matchgroup('length')
         elif value == '-':
-            return context.get_matchgroup('note') is not None
+            return context.get_matchgroup('rest') is None # a rest can not have a tie, chord and note can
         elif value in '<>':
             return True # not value in context.get_matchgroup('pair', '')
         else:

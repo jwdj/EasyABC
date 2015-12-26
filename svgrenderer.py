@@ -36,6 +36,7 @@ use_tag = '{%s}use' % svg_namespace
 abc_tag = '{%s}abc' % svg_namespace
 path_tag = '{%s}path' % svg_namespace
 tspan_tag = '{%s}tspan' % svg_namespace
+group_tag = '{%s}g' % svg_namespace
 xlink_namespace = 'http://www.w3.org/1999/xlink'
 href_tag = '{%s}href' % xlink_namespace
 
@@ -93,7 +94,7 @@ class SvgPage(object):
         self.notes = []
         self.notes_in_row = None
         self.selected_indices = set()
-        self.scale = 0.75
+        self.scale = 1.0
         self.index = -1
         if svg is None:
             self.root_group = SvgElement('g', {}, [])
@@ -203,20 +204,17 @@ class SvgPage(object):
         return result
 
     def process_xml_tree(self):
-        #max_y = 0
-        #max_x = 0
-
-        self.scale = 0.75
-        scale_found = True
+        self.scale = 1.0
+        scale_found = False
 
         # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
         self.base_color = self.svg.attrib.get('color', self.base_color)
 
         # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
         for element in self.svg.getiterator():
-            if not scale_found or True:
+            if not scale_found:
                 transform = element.get('transform')
-                if transform:
+                if transform and element.tag == group_tag:
                     m = self.renderer.scale_re.match(transform)
                     if m:
                         try:
