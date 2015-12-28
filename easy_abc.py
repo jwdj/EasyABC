@@ -3983,8 +3983,9 @@ class MainFrame(wx.Frame):
         error_font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
         self.error_msg = wx.TextCtrl(self, -1, '', size=(200, 100), style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER | wx.TE_READONLY | wx.TE_DONTWRAP)
         self.error_msg.SetFont(wx.Font(error_font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New"))
-        self.error_pane = aui.AuiPaneInfo().Name("error message").Caption(_("ABC errors")).CloseButton(False).BestSize((160, 80)).Bottom()
+        self.error_pane = aui.AuiPaneInfo().Name("error message").Caption(_("ABC errors")).CloseButton(True).BestSize((160, 80)).Bottom()
         self.error_pane.Hide()
+        self.error_msg.Hide()
 
          # 1.3.6.3 [JWdJ] 2015-04-21 ABC Assist added
         self.abc_assist_panel = AbcAssistPanel(self, self.editor, cwd)
@@ -3997,18 +3998,16 @@ class MainFrame(wx.Frame):
         music_pane_info = aui.AuiPaneInfo().Name("tune preview").Caption(_("Musical score")).MaximizeButton(True).MinimizeButton(True).CloseButton(False).BestSize((200, 280)).Right().Top()
 
         for pane_info in [tune_list_pane, editor_pane, music_pane_info, self.error_pane, self.assist_pane]:
-            pane_info.Floatable(False).Dockable(True).Snappable(False).NotebookDockable(False)
+            pane_info.Floatable(False).Dockable(False).Snappable(False).NotebookDockable(False)
 
-        # self.assist_pane.Floatable(True)
-        # self.assist_pane.Float()
-        self.assist_pane.Hide()
 
         # do layout
         self.manager.AddPane(self.music_pane, music_pane_info)
         self.manager.AddPane(self.tune_list, tune_list_pane)
         self.manager.AddPane(self.editor, editor_pane)
-        self.manager.AddPane(self.error_msg, self.error_pane)
+        #self.manager.AddPane(self.error_msg, self.error_pane)
         self.manager.AddPane(self.abc_assist_panel, self.assist_pane)
+        self.manager.Bind(aui.EVT_AUI_PANE_CLOSE, self.__onPaneClose)
 
         self.manager.Update()
         self.default_perspective = self.manager.SavePerspective()
@@ -4052,11 +4051,6 @@ class MainFrame(wx.Frame):
         self.load_settings(load_window_size_pos=True)
         self.restore_settings()
 
-        # 1.3.6.3 [JWdJ] show abc-assist
-        self.manager.DetachPane(self.abc_assist_panel)
-        self.manager.AddPane(self.abc_assist_panel, self.assist_pane)
-        self.manager.Update()
-
         # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
         self.update_play_button() # 1.3.6.3 [JWdJ] 2015-04-21 centralized playbutton enabling
 
@@ -4088,8 +4082,7 @@ class MainFrame(wx.Frame):
 
         self.OnClearCache(None) # P09 2014-10-26
 
-        if self.settings.get('show_abc_assist', False):
-            self.OnToolAbcAssist(None)
+        self.ShowAbcAssist(self.settings.get('show_abc_assist', False))
 
         # 1.3.6.3 [SS] 2015-05-04
         self.statusbar.SetStatusText('This is the status bar. Check it occasionally.')
@@ -5469,14 +5462,36 @@ class MainFrame(wx.Frame):
         self.OnTuneSelected(None)
 
     def OnToolAbcAssist(self, evt):
-        pane = self.assist_pane # self.manager.GetPane(self.abc_assist_panel)
-        if pane.IsShown():
-            pane.Hide()
+        pane = self.manager.GetPane(self.abc_assist_panel)
+        shown = self.abc_assist_panel.IsShown() and pane.IsOk()
+        if shown:
+            if pane.IsFloating():
+                pane.Dock()
+            else:
+                pane.Float()
+
             self.manager.Update()
+            pane.Floatable(False) # JWDJ: moving a docked abc-assist must not let it float
+            pane.Dockable(not pane.IsFloating()) # JWDJ: moving a floating abc-assist must not try to dock it again
         else:
-            self.abc_assist_panel.Show()
-            pane.Show()
+            self.ShowAbcAssist(not shown)
+
+    def ShowAbcAssist(self, show):
+        pane = self.manager.GetPane(self.abc_assist_panel)
+        if show:
+            if not pane.IsOk():
+                self.manager.AddPane(self.abc_assist_panel, self.assist_pane)
+                self.manager.Update()
+                pane = self.manager.GetPane(self.abc_assist_panel)
+
+            if pane.IsOk():
+                self.manager.RestorePane(pane)
+                self.manager.Update()
+
+            if not self.abc_assist_panel.IsShown():
+                self.abc_assist_panel.Show()
             self.manager.Update()
+
             self.abc_assist_panel.update_assist()
             if pane.IsFloating():
                 # 1.3.6.2 [JWDJ] move abc assist alongside abc editor
@@ -5492,7 +5507,25 @@ class MainFrame(wx.Frame):
                 offset = editor_x - assist_x, editor_y - assist_y
                 pane.FloatingPosition((editor_x + offset[0] - w, editor_y + offset[1]))
                 self.manager.Update()
-        self.settings['show_abc_assist'] = pane.IsShown()
+            pane.Dockable(not pane.IsFloating()) # JWDJ: moving a floating abc-assist must not try to dock it again
+        else:
+            if self.abc_assist_panel.IsShown():
+                self.abc_assist_panel.Hide()
+            if pane.IsOk():
+                self.manager.DetachPane(self.abc_assist_panel)
+
+        self.manager.Update()
+        self.UpdateAbcAssistSetting()
+
+    def UpdateAbcAssistSetting(self):
+        pane = self.manager.GetPane(self.abc_assist_panel)
+        show_abc_assist = pane.IsOk() and pane.IsShown() and self.abc_assist_panel.IsShown()
+        self.settings['show_abc_assist'] = show_abc_assist
+
+    def __onPaneClose(self, evt):
+        if evt.pane.window == self.abc_assist_panel:
+            self.settings['show_abc_assist'] = False
+            # wx.CallAfter(self.UpdateAbcAssistSetting()) # seems to be too early, pane is still shown
 
     def OnToolAddTune(self, evt):
         dlg = NewTuneFrame(self)
@@ -6508,7 +6541,7 @@ class MainFrame(wx.Frame):
             if not new_tune_selected:
                 self.ScrollMusicPaneToMatchEditor(select_closest_page=self.mni_auto_refresh.IsChecked())
 
-            if self.assist_pane.IsShown() and self.abc_assist_panel.IsShown():
+            if self.abc_assist_panel.IsShown():
                 self.abc_assist_panel.update_assist()
 
     def AutoInsertXNum(self):
@@ -7069,7 +7102,7 @@ class MainFrame(wx.Frame):
         self.svg_tunes.cleanup()
         self.midi_tunes.cleanup()
         self.settings['is_maximized'] = self.IsMaximized()
-        self.error_pane.Show()
+        #self.error_pane.Show()
         self.Hide()
         self.Iconize(False)  # the x,y pos of the window is not properly saved if it's minimized
         self.save_settings()
@@ -7153,11 +7186,20 @@ class MainFrame(wx.Frame):
         #print 'SetErrorMessage called ',error_msg
         old_err = self.error_msg.GetValue()
         self.error_msg.SetValue(error_msg)
+        pane = self.manager.GetPane('error message')
+
         if old_err and not error_msg:
-            self.error_pane = self.manager.GetPane('error message').Hide()
+            self.error_msg.Hide()
+            if pane.IsOk():
+                self.manager.DetachPane(pane)
+                pane.Hide()
             self.manager.Update()
         elif not old_err and error_msg:
-            self.error_pane = self.manager.GetPane('error message').Show()
+            if not self.error_pane.IsOk():
+                self.manager.AddPane(self.error_msg, self.error_pane)
+                pane = self.manager.GetPane('error message')
+            pane.Show()
+            self.error_msg.Show()
             self.manager.Update()
             self.editor.ScrollToLine(self.editor.LineFromPosition(self.editor.GetCurrentPos()))
 
