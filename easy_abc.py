@@ -4085,8 +4085,8 @@ class MainFrame(wx.Frame):
         self.ShowAbcAssist(self.settings.get('show_abc_assist', False))
 
         # 1.3.6.3 [SS] 2015-05-04
-        self.statusbar.SetStatusText('This is the status bar. Check it occasionally.')
-        execmessages = 'You are running '+ program_name + ' on '+ wx.Platform + '\nYou can get the latest version on http://sourceforge.net/projects/easyabc/'
+        self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
+        execmessages = _('You are running {0} on {1}\nYou can get the latest version on http://sourceforge.net/projects/easyabc/\n'.format(program_name, wx.Platform))
 
     # 1.3.6.2 [JWdJ] 2015-02
     @property
