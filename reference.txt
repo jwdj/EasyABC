@@ -1,0 +1,391 @@
+A.2 ABC Fields
+Field Where Notes and Example
+A: header Area. A:Liverpool
+B: header Book. B:Groovy Songs
+C: header Composer. C:The Beatles
+D: header Discography. D:The Beatles Complete Collection
+d: body Decorations. d:!pp! * * !mf! * !ff!
+F: header File name. F:http://www.beatles.org/help.abc
+G: header Group. G:guitar
+H: header History. H:This song was written...
+I: header Information. I:lowered by a semitone
+I: body Meta-command. I:MIDI program 2 32
+K: last in header Key. K:C
+L: header, body Note length. L:1/4
+M: header, body Metre. M:3/4
+N: header Notes. N:See also...
+O: header Origin. O:English
+P: header, body Part. P:Start
+Q: header, body Tempo. Q:1/2=120
+R: header Rhythm. R:Reel
+S: header Source. S:Collected in Liverpool
+s: body Decorations. s:!pp! * * !mf! * !ff!
+T: second in header Title. T:Help!
+U: header User defined. U:T=!trill!
+V: header, body Voice. V:1
+W: body Lyrics at end. W:Help! I need...
+w: body inline lyrics. w:Help! I need...
+X: start of header Index number. X:1
+Z: header Transcription notes. Z:Transcribed by ear
+A.5.1 Page Format
+These commands set the page geometry.
+%%botmargin hlengthi: sets the page bottom margin to hlengthi.
+%%footer htexti: sets the text to be printed as footer on each page; see Section 4.1.8 for
+details.
+%%header htexti: sets the text to be printed as header on each page; see Section 4.1.8 for
+details.
+%%indent hlengthi: sets the indentation for the first line or system to hlengthi.
+%%landscape hlogicali: if 1, sets the page layout as landscape.
+%%leftmargin hlengthi: sets the page left margin to hlengthi.
+%%multicol hcommandi: defines columns. hcommandi may be start, new, and end. See
+Section 4.1.6 for details.
+%%pageheight hlengthi: sets the page height to hlengthi. For European A4 paper, the right
+value is 29.7cm; for US Letter, 11in.
+%%pagewidth hlengthi: sets the page width to hlengthi. For European A4 paper, the right
+value is 21cm; for US Letter, 8.5in.
+%%rightmargin hlengthi: sets the page right margin to hlengthi.
+%%staffwidth hlengthi: used as an alternative to the commands %%pageheight and %%pagewidth.
+%%topmargin hlengthi: sets the page top margin to hlengthi.
+A.5.2 Text
+These commands are used to write text lines within a tune and between tunes. Fonts and
+spacing are set with other commands that we will examine later on.
+A.5. FORMATTING COMMANDS 105
+%%begintext...%%endtext : the pair %%begintext and %%endtext includes a group
+of text lines. These lines will be printed. If no text follows %%, the line is a paragraph
+separator. For example:
+%%begintext
+%%Spanish folk song, usually
+%%accompanied by guitar and cymbals.
+%%endtext
+The command %%begintext can be given a parameter to change the text alignment:
+%%begintext obeylines prints text as is;
+%%begintext fill (or ragged) formats the text to the page margins;
+%%begintext justify (or align) as above, but aligns to the page right margin;
+%%begintext skip ignores the following lines.
+%%center htexti: centers the following text.
+%%text htexti: writes the following text. For example:
+%%text Spanish folk song
+%%textoption hinti: sets the default text option to be used between %%begintext and
+%%endtext, or in %%EPS files. The parameter can be a digit or a corresponding string: 0
+or obeylines), 1 (justify), 2 (fill), 3 (center), 4 (skip), 5 (right). If the option is
+4 (skip), no text or EPS is output.
+A.5.3 Fonts
+These commands specify the character fonts used in various parts of a score. Please note that
+the common True Type fonts used by Windows are not the same fonts used by abcm2ps. In
+fact, abcm2ps uses the PostScript fonts, provided for and managed by Ghostscript.
+Standard fonts are shown in Appendix A.7. I remind you that indications for adding new fonts
+are given in Section 4.5.4.
+%%annotationfont hstringi: font of annotations.
+%%composerfont hstringi: C: field font.
+%%footerfont hstringi: font of %%footer lines.
+%%font hstringi: declares a font for later usage.
+%%gchordfont hstringi: guitar chords font.
+%%headerfont hstringi: font of %%header lines.
+106 APPENDIX A. BITS & PIECES
+%%historyfont hstringi: font of H: field.
+%%infofont hstringi: text font in I: fields.
+%%measurefont hstringi [box]: text font of measure numbers. If the word box is present,
+a box is drawn around the measure number.
+%%partsfont hstringi: P: fields font.
+%%repeatfont hstringi: font of repeat numbers or text.
+%%setfont-hinti hstringi hinti: sets an alternate font for strings. In most strings, the current
+font may be changed by $n (n = 1, 2, 3, 4). $0 resets the font to the default value.
+%%subtitlefont hstringi: font of the second T: field.
+%%tempofont hstringi: tempo font.
+%%textfont hstringi: text font in %%text lines.
+%%titlecaps hlogicali: if true, writes the title in capital letters.
+%%titlefont hstringi: font of the first T: field.
+%%titleformat hstringi: defines the format of the tune title. This format overrides %%titleleft,
+%%infoline, and %%composerspace. See Section 4.1.7 for examples.
+%%titleleft hlogicali: if true, writes the title left-aligned instead of centered.
+%%voicefont hstringi: font of voice names.
+%%vocalfont hstringi: font of the text in w: lines.
+%%wordsfont hstringi: font of the text in W: lines.
+A.5.4 Spacing
+These commands specify spacing between score elements.
+%%barsperstaff hinti: attempts to typeset the score with hinti bars on each line.
+%%breaklimit hfloati: used together with %%maxshrink, it lets the user control where line
+breaks may occur. The parameter can range between 0.5 (line break occurs when the
+line is 50% full) and 1.0.
+%%breakoneoln hlogicali: if true, treats an end of line as if it were a space (i.e. breaks note
+beams).
+%%composerspace hlengthi: sets the vertical space before the composer to hlengthi.
+%%gracespace hfloati hfloati hfloati: defines the space before, within and after grace notes.
+A.5. FORMATTING COMMANDS 107
+%%infospace hlengthi: sets the vertical space before the infoline to hlengthi.
+%%linebreak hstringi: defines the line break separators. The string may be empty or contain
+the values <EOL>, $, !, and <none>. The latter option (or an empty string) computes
+line breaks automatically, as the deprecated command %%continueall.
+%%lineskipfac hfloati: sets the factor for spacing between lines of text to hfloati.
+%%maxshrink hfloati: sets how much to compress horizontally when staff breaks are chosen
+automatically. hfloati must be between 0 (don’t shrink) and 1 (full shrink).
+%%maxstaffsep hlengthi: sets the maximum vertical space between staves.
+%%maxsysstaffsep hlengthi: sets the maximum vertical space between systems.
+%%musicspace hlengthi: sets the vertical space before the first staff to hlengthi.
+%%newpage: sets a page break.
+%%notespacingfactor hfloati: sets the proportional spacing of notes. The default value
+is 1.414 (
+p
+2); 1 makes all notes equally spaced.
+%%parskipfac hfloati: sets the factor for spacing between parts to hfloati.
+%%partsspace hlengthi: sets the vertical space before a new part to hlengthi.
+%%scale hfloati: sets the music scale factor to hfloati.
+%%sep: prints a centered separator (a short line).
+%%sep hlength1i hlength2i hlength3i: prints a separator of length hlength3i, with spacing
+hlength1i above and hlength2i below.
+%%slurheight hfloati: sets the slur height factor; lesser than 1 flattens the slur, greater than
+1 expands it.
+%%staffbreak hlengthi [“f”]: sets a hlengthi-long break (gap) in the current staff. If the
+letter “f” is present, the staff break is forced even if it occurs at the beginning or end of
+a line.
+%%staffsep hlengthi: sets the vertical space between different systems to hlengthi.
+%%stretchlast hlogicali: stretches the last staff of the tune when underfull.
+%%stretchstaff hlogicali: stretches underfull staves across page.
+%%subtitlespace hlengthi: sets the vertical space before the subtitle to hlengthi.
+%%sysstaffsep hlengthi: sets the vertical space between staves in the same system to
+hlengthi.
+%%textspace hlengthi: sets the vertical space before texts to hlengthi.
+%%titlespace hlengthi: sets the vertical space before the title to hlengthi.
+108 APPENDIX A. BITS & PIECES
+%%topspace hlengthi: sets the vertical space at the top of a tune to hlengthi. Note that a
+tune may begin with %%text commands before the title.
+%%vocalspace hlengthi: sets the vertical space before the lyrics under staves to hlengthi.
+%%voicescale hlengthi: sets the scale of a voice, or of all voices if present in the header.
+%%vskip hhi: adds hhi vertical space. hhi may be a negative value.
+%%wordsspace hlengthi: sets the vertical space before the lyrics at end of the tune to hlength
+i.
+A.5.5 Other Commands
+Miscellaneous commands are grouped in this section.
+%%abc2pscompat hlogicali : if true, reverts to the old metod of dealing with notes in bass
+and other clefs. Please see Section 2.2.1.
+%%abcm2ps hchari : changes the character that defines a pseudo-comment.
+%%alignbars hinti: aligns the bars of the next hinti lines of music. It only works on singlevoice
+tunes.
+%%aligncomposer hinti: specifies where to print the composer field. A negative value means
+“on the left”, 0 means “centre”, and a positive value means “on the right”.
+%%autoclef hlogicali: if true, prints clefs and possibly clef changes when no clef is defined
+in K: or V:.
+%%beginps–%%endps: starts/ends a sequence of PostScript commands; please see Section
+4.5.1.
+%%beginsvg–%%endsvg: starts/ends a sequence of SVG commands; please see Section
+4.5.1.
+%%bstemdown hlogicali: if true, the stem of the note on the middle of the staff goes downwards.
+Otherwise, it goes upwards or downwards according to the previous note.
+%%cancelkey hlogicali: if true, accidentals are cancelled using natural signs when the key
+signature changes.
+%%clef hclefi [line] [octave]: inserts a clef change, in a manner similar to K:. hclefi may be
+treble (or G2), alto (C3), tenor (Cf), bass (F4), perc (P2), G, C, G, C, F, P, or none.
+The latter prints no clef on the staff. The name of a user-provided PostScript glyph may
+also be used. [line] specifies the staff line on which the clef sits. [octave] can be +8 or
+-8, to print ‘8’ above or below the clef; ˆ8 or 8, to print ‘8’ above or below the clef and
+perform octave transposition.
+%%combinevoices hlogicali: if true, notes of same duration that belong to voices of the
+same staff are combined producing chords. It does not apply when note pitches are in
+unison, inverted or differ by a second.
+A.5. FORMATTING COMMANDS 109
+%%contbarnb hlogicali: if true, the bar number of the second repeat(s) is reset to the number
+of the first repeat. If false, bars are sequentially numbered.
+%%continueall hlogicali: ignores the line breaks in tune if true. It’s the equivalent of
+the -c command line flag. This command is deprecated; use %%linebreak none and
+%%linewarn 0 instead.
+%%custos hlogicali: if true, a custos is added at the end of each music line. A custos is a
+symbol that indicates the pitch for the first note of the next line. This command works
+with single voice tunes only.
+%%dateformat hstringi: defines the format of date and time. Default is %b %e, %Y %H:%M.
+The fields specify, respectively: abbreviated month name (Jan–Dec), day of month (1–
+31), year, hour (0–23), minute (0–59).
+%%deco hstring1i hint1i hstring2i hint2i hint3i hint4i hstring3i: adds a new decoration. Details
+are explained in Section 4.5.
+%%decoration hchari: defines the decoration separator, which can be ! (default) or + .
+%%dblrepbar hstringi: defines how double repeat bars are drawn; e.g. :][: (default), or
+::, or :|:.
+%%dynalign hlogicali: if true, horizontally aligns the dynamics marks.
+%%dynamic hinti: sets the position of dynamics (e.g. crescendo, etc.). The parameter may
+be ‘0’ (or “auto”) for automatic position; ‘1’ or “above”, ‘2’ or “below”, ‘3’ or “hidden”
+to hide dynamics marks.
+%%EPS hstring3i: includes an external EPS file in the score.
+%%flatbeams hlogicali: if true, forces flat beams in bagpipe tunes (K:HP).
+%%format hstringi: reads the format file specified as parameter.
+%%gchordbox hlogicali: draws a box around accompaniment chords.
+%%glyph hstring1i hstring1i: sets the name of a Unicode glyph. The first parameter is a
+hexadecimal value, the second is the name of the associated glyph in the font files.
+%%gstemdir hinti: sets the position of grace notes stems. The parameter may be ‘0’ (or
+“auto”) for automatic position; ‘1’ or “above”, ‘2’ or “below”, ‘3’ or “hidden” to hide
+dynamics marks.
+%%graceslurs hlogicali: draws slurs on grace notes.
+%%hyphencont hlogicali: if true and if lyrics under the staff end with a hyphen, puts a
+hyphen in the next line.
+%%infoline hlogicali: if true, displays the rhythm and the origin on the same line, plus the
+A: field.
+110 APPENDIX A. BITS & PIECES
+%%infoname hstringi hstringi: defines the fields to be printed when %%writehistory is
+true.
+%%keywarn hlogicali: if true, a cautionary key signature is printed when a key signature
+change occurs at the beginning of a music line.
+%%linewarn hlogicali: if true, outputs a warning message if there are too many or too few
+elements in a music line.
+%%measurenb hinti: draws the measure number every hinti bars.
+%%measurebox hlogicali: if true, draws a box around measure numbers.
+%%measurefirst hinti: starts numbering the measures from hinti. This command is obsolete
+and should be replaced by %%setbarnb.
+%%micronewps hlogicali: if true, uses the new PostScript function to draw microtonal accidentals.
+%%musiconly hlogicali: if true, lyrics are not output.
+%%oneperpage hlogicali: outputs one tune per page.
+%%ornament hinti: sets the position of ornaments (e.g. trill, etc.). The parameter may be ‘0’
+(or “auto”) for automatic position; ‘1’ or “above”, ‘2’ or “below”, ‘3’ or “hidden” to
+hide ornaments.
+%%pango hlogicali: if abcm2ps was compiled with Pango support, this command enables or
+disables PostScript output with Pango.
+%%partsbox hlogicali: draws a box around part names.
+%%pdfmark hinti: if the parameter is 1, inserts marks in the PostScript output for titles. Post-
+Script to PDF translators can use the marks to create a PDF tune index. If the parameter
+is greater than 1, marks are inserted for titles and subtitles.
+%%postscript hstringi: a series of these commands lets the user add a new PostScript
+routine, or change an existing one.
+%%ps hstringi: same as %%postscript.
+%%repbra hlogicali: if false, prevents displaying repeat brackets for the current voice.
+%%repeat hint1i hint2i: repeats a sequence of notes or bars.
+%%score hstringi: defines how staves are to be printed. Please see Section 3.1.2 for details.
+%%setbarnb hinti: sets the number of the next measure, excluding the first. To set the number
+of the first measure, the command must be written in the tune header.
+%%setdefl hlogicali: if true, outputs some indications about the note/chord and/or decorations
+for customization purposes. These indications are stored in the PostScript variable
+“defl”.
+A.5. FORMATTING COMMANDS 111
+%%shiftunison hlogicali: if true, shifts note heads that belong to different voices that are
+in unison. It applies to dotted notes and notes shorter than minim.
+%%splittune hlogicali: if true, splits tunes that do not fit in a single page.
+%%squarebreve hlogicali: displays “brevis” notes in square format.
+%%straightflags hlogicali: prints straight flags on stems in bagpipe tunes.
+%%staff hinti: prints the next symbols of the current voice on the hinti-th staff.
+%%stafflines hinti: sets the number of staff lines of the current voice; default is 5.
+%%staffnonote hinti: avoids printing a staff according to the parameter. If it’s 0, the staff
+is not printed if it contains only invisible rests and notes; if it’s 1, the staff is not printed
+if it contains only rests and invisible notes; if it’s 2, the staff is printed.
+%%staffscale hfloati: sets the scale of the staff of the current voice.
+%%staves hstringi: defines how staves are to be printed. This command is deprecated; please
+use score instead. Please see Section 3.1.2 for details.
+%%stemdir hinti: sets the note stems directions. The parameter may be ‘0’ (or “auto”) for
+automatic position; ‘1’ or “up”, ‘2’ or “down”.
+%%stemheight hfloati: sets the stem height to hfloati.
+%%tablature: defines a tablature. Please see Section sec:tablatures.
+%%timewarn hlogicali: if true, if a time signature occurs at the beginning of a music line, a
+cautionary time signature is added at the end of the previous line.
+%%titletrim hlogicali: if true, move the last word of a title to the head if it starts with a
+capital letter and it’s preceded by a space and a comma.
+%%transpose hinti [char]: transposes the music by hinti semitones. The optional parameter
+may be # or b , meaning that the new key signature will have sharps or flats.
+%%tuplets hint1i hint2i hint3i: defines how tuplets are to be drawn. See Section 4.5.5 for
+details.
+%%user hstringi: this command is the equivalent of the U: field, and can be used to redefine
+default decorations in format files.
+%%vocal hinti: sets the position of lyrics. The parameter may be ‘0’ (or “auto”) for automatic
+position; ‘1’ or “above”, ‘2’ or “below”, ‘3’ or “hidden” to hide lyrics.
+%%vocalabove hlogicali: draws the vocals above the staff. This command is obsolete and
+should be replaced by %%vocal.
+%%volume hinti: sets the position of volume decorations (!f!, etc.). The parameter may be
+‘0’ (or “auto”) for automatic position; ‘1’ or “above”, ‘2’ or “below”, ‘3’ or “hidden” to
+hide the decorations.
+%%writefields hstringi hlogicali: if true, displays the information fields defined in hstringi.
+112 APPENDIX A. BITS & PIECES
+A.6 abcMIDI commands
+Some of these commands will only make sense to advanced users who have some experience
+with MIDI files. In a few cases, explanations are taken from the abcguide.txt file included
+in the abcMIDI archive.
+%%MIDI barlines: turns off %%nobarlines.
+%%MIDI bassprog hinti: sets the MIDI instrument for the bass notes in accompaniment
+chords to hinti (0–127).
+%%MIDI bassvol hinti: sets the velocity (i.e., volume) of the bass notes to hinti (0–127).
+%%MIDI beat hint1i hint2i hint3i hint4i: controls the volumes of the notes in a measure.
+The first note in a bar has volume hint1i; other “strong” notes have volume hint2i and
+all the rest have volume hint3i. These values must be in the range 0–127. The parameter
+hint4i determines which notes are “strong”. If the time signature is x/y, then each note
+is given a position number k = 0, 1, 2. . . x-1 within each bar. If k is a multiple of hint4i,
+then the note is “strong”.
+%%MIDI beataccents: reverts to normally emphasised notes. See also %%MIDI nobeataccents.
+%%MIDI beatmod hinti: increments the velocities as defined by %%MIDI beat
+%%MIDI beatstring hstringi: similar to %%MIDI beat, but indicated with an fmp string.
+%%MIDI c hinti: specifies the MIDI pitch which corresponds to C . The default is 60. This
+number should normally be a multiple of 12.
+%%MIDI channel hinti: selects the melody channel hinti (1–16).
+%%MIDI chordattack hinti: delays the start of chord notes by hinti MIDI units.
+%%MIDI chordname hstring int1 int2 int3 int4 int5 int6i: defines new chords or redefines
+existing ones as was seen in Section 5.1.10.
+%%MIDI chordprog hinti: sets the MIDI instrument for accompaniment chords to hinti
+(0–127).
+%%MIDI chordvol hinti: sets the volume (velocity) of the chord notes to hinti (0–127).
+%%MIDI control hbass/chordi hint1 int2i: generates a MIDI control event. If %%control
+is followed by hbassi or hchordi, the event apply to the bass or chord channel, otherwise
+it will be applied to the melody channel. hint1i is the MIDI control number (0–127) and
+hint2i the value (0–127).
+%%MIDI deltaloudness hinti: by default, !crescendo! and !dimuendo! modify the
+beat variables hvol1i hvol2i hvol3i 15 volume units. This command allows the user to
+change this default.
+A.6. ABCMIDI COMMANDS 113
+%%MIDI drone hint1 int2 int3 int4 int5i: specifies a two-note drone accompaniment. hint1i
+is the drone MIDI instrument, hint2i the MIDI pitch 1, hint3i the MIDI pitch 2, hint4i
+the MIDI volume 1, hint5i the MIDI volume 2. Default values are 70 45 33 80 80.
+%%MIDI droneoff: turns the drone accompaniment off.
+%%MIDI droneon: turns the drone accompaniment on.
+%%MIDI drumbars hinti: specifies the number of bars over which a drum pattern string is
+spread. Default is 1.
+%%MIDI drum hstri hint1 int2 int3 int4 int5 int6 int7 int8i: generates a drum accompaniment
+pattern, as described in Section 5.1.12.
+%%MIDI drummap hstri hinti: associates the note hstri (in ABC notation) to the a percussion
+instrument, as listed in Section A.8.2.
+%%MIDI drumoff turns drum accompaniment off.
+%%MIDI drumon turns drum accompaniment on.
+%%MIDI fermatafixed: expands a !fermata! by one unit length; that is, HC3 becomes
+C4.
+%%MIDI fermataproportional: doubles the length of a note preceded by !fermata!;
+that is, HC3 becomes C6. abc2midi does this by default.
+%%MIDI gchordbars hstri: spreads the gchord string over hni consecutive bars of equal
+length. The gchord string should be evenly divisible by hni or else the gchords will not
+work properly.
+%%MIDI gchord hstri: sets up how guitar chords are generated; please see Section 5.1.7.
+%%MIDI gchordoff: turns guitar chords off.
+%%MIDI gchordon: turns guitar chords on.
+%%MIDI grace hfloati: sets the fraction of the next note that grace notes will take up. hfloati
+must be a fraction such as 1/6.
+%%MIDI gracedivider hinti: sets the grace note length as 1/hintith of the following
+note.
+%%MIDI makechordchannels hinti: this is a very complex command used in chords
+containing microtones. Please consult the abcMIDI documentation.
+%%MIDI nobarlines: normally, an accidental applied to a note also applies to other equal
+notes until the next bar. By using this command, the accidental will apply to the following
+note only.
+%%MIDI nobeataccents: forces the hint2i volume (see %%MIDI beat) for each note in
+a bar, regardless of their position.
+114 APPENDIX A. BITS & PIECES
+%%MIDI noportamento: turns off the portamento controller on the current channel.
+%%MIDI pitchbend hbass/chordi hint1 int2i: generates a pitchbend event on the current
+channel, or on the bass or chord channel as specified. The value given by the following
+two bytes indicates the pitch change. This option is not well documented.
+%%MIDI portamento [bass] [chord] hinti: turns on the portamento controller (glide effect)
+on the current channel (or to bass/chord channel) and set it to hinti. 0 turns off the
+effect.
+%%MIDI program [int1] hint2i: selects the program (instrument) hint2i (0–127) for channel
+hint1i. If this is not specified, the instrument will apply to the current channel.
+%%MIDI randomchordattack: delays the start of chord notes by a random number of
+MIDI units.
+%%MIDI ratio hint1 int2i: sets the ratio of note lengths in broken rhythm. Normally c>c
+will make the first note three times as long as the second; this ratio can be changed with
+%%ratio 2 1.
+%%MIDI rtranspose hint1i: transposes relatively to a prior %%transpose command by
+hint1i semitones; the total transposition will be hint1 + int2i semitones.
+%%MIDI snt hinti hfloati: alters the standard MIDI pitch of a note h0–127i; e.g. %%MIDI
+snt 60 60.5 alters the pitch of C.
+%%MIDI temperament hint1i hint2i: TO BE WRITTEN
+%%MIDI temperamentlinear hfloat1 float2i: changes the temperament of the scale. hfloat1
+i specifies the size of an octave in cents of a semitone, or 1/1200 of an octave.
+hfloat2i specifies in the size of a fifth (normally 700 cents).
+%%MIDI temperamentnormal: restores normal temperament.
+%%MIDI transpose hint1i: transposes the output by hint1i semitones. hint1i may be positive
+or negative.
+%%MIDI trim hint1i hint2i: controls the articulation of notes and chords by placing silent
+gaps between the notes. The length of these gaps is determined by hint1i/hint2i and the
+unit length is specified by the L: command. These gaps are produced by shortening the
+notes by the same amount. If the note is already shorter than the specified gap, then the
+gap is set to half the length of the note. It is recommended that hint1i/hint2i be a fraction
+close to zero. Trimming is disabled inside slurs as indicated by parentheses. Trimming
+is disabled by setting hint1i to 0.

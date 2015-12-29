@@ -435,3 +435,25 @@ Added in Internals, a function to view the generated MIDI file in
 text form.
 
 
+
+1.3.7.0
+
+Despite the version number, there are mainly bug fixes and incremental
+improvements to the ABC assist function developed by Jan Wybren.
+
+- fix to EasyAbc not gracefully exiting on Windows computer
+when no abc file was opened.
+
+- the most recent version of abcm2ps no longer scales everything by
+0.75 introducing an incompatibility with EasyAbc note selection using
+the mouse. Jan Wybren introduced a fix so EasyAbc works with all versions
+of abcm2ps
+
+- automatic bar line insertion fixed for certain meters
+
+- Abc Assist can be docked or undocked (floating window). Other
+panes like the editor and musical score can no longer be docked to
+different panes. Tie/untie option added for notes. Broken rhythm
+( eg c>d or c<d), triplet, slur, and chord options was introduced.  
+
+
