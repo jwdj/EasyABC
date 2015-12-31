@@ -305,7 +305,11 @@ class AccidentalChangeAction(ValueChangeAction):
         CodeDescription('^',  _('Sharp')),
         CodeDescription('_',  _('Flat')),
         CodeDescription('^^', _('Double sharp')),
-        CodeDescription('__', _('Double flat'))
+        CodeDescription('__', _('Double flat')),
+        CodeDescription('^/', _('Half sharp')),
+        CodeDescription('_/', _('Half flat')),
+        CodeDescription('^3/2', _('Sharp and a half')),
+        CodeDescription('_3/2', _('Flat and a half'))
     ]
     def __init__(self):
         super(AccidentalChangeAction, self).__init__('Change accidental', AccidentalChangeAction.accidentals, matchgroup='accidental')

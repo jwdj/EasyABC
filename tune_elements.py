@@ -764,7 +764,7 @@ class AbcChordSymbol(AbcBodyElement):
 
 
 class AbcBaseNote(AbcBodyElement):
-    accidental_pattern = r'(?P<accidental>(?:\^{1,2}|_{1,2}|=)?)'
+    accidental_pattern = r'(?P<accidental>(?:[_^](?:3/2?|1?/2?)|\^{1,2}|_{1,2}|=)?)?'
     length_pattern = r'(?P<length>\d{0,3}(?:/\d{0,3})*)'
     octave_pattern = r"(?P<octave>[',]*)"
     pair_pattern = r'(?P<pair>(?:\s*>+|\s*<+)?)'

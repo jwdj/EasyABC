@@ -461,3 +461,5 @@ different panes. Tie/untie option added for notes. Broken rhythm
     Ctrl+Alt+PageUp: previous (Alt+PageUp also works)
     Ctrl+Alt+Home: first page
     Ctrl+Alt+End: last page
+
+- ABC Assist: Added support for microtones
