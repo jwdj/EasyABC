@@ -456,4 +456,8 @@ panes like the editor and musical score can no longer be docked to
 different panes. Tie/untie option added for notes. Broken rhythm
 ( eg c>d or c<d), triplet, slur, and chord options was introduced.  
 
-
+- Added shortcuts to navigate through pages (when an abc tune has multiple pages)
+    Ctrl+Alt+PageDown: next page (Alt+PageDown also works)
+    Ctrl+Alt+PageUp: previous (Alt+PageUp also works)
+    Ctrl+Alt+Home: first page
+    Ctrl+Alt+End: last page

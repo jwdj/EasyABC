@@ -4617,7 +4617,7 @@ class MainFrame(wx.Frame):
         # 1.3.6.3 [JWdJ] 2015-04-26 turned off abc assist for it is not finished yet
         abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'bulb.png')).ConvertToBitmap(), style=button_style)
         abc_assist.SetHelpText(_('ABC assist'))
-        abc_assist.SetToolTip(wx.ToolTip(_('ABC assist'))) # 1.3.6.5 [JWdJ] 2015-12
+        abc_assist.SetToolTip(wx.ToolTip(_('ABC assist'))) # 1.3.7.0 [JWdJ] 2015-12
         self.toolbar.AddControl(abc_assist, label=_('ABC assist'))
         self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
 
@@ -6580,6 +6580,23 @@ class MainFrame(wx.Frame):
         style = self.editor.GetStyleAt(self.editor.GetCurrentPos())
         is_string_style = self.styler.STYLE_STRING
         is_default_style = (style in [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE])
+
+        if self.current_svg_tune and evt.KeyCode in [wx.WXK_PAGEDOWN, wx.WXK_PAGEUP, wx.WXK_HOME, wx.WXK_END]:
+            # 1.3.7.0 [JWdJ] 2015-12 Added shortcuts to navigate through pages
+            if evt.KeyCode == wx.WXK_HOME and evt.GetModifiers() == (wx.MOD_ALT + wx.MOD_CONTROL):
+                new_page = 0
+            elif evt.KeyCode == wx.WXK_END and evt.GetModifiers() == (wx.MOD_ALT + wx.MOD_CONTROL):
+                new_page = self.current_svg_tune.page_count - 1
+            elif evt.KeyCode == wx.WXK_PAGEDOWN and evt.GetModifiers() in [wx.MOD_ALT, wx.MOD_ALT + wx.MOD_CONTROL]:
+                new_page = self.current_page_index + 1
+            elif evt.KeyCode == wx.WXK_PAGEUP and evt.GetModifiers() in [wx.MOD_ALT, wx.MOD_ALT + wx.MOD_CONTROL]:
+                new_page = self.current_page_index - 1
+
+            if 0 <= new_page < self.current_svg_tune.page_count and new_page != self.current_page_index:
+                self.current_page_index = new_page
+                self.UpdateMusicPane()
+                evt.Skip()
+                return
 
         c = unichr(evt.GetUniChar())
         p1, p2 = self.editor.GetSelection()
