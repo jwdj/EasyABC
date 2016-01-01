@@ -66,10 +66,26 @@ TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'Tun
 TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
-ValueDescription = namedtuple('ValueDescription', 'value description')
-CodeDescription = namedtuple('CodeDescription', 'value description')
-ValueImageDescription = namedtuple('ValueImageDescription', 'value image_name description')
-CodeImageDescription = namedtuple('CodeImageDescription', 'value image_name description')
+class ValueDescription(object):
+    def __init__(self, value, description, common=True, show_value=False):
+        super(ValueDescription, self).__init__()
+        self.value = value
+        self.description = description
+        self.show_value = show_value
+        self.common = common
+
+class CodeDescription(ValueDescription):
+    def __init__(self, value, description, common=True):
+        super(CodeDescription, self).__init__(value, description, common=common, show_value=True)
+
+class ValueImageDescription(ValueDescription):
+    def __init__(self, value, image_name, description, common=True, show_value=False):
+        super(ValueImageDescription, self).__init__(value, description, common=common, show_value=show_value)
+        self.image_name = image_name
+
+class CodeImageDescription(ValueImageDescription):
+    def __init__(self, value, image_name, description, common=True):
+        super(CodeImageDescription, self).__init__(value, description, image_name, common=common, show_value=True)
 
 decoration_aliases = {
     '!>!'       : '!accent!',
@@ -842,7 +858,7 @@ class AbcNormalRest(AbcBaseNote):
 class AbcMeasureRest(AbcBaseNote):
     pattern = AbcBaseNote.basic_measure_rest_pattern
     def __init__(self):
-        super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern, _('This rest spans an entire measure'))
+        super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern, _('This rest spans one or more measures.'))
         self.visible_match_group = 0
 
 

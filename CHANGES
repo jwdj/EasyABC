@@ -463,5 +463,8 @@ different panes. Tie/untie option added for notes. Broken rhythm
     Ctrl+Alt+End: last page
 
 - ABC Assist: Added support for microtones
+- ABC assist: reduced amount of options to reduce the need for scrolling
+- ABC assist: should show images (using absolute path to image now)
+- ABC assist: Added action to change duration for measure rest (Z/X)
 
 - Updated Fields and Command Reference

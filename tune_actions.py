@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 from collections import namedtuple
 from tune_elements import *
 from wx import GetTranslation as _
@@ -10,8 +11,21 @@ except ImportError:
 import urllib
 import webbrowser
 from fraction import Fraction
+#import urlparse
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
+
+# determine if application is a script file or frozen exe
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+
+def path2url(path):
+    #url_path = urlparse.urljoin('file:', urllib.pathname2url(path))
+    #url_path = re.sub(r'(/[A-Z]:/)/', r'\1', url_path) # replace double slash after drive letter with single slash
+    #return url_path
+    return path # wx.HtmlWindow can only handle regular path-name and not file:// notation
 
 def html_enclose(tag, content, attributes=None):
     if attributes is None:
@@ -55,7 +69,7 @@ def html_enclose_items(tag, items, attributes=None):
         result = html_enclose_item(tag, items, attributes)
     return result
 
-def html_table(rows, headers=None, cellpadding=0, row_has_td=False, indent=0):
+def html_table(rows, headers=None, cellpadding=0, row_has_td=False, indent=0, width=None):
     result = u''
     if headers:
         result = html_enclose_items('th', headers)
@@ -65,8 +79,10 @@ def html_table(rows, headers=None, cellpadding=0, row_has_td=False, indent=0):
         if indent:
             row = html_enclose('td', '', { 'width': indent}) + row
         result += html_enclose('tr', row)
-
-    return html_enclose_attr('table', { 'cellpadding': cellpadding, 'cellspacing': 0, 'border': 0, 'align': 'left'}, result)
+    attributes = { 'cellpadding': cellpadding, 'cellspacing': 0, 'border': 0, 'align': 'left'}
+    if width is not None:
+        attributes['width'] = width
+    return html_enclose_attr('table', attributes, result)
 
 
 class AbcAction(object):
@@ -186,29 +202,30 @@ class ValueChangeAction(AbcAction):
         rows = []
         for value in self.get_values(context):
             if isinstance(value, (CodeDescription, ValueDescription, CodeImageDescription, ValueImageDescription)):
-                desc = escape(value.description)
-                params = {'value': value.value}
-                can = self.can_execute(context, params)
-                action_url = None
-                if can:
-                    action_url = self.get_action_url(params)
-                columns = []
-                if isinstance(value, (CodeDescription, CodeImageDescription)):
-                    columns += [html_enclose('code', escape(value.value))]
+                if value.common:
+                    desc = escape(value.description)
+                    params = {'value': value.value}
+                    can = self.can_execute(context, params)
+                    action_url = None
+                    if can:
+                        action_url = self.get_action_url(params)
+                    columns = []
+                    if value.show_value: #isinstance(value, (CodeDescription, CodeImageDescription)):
+                        columns += [html_enclose('code', escape(value.value))]
 
-                if isinstance(value, (CodeImageDescription, ValueImageDescription)):
-                    image_html = ''
-                    image_src = 'img/' + value.image_name
-                    if os.path.exists(image_src):
-                        image_html = '<img src="{0}" border="0" alt="{1}">'.format(image_src, desc)
-                    columns += [self.enclose_action_url(action_url, image_html)]
+                    if isinstance(value, ValueImageDescription):
+                        image_html = ''
+                        image_path = '{0}/img/{1}.png'.format(application_path, value.image_name)
+                        if os.path.exists(image_path):
+                            image_html = '<img src="{0}" border="0" alt="{1}">'.format(path2url(image_path), desc)
+                        columns += [self.enclose_action_url(action_url, image_html)]
 
-                if can:
-                    columns += [self.enclose_action_url(action_url, desc)]
-                else:
-                    columns += [self.html_selected_item(context, value.value, desc)]
+                    if can:
+                        columns += [self.enclose_action_url(action_url, desc)]
+                    else:
+                        columns += [self.html_selected_item(context, value.value, desc)]
 
-                rows.append(tuple(columns))
+                    rows.append(tuple(columns))
             elif isinstance(value, list):
                 columns = value
                 row = []
@@ -304,12 +321,12 @@ class AccidentalChangeAction(ValueChangeAction):
         CodeDescription('=',  _('Natural')),
         CodeDescription('^',  _('Sharp')),
         CodeDescription('_',  _('Flat')),
-        CodeDescription('^^', _('Double sharp')),
-        CodeDescription('__', _('Double flat')),
-        CodeDescription('^/', _('Half sharp')),
-        CodeDescription('_/', _('Half flat')),
-        CodeDescription('^3/2', _('Sharp and a half')),
-        CodeDescription('_3/2', _('Flat and a half'))
+        CodeDescription('^^', _('Double sharp'), common=False),
+        CodeDescription('__', _('Double flat'), common=False),
+        CodeDescription('^/', _('Half sharp'), common=False),
+        CodeDescription('_/', _('Half flat'), common=False),
+        CodeDescription('^3/2', _('Sharp and a half'), common=False),
+        CodeDescription('_3/2', _('Flat and a half'), common=False)
     ]
     def __init__(self):
         super(AccidentalChangeAction, self).__init__('Change accidental', AccidentalChangeAction.accidentals, matchgroup='accidental')
@@ -533,14 +550,14 @@ class BarChangeAction(ValueChangeAction):
         CodeDescription('|',  _('Bar line')),
         CodeDescription('||', _('Double bar line')),
         CodeDescription('|]', _('Thin-thick double bar line')),
-        CodeDescription('.|', _('Dotted bar')),
-        CodeDescription('[|', _('Thick-thin double bar line')),
+        CodeDescription('.|', _('Dotted bar'), common=False),
+        CodeDescription('[|', _('Thick-thin double bar line'), common=False),
         CodeDescription('|:', _('Start of repeated section')),
         CodeDescription(':|', _('End of repeated section')),
         CodeDescription('|1', _('First ending')),
         CodeDescription(':|2', _('Second ending')),
-        CodeDescription('&',  _('Voice overlay')),
-        CodeDescription('[|]', _('Invisible bar'))
+        CodeDescription('&',  _('Voice overlay'), common=False),
+        CodeDescription('[|]', _('Invisible bar'), common=False)
     ]
     def __init__(self):
         super(BarChangeAction, self).__init__('Change bar', BarChangeAction.values)
@@ -562,6 +579,21 @@ class MeasureRestVisibilityChangeAction(ValueChangeAction):
     ]
     def __init__(self):
         super(MeasureRestVisibilityChangeAction, self).__init__('Visibility', MeasureRestVisibilityChangeAction.values, 'measurerest')
+
+
+class MeasureRestDurationChangeAction(ValueChangeAction):
+    values = [
+        CodeDescription('',  _('One measure')),
+        CodeDescription('2',  _('Two measures')),
+        CodeDescription('3',  _('Three measures')),
+        CodeDescription('4',  _('Four measures')),
+        CodeDescription('5',  _('Five measures'), common=False),
+        CodeDescription('6',  _('Six measures'), common=False),
+        CodeDescription('7',  _('Seven measures'), common=False),
+        CodeDescription('8',  _('Eight measures'), common=False)
+    ]
+    def __init__(self):
+        super(MeasureRestDurationChangeAction, self).__init__('Change duration', MeasureRestDurationChangeAction.values, 'measures')
 
 
 class AppoggiaturaOrAcciaccaturaChangeAction(ValueChangeAction):
@@ -597,8 +629,8 @@ class KeyChangeAction(ValueChangeAction):
 
 class KeySignatureChangeAction(KeyChangeAction):
     values = [
-        ValueDescription( 6, _('6 sharps')),
-        ValueDescription( 5, _('5 sharps')),
+        ValueDescription( 6, _('6 sharps'), common=False),
+        ValueDescription( 5, _('5 sharps'), common=False),
         ValueDescription( 4, _('4 sharps')),
         ValueDescription( 3, _('3 sharps')),
         ValueDescription( 2, _('2 sharps')),
@@ -608,9 +640,9 @@ class KeySignatureChangeAction(KeyChangeAction):
         ValueDescription(-2, _('2 flats')),
         ValueDescription(-3, _('3 flats')),
         ValueDescription(-4, _('4 flats')),
-        ValueDescription(-5, _('5 flats')),
-        ValueDescription(-6, _('6 flats')),
-        ValueDescription('none', _('None')),
+        ValueDescription(-5, _('5 flats'), common=False),
+        ValueDescription(-6, _('6 flats'), common=False),
+        ValueDescription('none', _('None'), common=False),
     ]
     def __init__(self):
         super(KeySignatureChangeAction, self).__init__('Signature', KeySignatureChangeAction.values, 1, use_inner_match=True)
@@ -669,11 +701,11 @@ class KeyModeChangeAction(KeyChangeAction):
     values = [
         ValueDescription(-2, _('Major (Ionian)')),
         ValueDescription(1,  _('Minor (Aeolian)')),
-        ValueDescription(0,  _('Dorian')),
-        ValueDescription(-1, _('Mixolydian')),
-        ValueDescription(2,  _('Phrygian')),
-        ValueDescription(-3, _('Lydian')),
-        ValueDescription(3,  _('Locrian'))
+        ValueDescription(0,  _('Dorian'), common=False),
+        ValueDescription(-1, _('Mixolydian'), common=False),
+        ValueDescription(2,  _('Phrygian'), common=False),
+        ValueDescription(-3, _('Lydian'), common=False),
+        ValueDescription(3,  _('Locrian'), common=False)
     ]
     def __init__(self):
         super(KeyModeChangeAction, self).__init__('Mode', KeyModeChangeAction.values, 'mode', use_inner_match=True)
@@ -712,13 +744,13 @@ class ClefChangeAction(ValueChangeAction):
         ValueDescription('', _('Default')),
         ValueDescription('treble', _('Treble')),
         ValueDescription('bass', _('Bass')),
-        ValueDescription('bass3', _('Baritone')),
-        ValueDescription('tenor', _('Tenor')),
-        ValueDescription('alto', _('Alto')),
-        ValueDescription('alto2', _('Mezzosoprano')),
-        ValueDescription('alto1', _('Soprano')),
-        ValueDescription('perc', _('Percussion')),
-        ValueDescription('none', _('None'))
+        ValueDescription('bass3', _('Baritone'), common=False),
+        ValueDescription('tenor', _('Tenor'), common=False),
+        ValueDescription('alto', _('Alto'), common=False),
+        ValueDescription('alto2', _('Mezzosoprano'), common=False),
+        ValueDescription('alto1', _('Soprano'), common=False),
+        ValueDescription('perc', _('Percussion'), common=False),
+        ValueDescription('none', _('None'), common=False)
     ]
     def __init__(self):
         super(ClefChangeAction, self).__init__('Clef', ClefChangeAction.values, 'clef', use_inner_match=True)
@@ -800,10 +832,8 @@ class BaseDecorationChangeAction(ValueChangeAction):
             '!uppermordent!': 'pralltriller'
         }
         image_name = name_lookup.get(mark)
-        if image_name is not None:
-            image_name += '.png'
-        elif mark[0] == '!':
-            image_name = mark[1:-1] + '.png'
+        if image_name is None and mark[0] == '!':
+            image_name = mark[1:-1]
         return image_name
 
 
@@ -964,7 +994,7 @@ class FixCharactersAction(AbcAction):
 
 
 class NewNoteAction(InsertValueAction):
-    values = ['c d e f g a b'.split(' '), 'C D E F G A B'.split(' ')]
+    values = ['C D E F G A B c d e f g a b'.split(' ')]
     def __init__(self):
         super(NewNoteAction, self).__init__('New note', supported_values=NewNoteAction.values, valid_sections=AbcSection.TuneBody)
 
@@ -973,7 +1003,7 @@ class NewRestAction(InsertValueAction):
     values = [
         CodeDescription('z', _('Normal rest')),
         CodeDescription('Z', _('Measure rest')),
-        CodeDescription('x', _('Invisible rest')),
+        CodeDescription('x', _('Invisible rest'), common=False),
     ]
     def __init__(self):
         super(NewRestAction, self).__init__('New rest', supported_values=NewRestAction.values, valid_sections=AbcSection.TuneBody)
@@ -982,9 +1012,9 @@ class NewRestAction(InsertValueAction):
 class InsertOptionalAccidental(InsertValueAction):
     values = [
         ValueDescription('"^"', _('Empty')),
-        ValueDescription('"<(\u266f)"', _('Optional sharp')),
-        ValueDescription('"<(\u266e)"', _('Optional natural')),
-        ValueDescription('"<(\u266d)"', _('Optional flat'))
+        ValueDescription('"<(\u266f)"', _('Optional sharp'), common=False),
+        ValueDescription('"<(\u266e)"', _('Optional natural'), common=False),
+        ValueDescription('"<(\u266d)"', _('Optional flat'), common=False)
     ]
     def __init__(self):
         super(InsertOptionalAccidental, self).__init__('Insert annotation', InsertOptionalAccidental.values, matchgroup='decoanno')
@@ -993,11 +1023,11 @@ class InsertOptionalAccidental(InsertValueAction):
 
 class AddDecorationAction(InsertValueAction):
     values = [
-        ValueImageDescription('!mf!', 'mf.png', _('Dynamics')),
-        ValueImageDescription('!trill!', 'trill.png', _('Ornament')),
-        ValueImageDescription('!fermata!', 'fermata.png', _('Articulation')),
-        ValueImageDescription('!segno!', 'segno.png', _('Navigation')),
-        ValueImageDescription('!5!', '5.png', _('Fingering'))
+        ValueImageDescription('!mf!', 'mf', _('Dynamics')),
+        ValueImageDescription('!trill!', 'trill', _('Ornament')),
+        ValueImageDescription('!fermata!', 'fermata', _('Articulation')),
+        ValueImageDescription('!segno!', 'segno', _('Navigation')),
+        ValueImageDescription('!5!', '5', _('Fingering'), common=False)
     ]
     def __init__(self):
         super(AddDecorationAction, self).__init__('Insert decoration', AddDecorationAction.values, matchgroup='decoanno')
@@ -1163,7 +1193,7 @@ class AbcActionHandlers(object):
             'Whitespace'         : AbcActionHandler([NewNoteAction(), NewRestAction()]),
             'Note'               : AbcActionHandler([NewNoteAction(), NewRestAction(), AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
             'Rest'               : AbcActionHandler([NewNoteAction(), NewRestAction(), DurationAction(), RestVisibilityChangeAction()]),
-            'Measure rest'       : AbcActionHandler([MeasureRestVisibilityChangeAction()]),
+            'Measure rest'       : AbcActionHandler([MeasureRestDurationChangeAction(), MeasureRestVisibilityChangeAction()]),
             'Bar'                : AbcActionHandler([BarChangeAction()]),
             'Annotation'         : AbcActionHandler([AnnotationPositionAction()]),
             'Chord'              : AbcActionHandler([DurationAction(), ChordChangeAction()]),
