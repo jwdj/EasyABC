@@ -873,11 +873,12 @@ class AbcStructure(object):
         reference_content = io.open(os.path.join(cwd, 'reference.txt'), 'rU', encoding='latin-1').read()
         if AbcStructure.replace_regexes is None:
             AbcStructure.replace_regexes = [
-                (re.compile(r'\bh((?:bass/chord|length|logical|string|int|fl-?\n?oat\s?|command|str|text|vol)\d*(?: (?:string|int|float)\d*)*)i\b'), r'<\1>'),  # enclose types with < and >
+                (re.compile(r'\bh((?:bass/chord|length|logical|string|int|fl-?\n?oat\s?|command|str|text|vol|h|n|char|clef|bass|chord)\d*\s?(?: (?:string|int|float)\d*?)*)i\b'), r'<\1>'),  # enclose types with < and >
                 (re.compile(r'\[((?:bass/chord|length|logical|string|int|float|command|str|text|vol)\d*)\]'), r'<\1>'),  # replace types enclosed [ and ] with < and >
-                (re.compile(r'(?m)\b(?<![-\s])1\d\d[\s\n]+[A-Z]+[A-Z\s\.&]+$'), ''),  # strip left page header
-                (re.compile(r'\bA\.\d+\.[\s\n]+[A-Z ]*1\d\d\b'), ''),  # strip right page header
-                (re.compile(r'[\.,]\s[\w\n\s]+Section [1-9A-Z]\.\d+.\d+[\w\s]*\.'), '.'),  # removes references to sections
+                (re.compile(r'(?m)\b(?<![- ])1\d\d[\s\n]+[A-Z]+[A-Z\s\.&]+$'), ''),  # strip left page header
+                (re.compile(r'\bA\.\d+\.[\s\n]+[A-Z &]*1\d\d\b'), ''),  # strip right page header
+                (re.compile(r'[\.,;]\s[\w\n\s]+Section\s(\d\.|[\d\w\s&:])*\.'), '.'),  # removes references to sections
+                (re.compile(r' as was seen in Section \d+(\.\d+)*\.'), '.'),  # removes references to sections
                 (re.compile(r'(?m)^(\w:)\s+((?:[a-z]+\s(?:in|of)\s)?(?:header(?:,\s?body)?|body))\s+(.*)$'), r'\1 \3 (\2)'),  # places where-field at the end of description
                 (re.compile(r'\bh(\d+-\d+)i\b'), '(\1)')  # fix midi numbers (0-127)
             ]
@@ -885,6 +886,7 @@ class AbcStructure(object):
             AbcStructure.from_to_directive_re = re.compile(r'(%%\w+)\.\.\.(%%\w+)')
             AbcStructure.abc_field_re = re.compile(r'[A-Za-z]:')
 
+        reference_content = reference_content.replace(unichr(150), '-')
         reference_content = replace_text(reference_content, AbcStructure.replace_regexes)
 
         lines = reference_content.splitlines()
