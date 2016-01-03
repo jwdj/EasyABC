@@ -96,9 +96,8 @@ class SvgPage(object):
         self.selected_indices = set()
         self.scale = 1.0
         self.index = -1
-        if svg is None:
-            self.root_group = SvgElement('g', {}, [])
-        else:
+        children = []
+        if svg is not None:
             # 1.3.6.2 [JWdJ] 2015-02-14 width and height in inches is useless, use viewbox instead
             viewbox = self.svg.get('viewBox')
             if viewbox:
@@ -122,11 +121,20 @@ class SvgPage(object):
             self.class_attributes = {}
             self.notes_in_row = {} # 1.3.6.3 [JWDJ] contains for each row of abctext note information
             children = [c for c in self.parse_elements(self.svg, {}) if c.name not in ['defs','style']]
-            self.root_group = SvgElement('g', {}, children)
+
+        self.root_group = SvgElement('g', {}, children)
 
     def parse_attributes(self, element, parent_attributes):
         attributes = parent_attributes.copy()
         if 'transform' in attributes:  # don't inherit transform
+            transform = attributes.get('transform')
+            m = self.renderer.scale_re.match(transform)
+            if m:
+                try:
+                    scale = float(m.group(1))
+                    attributes['parent_scale'] = scale
+                except ValueError:
+                    pass
             del attributes['transform']
         if 'desc' in attributes:  # don't inherit desc
             del attributes['desc']
@@ -183,7 +191,9 @@ class SvgPage(object):
                         self.notes_in_row[row] = [note_data]
                     else:
                         notes_in_row.append(note_data)
-
+                    scale = attributes.get('parent_scale')
+                    if scale:
+                        self.scale = scale # JWDJ: older version of abcm2ps use page scaling of 0.75
                 if name == 'text':
                     text = u''
                     # 1.3.6.3 [JWDJ] 2015-3 fixes !sfz! (z in sfz was missing)
@@ -204,27 +214,11 @@ class SvgPage(object):
         return result
 
     def process_xml_tree(self):
-        self.scale = 1.0
-        scale_found = False
-
         # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
         self.base_color = self.svg.attrib.get('color', self.base_color)
 
         # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
         for element in self.svg.getiterator():
-            if not scale_found:
-                transform = element.get('transform')
-                if transform and element.tag == group_tag:
-                    m = self.renderer.scale_re.match(transform)
-                    if m:
-                        try:
-                            s = float(m.group(1))
-                            scale_found = True
-                            if 0.2 < s <= 3.0:
-                                self.scale = s
-                        except ValueError:
-                            pass
-
             desc = None
             # last_desc = None
             #Not selection does not work properly as structure of svg file as changed.
@@ -378,9 +372,10 @@ class SvgRenderer(object):
             raise
 
     def clear(self):
-        dc = wx.MemoryDC(self.buffer)        
-        dc.SetBackground(wx.WHITE_BRUSH)
-        dc.Clear()
+        if self.buffer:
+            dc = wx.MemoryDC(self.buffer)
+            dc.SetBackground(wx.WHITE_BRUSH)
+            dc.Clear()
 
     def draw(self, page, clear_background=True, dc=None):
         dc = dc or wx.MemoryDC(self.buffer)
