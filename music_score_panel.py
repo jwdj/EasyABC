@@ -38,14 +38,9 @@ class MusicScorePanel(wx.ScrolledWindow):
         # 1.3.6.2 [JWdJ] 2015-02-14 hook events after initializing to prevent unnecessary redraws
         self.need_redraw = True
         self.redrawing = False
-        self.is_initialized = False
         # self.redraw_counter = 0
-
-    def initialize_for_new_page(self):
-        if not self.is_initialized:
-            self.Bind(wx.EVT_SIZE, self.OnSize)
-            self.Bind(wx.EVT_PAINT, self.OnPaint)
-            self.is_initialized = True
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def reset_scrolling(self):
         self.SetVirtualSize((self.buffer_width, self.buffer_height))
@@ -192,26 +187,30 @@ class MusicScorePanel(wx.ScrolledWindow):
         if w != self.renderer.min_width or h != self.renderer.min_height:
             self.renderer.min_width = w
             self.renderer.min_height = h
-            self.renderer.update_buffer(self.current_page)
-            self.redraw()
+            if self.current_page:
+                self.renderer.update_buffer(self.current_page)
+                self.redraw()
         
     def OnPaint(self, evt):
         # The buffer already contains our drawing, so no need to
         # do anything else but create the buffered DC.  When this
         # method exits and dc is collected then the buffer will be
         # blitted to the paint DC automagically
-        if self.need_redraw:
-            self.Draw()
-            self.need_redraw = False            
         ##if wx.Platform == "__WXMSW__":
         ##    dc = wx.BufferedPaintDC(self, self.renderer.buffer, wx.BUFFER_VIRTUAL_AREA)
         ##else:
         dc = wx.PaintDC(self)
         self.PrepareDC(dc)
-        dc.DrawBitmap(self.renderer.buffer, 0, 0)
+        if self.current_page:
+            if self.need_redraw:
+                self.Draw()
+                self.need_redraw = False
+            dc.DrawBitmap(self.renderer.buffer, 0, 0)
+        else:
+            dc.SetBackground(wx.WHITE_BRUSH)
+            dc.Clear()
 
     def set_page(self, page):
-        self.initialize_for_new_page()
         self.current_page = page
         self.redraw()
 
@@ -221,10 +220,13 @@ class MusicScorePanel(wx.ScrolledWindow):
         self.Refresh()
 
     def redraw(self):
-        if self.redrawing or not self.is_initialized:
+        if self.redrawing:
             return
 
         page = self.current_page
+        if page is None:
+            return
+
         z = self.renderer.zoom
         w, h = int(page.svg_width*z), int(page.svg_height*z)
         self.redrawing = True
