@@ -413,7 +413,7 @@ class MusicScorePanel(wx.ScrolledWindow):
                 gc.Scale(z, z)
                 self.draw_drag_rect(gc)
                 self.renderer.zoom = z
-                self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
+                self.renderer.draw(page=self.current_page, clear_background=False)
                 ##self.draw_svg(gc)
                 ##td = datetime.now() - t
             finally:
