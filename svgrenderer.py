@@ -219,40 +219,23 @@ class SvgPage(object):
 
         # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
         for element in self.svg.getiterator():
-            desc = None
-            # last_desc = None
-            #Not selection does not work properly as structure of svg file as changed.
             last_e_use = []
             # 1.3.6.3 [JWDJ] 2015-3 use iter() because getchildren is deprecated
             for e in element.iter():
-                href = e.get(href_tag)
-                if e.tag == abc_tag and e.get('type') in ['N', 'R']: #, 'B']:  # if note/rest meta-data
+                if e.tag == use_tag:
+                    if e.get('id') is None: # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
+                        href = e.get(href_tag)
+                        if href not in ['#hl', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
+                            last_e_use.append(e)
+                elif e.tag == abc_tag:
                     atype = e.get('type')
-                    row, col = int(e.get('row')), int(e.get('col'))
-                    x, y, width, height = [float(e.get(x)) for x in ('x', 'y', 'width', 'height')]
-                    desc = (atype, row, col, x, y, width, height)
-                    last_desc = desc
-                    for e_use in last_e_use:
-                        e_use.set('desc', desc)
+                    if atype in ['N', 'R']: #, 'B']:  # if note/rest meta-data
+                        row, col = int(e.get('row')), int(e.get('col'))
+                        x, y, width, height = [float(e.get(x)) for x in ('x', 'y', 'width', 'height')]
+                        desc = (atype, row, col, x, y, width, height)
+                        for e_use in last_e_use:
+                            e_use.set('desc', desc)
                     last_e_use = []
-#                elif desc and (e.tag == use_tag and href != '#hl' or
-#                               e.tag == path_tag and desc[0] == 'B'):
-#                    e.set('desc', desc)
-#                    desc = None
-#                elif href and e.tag == use_tag and href in ('#hl','#hl1','#hl2','#hd','#Hd','#HD','#HDD','#breve','#longa'):
-#                    e.set('desc', last_desc)
-                elif desc and (e.tag == use_tag and href != '#hl'):
-                    desc = None
-                    last_e_use.append(e)
-                elif href and e.tag == use_tag and href in ('#hl','#hl1','#hl2','#hd','#Hd','#HD','#HDD','#breve','#longa'):
-                    last_e_use.append(e)
-            # 1.3.6.2 [JWdJ] 2015-02-14 width and height already known through viewbox attribute
-            #max_x = max(max_x, float(element.get('x', 0.0)))
-            #max_y = max(max_y, float(element.get('y', 0.0)))
-        #print 'max_y=', max_y, 'zoom=', self.zoom
-
-        #self.svg_height = (max_y + 25) * self.scale    # the 25 is just some extra margin in case there is some line that goes beyond its starting position
-        #self.svg_width  = (max_x + 25) * self.scale    # same thing here
 
     def hit_test(self, x, y, return_closest_hit=False):
         min_dist = 9999999
