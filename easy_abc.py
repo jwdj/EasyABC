@@ -1547,7 +1547,10 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     abclines = re.split('\r\n|\r|\n', abc_code) # 1.3.6.3 [JWDJ] 2015-04-17 split abc_code without header
 
-    if add_midi_program_extra_line or add_midi_gchord_extra_line or add_midi_introduction:
+    # 1.3.7.0 [SS] 2016-01-05 
+    # always add %%MIDI control 7 so user can control volume of melody
+    #if add_midi_program_extra_line or add_midi_gchord_extra_line or add_midi_introduction:
+    if True:  # 1.3.7.0 [SS] 2016-01-05 
         list_voice=[] # keeps track of the voices we have already seen
         new_abc_lines=[] # contains the new processed abc tune
         voice=0
@@ -1679,6 +1682,8 @@ def abc_to_midi(abc_code, settings, midi_file_name):
         if stdout_value:
             stdout_value = re.sub(r'(?m)(writing MIDI file .*\r?\n?)', '', stdout_value)
         if process.returncode != 0:
+            # 1.3.7.0 [SS] 2016-01-06
+            execmessages += '\nAbcToMidi exited abnormally (errorcode %#8x)' % (process.returncode & 0xffffffff)
             return None
 
         #if humanize:
@@ -7175,8 +7180,11 @@ class MainFrame(wx.Frame):
         # 1.3.6 [SS] 2014-11-15 2014-12-08
         self.current_midi_tune = AbcToMidi(abc, tune.header ,self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
         self.applied_tempo_multiplier = tempo_multiplier
-        self.midi_tunes.add(self.current_midi_tune)
-        midi_file = self.current_midi_tune.midi_file
+        # 1.3.7 [SS] 2016-01-05 in case abc2midi crashes
+        midi_file = None
+        if self.current_midi_tune:
+            self.midi_tunes.add(self.current_midi_tune)
+            midi_file = self.current_midi_tune.midi_file
 
         if midi_file:
             # p09 an option in case you have trouble playing midi files.

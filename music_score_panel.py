@@ -187,7 +187,7 @@ class MusicScorePanel(wx.ScrolledWindow):
         if w != self.renderer.min_width or h != self.renderer.min_height:
             self.renderer.min_width = w
             self.renderer.min_height = h
-            if self.current_page:
+            if self.current_page != self.renderer.empty_page:
                 self.renderer.update_buffer(self.current_page)
                 self.redraw()
         
@@ -201,7 +201,7 @@ class MusicScorePanel(wx.ScrolledWindow):
         ##else:
         dc = wx.PaintDC(self)
         self.PrepareDC(dc)
-        if self.current_page:
+        if self.current_page != self.renderer.empty_page:
             if self.need_redraw:
                 self.Draw()
                 self.need_redraw = False
@@ -408,14 +408,13 @@ class MusicScorePanel(wx.ScrolledWindow):
             try:
                 dc.SetBackground(wx.WHITE_BRUSH)
                 dc.Clear()
-                gc = wx.GraphicsContext.Create(dc)        
-                z = self.renderer.zoom
-                gc.Scale(z, z)
-                self.draw_drag_rect(gc)
-                self.renderer.zoom = z
-                self.renderer.draw(page=self.current_page, clear_background=False)
-                ##self.draw_svg(gc)
-                ##td = datetime.now() - t
+                if self.current_page != self.renderer.empty_page:
+                    gc = wx.GraphicsContext.Create(dc)        
+                    z = self.renderer.zoom
+                    gc.Scale(z, z)
+                    self.draw_drag_rect(gc)
+                    self.renderer.zoom = z
+                    self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
             finally:
                 dc.EndDrawing()
         except Exception as e:
