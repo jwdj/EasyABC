@@ -646,10 +646,8 @@ class SvgRenderer(object):
             x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
             element_id = attr[href_tag][1:]
             # abcm2ps specific:
-            if 'desc' in svg_element.attributes and svg_element.attributes['desc']: ## and ('note' in svg_element.attributes['desc'] or
-                                                 ##    'grace' in svg_element.attributes['desc']):
-                desc = svg_element.attributes['desc']
-
+            desc = svg_element.attributes.get('desc')
+            if desc:
                 matrix_inv = self.renderer.CreateMatrix(*dc.GetTransform().Get())  #*self.get_transform(transform).Get())
                 matrix_inv.Invert()
                 matrix_inv.Concat(self.default_transform)   # the default transform on mac is not the identity matrix - the y-coordinates goes the other direction
