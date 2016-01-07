@@ -195,15 +195,8 @@ class SvgPage(object):
                     if scale:
                         self.scale = scale # JWDJ: older version of abcm2ps use page scaling of 0.75
                 if name == 'text':
-                    text = u''
                     # 1.3.6.3 [JWDJ] 2015-3 fixes !sfz! (z in sfz was missing)
-                    #for e in element.iter():
-                    #    print e.text
-                    #    if e.tag == tspan_tag:
-                    #        text = text + (e.text or '')
-                    for t in element.itertext():
-                        text += t
-
+                    text = u''.join(element.itertext())
                     text = text.replace('\n', '')
                     ##text = text.replace('(= )show ', ' = ')  # Temporary work-around for abcm2ps6.3.3 bug
                     svg_element.attributes['text'] = text
@@ -399,16 +392,15 @@ class SvgRenderer(object):
             
         #self.buffer.SaveFile('DC.png', wx.BITMAP_TYPE_PNG)
 
-    def parse_path(self, svg_path):
+    def parse_path(self, svg_path_str):
         ''' Translates the path data in the svg file to instructions for drawing
             on the music pane.  
         '''
         # 1.3.6.3 [JWDJ] 2015-3 search cache once instead of twice
-        path = self.path_cache.get(svg_path)
+        path = self.path_cache.get(svg_path_str)
         if path is None:
-            original_svg_path = svg_path
             svg_path = deque(try_convert_to_float(m[0]) for m in
-                             self.path_part_re.findall(svg_path) if m[0].strip())
+                             self.path_part_re.findall(svg_path_str) if m[0].strip())
             path = self.renderer.CreatePath()
             last_cmd = None
             while svg_path:
@@ -416,7 +408,7 @@ class SvgRenderer(object):
                     cmd = last_cmd
                 else:
                     cmd = svg_path.popleft()
-                if cmd == cmd.lower():
+                if cmd.islower():
                     curx, cury = path.GetCurrentPoint()
 
                 if cmd == 'M':
@@ -456,13 +448,13 @@ class SvgRenderer(object):
                     # if sweep_flag and rx == ry:
                     #    path.AddArc(x, y, rx, startAngle, endAngle, clockwise)
                     # else:
-                    path.AddEllipse(x-rx*2, y-ry*2, rx*2, ry*2)
+                    path.AddEllipse(x-(rx+rx), y-(ry+ry), rx+rx, ry+ry)
                 elif cmd == 'z':
                     path.CloseSubpath()
                 else:
-                    raise Exception('unknown svg command "%s" in path: %s' % (cmd, original_svg_path))
+                    raise Exception('unknown svg command "%s" in path: %s' % (cmd, svg_path_str))
                 last_cmd = cmd
-            self.path_cache[original_svg_path] = path
+            self.path_cache[svg_path_str] = path
         return path
 
     # 1.3.6.2 [JWdJ] not used 
@@ -584,8 +576,7 @@ class SvgRenderer(object):
             return
 
         attr = svg_element.attributes
-        transform = svg_element.attributes.get('transform')
-
+        transform = attr.get('transform')
         if transform:
             dc.PushState()
             self.do_transform(dc, transform)
@@ -640,13 +631,13 @@ class SvgRenderer(object):
             cx, cy, rx, ry = attr.get('cx', 0), attr.get('cy', 0), attr['rx'], attr['ry']
             cx, cy, rx, ry = map(float, (cx, cy, rx, ry))
             path = dc.CreatePath()
-            path.AddEllipse(cx-rx, cy-ry, rx*2, ry*2)
+            path.AddEllipse(cx-rx, cy-ry, rx+rx, ry+ry)
             dc.DrawPath(path)
         elif name == 'use':
             x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
             element_id = attr[href_tag][1:]
             # abcm2ps specific:
-            desc = svg_element.attributes.get('desc')
+            desc = attr.get('desc')
             if desc:
                 matrix_inv = self.renderer.CreateMatrix(*dc.GetTransform().Get())  #*self.get_transform(transform).Get())
                 matrix_inv.Invert()
@@ -667,9 +658,6 @@ class SvgRenderer(object):
 
             dc.PushState()
             dc.Translate(x, y)
-
-            #if 'desc' in svg_element.attributes:
-            #    print svg_element, svg_element.attributes['desc']
             self.draw_svg_element(page, dc, page.id_to_element[element_id], highlight, current_color)
             dc.PopState()
 
