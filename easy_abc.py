@@ -274,7 +274,8 @@
 #   OnExportAllEpub(), OnExportAllPDF(),
 #   OnMusicPaneDoubleClick(), OnMusicPaneKeyDown(), OnRightClickList(),
 #   OnInsertSymbol(),  OnToolPlay(), OnToolPlayLoop(),
-#   OnToolRefresh(), OnToolAddTune(), OnToolDynamics(),
+#   OnToolRefresh(), OnToolAbcAssist(), UpdateAbcAssistSetting(),
+#   __onPaneClose(), OnToolAddTune(), OnToolDynamics(),
 #   OnToolOrnamentation(), OnToolDirections(), CanClose(),
 #   OnNew(),  OnOpen(),  OnImport(), get_encoding(),
 #   load_or_import(), load(), ask_save(), save(),
@@ -3990,7 +3991,7 @@ class MainFrame(wx.Frame):
         self.error_msg.SetFont(wx.Font(error_font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New"))
         self.error_pane = aui.AuiPaneInfo().Name("error message").Caption(_("ABC errors")).CloseButton(True).BestSize((160, 80)).Bottom()
         self.error_pane.Hide()
-        self.error_msg.Hide()
+        self.error_msg.Hide() # 1.3.7 [JWdJ] 2016-01-06
 
          # 1.3.6.3 [JWdJ] 2015-04-21 ABC Assist added
         self.abc_assist_panel = AbcAssistPanel(self, self.editor, cwd)
@@ -4087,6 +4088,7 @@ class MainFrame(wx.Frame):
 
         self.OnClearCache(None) # P09 2014-10-26
 
+        # 1.3.7 [JWdJ] 2016-01-06
         self.ShowAbcAssist(self.settings.get('show_abc_assist', False))
 
         # 1.3.6.3 [SS] 2015-05-04
@@ -5467,6 +5469,7 @@ class MainFrame(wx.Frame):
         self.OnTuneSelected(None)
 
     def OnToolAbcAssist(self, evt):
+        # 1.3.7 [JWdJ] 2016-01-06
         pane = self.manager.GetPane(self.abc_assist_panel)
         shown = self.abc_assist_panel.IsShown() and pane.IsOk()
         if shown:
@@ -5481,6 +5484,7 @@ class MainFrame(wx.Frame):
         else:
             self.ShowAbcAssist(not shown)
 
+    # 1.3.7 [JWdJ] 2016-01-06
     def ShowAbcAssist(self, show):
         pane = self.manager.GetPane(self.abc_assist_panel)
         if show:
@@ -5512,6 +5516,7 @@ class MainFrame(wx.Frame):
                 offset = editor_x - assist_x, editor_y - assist_y
                 pane.FloatingPosition((editor_x + offset[0] - w, editor_y + offset[1]))
                 self.manager.Update()
+            # 1.3.7 [JWdJ] 2016-01-06
             pane.Dockable(not pane.IsFloating()) # JWDJ: moving a floating abc-assist must not try to dock it again
         else:
             if self.abc_assist_panel.IsShown():
@@ -6586,6 +6591,7 @@ class MainFrame(wx.Frame):
         is_string_style = self.styler.STYLE_STRING
         is_default_style = (style in [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE])
 
+        # 1.3.7 [JWdJ] 2016-01-06
         if self.current_svg_tune and evt.KeyCode in [wx.WXK_PAGEDOWN, wx.WXK_PAGEUP, wx.WXK_HOME, wx.WXK_END]:
             # 1.3.7.0 [JWdJ] 2015-12 Added shortcuts to navigate through pages
             if evt.KeyCode == wx.WXK_HOME and evt.GetModifiers() == (wx.MOD_ALT + wx.MOD_CONTROL):
@@ -6852,6 +6858,7 @@ class MainFrame(wx.Frame):
         lines = re.split('\r\n|\r|\n', abc_up_to_selection)
         default_len = Fraction(1, 8)
         metre = Fraction(4, 4)
+        # 1.3.7 [JWdJ] 2016-01-06
         meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
         for line in lines:
             m = re.match(r'^L:\s*(\d+)/(\d+)', line)
@@ -6859,6 +6866,7 @@ class MainFrame(wx.Frame):
                 default_len = Fraction(int(m.group(1)), int(m.group(2)))
             m = re.search(r'^{0}'.format(meter_pattern), line)
             if m:
+                # 1.3.7 [JWdJ] 2016-01-06
                 if m.group(1) is not None:
                     metre = Fraction(int(m.group(1)), int(m.group(2)))
                 elif m.group(3) == 'C':
@@ -7214,12 +7222,14 @@ class MainFrame(wx.Frame):
         pane = self.manager.GetPane('error message')
 
         if old_err and not error_msg:
+            # 1.3.7 [JWdJ] 2016-01-06
             self.error_msg.Hide()
             if pane.IsOk():
                 self.manager.DetachPane(pane)
                 pane.Hide()
             self.manager.Update()
         elif not old_err and error_msg:
+            # 1.3.7 [JWdJ] 2016-01-06
             if not self.error_pane.IsOk():
                 self.manager.AddPane(self.error_msg, self.error_pane)
                 pane = self.manager.GetPane('error message')
