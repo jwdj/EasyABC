@@ -12,6 +12,7 @@ import urllib
 import webbrowser
 from fraction import Fraction
 #import urlparse
+from aligner import bar_sep, get_bar_length
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
 
@@ -155,7 +156,7 @@ class ValueChangeAction(AbcAction):
 
     def is_action_allowed(self, context):
         valid_sections = self.valid_sections
-        if valid_sections is None:
+        if valid_sections is None and context.current_element:
            valid_sections = context.current_element.valid_sections
         if valid_sections is not None:
             if isinstance(valid_sections, list):
@@ -200,6 +201,13 @@ class ValueChangeAction(AbcAction):
 
     def get_values_html(self, context):
         rows = []
+        show_value_column = False
+        for value in self.get_values(context):
+            if isinstance(value, ValueDescription):
+                if value.show_value:
+                    show_value_column = True
+                    break
+
         for value in self.get_values(context):
             if isinstance(value, (CodeDescription, ValueDescription, CodeImageDescription, ValueImageDescription)):
                 if value.common:
@@ -210,8 +218,11 @@ class ValueChangeAction(AbcAction):
                     if can:
                         action_url = self.get_action_url(params)
                     columns = []
-                    if value.show_value: #isinstance(value, (CodeDescription, CodeImageDescription)):
-                        columns += [html_enclose('code', escape(value.value))]
+                    if show_value_column:
+                        if value.show_value: #isinstance(value, (CodeDescription, CodeImageDescription)):
+                            columns += [html_enclose('code', escape(value.value))]
+                        else:
+                            columns += [html_enclose('code', '')]
 
                     if isinstance(value, ValueImageDescription):
                         image_html = ''
@@ -308,6 +319,12 @@ class ConvertToAnnotationAction(AbcAction):
     def execute(self, context, params=None):
         annotation = '^' + context.get_matchgroup(self.matchgroup)
         context.replace_match_text(annotation, matchgroup=self.matchgroup)
+
+
+class DirectiveChangeAction(ValueChangeAction):
+    def __init__(self, directive_name, name, supported_values, valid_sections=None, display_name=None, matchgroup=None):
+        super(DirectiveChangeAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
+        self.directive_name = directive_name
 
 
 ##################################################################################################
@@ -435,17 +452,11 @@ class PitchAction(ValueChangeAction):
 
 class DurationAction(ValueChangeAction):
     denominator_re = re.compile('/(\d*)')
-    duration_values = [
-        CodeDescription('', _('Default length')),
-        CodeDescription('/', _('Halve note length')),
-        CodeDescription('2', _('Double note length')),
-        CodeDescription('3', _('Dotted note')),
-        CodeDescription('>', _('This note dotted, next note halved')),
-        CodeDescription('<', _('This note halved, next note dotted')),
-        CodeDescription('-', _('Tie / untie'))
-    ]
-    def __init__(self):
-        super(DurationAction, self).__init__('Change duration', DurationAction.duration_values)
+    def __init__(self, values):
+        super(DurationAction, self).__init__('Change duration', values)
+        self.max_length_denominator = 128
+        self.max_length_numerator = 16
+        self.fraction_allowed = True
 
     @staticmethod
     def length_to_fraction(length):
@@ -476,24 +487,50 @@ class DurationAction(ValueChangeAction):
         value = params.get('value')
         if not value:
             return context.get_matchgroup('pair') or context.get_matchgroup('length')
+        elif value == '1':
+            return context.get_matchgroup('length')
         elif value == '-':
             return context.get_matchgroup('rest') is None # a rest can not have a tie, chord and note can
         elif value in '<>':
             return True # not value in context.get_matchgroup('pair', '')
+        elif value in ['z', 'Z']:
+            return True
         else:
             frac = self.length_to_fraction(context.get_matchgroup('length'))
             if value == '/':
-                return frac.denominator < 128
-            elif value == '2':
-                return frac.numerator < 16
+                if self.fraction_allowed:
+                    return frac.denominator < self.max_length_denominator
+                else:
+                    return frac.numerator > 1 and frac.numerator % 2 == 0
+            elif value in ['2', '+']:
+                return frac.numerator < self.max_length_numerator
             elif value == '3':
                 return self.is_power2(frac.numerator) and self.is_power2(frac.denominator)
+            elif value == '=':
+                return frac.numerator > 1
+
 
     def execute(self, context, params=None):
         value = params.get('value')
         if not value:
             context.replace_matchgroups([('length', ''), ('pair', '')])
-        elif value in '/23':
+        elif value == 'Z':
+            match = context.get_matchgroup('rest')
+            if match == 'z':
+                new_value = 'Z'
+            elif match == 'x':
+                new_value = 'X'
+            context.replace_matchgroups([('rest', new_value), ('length', ''), ('pair', '')])
+        elif value == 'z':
+            match = context.get_matchgroup('rest')
+            if match == 'Z':
+                new_value = 'z'
+            elif match == 'X':
+                new_value = 'x'
+            context.replace_matchgroups([('rest', new_value), ('length', '')])
+        elif value == '1':
+            context.replace_matchgroups([('length', '')])
+        elif value in '/23+=':
             frac = self.length_to_fraction(context.get_matchgroup('length'))
             if value == '/':
                 frac.denominator *= 2
@@ -502,6 +539,10 @@ class DurationAction(ValueChangeAction):
             elif value == '3':
                 frac.numerator *= 3
                 frac.denominator *= 2
+            elif value == '+':
+                frac += 1
+            elif value == '=':
+                frac -= 1
             frac.reduce()
 
             if frac.numerator == 1:
@@ -531,6 +572,65 @@ class DurationAction(ValueChangeAction):
                 context.replace_match_text('', matchgroup='tie')
             else:
                 context.replace_match_text(value, matchgroup='tie')
+
+
+class MeasureRestDurationAction(DurationAction):
+    values = [
+        ValueDescription('1', _('One measure')),
+        ValueDescription('2', _('Double measures')),
+        ValueDescription('/', _('Half measures')),
+        ValueDescription('+', _('Increase measures')),
+        ValueDescription('=', _('Decrease measures')),
+        CodeDescription('z', _('Normal rest'))
+    ]
+    def __init__(self):
+        super(MeasureRestDurationAction, self).__init__(MeasureRestDurationAction.values)
+        self.max_length_denominator = 1
+        self.max_length_numerator = 64
+        self.fraction_allowed = False
+
+
+class NoteDurationAction(DurationAction):
+    values = [
+        CodeDescription('', _('Default length')),
+        CodeDescription('/', _('Halve note length')),
+        CodeDescription('2', _('Double note length')),
+        CodeDescription('3', _('Dotted note')),
+        CodeDescription('>', _('This note dotted, next note halved')),
+        CodeDescription('<', _('This note halved, next note dotted')),
+        CodeDescription('-', _('Tie / untie'))
+    ]
+    def __init__(self):
+        super(NoteDurationAction, self).__init__(NoteDurationAction.values)
+
+
+class RestDurationAction(DurationAction):
+    values = [
+        CodeDescription('', _('Default length')),
+        CodeDescription('/', _('Halve note length')),
+        CodeDescription('2', _('Double note length')),
+        CodeDescription('3', _('Dotted note')),
+        CodeDescription('>', _('This note dotted, next note halved')),
+        CodeDescription('<', _('This note halved, next note dotted')),
+        CodeDescription('Z', _('Whole measure'))
+    ]
+    def __init__(self):
+        super(RestDurationAction, self).__init__(RestDurationAction.values)
+
+
+#class MeasureRestDurationChangeAction(ValueChangeAction):
+#    values = [
+#        CodeDescription('',  _('One measure')),
+#        CodeDescription('2',  _('Two measures')),
+#        CodeDescription('3',  _('Three measures')),
+#        CodeDescription('4',  _('Four measures')),
+#        CodeDescription('5',  _('Five measures'), common=False),
+#        CodeDescription('6',  _('Six measures'), common=False),
+#        CodeDescription('7',  _('Seven measures'), common=False),
+#        CodeDescription('8',  _('Eight measures'), common=False)
+#    ]
+#    def __init__(self):
+#        super(MeasureRestDurationChangeAction, self).__init__('Change duration', MeasureRestDurationChangeAction.values, 'measures')
 
 
 class AnnotationPositionAction(ValueChangeAction):
@@ -578,22 +678,7 @@ class MeasureRestVisibilityChangeAction(ValueChangeAction):
         CodeDescription('X',  _('Hidden')),
     ]
     def __init__(self):
-        super(MeasureRestVisibilityChangeAction, self).__init__('Visibility', MeasureRestVisibilityChangeAction.values, 'measurerest')
-
-
-class MeasureRestDurationChangeAction(ValueChangeAction):
-    values = [
-        CodeDescription('',  _('One measure')),
-        CodeDescription('2',  _('Two measures')),
-        CodeDescription('3',  _('Three measures')),
-        CodeDescription('4',  _('Four measures')),
-        CodeDescription('5',  _('Five measures'), common=False),
-        CodeDescription('6',  _('Six measures'), common=False),
-        CodeDescription('7',  _('Seven measures'), common=False),
-        CodeDescription('8',  _('Eight measures'), common=False)
-    ]
-    def __init__(self):
-        super(MeasureRestDurationChangeAction, self).__init__('Change duration', MeasureRestDurationChangeAction.values, 'measures')
+        super(MeasureRestVisibilityChangeAction, self).__init__('Visibility', MeasureRestVisibilityChangeAction.values, 'rest')
 
 
 class AppoggiaturaOrAcciaccaturaChangeAction(ValueChangeAction):
@@ -696,6 +781,7 @@ class KeySignatureChangeAction(KeyChangeAction):
                 new_value += mode_idx
                 tonic = KeyChangeAction._key_ladder[new_value]
                 context.replace_match_text(tonic, matchgroup='tonic')
+
 
 class KeyModeChangeAction(KeyChangeAction):
     values = [
@@ -943,7 +1029,7 @@ class NewTuneAction(AbcAction):
         super(NewTuneAction, self).__init__('abc_new_tune', display_name=_('New tune'))
 
     def can_execute(self, context, params=None):
-        return context.previous_line is None or context.current_element.matches_text(context, context.previous_line) is not None
+        return context.abc_section in [AbcSection.FileHeader, AbcSection.OutsideTune]
 
     def execute(self, context, params=None):
         last_tune_id = 0
@@ -993,20 +1079,16 @@ class FixCharactersAction(AbcAction):
         context.replace_selection(new_text, scope_info.start, scope_info.start + len(text.encode('utf-8')))
 
 
-class NewNoteAction(InsertValueAction):
-    values = ['C D E F G A B c d e f g a b'.split(' ')]
+class NewNoteOrRestAction(InsertValueAction):
+    values = ['z C D E F G A B c d e f g a b'.split(' ')]
     def __init__(self):
-        super(NewNoteAction, self).__init__('New note', supported_values=NewNoteAction.values, valid_sections=AbcSection.TuneBody)
+        super(NewNoteOrRestAction, self).__init__('New note/rest', supported_values=NewNoteOrRestAction.values, valid_sections=AbcSection.TuneBody)
 
-
-class NewRestAction(InsertValueAction):
-    values = [
-        CodeDescription('z', _('Normal rest')),
-        CodeDescription('Z', _('Measure rest')),
-        CodeDescription('x', _('Invisible rest'), common=False),
-    ]
-    def __init__(self):
-        super(NewRestAction, self).__init__('New rest', supported_values=NewRestAction.values, valid_sections=AbcSection.TuneBody)
+    def execute(self, context, params=None):
+        value = params['value']
+        if AddBarAction.is_bar_expected(context):
+            value = AddBarAction.get_bar_value(context) + value
+        context.insert_text(value)
 
 
 class InsertOptionalAccidental(InsertValueAction):
@@ -1043,6 +1125,82 @@ class AddSlurAction(AbcAction):
 
     def execute(self, context, params=None):
         context.replace_match_text('({0})'.format(context.match_text))
+
+
+class AddBarAction(AbcAction):
+    def __init__(self):
+        super(AddBarAction, self).__init__('Add bar')
+
+    def can_execute(self, context, params=None):
+        return self.is_action_allowed(context)
+
+    def execute(self, context, params=None):
+        text = self.get_bar_value(context)
+        context.insert_text(text)
+
+    @staticmethod
+    def get_bar_value(context):
+        prev_char = context.get_scope_info(TuneScope.PreviousCharacter).text
+        next_char = context.get_scope_info(TuneScope.NextCharacter).text
+        pre_space = ''
+        post_space = ''
+        if prev_char not in ' \r\n:':
+            pre_space = ' '
+        if next_char != ' ':
+            post_space = ' '
+        return '{0}|{1}'.format(pre_space, post_space)
+
+    @staticmethod
+    def is_action_allowed(context):
+        if not context.abc_section in [AbcSection.TuneBody]:
+            return False
+
+    @staticmethod
+    def get_metre_and_default_length(abc):
+        lines = re.split('\r\n|\r|\n', abc)
+        default_len = Fraction(1, 8)
+        metre = Fraction(4, 4)
+        # 1.3.7 [JWdJ] 2016-01-06
+        meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
+        for line in lines:
+            m = re.match(r'^L:\s*(\d+)/(\d+)', line)
+            if m:
+                default_len = Fraction(int(m.group(1)), int(m.group(2)))
+            m = re.search(r'^{0}'.format(meter_pattern), line)
+            if m:
+                # 1.3.7 [JWdJ] 2016-01-06
+                if m.group(1) is not None:
+                    metre = Fraction(int(m.group(1)), int(m.group(2)))
+                elif m.group(3) == 'C':
+                    metre = Fraction(4, 4)
+                elif m.group(3) == 'C|':
+                    metre = Fraction(2, 2)
+            for m in re.finditer(r'\[{0}\]'.format(meter_pattern), line):
+                if m.group(1) is not None:
+                    metre = Fraction(int(m.group(1)), int(m.group(2)))
+                elif m.group(3) == 'C':
+                    metre = Fraction(4, 4)
+                elif m.group(3) == 'C|':
+                    metre = Fraction(2, 2)
+            for m in re.finditer(r'\[L:\s*(\d+)/(\d+)\]', line):
+                default_len = Fraction(int(m.group(1)), int(m.group(2)))
+        return metre, default_len
+
+    @staticmethod
+    def is_bar_expected(context):
+        text = context.get_scope_info(TuneScope.BodyUpToSelection).text
+        last_bar_offset = max([0] + [m.end(0) for m in bar_sep.finditer(text)])  # offset of last bar symbol
+        text = text[last_bar_offset:]  # the text from the last bar symbol up to the selection point
+        metre, default_len = AddBarAction.get_metre_and_default_length(context.get_scope_info(TuneScope.TuneUpToSelection).text)
+
+        if re.match(r"^[XZ]\d*$", text):
+            duration = metre
+        else:
+            duration = get_bar_length(text, default_len, metre)
+
+        result = duration >= metre
+        return result
+
 
 
 class CombineToChordAction(AbcAction):
@@ -1084,14 +1242,37 @@ class PageFormatDirectiveChangeAction(ValueChangeAction):
         super(PageFormatDirectiveChangeAction, self).__init__('Change page format', PageFormatDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
 
 
-class MeasureDirectiveChangeAction(ValueChangeAction):
+class MeasureNumberingChangeAction(DirectiveChangeAction):
     values = [
-        ValueDescription('setbarnb', _('First measure number')),
-        ValueDescription('measurenb', _('Bar numbers every n measures')),
-        ValueDescription('measurebox', _('Box around measure numbers'))
+        ValueDescription('-1', _('None')),
+        ValueDescription('0', _('Left of staff')),
+        ValueDescription('1', _('Every bar')),
+        ValueDescription('2', _('Every 2 bars')),
+        ValueDescription('4', _('Every 4 bars')),
+        ValueDescription('5', _('Every 5 bars')),
+        ValueDescription('8', _('Every 8 bars')),
+        ValueDescription('10', _('Every 10 bars'))
     ]
     def __init__(self):
-        super(MeasureDirectiveChangeAction, self).__init__('Change measure directive', MeasureDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+        super(MeasureNumberingChangeAction, self).__init__('measurenb', 'Show measure numbers', MeasureNumberingChangeAction.values, valid_sections=AbcSection.TuneHeader)
+
+
+class MeasureBoxChangeAction(DirectiveChangeAction):
+    values = [
+        ValueDescription('0', _('Normal')),
+        ValueDescription('1', _('Boxed'))
+    ]
+    def __init__(self):
+        super(MeasureBoxChangeAction, self).__init__('measurebox', 'Show measure box', MeasureBoxChangeAction.values, valid_sections=AbcSection.TuneHeader)
+
+
+class FirstMeasureNumberChangeAction(DirectiveChangeAction):
+    values = [
+        ValueDescription('0', _('Zero')),
+        ValueDescription('1', _('One'))
+    ]
+    def __init__(self):
+        super(FirstMeasureNumberChangeAction, self).__init__('setbarnb', 'First measure number', MeasureNumberingChangeAction.values, valid_sections=AbcSection.TuneHeader)
 
 
 class FontDirectiveChangeAction(ValueChangeAction):
@@ -1148,6 +1329,13 @@ class InsertAlignSymbolAction(InsertValueAction):
     def __init__(self):
         super(InsertAlignSymbolAction, self).__init__('Insert align symbol', InsertAlignSymbolAction.values)
 
+class ActionSeparator(AbcAction):
+    def __init__(self):
+        super(ActionSeparator, self).__init__('Separator')
+
+    def get_action_html(self, context):
+        return '<BR>'
+
 
 ##################################################################################################
 #  REMOVE ACTIONS
@@ -1189,14 +1377,14 @@ class AbcActionHandlers(object):
         self.default_action_handler = AbcActionHandler()
         self.action_handlers = {
             'Empty document'     : AbcActionHandler([NewTuneAction()]),
-            'Empty line'         : AbcActionHandler([NewTuneAction(), NewNoteAction(), NewRestAction()]),
-            'Whitespace'         : AbcActionHandler([NewNoteAction(), NewRestAction()]),
-            'Note'               : AbcActionHandler([NewNoteAction(), NewRestAction(), AccidentalChangeAction(), DurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
-            'Rest'               : AbcActionHandler([NewNoteAction(), NewRestAction(), DurationAction(), RestVisibilityChangeAction()]),
-            'Measure rest'       : AbcActionHandler([MeasureRestDurationChangeAction(), MeasureRestVisibilityChangeAction()]),
+            'Empty line'         : AbcActionHandler([NewTuneAction(), NewNoteOrRestAction()]),
+            'Whitespace'         : AbcActionHandler([NewNoteOrRestAction()]),
+            'Note'               : AbcActionHandler([NewNoteOrRestAction(), ActionSeparator(), AccidentalChangeAction(), NoteDurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
+            'Rest'               : AbcActionHandler([NewNoteOrRestAction(), ActionSeparator(), RestDurationAction(), RestVisibilityChangeAction()]),
+            'Measure rest'       : AbcActionHandler([NewNoteOrRestAction(), ActionSeparator(), MeasureRestDurationAction(), MeasureRestVisibilityChangeAction()]),
             'Bar'                : AbcActionHandler([BarChangeAction()]),
             'Annotation'         : AbcActionHandler([AnnotationPositionAction()]),
-            'Chord'              : AbcActionHandler([DurationAction(), ChordChangeAction()]),
+            'Chord'              : AbcActionHandler([NoteDurationAction(), ChordChangeAction()]),
             'Chord symbol'       : AbcActionHandler([ConvertToAnnotationAction()]),
             'Grace notes'        : AbcActionHandler([AppoggiaturaOrAcciaccaturaChangeAction()]),
             'Multiple notes'     : AbcActionHandler([AddSlurAction(), MakeTripletsAction(), CombineToChordAction()]),

@@ -1898,6 +1898,8 @@ class MusicUpdateThread(threading.Thread):
         while not self.want_abort:
             task = self.queue.get()
             self.queue.task_done()
+            tune_id = None
+            svg_files, error = [], u''
             try:
                 abc_code, abc_header = task
                 if not 'K:' in abc_code:
@@ -1915,9 +1917,13 @@ class MusicUpdateThread(threading.Thread):
                 # wx.PostEvent(self.notify_window, MusicUpdateDoneEvent(-1, (svg_files, error)))
                 # time.sleep(10.0)
                 # continue
+                error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))
+                print error_msg
                 pass
             except Exception as e:
                 svg_files, error = [], unicode(e)
+                error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))
+                print error_msg
                 pass
             svg_tune = SvgTune(abc_code, svg_files, error, tune_id=tune_id)
             wx.PostEvent(self.notify_window, MusicUpdateDoneEvent(-1, svg_tune))
@@ -6344,17 +6350,20 @@ class MainFrame(wx.Frame):
         # 1.3.6 [SS] 2014-11-16
         #files = [os.path.join(dir_name, f) for f in os.listdir(dir_name) if f.startswith('temp_') and f[-3:] in ('png', 'svg', 'abc', 'mid', 'idi')]
         files = [os.path.join(dir_name, f) for f in os.listdir(dir_name) if f.startswith('temp') and f[-3:] in ('png', 'svg', 'abc', 'mid', 'idi', 'pdf')]
-        total_size = sum(os.path.getsize(f) for f in files)
-        mb = float(total_size) / (1024**2)
 
         if evt is None: #PO9 2014-10-26
             result = wx.OK # remove cache silently
         else:
+            total_size = sum(os.path.getsize(f) for f in files)
+            mb = float(total_size) / (1024**2)
             result = wx.MessageBox(_("This will remove %(count)s temporary files stored in the directory %(dir)s that in total use %(size).2f MB of your disk space. Proceed?") % {'count': len(files), 'dir': dir_name, 'size': mb},
                                _("Clear cache?"), wx.ICON_QUESTION | wx.OK | wx.CANCEL)
         if result == wx.OK:
             for f in files:
-                os.remove(f)
+                try:
+                    os.remove(f)
+                except:
+                    pass
             self.svg_tunes.cleanup()
             self.midi_tunes.cleanup()
         self.OnToolRefresh(None)

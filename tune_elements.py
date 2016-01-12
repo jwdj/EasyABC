@@ -62,7 +62,7 @@ def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
-TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText')
+TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'TuneUpToSelection', 'BodyUpToSelection', 'BodyAfterSelection', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText', 'PreviousCharacter', 'NextCharacter')
 TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
@@ -579,9 +579,17 @@ class AbcEmptyDocument(AbcElement):
 class AbcEmptyLine(AbcElement):
     pattern = r'^\s*$'
     def __init__(self):
-        super(AbcEmptyLine, self).__init__('Empty line', description=_('An empty line is waiting to be filled. It is also a tune separator.'))
+        super(AbcEmptyLine, self).__init__('Empty line', description=_('An empty line separates tunes.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcEmptyLine.pattern
+
+
+class AbcEmptyLineWithinTune(AbcElement):
+    pattern = r'^\s*$'
+    def __init__(self):
+        super(AbcEmptyLineWithinTune, self).__init__('Empty line', description=_('Now you can add a note or rest.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[AbcSection.TuneBody] = AbcEmptyLine.pattern
 
 
 class AbcBodyElement(AbcElement):
@@ -793,7 +801,7 @@ class AbcBaseNote(AbcBodyElement):
     basic_rest_pattern = basic_rest_pattern_without_len + length_pattern
 
     basic_note_or_rest_pattern = '(?:{0}|{1})'.format(basic_note_pattern_without_len, basic_rest_pattern_without_len) + length_pattern
-    basic_measure_rest_pattern = '(?P<measurerest>[ZX])(?P<measures>(?:[1-9][0-9]*)?)'
+    basic_measure_rest_pattern = '(?P<rest>[ZX])(?P<length>(?:[1-9][0-9]*)?)'
 
     def __init__(self, name, pattern, description=None):
         super(AbcBaseNote, self).__init__(name, pattern, description=description)
@@ -858,7 +866,7 @@ class AbcNormalRest(AbcBaseNote):
 class AbcMeasureRest(AbcBaseNote):
     pattern = AbcBaseNote.basic_measure_rest_pattern
     def __init__(self):
-        super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern, _('This rest spans one or more measures.'))
+        super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern) # _('This rest spans one or more measures.')
         self.visible_match_group = 0
 
 
@@ -961,6 +969,7 @@ class AbcStructure(object):
         # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result = [
             AbcEmptyDocument(),
+            AbcEmptyLineWithinTune(),
             AbcEmptyLine(),
             directive,
             AbcComment(),
