@@ -2,9 +2,10 @@ from tune_elements import *
 import wx
 
 class AbcContext(object):
-    def __init__(self, editor, on_invalidate=None):
+    def __init__(self, editor, settings, on_invalidate=None):
         self._editor = editor
         self.on_invalidate = on_invalidate
+        self.settings = settings
         self.editor_sel_start, self.editor_sel_end = editor.GetSelection()
         self.current_element = None
         self._current_match = None

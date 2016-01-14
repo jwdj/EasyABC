@@ -50,12 +50,13 @@ class AbcAssistPanel(wx.Panel):
 """
     html_footer = "</body></html>"
 
-    def __init__(self, parent, editor, cwd):
+    def __init__(self, parent, editor, cwd, settings):
         wx.Panel.__init__(self, parent, -1)
         if wx.Platform == "__WXMSW__":
             self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         self._editor = editor
+        self.settings = settings
         self.context = None
         self.abc_section = None
         self.elements = AbcStructure.generate_abc_elements(cwd)
@@ -123,7 +124,7 @@ class AbcAssistPanel(wx.Panel):
 
     def update_assist(self):
         try:
-            self.context = AbcContext(self._editor, on_invalidate=self.update_assist)
+            self.context = AbcContext(self._editor, self.settings, on_invalidate=self.update_assist)
             element, match = self.get_current_element()
             self.context.current_element = element
             if element is not None:

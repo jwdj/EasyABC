@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.6.4 2015/12/23
+# EasyABC V1.3.7.0 2016/01/11
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+# V1.3.7.0
+# Incremental improvements and bug fixes.
 #
 # New V1.3.6.4
 # - Recent files menu
@@ -329,7 +331,7 @@
 
 
 
-program_name = 'EasyABC 1.3.6.4 2015-12-23'
+program_name = 'EasyABC 1.3.7.0 2016-01-11'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -4000,7 +4002,7 @@ class MainFrame(wx.Frame):
         self.error_msg.Hide() # 1.3.7 [JWdJ] 2016-01-06
 
          # 1.3.6.3 [JWdJ] 2015-04-21 ABC Assist added
-        self.abc_assist_panel = AbcAssistPanel(self, self.editor, cwd)
+        self.abc_assist_panel = AbcAssistPanel(self, self.editor, cwd, self.settings)
         self.assist_pane = aui.AuiPaneInfo().Name("abcassist").CaptionVisible(True).Caption(_("ABC assist")).\
             CloseButton(True).MinimizeButton(False).MaximizeButton(False).\
             Left().BestSize(265, 300) # .PaneBorder(False) # Fixed()

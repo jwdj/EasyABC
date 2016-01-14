@@ -85,6 +85,13 @@ def html_table(rows, headers=None, cellpadding=0, row_has_td=False, indent=0, wi
         attributes['width'] = width
     return html_enclose_attr('table', attributes, result)
 
+def html_image(image_name, description):
+    image_path = '{0}/img/{1}.png'.format(application_path, image_name)
+    image_html = ''
+    if os.path.exists(image_path):
+        image_html = '<img src="{0}" border="0" alt="{1}">'.format(path2url(image_path), description or '')
+    return image_html
+
 
 class AbcAction(object):
     def __init__(self, name, display_name=None, group=None):
@@ -121,8 +128,12 @@ class ValueChangeAction(AbcAction):
         self.use_inner_match = use_inner_match
         self.valid_sections = valid_sections
         self.relative_selection = None
+        self.show_non_common = False
 
     def can_execute(self, context, params=None):
+        show_non_common = params.get('show_non_common')
+        if show_non_common is not None:
+            return True
         value = params.get('value', '')
         return not self.is_current_value(context, value)
 
@@ -149,10 +160,15 @@ class ValueChangeAction(AbcAction):
             return TuneScope.MatchText
 
     def execute(self, context, params=None):
-        value = params.get('value', '')
-        context.replace_match_text(value, self.matchgroup, tune_scope=self.get_tune_scope())
-        if self.relative_selection is not None:
-            context.set_relative_selection(self.relative_selection)
+        show_non_common = params.get('show_non_common')
+        if show_non_common is not None:
+            self.show_non_common = show_non_common == 'True'
+            context.invalidate()
+        else:
+            value = params.get('value', '')
+            context.replace_match_text(value, self.matchgroup, tune_scope=self.get_tune_scope())
+            if self.relative_selection is not None:
+                context.set_relative_selection(self.relative_selection)
 
     def is_action_allowed(self, context):
         valid_sections = self.valid_sections
@@ -185,6 +201,7 @@ class ValueChangeAction(AbcAction):
         rows = []
         if self.display_name:
             row = html_enclose('b', escape(self.display_name))
+            row = self.add_options(row)
             rows.append(row)
 
         row = self.get_values_html(context)
@@ -193,6 +210,28 @@ class ValueChangeAction(AbcAction):
 
     def get_values(self, context):
         return self.supported_values
+
+    def contains_only_common(self, values):
+        for value in values:
+            if isinstance(value, ValueDescription):
+                if not value.common:
+                    return False
+            elif hasattr(value, '__iter__'):
+                if not self.contains_only_common(value):
+                    return False
+        return True
+
+    def add_options(self, row):
+        only_common = self.contains_only_common(self.supported_values)
+        if only_common:
+            return row
+        else:
+            action_url = self.get_action_url({'show_non_common': not self.show_non_common})
+            if self.show_non_common:
+                url_tuple = UrlTuple(action_url, html_image('arrow-up', _('Less options')))
+            else:
+                url_tuple = UrlTuple(action_url, html_image('arrow-down', _('More options')))
+            return html_table([[row + '&nbsp;', url_tuple_to_href(url_tuple)]])
 
     def enclose_action_url(self, action_url, value):
         if action_url is not None:
@@ -209,8 +248,8 @@ class ValueChangeAction(AbcAction):
                     break
 
         for value in self.get_values(context):
-            if isinstance(value, (CodeDescription, ValueDescription, CodeImageDescription, ValueImageDescription)):
-                if value.common:
+            if isinstance(value, ValueDescription):
+                if value.common or self.show_non_common:
                     desc = escape(value.description)
                     params = {'value': value.value}
                     can = self.can_execute(context, params)
@@ -225,10 +264,7 @@ class ValueChangeAction(AbcAction):
                             columns += [html_enclose('code', '')]
 
                     if isinstance(value, ValueImageDescription):
-                        image_html = ''
-                        image_path = '{0}/img/{1}.png'.format(application_path, value.image_name)
-                        if os.path.exists(image_path):
-                            image_html = '<img src="{0}" border="0" alt="{1}">'.format(path2url(image_path), desc)
+                        image_html = html_image(value.image_name, desc)
                         columns += [self.enclose_action_url(action_url, image_html)]
 
                     if can:
@@ -276,18 +312,25 @@ class InsertValueAction(ValueChangeAction):
         super(InsertValueAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
 
     def can_execute(self, context, params=None):
-        return True
+        value = params.get('value')
+        if value is None:
+            return super(InsertValueAction, self).can_execute(context, params)
+        else:
+            return True
 
     def execute(self, context, params=None):
-        value = params['value']
-        if self.matchgroup:
-            text = context.get_matchgroup(self.matchgroup)
-            text += value
-            context.replace_match_text(text, self.matchgroup)
+        value = params.get('value')
+        if value is None:
+            super(InsertValueAction, self).execute(context, params)
         else:
-            context.insert_text(value)
-        if self.relative_selection is not None:
-            context.set_relative_selection(self.relative_selection)
+            if self.matchgroup:
+                text = context.get_matchgroup(self.matchgroup)
+                text += value
+                context.replace_match_text(text, self.matchgroup)
+            else:
+                context.insert_text(value)
+            if self.relative_selection is not None:
+                context.set_relative_selection(self.relative_selection)
 
 
 class RemoveValueAction(AbcAction):
@@ -400,43 +443,50 @@ class PitchAction(ValueChangeAction):
 
     def can_execute(self, context, params=None):
         value = params.get('value')
-        note = context.get_matchgroup('note')
-        octave = context.get_matchgroup('octave')
-        note_no = self.octave_abc_to_number(note, octave)
-        if value == "'" or value == 'noteup':
-            return note_no < 4*7
-        elif value == ',' or value == 'notedown':
-            return note_no > -4*7
-        return False
+        if value is None:
+            return super(PitchAction, self).can_execute(context, params)
+        else:
+            note = context.get_matchgroup('note')
+            octave = context.get_matchgroup('octave')
+            note_no = self.octave_abc_to_number(note, octave)
+            if value == "'" or value == 'noteup':
+                return note_no < 4*7
+            elif value == ',' or value == 'notedown':
+                return note_no > -4*7
+            return False
 
     def execute(self, context, params=None):
         value = params.get('value')
-        note = context.get_matchgroup('note')
-        octave = context.get_matchgroup('octave')
-        note_no = self.octave_abc_to_number(note, octave)
-        if value == 'noteup':
-            note_no += 1
-        elif value == 'notedown':
-            note_no -= 1
-        elif value == "'":
-            note_no += 7
-        elif value == ',':
-            note_no -= 7
-
-        offset = 0
-        if note_no >= 7:
-            offset = 7
-        note = PitchAction.all_notes[(note_no % 7) + offset]
-
-        octave_no = note_no // 7
-        if octave_no > 1:
-            octave = "'" * (octave_no-1)
-        elif octave_no < 0:
-            octave = "," * -octave_no
+        if value is None:
+            super(PitchAction, self).execute(context, params)
         else:
-            octave = ''
+            value = params.get('value')
+            note = context.get_matchgroup('note')
+            octave = context.get_matchgroup('octave')
+            note_no = self.octave_abc_to_number(note, octave)
+            if value == 'noteup':
+                note_no += 1
+            elif value == 'notedown':
+                note_no -= 1
+            elif value == "'":
+                note_no += 7
+            elif value == ',':
+                note_no -= 7
 
-        context.replace_matchgroups([('note', note), ('octave', octave)])
+            offset = 0
+            if note_no >= 7:
+                offset = 7
+            note = PitchAction.all_notes[(note_no % 7) + offset]
+
+            octave_no = note_no // 7
+            if octave_no > 1:
+                octave = "'" * (octave_no-1)
+            elif octave_no < 0:
+                octave = "," * -octave_no
+            else:
+                octave = ''
+
+            context.replace_matchgroups([('note', note), ('octave', octave)])
 
     @staticmethod
     def octave_abc_to_number(note, abc_octave):
@@ -485,7 +535,9 @@ class DurationAction(ValueChangeAction):
 
     def can_execute(self, context, params=None):
         value = params.get('value')
-        if not value:
+        if value is None:
+            return super(DurationAction, self).can_execute(context, params)
+        elif not value:
             return context.get_matchgroup('pair') or context.get_matchgroup('length')
         elif value == '1':
             return context.get_matchgroup('length')
@@ -509,10 +561,11 @@ class DurationAction(ValueChangeAction):
             elif value == '=':
                 return frac.numerator > 1
 
-
     def execute(self, context, params=None):
         value = params.get('value')
-        if not value:
+        if value is None:
+            super(DurationAction, self).execute(context, params)
+        elif not value:
             context.replace_matchgroups([('length', ''), ('pair', '')])
         elif value == 'Z':
             match = context.get_matchgroup('rest')
@@ -736,6 +789,10 @@ class KeySignatureChangeAction(KeyChangeAction):
         return True
 
     def can_execute(self, context, params=None):
+        value = params.get('value')
+        if value is None:
+            return super(KeySignatureChangeAction, self).can_execute(context, params)
+
         if context.inner_match is None:
             return True
         tonic = context.get_matchgroup('tonic')
@@ -764,7 +821,9 @@ class KeySignatureChangeAction(KeyChangeAction):
 
     def execute(self, context, params=None):
         value = params.get('value')
-        if value == 'none':
+        if value is None:
+            super(KeySignatureChangeAction, self).execute(context, params)
+        elif value == 'none':
             context.replace_match_text(value, tune_scope=TuneScope.InnerText)
         else:
             value = int(value)
@@ -803,26 +862,34 @@ class KeyModeChangeAction(KeyChangeAction):
         return tonic in KeyChangeAction._key_ladder
 
     def can_execute(self, context, params=None):
-        tonic = context.get_matchgroup('tonic')
-        if tonic in KeyChangeAction._key_ladder:
-            value = int(params.get('value'))
-            mode = context.get_matchgroup(self.matchgroup)
-            current_value = self.abc_mode_to_number(mode)
-            return value != current_value
+        value = params.get('value')
+        if value is None:
+            return super(KeyModeChangeAction, self).can_execute(context, params)
         else:
-            return False
+            tonic = context.get_matchgroup('tonic')
+            if tonic in KeyChangeAction._key_ladder:
+                value = int(params.get('value'))
+                mode = context.get_matchgroup(self.matchgroup)
+                current_value = self.abc_mode_to_number(mode)
+                return value != current_value
+            else:
+                return False
 
     def execute(self, context, params=None):
-        value = int(params.get('value'))
-        tonic = context.get_matchgroup('tonic')
-        mode = context.get_matchgroup(self.matchgroup)
-        current_mode = self.abc_mode_to_number(mode)
-        ladder = KeyChangeAction._key_ladder
-        tonic = ladder[ladder.index(tonic) - current_mode + value]
-        for mode, num in KeyChangeAction._mode_to_num.iteritems():
-            if num == value:
-                context.replace_matchgroups([('tonic', tonic), ('mode', mode)])
-                break
+        value = params.get('value')
+        if value is None:
+            super(KeyModeChangeAction, self).execute(context, params)
+        else:
+            value = int(value)
+            tonic = context.get_matchgroup('tonic')
+            mode = context.get_matchgroup(self.matchgroup)
+            current_mode = self.abc_mode_to_number(mode)
+            ladder = KeyChangeAction._key_ladder
+            tonic = ladder[ladder.index(tonic) - current_mode + value]
+            for mode, num in KeyChangeAction._mode_to_num.iteritems():
+                if num == value:
+                    context.replace_matchgroups([('tonic', tonic), ('mode', mode)])
+                    break
 
 
 class ClefChangeAction(ValueChangeAction):
@@ -843,19 +910,24 @@ class ClefChangeAction(ValueChangeAction):
 
     def can_execute(self, context, params=None):
         if super(ClefChangeAction, self).can_execute(context, params):
-            value = params.get('value', '')
+            value = params.get('value')
+            if value is None:
+                return True
             match = self.get_match(context)
             return match is None or value != match.group('clefname')
         return False
 
     def execute(self, context, params=None):
-        value = params.get('value', '')
-        if value and context.inner_match and context.inner_match.start('clefname') >= 0:
-            context.replace_match_text(value, 'clefname', tune_scope=self.get_tune_scope())
-        else:
-            if value:
-                params['value'] = ' clef=' + value
+        value = params.get('value')
+        if value is None:
             super(ClefChangeAction, self).execute(context, params)
+        else:
+            if value and context.inner_match and context.inner_match.start('clefname') >= 0:
+                context.replace_match_text(value, 'clefname', tune_scope=self.get_tune_scope())
+            else:
+                if value:
+                    params['value'] = ' clef=' + value
+                super(ClefChangeAction, self).execute(context, params)
 
 
 class StaffTransposeChangeAction(ValueChangeAction):
@@ -1085,10 +1157,13 @@ class NewNoteOrRestAction(InsertValueAction):
         super(NewNoteOrRestAction, self).__init__('New note/rest', supported_values=NewNoteOrRestAction.values, valid_sections=AbcSection.TuneBody)
 
     def execute(self, context, params=None):
-        value = params['value']
-        if AddBarAction.is_bar_expected(context):
-            value = AddBarAction.get_bar_value(context) + value
-        context.insert_text(value)
+        value = params.get('value')
+        if value is None:
+            super(NewNoteOrRestAction, self).execute(context, params)
+        else:
+            if AddBarAction.is_bar_expected(context):
+                value = AddBarAction.get_bar_value(context) + value
+            context.insert_text(value)
 
 
 class InsertOptionalAccidental(InsertValueAction):
@@ -1113,7 +1188,6 @@ class AddDecorationAction(InsertValueAction):
     ]
     def __init__(self):
         super(AddDecorationAction, self).__init__('Insert decoration', AddDecorationAction.values, matchgroup='decoanno')
-        #self.relative_selection = -1
 
 
 class AddSlurAction(AbcAction):
@@ -1245,13 +1319,13 @@ class PageFormatDirectiveChangeAction(ValueChangeAction):
 class MeasureNumberingChangeAction(DirectiveChangeAction):
     values = [
         ValueDescription('-1', _('None')),
-        ValueDescription('0', _('Left of staff')),
-        ValueDescription('1', _('Every bar')),
-        ValueDescription('2', _('Every 2 bars')),
-        ValueDescription('4', _('Every 4 bars')),
-        ValueDescription('5', _('Every 5 bars')),
-        ValueDescription('8', _('Every 8 bars')),
-        ValueDescription('10', _('Every 10 bars'))
+        ValueDescription('0', _('Start of every line')),
+        ValueDescription('1', _('Every measure')),
+        ValueDescription('2', _('Every 2 measures')),
+        ValueDescription('4', _('Every 4 measures')),
+        ValueDescription('5', _('Every 5 measures')),
+        ValueDescription('8', _('Every 8 measures')),
+        ValueDescription('10', _('Every 10 measures'))
     ]
     def __init__(self):
         super(MeasureNumberingChangeAction, self).__init__('measurenb', 'Show measure numbers', MeasureNumberingChangeAction.values, valid_sections=AbcSection.TuneHeader)

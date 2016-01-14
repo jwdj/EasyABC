@@ -1043,8 +1043,6 @@ class AbcStructure(object):
         # midi guide
         # http://abc.sourceforge.net/abcMIDI/original/abcguide.txt
 
-        measure_number_options = {'None': None, 'Start of every line': 0, 'Every measure': 1, 'Every 2 measures': 2, 'Every 3 measures': 3, 'Every 4 measures': 4, 'Every 5 measures': 5, 'Every 8 measures': 8, 'Every 10 measures': 10}
-
     #     elements = [
     #         Abcm2psElement('pagewidth', _('Page width'), 'unit'),
     #         Abcm2psElement('pageheight', _('Page height'), 'unit'),
