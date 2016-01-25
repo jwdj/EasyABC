@@ -369,7 +369,6 @@ from collections import deque, namedtuple
 from UserString import MutableString
 from cStringIO import StringIO
 from wx.lib.scrolledpanel import ScrolledPanel
-from tune_elements import AbcStructure # 1.3.6.2 [JWDJ] 2015-3
 import wx.html
 import wx.stc as stc
 import wx.lib.agw.aui as aui
@@ -394,7 +393,6 @@ from abc_character_encoding import decode_abc, encode_abc
 from abc_search import abc_matches_iter
 from fraction import Fraction
 from music_score_panel import MusicScorePanel
-from abc_assist_panel import AbcAssistPanel  # 1.3.6.2 [JWDJ] 2015-3
 from svgrenderer import SvgRenderer
 from aligner import align_lines, extract_incipit, bar_sep, bar_sep_without_space, get_bar_length
 ##from midi_processing import humanize_midi
@@ -1393,9 +1391,9 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
     # 1.3.6 [SS] 2014-12-08
     # time.sleep(0.2)
     if execmessages.find('Error') != -1:
-        statusbar.SetStatusText(_('Abc2midi reported some errors'))
+        statusbar.SetStatusText(_('{0} reported some errors').format('Abc2midi'))
     elif execmessages.find('Warning') != -1:
-        statusbar.SetStatusText(_('Abc2midi reported some warnings'))
+        statusbar.SetStatusText(_('{0} reported some warnings').format('Abc2midi'))
     else:
         statusbar.SetStatusText('')
 
@@ -1686,7 +1684,7 @@ def abc_to_midi(abc_code, settings, midi_file_name):
             stdout_value = re.sub(r'(?m)(writing MIDI file .*\r?\n?)', '', stdout_value)
         if process.returncode != 0:
             # 1.3.7.0 [SS] 2016-01-06
-            execmessages += '\nAbcToMidi exited abnormally (errorcode %#8x)' % (process.returncode & 0xffffffff)
+            execmessages += '\n' + _('AbcToMidi exited abnormally (errorcode %#8x)') % (process.returncode & 0xffffffff)
             return None
 
         #if humanize:
@@ -1794,7 +1792,7 @@ EVT_MUSIC_UPDATE_DONE = wx.PyEventBinder(myMUSICUPDATEDONE, 1)
 
 class MusicPrintout(wx.Printout):
     def __init__(self, svg_files, zoom=1.0, title=None, painted_on_screen=False, can_draw_sharps_and_flats=True):
-        wx.Printout.__init__(self, title=title or 'EasyABC music')
+        wx.Printout.__init__(self, title=title or _('EasyABC music'))
         self.can_draw_sharps_and_flats = can_draw_sharps_and_flats
         self.svg_files = svg_files
         self.zoom = zoom
@@ -2349,7 +2347,7 @@ class NewTuneFrame(wx.Dialog):
 class MyNoteBook(wx.Frame):
     ''' Settings Notebook '''
     def __init__(self, settings, statusbar):
-        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, "Abc Settings",style=wx.DEFAULT_FRAME_STYLE,name='settingsbook')
+        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Abc settings"),style=wx.DEFAULT_FRAME_STYLE,name='settingsbook')
         # Add a panel so it looks the correct on all platforms
         p = wx.Panel(self)
         nb = wx.Notebook(p)
@@ -2407,7 +2405,7 @@ class AbcFileSettingsFrame(wx.Panel):
         self.restore_settings.SetToolTip(wx.ToolTip(check_toolTip))
 
         # 1.3.6.3 [SS] 2015-04-29
-        extraplayerparam = wx.StaticText(self,-1,"Extra Midi Player Parameters")
+        extraplayerparam = wx.StaticText(self,-1, _("Extra MIDI player parameters"))
         self.extras = wx.TextCtrl(self,-1,size=(200,22))
 
         sizer = rcs.RowColSizer()
@@ -2632,7 +2630,7 @@ class MyChordPlayPage (wx.Panel):
         self.midi_intro = wx.CheckBox(self, -1, _('Count in'))
 
         #1.3.6 [SS] 2014-11-26
-        gchordtxt = wx.StaticText(self,-1,"gchord pattern")
+        gchordtxt = wx.StaticText(self,-1, _("gchord pattern"))
         self.gchordcombo = wx.ComboBox(self,-1,'default',(-1,-1),(128,-1),[],wx.CB_DROPDOWN)
         gchordchoices = ['default','f','fzfz','gi','gihi','f4c2','ghihgh','g2hg2h']
         self.SetGchordChoices(gchordchoices)
@@ -2700,9 +2698,9 @@ class MyChordPlayPage (wx.Panel):
         nofermatas_toolTip = _('Fermata markings are ignored if enabled')
         nograce_toolTip = _('Grace notes are ignored if enabled')
         transpose_toolTip = _('Transpose by the number of semitones')
-        tuning_toolTip = _('Key of A tuning in Hz')
+        tuning_toolTip = _('Frequency of A in Hz')
         count_toolTip  = _('Two rest bars before music starts')
-        vol_toolTip = _('Volume of melody line if the tune does not have any voices.')
+        vol_toolTip = _('Volume of melody line if the tune does not have any voices')
         
         self.sliderbeatsperminute.SetToolTip(wx.ToolTip(beatsperminute_toolTip))
         self.sliderChordVol.SetToolTip(wx.ToolTip(ChordVol_toolTip))
@@ -2751,7 +2749,7 @@ class MyChordPlayPage (wx.Panel):
         #1.3.6 [SS] 2014-11-26
         self.gchordcombo.Bind(wx.EVT_COMBOBOX,self.OnGchordSelection,self.gchordcombo)
         self.gchordcombo.Bind(wx.EVT_TEXT,self.OnGchordSelection,self.gchordcombo)
-        self.gchordcombo.SetToolTip(wx.ToolTip('for chord C:\nf --> C,,  c -> [C,E,G] z --> rest\ng --> C, h --> E, i --> G, j--> B,\nG --> C,, H --> E,, I --> G,,\nJ --> B,'))
+        self.gchordcombo.SetToolTip(wx.ToolTip(_('for chord C:\nf --> C,,  c -> [C,E,G] z --> rest\ng --> C, h --> E, i --> G, j--> B,\nG --> C,, H --> E,, I --> G,,\nJ --> B,')))
 
 
         #1.3.6 [SS] 2014-11-15
@@ -3073,27 +3071,27 @@ class MyAbcm2psPage(wx.Panel):
         self.abcsettingspage = abcsettingspage
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
         border = 4
-        headingtxt = 'The options in this page controls how the music score is displayed.\n\n'
+        headingtxt = _('The options in this page controls how the music score is displayed.\n\n')
         heading = wx.StaticText(self,-1,headingtxt)
 
 
-        clean      = wx.StaticText(self,-1,"No page settings")
-        defaults   = wx.StaticText(self,-1,"EasyAbc defaults")
-        numberbars = wx.StaticText(self,-1,"Include bar numbers")
-        refnumbers = wx.StaticText(self,-1,"Add X reference number")
-        nolyrics   = wx.StaticText(self,-1,"Suppress Lyrics")
-        linends    = wx.StaticText(self,-1, "Ignore line ends")
-        leftmarg   = wx.StaticText(self,-1, "Left margin (cm)")
-        rightmarg  = wx.StaticText(self,-1, "Right margin (cm)")
-        topmarg    = wx.StaticText(self,-1, "Top Margin (cm)")
-        botmarg = wx.StaticText(self,-1, "Bottom Margin (cm)")
+        clean      = wx.StaticText(self,-1, _("No page settings"))
+        defaults   = wx.StaticText(self,-1, _("EasyABC defaults"))
+        numberbars = wx.StaticText(self,-1, _("Include bar numbers"))
+        refnumbers = wx.StaticText(self,-1, _("Add X reference number"))
+        nolyrics   = wx.StaticText(self,-1, _("Suppress lyrics"))
+        linends    = wx.StaticText(self,-1, _("Ignore line ends"))
+        leftmarg   = wx.StaticText(self,-1, _("Left margin (cm)"))
+        rightmarg  = wx.StaticText(self,-1, _("Right margin (cm)"))
+        topmarg    = wx.StaticText(self,-1, _("Top margin (cm)"))
+        botmarg = wx.StaticText(self,-1, _("Bottom margin (cm)"))
         # 1.3.6.1 [SS] 2015-01-28
-        pagewidth = wx.StaticText(self,-1,"Page Width (cm)")
-        pageheight = wx.StaticText(self,-1,"Page Height (cm)")
+        pagewidth = wx.StaticText(self,-1, _("Page width (cm)"))
+        pageheight = wx.StaticText(self,-1, _("Page height (cm)"))
 
-        extras = wx.StaticText(self,-1,"Extra Parameters")
+        extras = wx.StaticText(self,-1, _("Extra parameters"))
         self.extras = wx.TextCtrl(self,-1,size=(350,22))
-        formatf = wx.StaticText(self,-1,"Format File")
+        formatf = wx.StaticText(self,-1, _("Format file"))
         # 1.3.6.4 [SS] 2015-09-11 2015-09-21
         try:
             self.format_choices = self.settings.get('abcm2ps_format_choices','').split('|') 
@@ -3104,7 +3102,7 @@ class MyAbcm2psPage(wx.Panel):
         
         self.browsef = wx.Button(self,-1, _('Browse...'),size = (-1,22))
 
-        scalefact  = wx.StaticText(self,-1, "Scale Factor (eg. 0.8)")
+        scalefact  = wx.StaticText(self,-1, _("Scale factor (eg. 0.8)"))
         self.chkm2psclean = wx.CheckBox(self,-1,'')
         self.chkm2psdef   = wx.CheckBox(self,-1,'')
         self.chkm2psbar = wx.CheckBox(self, -1, '')
@@ -3119,12 +3117,12 @@ class MyAbcm2psPage(wx.Panel):
         self.pageheight =wx.TextCtrl(self, -1, size=(55,22))
 
         # 1.3.6.1 [SS] 2015-12-28
-        pagewidth_toolTip = _('The default is 21.59')
-        pageheight_toolTip = _('The default is 27.94')
-        leftmargin_toolTip = _('The default is 1.78')
-        rightmargin_toolTip = _('The default is 1.78')
-        topmargin_toolTip = _('The default is 1.00')
-        botmargin_toolTip = _('The default is 1.00')
+        pagewidth_toolTip = _('The default is {0}').format('21.59')
+        pageheight_toolTip = _('The default is {0}').format('27.94')
+        leftmargin_toolTip = _('The default is {0}').format('1.78')
+        rightmargin_toolTip = _('The default is {0}').format('1.78')
+        topmargin_toolTip = _('The default is {0}').format('1.00')
+        botmargin_toolTip = _('The default is {0}').format('1.00')
         extras_toolTip = _('Additional command line parameters to abcm2ps')
         formatf_toolTip = _('Right click the mouse to remove all choices')
         self.pagewidth.SetToolTip(wx.ToolTip(pagewidth_toolTip))
@@ -3136,7 +3134,7 @@ class MyAbcm2psPage(wx.Panel):
         self.extras.SetToolTip(wx.ToolTip(extras_toolTip))
         self.formatf.SetToolTip(wx.ToolTip(formatf_toolTip))
 
-        chkm2psdef_toolTip = _('Use the factory page settings of easyabc')
+        chkm2psdef_toolTip = _('Use the factory page settings of EasyABC')
         self.chkm2psdef.SetToolTip(wx.ToolTip(chkm2psdef_toolTip))
         chkm2psclean_toolTip = _('Do not add page settings')
         self.chkm2psclean.SetToolTip(wx.ToolTip(chkm2psclean_toolTip))
@@ -3420,9 +3418,9 @@ class MyXmlPage(wx.Panel):
         self.voltaval = wx.TextCtrl(self,-1, size=(40,20))
         self.creditval = wx.TextCtrl(self,-1,size=(40,20))
         self.unitval  = wx.TextCtrl(self,-1,size= (40,20))
-        self.chkXmlCompressed = wx.CheckBox(self, -1, _(''))
-        self.chkXmlUnfold = wx.CheckBox(self, -1, _(''))
-        self.chkXmlMidi = wx.CheckBox(self, -1, _(''))
+        self.chkXmlCompressed = wx.CheckBox(self, -1, '')
+        self.chkXmlUnfold = wx.CheckBox(self, -1, '')
+        self.chkXmlMidi = wx.CheckBox(self, -1, '')
 
         self.chkXmlCompressed.SetValue(self.settings.get('xmlcompressed',False))
         self.chkXmlUnfold.SetValue(self.settings.get('xmlunfold',False))
@@ -3557,10 +3555,10 @@ class MidiOptionsFrame(wx.Dialog):
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
         border = 10
         sizer = wx.GridBagSizer(5, 5)
-        sizer.Add(wx.StaticText(self, -1, _('K: Key signature')),       wx.GBPosition(0, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('M: Metre')),               wx.GBPosition(1, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('L: Default note length')), wx.GBPosition(2, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('T: Title')),               wx.GBPosition(3, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, -1, u'K: ' + _('Key signature')),       wx.GBPosition(0, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, -1, u'M: ' + _('Metre')),               wx.GBPosition(1, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, -1, u'L: ' + _('Default note length')), wx.GBPosition(2, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, -1, u'T: ' + _('Title')),               wx.GBPosition(3, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
         sizer.Add(wx.StaticText(self, -1, _('Bars per line')),          wx.GBPosition(4, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
         sizer.Add(wx.StaticText(self, -1, _('Numbers of notes in anacrusis')),  wx.GBPosition(5, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
 
@@ -4002,6 +4000,8 @@ class MainFrame(wx.Frame):
         self.error_msg.Hide() # 1.3.7 [JWdJ] 2016-01-06
 
          # 1.3.6.3 [JWdJ] 2015-04-21 ABC Assist added
+        from tune_elements import AbcStructure # 1.3.7.1 [JWDJ] 2016-1 because of translation this import has to be done as late as possible
+        from abc_assist_panel import AbcAssistPanel  # 1.3.7.1 [JWDJ] 2016-1 because of translation this import has to be done as late as possible
         self.abc_assist_panel = AbcAssistPanel(self, self.editor, cwd, self.settings)
         self.assist_pane = aui.AuiPaneInfo().Name("abcassist").CaptionVisible(True).Caption(_("ABC assist")).\
             CloseButton(True).MinimizeButton(False).MaximizeButton(False).\
@@ -5091,7 +5091,7 @@ class MainFrame(wx.Frame):
                                                        self.settings.get('abcm2ps_format_path', ''))
             if pdf_file:
                 filename = self.GetFileNameForTune(tune, '.pdf')
-                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard="PDF file (*.pdf)|*.pdf", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_("PDF file") + " (*.pdf)|*.pdf", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 try:
                     if dlg.ShowModal() == wx.ID_OK:
                         self.copy_to_destination_and_launch_file(pdf_file, dlg.GetPath())
@@ -5102,7 +5102,7 @@ class MainFrame(wx.Frame):
         tune = self.GetSelectedTune()
         if tune:
             filename = self.GetFileNameForTune(tune, '.svg')
-            dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard="SVG file (*.svg)|*.svg", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_("SVG file") + " (*.svg)|*.svg", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     path = dlg.GetPath()
@@ -5210,7 +5210,7 @@ class MainFrame(wx.Frame):
                         abc_to_xml(tune.header + os.linesep + tune.abc, filepath, mxl, pageFormat, info_messages)
                     except Exception as e:
                         error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)) + os.linesep + os.linesep.join(errors)
-                        mdlg = ErrorFrame(self, _('Error during conversion of X:%s ("%s"): %s') % (tune.xnum, tune.title, error_msg))
+                        mdlg = ErrorFrame(self, _('Error during conversion of X:{0} ("{1}"): {2}').format(tune.xnum, tune.title, error_msg))
                         result = mdlg.ShowModal()
                         mdlg.Destroy()
                         if result != wx.ID_OK:  # if ok is pressed, continue to process other tunes, if cancel, do not process more tunes
@@ -5220,7 +5220,7 @@ class MainFrame(wx.Frame):
                         execmessages += infoline
         finally:
             dlg.Destroy()
-            self.statusbar.SetStatusText('XML files were created.')
+            self.statusbar.SetStatusText(_('XML files were created.'))
             progdialog.Destroy()
             # 1.3.6 [SS] 2014-12-10
             MyInfoFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
@@ -5230,7 +5230,7 @@ class MainFrame(wx.Frame):
         tune = self.GetSelectedTune()
         if tune:
             filename = self.GetFileNameForTune(tune, '.html')
-            dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard="HTML file (*.html)|*.html", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_("HTML file") + " (*.html)|*.html", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     path = dlg.GetPath()
@@ -5267,7 +5267,7 @@ class MainFrame(wx.Frame):
                 filename = os.path.splitext(self.current_file)[0] + '.html'
             else:
                 filename = ''
-            dlg = wx.FileDialog(self, message=_("Export all tunes as ..."), defaultFile=os.path.basename(filename), wildcard="HTML file (*.html)|*.html", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg = wx.FileDialog(self, message=_("Export all tunes as ..."), defaultFile=os.path.basename(filename), wildcard=_("HTML file") + " (*.html)|*.html", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     self.SetCursor(wx.HOURGLASS_CURSOR)
@@ -5325,7 +5325,7 @@ class MainFrame(wx.Frame):
                 filename = os.path.splitext(self.current_file)[0] + '.epub'
             else:
                 filename = ''
-            dlg = wx.FileDialog(self, message=_("Export all tunes as ..."), defaultFile=os.path.basename(filename), wildcard="Epub file (*.epub)|*.epub", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg = wx.FileDialog(self, message=_("Export all tunes as ..."), defaultFile=os.path.basename(filename), wildcard=_("Epub file") + " (*.epub)|*.epub", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     self.SetCursor(wx.HOURGLASS_CURSOR)
@@ -5389,7 +5389,7 @@ class MainFrame(wx.Frame):
         else:
             filename = ''
         default_dir, filename = os.path.split(filename)
-        dlg = wx.FileDialog(self, message=_("Export all tunes as ..."), defaultDir=default_dir, defaultFile=filename, wildcard="PDF file (*.pdf)|*.pdf", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, message=_("Export all tunes as ..."), defaultDir=default_dir, defaultFile=filename, wildcard=_("PDF file") + " (*.pdf)|*.pdf", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 self.SetCursor(wx.HOURGLASS_CURSOR)
@@ -6605,6 +6605,7 @@ class MainFrame(wx.Frame):
         # 1.3.7 [JWdJ] 2016-01-06
         if self.current_svg_tune and evt.KeyCode in [wx.WXK_PAGEDOWN, wx.WXK_PAGEUP, wx.WXK_HOME, wx.WXK_END]:
             # 1.3.7.0 [JWdJ] 2015-12 Added shortcuts to navigate through pages
+            new_page = -1
             if evt.KeyCode == wx.WXK_HOME and evt.GetModifiers() == (wx.MOD_ALT + wx.MOD_CONTROL):
                 new_page = 0
             elif evt.KeyCode == wx.WXK_END and evt.GetModifiers() == (wx.MOD_ALT + wx.MOD_CONTROL):
@@ -7661,9 +7662,9 @@ class MainFrame(wx.Frame):
 
         # 1.3.6.3 2015-03-15 [SS]
         if execmessages.find('Error') != -1 or execmessages.find('error') != -1:
-            self.statusbar.SetStatusText('Abcm2ps reported some errors')
+            self.statusbar.SetStatusText(_('{0} reported some errors').format('Abcm2ps'))
         elif execmessages.find('Warning') != -1 or execmessages.find('warning') != -1:
-            self.statusbar.SetStatusText('Abcm2ps reported some warnings')
+            self.statusbar.SetStatusText(_('{0} reported some warnings').format('Abcm2ps'))
         else:
             self.statusbar.SetStatusText('')
 
@@ -7847,7 +7848,7 @@ class MainFrame(wx.Frame):
             settings['abcm2ps_path'] = abcm2ps_path # 1.3.6 [SS] 2014-11-12
         else:
             print abcm2ps_path,' ***  not found ***'
-            dlg = wx.MessageDialog(self,_('abcm2ps was not found here. You need it to view the music. Go to settings and indicate the path'),_('Warning'),wx.OK)
+            dlg = wx.MessageDialog(self, _('abcm2ps was not found here. You need it to view the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
 
@@ -7865,7 +7866,7 @@ class MainFrame(wx.Frame):
             settings['abc2midi_path'] = abc2midi_path # 1.3.6 [SS] 2014-11-12
         else:
             print abc2midi_path,' ***  not found ***'
-            dlg = wx.MessageDialog(self,_('abc2midi was not found here. You need it to play the music. Go to settings and indicate the path'),_('Warning'),wx.OK)
+            dlg = wx.MessageDialog(self, _('abc2midi was not found here. You need it to play the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
 
@@ -7896,7 +7897,7 @@ class MainFrame(wx.Frame):
             settings['abc2abc_path'] = abc2abc_path # 1.3.6 [SS] 2014-11-12
         else:
             print abc2abc_path,' ***  not found ***'
-            dlg = wx.MessageDialog(self,_('abc2abc was not found here. You need it to transpose the music. Go to settings and indicate the path'),_('Warning'),wx.OK)
+            dlg = wx.MessageDialog(self,_('abc2abc was not found here. You need it to transpose the music. Go to settings and indicate the path.'),_('Warning'),wx.OK)
             dlg.ShowModal()
 
         midiplayer_path = settings.get('midiplayer_path')
@@ -7905,7 +7906,7 @@ class MainFrame(wx.Frame):
         else:
             # 1.3.6.4 [SS] 2015-05-27
             if not os.path.exists(midiplayer_path):
-                dlg = wx.MessageDialog(self,_('The midiplayer was not found. You will not be able to play the MIDI file'),_('Warning'),wx.OK)
+                dlg = wx.MessageDialog(self,_('The midiplayer was not found. You will not be able to play the MIDI file.'),_('Warning'),wx.OK)
                 dlg.ShowModal() 
 
         gs_path = settings.get('gs_path')
@@ -8066,12 +8067,12 @@ class MyFileDropTarget(wx.FileDropTarget):
             self.frame.OnTuneSelected(None)
 
 class AboutFrame(wx.Dialog):
-    htmlpage = '''
+    htmlpage = _('''
 <html>
 <body bgcolor="#FAFAF0">
 <center><img src="img/abclogo.png"/>
 </center>
-<p><b>''' + program_name + '''</b><br/>
+<p><b>{0}</b><br/>
 an open source ABC editor for Windows, OSX and Linux. It is published under the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU Public License</a>. </p>
 <p><center><a href="http://www.nilsliberg.se/ksp/easyabc/">http://www.nilsliberg.se/ksp/easyabc/</a></center></p>
 <p><u>Features</u>:</p>
@@ -8091,7 +8092,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
   <li> An abcm2ps format file can easily be specified in the settings.
   <li> ABC fields in the file header are applied to every single tune in a tune book.
   <li> Automatic alignment of bars on different lines
-  <li> Available in <img src="img/new.gif"/>Italian, French, Danish, Swedish and English</li>
+  <li> Available in <img src="img/new.gif"/>Dutch, Italian, French, Danish, Swedish and English</li>
   <li> Functions to generate incipits, sort tunes and renumber X: fields.</li>
   <li> Musical search function - search for note sequences irrespectively of key, etc. <img src="img/new.gif"/></li>
 </ul>
@@ -8108,8 +8109,8 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="http://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
 <li><a href="http://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="http://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
 <li>Thanks to Guido Gonzato for providing the fields and command reference.
-<li><br>Many thanks to the translators: Valerio Pelliccioni, Guido Gonzato (italian), Bendix R&oslash;dgaard (danish), Fr&eacute;d&eacute;ric Aup&eacute;pin (french).</li>
-<li>Universal binaries of abcm2ps and abc2midi for OSX are available thanks to Chuck Boody.</li>
+<li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french) and Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch).</li>
+<li>Universal binaries of abcm2ps and abc2midi for OSX are available thanks to Chuck&nbsp;Boody.</li>
 </ul>
 
 <p><b>Links</b></p>
@@ -8123,7 +8124,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 </ul>
 </body>
 </html>
-'''
+''').format(program_name)
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, _('About EasyABC'), size=(900, 600) )

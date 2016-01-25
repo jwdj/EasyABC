@@ -164,12 +164,16 @@ class AbcAssistPanel(wx.Panel):
             parts = href.split('?', 1)
             action_name = parts[0]
             if len(parts) > 1:
-                params = dict(urlparse.parse_qsl(parts[1]))
+                params = dict(urlparse.parse_qsl(parts[1], keep_blank_values=True))
             else:
                 params = None # {}
             action = action_handler.get_action(action_name)
             if action is not None:
-                action.execute(self.context, params)
+                try:
+                    action.execute(self.context, params)
+                except Exception as e:
+                    print e
+
                 self._editor.SetFocus()
         return wx.html.HTML_BLOCK
 

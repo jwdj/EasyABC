@@ -2,8 +2,8 @@ import re
 import os
 import sys
 from collections import namedtuple
-from tune_elements import *
 from wx import GetTranslation as _
+from tune_elements import *
 try:
     from html import escape  # py3
 except ImportError:
@@ -99,7 +99,7 @@ class AbcAction(object):
         if display_name:
             self.display_name = display_name
         else:
-            self.display_name = _(name)
+            self.display_name = name
         self.group = group
 
     def can_execute(self, context, params=None):
@@ -110,7 +110,8 @@ class AbcAction(object):
 
     def get_action_html(self, context):
         if self.can_execute(context):
-            return u'<br>' + html_enclose_attr('a', { 'href': self.name }, escape(self.display_name))
+            html = u'<br>' + html_enclose_attr('a', { 'href': self.name }, escape(self.display_name))
+            return html
         return u''
 
     def get_action_url(self, params=None):
@@ -143,6 +144,8 @@ class ValueChangeAction(AbcAction):
             match = self.get_match(context)
             if match:
                 current_value = match.group(self.matchgroup)
+        elif self.use_inner_match:
+            current_value = context.inner_text
         else:
             current_value = context.match_text
         return value == current_value
@@ -238,6 +241,50 @@ class ValueChangeAction(AbcAction):
             return UrlTuple(action_url, value)
         return value
 
+    def get_columns_for_value(self, context, value, show_value_column, fixed_font=True):
+        columns = []
+        if isinstance(value, ValueDescription):
+            if value.common or self.show_non_common:
+                desc = escape(value.description)
+                params = {'value': value.value}
+                can = self.can_execute(context, params)
+                action_url = None
+                if can:
+                    action_url = self.get_action_url(params)
+                if show_value_column:
+                    if value.show_value: #isinstance(value, (CodeDescription, CodeImageDescription)):
+                        columns.append(html_enclose('code', escape(value.value)))
+                    else:
+                        columns.append(html_enclose('code', ''))
+
+                if isinstance(value, ActionValue):
+                    action_html = value.get_action_html()
+                    if action_html:
+                        columns.append(action_html)
+                else:
+                    if isinstance(value, ValueImageDescription):
+                        image_html = html_image(value.image_name, desc)
+                        columns.append(self.enclose_action_url(action_url, image_html))
+                    if can:
+                        columns.append(self.enclose_action_url(action_url, desc))
+                    else:
+                        columns.append(self.html_selected_item(context, value.value, desc))
+        elif isinstance(value, list):
+            for v in value:
+                columns += self.get_columns_for_value(context, v, show_value_column, fixed_font=fixed_font)
+        else:
+            params = {'value': value}
+            desc = escape(value)
+            if fixed_font:
+                desc = html_enclose('code', desc)
+            if self.can_execute(context, params):
+                t = UrlTuple(self.get_action_url(params), desc)
+                columns.append(t)
+            else:
+                columns.append(desc) # self.html_selected_item(context, value, desc)
+
+        return columns
+
     def get_values_html(self, context):
         rows = []
         show_value_column = False
@@ -248,52 +295,18 @@ class ValueChangeAction(AbcAction):
                     break
 
         for value in self.get_values(context):
-            if isinstance(value, ValueDescription):
-                if value.common or self.show_non_common:
-                    desc = escape(value.description)
-                    params = {'value': value.value}
-                    can = self.can_execute(context, params)
-                    action_url = None
-                    if can:
-                        action_url = self.get_action_url(params)
-                    columns = []
-                    if show_value_column:
-                        if value.show_value: #isinstance(value, (CodeDescription, CodeImageDescription)):
-                            columns += [html_enclose('code', escape(value.value))]
-                        else:
-                            columns += [html_enclose('code', '')]
-
-                    if isinstance(value, ValueImageDescription):
-                        image_html = html_image(value.image_name, desc)
-                        columns += [self.enclose_action_url(action_url, image_html)]
-
-                    if can:
-                        columns += [self.enclose_action_url(action_url, desc)]
-                    else:
-                        columns += [self.html_selected_item(context, value.value, desc)]
-
-                    rows.append(tuple(columns))
-            elif isinstance(value, list):
-                columns = value
+            if isinstance(value, list):
+                values = value
                 row = []
-                for column in columns:
-                    params = {'value': column}
-                    desc = escape(column)
-                    html_column = html_enclose('code', desc)
-                    if self.can_execute(context, params):
-                        t = UrlTuple(self.get_action_url(params), html_column)
-                        row.append(t)
-                    else:
-                        row.append(html_column)
-                rows.append(row)
+                for v in values:
+                    columns = self.get_columns_for_value(context, v, show_value_column)
+                    row += columns
+                if row:
+                    rows.append(html_table([row], cellpadding=2))
             else:
-                params = {'value': value}
-                desc = escape(value)
-                if self.can_execute(context, params):
-                    t = UrlTuple(self.get_action_url(params), desc)
-                else:
-                    t = self.html_selected_item(context, value, desc)
-                rows.append(t)
+                columns = self.get_columns_for_value(context, value, show_value_column)
+                if columns:
+                    rows.append(tuple(columns))
 
         result = html_table(rows, cellpadding=2, indent=20)
         if result is None:
@@ -333,31 +346,31 @@ class InsertValueAction(ValueChangeAction):
                 context.set_relative_selection(self.relative_selection)
 
 
-class RemoveValueAction(AbcAction):
-    def __init__(self, matchgroups=None):
-        super(RemoveValueAction, self).__init__('Remove')
-        self.matchgroups = matchgroups
-
-    def can_execute(self, context, params=None):
-        matchgroup = params.get('matchgroup', '')
-        if self.matchgroups is not None:
-            return matchgroup in self.matchgroups and context.get_matchgroup(matchgroup)
-        else:
-            return True
-
-    def execute(self, context, params=None):
-        matchgroup = params.get('matchgroup', '')
-        context.replace_match_text('', matchgroup)
+# class RemoveValueAction(AbcAction):
+#     def __init__(self, matchgroups=None):
+#         super(RemoveValueAction, self).__init__('remove_match', display_name=_('Remove'))
+#         self.matchgroups = matchgroups
+#
+#     def can_execute(self, context, params=None):
+#         matchgroup = params.get('matchgroup', '')
+#         if self.matchgroups is not None:
+#             return matchgroup in self.matchgroups and context.get_matchgroup(matchgroup)
+#         else:
+#             return True
+#
+#     def execute(self, context, params=None):
+#         matchgroup = params.get('matchgroup', '')
+#         context.replace_match_text('', matchgroup)
 
 
 class ConvertToAnnotationAction(AbcAction):
     def __init__(self):
-        super(ConvertToAnnotationAction, self).__init__('Convert to annotation')
+        super(ConvertToAnnotationAction, self).__init__('convert_to_annotation', display_name=_('Convert to annotation'))
         self.matchgroup = 'chordname'
 
     def can_execute(self, context, params=None):
         chord = context.get_matchgroup(self.matchgroup)
-        return chord and chord[0].lower() not in 'cdefgab'
+        return chord and chord[0].lower() not in 'abcdefg'
 
     def execute(self, context, params=None):
         annotation = '^' + context.get_matchgroup(self.matchgroup)
@@ -369,6 +382,15 @@ class DirectiveChangeAction(ValueChangeAction):
         super(DirectiveChangeAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
         self.directive_name = directive_name
 
+
+class ActionValue(ValueDescription):
+    def __init__(self, action_name, description='', common=True):
+        super(ActionValue, self).__init__(action_name, description, common=common, show_value=False)
+        self.action_name = action_name
+
+    def get_action_html(self):
+        html = html_enclose_attr('a', { 'href': self.action_name }, escape(self.description))
+        return html
 
 ##################################################################################################
 #  CHANGE ACTIONS
@@ -389,7 +411,7 @@ class AccidentalChangeAction(ValueChangeAction):
         CodeDescription('_3/2', _('Flat and a half'), common=False)
     ]
     def __init__(self):
-        super(AccidentalChangeAction, self).__init__('Change accidental', AccidentalChangeAction.accidentals, matchgroup='accidental')
+        super(AccidentalChangeAction, self).__init__('change_accidental', AccidentalChangeAction.accidentals, matchgroup='accidental', display_name=_('Change accidental'))
 
 
 class MeterChangeAction(ValueChangeAction):
@@ -405,7 +427,7 @@ class MeterChangeAction(ValueChangeAction):
         CodeDescription('12/8', _('12/8'))
     ]
     def __init__(self):
-        super(MeterChangeAction, self).__init__('Change meter', MeterChangeAction.values, matchgroup=1)
+        super(MeterChangeAction, self).__init__('change_meter', MeterChangeAction.values, use_inner_match=True, display_name=_('Change meter'))
 
 
 class UnitNoteLengthChangeAction(ValueChangeAction):
@@ -416,18 +438,76 @@ class UnitNoteLengthChangeAction(ValueChangeAction):
         CodeDescription('1/16', _('sixteenth note'))
     ]
     def __init__(self):
-        super(UnitNoteLengthChangeAction, self).__init__('Change note length', UnitNoteLengthChangeAction.values, matchgroup=1)
+        super(UnitNoteLengthChangeAction, self).__init__('change_unit_note_length', UnitNoteLengthChangeAction.values, use_inner_match=True, display_name=_('Change note length'))
 
 
 class TempoNoteLengthChangeAction(ValueChangeAction):
     values = [
+        CodeDescription('3/4',  _('three quarter note'), common=False),
         CodeDescription('1/2',  _('half note')),
+        CodeDescription('3/8',  _('three eighth note'), common=False),
         CodeDescription('1/4',  _('quarter note')),
         CodeDescription('1/8',  _('eighth note')),
         CodeDescription('1/16', _('sixteenth note'))
     ]
     def __init__(self):
-        super(TempoNoteLengthChangeAction, self).__init__('Change note length', TempoNoteLengthChangeAction.values, matchgroup='notelength')
+        super(TempoNoteLengthChangeAction, self).__init__('change_tempo_note1_length', TempoNoteLengthChangeAction.values, matchgroup='note1', use_inner_match=True, display_name=_('Change note length'))
+
+
+class TempoNote2LengthChangeAction(ValueChangeAction):
+    def __init__(self):
+        super(TempoNote2LengthChangeAction, self).__init__('change_tempo_note2_length', TempoNoteLengthChangeAction.values, matchgroup='note2', use_inner_match=True, display_name=_('Change second note length'))
+
+
+class TempoNotationChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('name', _('Name')),
+        ValueDescription('speed', _('Speed')),
+        ValueDescription('name+speed', _('Name & speed')),
+    ]
+    def __init__(self):
+        super(TempoNotationChangeAction, self).__init__('change_tempo_notation', TempoNotationChangeAction.values, display_name=_('Change tempo notation'))
+
+    def execute(self, context, params=None):
+        value = params.get('value')
+        if value is None:
+            super(TempoNotationChangeAction, self).execute(context, params)
+        else:
+            replacements = []
+            if value in ['name', 'name+speed']:
+                if not context.get_matchgroup('pre_text'):
+                    replacements.append(('pre_text', '"Allegro"'))
+            else:
+                replacements.append(('pre_text', ''))
+
+            if value in ['speed', 'name+speed']:
+                if not context.get_matchgroup('metronome'):
+                    replacements.append(('metronome', ' 1/4=120'))
+            else:
+                replacements.append(('metronome', ''))
+
+            context.replace_matchgroups(replacements)
+
+
+class TempoNameChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('Larghissimo'     , _('Larghissimo'), common=False),
+        ValueDescription('Grave'           , _('Grave'), common=False),
+        ValueDescription('Lento'           , _('Lento')),
+        ValueDescription('Largo'           , _('Largo')),
+        ValueDescription('Adagio'          , _('Adagio')),
+        ValueDescription('Adagietto'       , _('Adagietto'), common=False),
+        ValueDescription('Andante'         , _('Andante')),
+        ValueDescription('Andantino'       , _('Andantino'), common=False),
+        ValueDescription('Moderato'        , _('Moderato')),
+        ValueDescription('Allegretto'      , _('Allegretto'), common=False),
+        ValueDescription('Allegro'         , _('Allegro')),
+        ValueDescription('Vivace'          , _('Vivace')),
+        ValueDescription('Presto'          , _('Presto')),
+        ValueDescription('Prestissimo'     , _('Prestissimo'), common=False),
+    ]
+    def __init__(self):
+        super(TempoNameChangeAction, self).__init__('change_tempo_name', TempoNameChangeAction.values, matchgroup='pre_name', use_inner_match=True, display_name=_('Change tempo name'))
 
 
 class PitchAction(ValueChangeAction):
@@ -439,7 +519,7 @@ class PitchAction(ValueChangeAction):
     ]
     all_notes = 'CDEFGABcdefgab'
     def __init__(self):
-        super(PitchAction, self).__init__('Change pitch', PitchAction.pitch_values)
+        super(PitchAction, self).__init__('change_pitch', PitchAction.pitch_values, display_name=_('Change pitch'))
 
     def can_execute(self, context, params=None):
         value = params.get('value')
@@ -502,8 +582,8 @@ class PitchAction(ValueChangeAction):
 
 class DurationAction(ValueChangeAction):
     denominator_re = re.compile('/(\d*)')
-    def __init__(self, values):
-        super(DurationAction, self).__init__('Change duration', values)
+    def __init__(self, name, values):
+        super(DurationAction, self).__init__(name, values, display_name=_('Change duration'))
         self.max_length_denominator = 128
         self.max_length_numerator = 16
         self.fraction_allowed = True
@@ -637,7 +717,7 @@ class MeasureRestDurationAction(DurationAction):
         CodeDescription('z', _('Normal rest'))
     ]
     def __init__(self):
-        super(MeasureRestDurationAction, self).__init__(MeasureRestDurationAction.values)
+        super(MeasureRestDurationAction, self).__init__('change_measurerest_duration', MeasureRestDurationAction.values)
         self.max_length_denominator = 1
         self.max_length_numerator = 64
         self.fraction_allowed = False
@@ -654,7 +734,7 @@ class NoteDurationAction(DurationAction):
         CodeDescription('-', _('Tie / untie'))
     ]
     def __init__(self):
-        super(NoteDurationAction, self).__init__(NoteDurationAction.values)
+        super(NoteDurationAction, self).__init__('change_note_duration', NoteDurationAction.values)
 
 
 class RestDurationAction(DurationAction):
@@ -668,22 +748,7 @@ class RestDurationAction(DurationAction):
         CodeDescription('Z', _('Whole measure'))
     ]
     def __init__(self):
-        super(RestDurationAction, self).__init__(RestDurationAction.values)
-
-
-#class MeasureRestDurationChangeAction(ValueChangeAction):
-#    values = [
-#        CodeDescription('',  _('One measure')),
-#        CodeDescription('2',  _('Two measures')),
-#        CodeDescription('3',  _('Three measures')),
-#        CodeDescription('4',  _('Four measures')),
-#        CodeDescription('5',  _('Five measures'), common=False),
-#        CodeDescription('6',  _('Six measures'), common=False),
-#        CodeDescription('7',  _('Seven measures'), common=False),
-#        CodeDescription('8',  _('Eight measures'), common=False)
-#    ]
-#    def __init__(self):
-#        super(MeasureRestDurationChangeAction, self).__init__('Change duration', MeasureRestDurationChangeAction.values, 'measures')
+        super(RestDurationAction, self).__init__('change_rest_duration', RestDurationAction.values)
 
 
 class AnnotationPositionAction(ValueChangeAction):
@@ -695,7 +760,7 @@ class AnnotationPositionAction(ValueChangeAction):
         CodeDescription('@', _('Auto'))
     ]
     def __init__(self):
-        super(AnnotationPositionAction, self).__init__('Position', AnnotationPositionAction.values, 'pos')
+        super(AnnotationPositionAction, self).__init__('change_annotation_position', AnnotationPositionAction.values, 'pos', display_name=_('Position'))
 
 
 class BarChangeAction(ValueChangeAction):
@@ -713,7 +778,7 @@ class BarChangeAction(ValueChangeAction):
         CodeDescription('[|]', _('Invisible bar'), common=False)
     ]
     def __init__(self):
-        super(BarChangeAction, self).__init__('Change bar', BarChangeAction.values)
+        super(BarChangeAction, self).__init__('change_bar', BarChangeAction.values, display_name=_('Change bar'))
 
 
 class RestVisibilityChangeAction(ValueChangeAction):
@@ -722,7 +787,7 @@ class RestVisibilityChangeAction(ValueChangeAction):
         CodeDescription('x',  _('Hidden')),
     ]
     def __init__(self):
-        super(RestVisibilityChangeAction, self).__init__('Visibility', RestVisibilityChangeAction.values, 'rest')
+        super(RestVisibilityChangeAction, self).__init__('change_rest_visibility', RestVisibilityChangeAction.values, 'rest', display_name=_('Visibility'))
 
 
 class MeasureRestVisibilityChangeAction(ValueChangeAction):
@@ -731,7 +796,7 @@ class MeasureRestVisibilityChangeAction(ValueChangeAction):
         CodeDescription('X',  _('Hidden')),
     ]
     def __init__(self):
-        super(MeasureRestVisibilityChangeAction, self).__init__('Visibility', MeasureRestVisibilityChangeAction.values, 'rest')
+        super(MeasureRestVisibilityChangeAction, self).__init__('change_measurerest_visibility', MeasureRestVisibilityChangeAction.values, 'rest', display_name=_('Visibility'))
 
 
 class AppoggiaturaOrAcciaccaturaChangeAction(ValueChangeAction):
@@ -740,7 +805,7 @@ class AppoggiaturaOrAcciaccaturaChangeAction(ValueChangeAction):
         CodeDescription('/',  _('Acciaccatura')),
     ]
     def __init__(self):
-        super(AppoggiaturaOrAcciaccaturaChangeAction, self).__init__('Type', AppoggiaturaOrAcciaccaturaChangeAction.values, 'acciaccatura')
+        super(AppoggiaturaOrAcciaccaturaChangeAction, self).__init__('change_appoggiatura_acciaccatura', AppoggiaturaOrAcciaccaturaChangeAction.values, 'acciaccatura', display_name=_('Appoggiatura/acciaccatura'))
 
 
 class KeyChangeAction(ValueChangeAction):
@@ -783,7 +848,7 @@ class KeySignatureChangeAction(KeyChangeAction):
         ValueDescription('none', _('None'), common=False),
     ]
     def __init__(self):
-        super(KeySignatureChangeAction, self).__init__('Signature', KeySignatureChangeAction.values, 1, use_inner_match=True)
+        super(KeySignatureChangeAction, self).__init__('change_key_signature', KeySignatureChangeAction.values, matchgroup='tonic', use_inner_match=True, display_name=_('Key signature'))
 
     def is_action_allowed(self, context):
         return True
@@ -853,7 +918,7 @@ class KeyModeChangeAction(KeyChangeAction):
         ValueDescription(3,  _('Locrian'), common=False)
     ]
     def __init__(self):
-        super(KeyModeChangeAction, self).__init__('Mode', KeyModeChangeAction.values, 'mode', use_inner_match=True)
+        super(KeyModeChangeAction, self).__init__('change_key_mode', KeyModeChangeAction.values, 'mode', use_inner_match=True, display_name=_('Mode'))
 
     def is_action_allowed(self, context):
         if context.inner_match is None:
@@ -894,19 +959,19 @@ class KeyModeChangeAction(KeyChangeAction):
 
 class ClefChangeAction(ValueChangeAction):
     values = [
-        ValueDescription('', _('Default')),
-        ValueDescription('treble', _('Treble')),
-        ValueDescription('bass', _('Bass')),
-        ValueDescription('bass3', _('Baritone'), common=False),
-        ValueDescription('tenor', _('Tenor'), common=False),
-        ValueDescription('alto', _('Alto'), common=False),
-        ValueDescription('alto2', _('Mezzosoprano'), common=False),
-        ValueDescription('alto1', _('Soprano'), common=False),
-        ValueDescription('perc', _('Percussion'), common=False),
+        ValueDescription('', _('Default'), common=False),
+        ValueDescription('treble', _('Treble clef')),
+        ValueDescription('bass', _('Bass clef')),
+        ValueDescription('tenor', _('Tenor clef'), common=False),
+        ValueDescription('alto', _('Alto clef'), common=False),
+        ValueDescription('alto1', _('Soprano clef'), common=False),
+        ValueDescription('alto2', _('Mezzo-soprano clef'), common=False),
+        ValueDescription('bass3', _('Baritone clef'), common=False),
+        ValueDescription('perc', _('Percussion clef'), common=False),
         ValueDescription('none', _('None'), common=False)
     ]
     def __init__(self):
-        super(ClefChangeAction, self).__init__('Clef', ClefChangeAction.values, 'clef', use_inner_match=True)
+        super(ClefChangeAction, self).__init__('change_clef', ClefChangeAction.values, 'clef', use_inner_match=True, display_name=_('Clef'))
 
     def can_execute(self, context, params=None):
         if super(ClefChangeAction, self).can_execute(context, params):
@@ -937,7 +1002,7 @@ class StaffTransposeChangeAction(ValueChangeAction):
         ValueDescription('-8', _('Octave lower (8va bassa)')),
     ]
     def __init__(self):
-        super(StaffTransposeChangeAction, self).__init__('Staff transpose', StaffTransposeChangeAction.values, 'stafftranspose', use_inner_match=True)
+        super(StaffTransposeChangeAction, self).__init__('staff_transpose', StaffTransposeChangeAction.values, 'stafftranspose', use_inner_match=True, display_name=_('Staff transpose'))
 
 
 class PlaybackTransposeChangeAction(ValueChangeAction):
@@ -947,7 +1012,7 @@ class PlaybackTransposeChangeAction(ValueChangeAction):
         ValueDescription(' transpose=-12', _('Octave down')),
     ]
     def __init__(self):
-        super(PlaybackTransposeChangeAction, self).__init__('Playback transpose', PlaybackTransposeChangeAction.values, 'playtranspose', use_inner_match=True, valid_sections=AbcSection.TuneHeader)
+        super(PlaybackTransposeChangeAction, self).__init__('playback_transpose', PlaybackTransposeChangeAction.values, 'playtranspose', use_inner_match=True, valid_sections=AbcSection.TuneHeader, display_name=_('Playback transpose'))
 
 
 class AbcOctaveChangeAction(ValueChangeAction):
@@ -957,16 +1022,16 @@ class AbcOctaveChangeAction(ValueChangeAction):
         ValueDescription(' octave=-1', _('Octave down')),
     ]
     def __init__(self):
-        super(AbcOctaveChangeAction, self).__init__('Octave shift', AbcOctaveChangeAction.values, 'octave', use_inner_match=True)
+        super(AbcOctaveChangeAction, self).__init__('octave_shift', AbcOctaveChangeAction.values, 'octave', use_inner_match=True, display_name=_('Octave shift'))
 
 
 class BaseDecorationChangeAction(ValueChangeAction):
-    def __init__(self, name, decoration_values):
+    def __init__(self, name, decoration_values, display_name=None):
         values = []
         for mark in decoration_values:
             value = ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark])
             values.append(value)
-        super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration')
+        super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration', display_name=display_name)
         #self.relative_selection = -1
 
 
@@ -997,32 +1062,32 @@ class BaseDecorationChangeAction(ValueChangeAction):
 
 class DynamicsDecorationChangeAction(BaseDecorationChangeAction):
     def __init__(self):
-        super(DynamicsDecorationChangeAction, self).__init__('Change dynamics mark', AbcDynamicsDecoration.values)
+        super(DynamicsDecorationChangeAction, self).__init__('change_dynamics', AbcDynamicsDecoration.values, display_name=_('Change dynamics mark'))
 
 
 class FingeringDecorationChangeAction(BaseDecorationChangeAction):
     def __init__(self):
-        super(FingeringDecorationChangeAction, self).__init__('Change fingering', AbcFingeringDecoration.values)
+        super(FingeringDecorationChangeAction, self).__init__('change_fingering', AbcFingeringDecoration.values, display_name=_('Change fingering'))
 
 
 class OrnamentDecorationChangeAction(BaseDecorationChangeAction):
     def __init__(self):
-        super(OrnamentDecorationChangeAction, self).__init__('Change ornament', AbcOrnamentDecoration.values)
+        super(OrnamentDecorationChangeAction, self).__init__('change_ornament', AbcOrnamentDecoration.values, display_name=_('Change ornament'))
 
 
-class NavigationDecorationChangeAction(BaseDecorationChangeAction):
+class DirectionDecorationChangeAction(BaseDecorationChangeAction):
     def __init__(self):
-        super(NavigationDecorationChangeAction, self).__init__('Change navigation marker', AbcNavigationDecoration.values)
+        super(DirectionDecorationChangeAction, self).__init__('change_direction', AbcDirectionDecoration.values, display_name=_('Change direction marker'))
 
 
 class ArticulationDecorationChangeAction(BaseDecorationChangeAction):
     def __init__(self):
-        super(ArticulationDecorationChangeAction, self).__init__('Change articulation marker', AbcArticulationDecoration.values)
+        super(ArticulationDecorationChangeAction, self).__init__('change_articulation', AbcArticulationDecoration.values, display_name=_('Change articulation marker'))
 
 
 class ChordChangeAction(ValueChangeAction):
     def __init__(self):
-        super(ChordChangeAction, self).__init__('Change chord', [], 'chordsymbol')
+        super(ChordChangeAction, self).__init__('change_chord', [], 'chordsymbol', display_name=_('Change chord'))
 
     def get_values(self, context):
         values = [
@@ -1033,7 +1098,7 @@ class ChordChangeAction(ValueChangeAction):
 
 class RedefinableSymbolChangeAction(ValueChangeAction):
     def __init__(self):
-        super(RedefinableSymbolChangeAction, self).__init__('Change redefinable symbol', [])
+        super(RedefinableSymbolChangeAction, self).__init__('change_redefinable_symbol', [], display_name=_('Change redefinable symbol'))
 
     def get_values(self, context):
         defaults = {
@@ -1063,30 +1128,65 @@ class RedefinableSymbolChangeAction(ValueChangeAction):
 
 
 class UrlAction(AbcAction):
-    def __init__(self, url):
-        super(AbcAction, self).__init__('link')
+    def __init__(self, name, url=None):
+        super(UrlAction, self).__init__(name)
         self.url = url
 
     def can_execute(self, context, params=None):
         return True
 
     def execute(self, context, params=None):
-        webbrowser.open(href)
+        url = self.get_url(context)
+        webbrowser.open(url)
+
+    def get_url(self, context):
+        return self.url
+
+    def get_outer_text(self, context):
+        return _('Learn {0}...')
+
+    def get_link_text(self, context):
+        return _('more')
+
+    def get_href(self, url, display_text):
+        return u'<a href="{0}">{1}</a>'.format(url, escape(display_text))
 
     def get_action_html(self, context):
-        return _('Learn <a href="{0}">more</a>...').format(self.url)
+        if not self.can_execute(context):
+            return ''
+        outer_text = self.get_outer_text(context) or u'{0}'
+        html = outer_text.format(self.get_href(self.get_url(context), self.get_link_text(context)))
+        return html
 
 
 class Abcm2psUrlAction(UrlAction):
     def __init__(self, keyword):
         url = 'http://moinejf.free.fr/abcm2ps-doc/{0}.xhtml'.format(urllib.quote(keyword))
-        super(AbcAction, self).__init__(url)
+        super(AbcAction, self).__init__('lookup_abcm2ps', url)
 
 
 class Abc2MidiUrlAction(UrlAction):
     def __init__(self, keyword):
         url = 'http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_body.html#{0}'.format(urllib.quote(keyword))
-        super(AbcAction, self).__init__(url)
+        super(AbcAction, self).__init__('lookup_abc2midi', url)
+
+class AbcStandardUrlAction(UrlAction):
+    def __init__(self):
+        super(AbcStandardUrlAction, self).__init__('lookup_abc_standard')
+
+    def get_url(self, context):
+        version = context.get_matchgroup('version', '2.1')
+        return 'http://abcnotation.com/wiki/abc:standard:v{0}'.format(version)
+
+    def can_execute(self, context, params=None):
+        version = context.get_matchgroup('version', '2.1')
+        return version.startswith('2.')
+
+    def get_outer_text(self, context):
+        return None
+
+    def get_link_text(self, context):
+        return _('Full ABC specification')
 
 
 ##################################################################################################
@@ -1098,14 +1198,15 @@ class NewTuneAction(AbcAction):
     tune_re = re.compile(r'(?m)^X:\s*(\d+)')
 
     def __init__(self):
-        super(NewTuneAction, self).__init__('abc_new_tune', display_name=_('New tune'))
+        super(NewTuneAction, self).__init__('new_tune', display_name=_('New tune'))
 
     def can_execute(self, context, params=None):
         return context.abc_section in [AbcSection.FileHeader, AbcSection.OutsideTune]
 
     def execute(self, context, params=None):
         last_tune_id = 0
-        for m in NewTuneAction.tune_re.finditer(context.get_scope_info(TuneScope.FullText).text):
+        tune_text = context.get_scope_info(TuneScope.FullText).text
+        for m in NewTuneAction.tune_re.finditer(tune_text):
             last_tune_id = max(last_tune_id, int(m.group(1)))
 
         new_tune_id = last_tune_id + 1
@@ -1115,6 +1216,11 @@ class NewTuneAction(AbcAction):
         text += os.linesep + 'M:4/4'
         text += os.linesep + 'L:1/4'
         text += os.linesep + 'K:C' + os.linesep
+
+        if not tune_text or tune_text.isspace():
+            text = '%abc-2.1' + os.linesep + os.linesep + text
+        elif context.previous_line and not context.previous_line.isspace():
+            text = os.linesep + text
         context.insert_text(text)
 
 
@@ -1151,10 +1257,40 @@ class FixCharactersAction(AbcAction):
         context.replace_selection(new_text, scope_info.start, scope_info.start + len(text.encode('utf-8')))
 
 
-class NewNoteOrRestAction(InsertValueAction):
-    values = ['z C D E F G A B c d e f g a b'.split(' ')]
+class NewLineAction(AbcAction):
     def __init__(self):
-        super(NewNoteOrRestAction, self).__init__('New note/rest', supported_values=NewNoteOrRestAction.values, valid_sections=AbcSection.TuneBody)
+        super(NewLineAction, self).__init__('new_line', display_name=_('New line'))
+
+    def can_execute(self, context, params=None):
+        can = context.abc_section in [AbcSection.TuneBody] and context.lines != ''
+        return can
+
+    def execute(self, context, params=None):
+        value = os.linesep
+        if AddBarAction.is_bar_expected(context):
+            value = AddBarAction.get_bar_value(context) + value
+        context.insert_text(value)
+
+
+class NewSpaceAction(AbcAction):
+    def __init__(self):
+        super(NewSpaceAction, self).__init__('new_space', display_name=_('Space'))
+
+    def can_execute(self, context, params=None):
+        can = context.abc_section in [AbcSection.TuneBody] and context.previous_character != ' '
+        return can
+
+    def execute(self, context, params=None):
+        value = ' '
+        if AddBarAction.is_bar_expected(context):
+            value = AddBarAction.get_bar_value(context) + value
+        context.insert_text(value)
+
+
+class NewNoteOrRestAction(InsertValueAction):
+    values = ['C D E F G A B c d e f g a b z'.split(' ') + [ValueImageDescription(os.linesep, 'enter', description='')]]
+    def __init__(self):
+        super(NewNoteOrRestAction, self).__init__('new_note', supported_values=NewNoteOrRestAction.values, valid_sections=AbcSection.TuneBody, display_name=_('New note/rest'))
 
     def execute(self, context, params=None):
         value = params.get('value')
@@ -1162,11 +1298,13 @@ class NewNoteOrRestAction(InsertValueAction):
             super(NewNoteOrRestAction, self).execute(context, params)
         else:
             if AddBarAction.is_bar_expected(context):
-                value = AddBarAction.get_bar_value(context) + value
+                value = AddBarAction.get_bar_value(context) + u' ' + value
+            elif not context.previous_character in '` \t\r\n':
+                value = u' ' + value
             context.insert_text(value)
 
 
-class InsertOptionalAccidental(InsertValueAction):
+class InsertAnnotationAction(InsertValueAction):
     values = [
         ValueDescription('"^"', _('Empty')),
         ValueDescription('"<(\u266f)"', _('Optional sharp'), common=False),
@@ -1174,7 +1312,7 @@ class InsertOptionalAccidental(InsertValueAction):
         ValueDescription('"<(\u266d)"', _('Optional flat'), common=False)
     ]
     def __init__(self):
-        super(InsertOptionalAccidental, self).__init__('Insert annotation', InsertOptionalAccidental.values, matchgroup='decoanno')
+        super(InsertAnnotationAction, self).__init__('insert_annotation', InsertAnnotationAction.values, matchgroup='decoanno', display_name=_('Insert annotation'))
         #self.relative_selection = -1
 
 
@@ -1183,16 +1321,16 @@ class AddDecorationAction(InsertValueAction):
         ValueImageDescription('!mf!', 'mf', _('Dynamics')),
         ValueImageDescription('!trill!', 'trill', _('Ornament')),
         ValueImageDescription('!fermata!', 'fermata', _('Articulation')),
-        ValueImageDescription('!segno!', 'segno', _('Navigation')),
+        ValueImageDescription('!segno!', 'segno', _('Direction')),
         ValueImageDescription('!5!', '5', _('Fingering'), common=False)
     ]
     def __init__(self):
-        super(AddDecorationAction, self).__init__('Insert decoration', AddDecorationAction.values, matchgroup='decoanno')
+        super(AddDecorationAction, self).__init__('insert_decoration', AddDecorationAction.values, matchgroup='decoanno', display_name=_('Insert decoration'))
 
 
 class AddSlurAction(AbcAction):
     def __init__(self):
-        super(AddSlurAction, self).__init__('Add slur')
+        super(AddSlurAction, self).__init__('add_slur', display_name=_('Add slur'))
 
     def can_execute(self, context, params=None):
         return True
@@ -1203,7 +1341,7 @@ class AddSlurAction(AbcAction):
 
 class AddBarAction(AbcAction):
     def __init__(self):
-        super(AddBarAction, self).__init__('Add bar')
+        super(AddBarAction, self).__init__('add_bar', display_name=_('Add bar'))
 
     def can_execute(self, context, params=None):
         return self.is_action_allowed(context)
@@ -1217,12 +1355,9 @@ class AddBarAction(AbcAction):
         prev_char = context.get_scope_info(TuneScope.PreviousCharacter).text
         next_char = context.get_scope_info(TuneScope.NextCharacter).text
         pre_space = ''
-        post_space = ''
         if prev_char not in ' \r\n:':
             pre_space = ' '
-        if next_char != ' ':
-            post_space = ' '
-        return '{0}|{1}'.format(pre_space, post_space)
+        return '{0}|'.format(pre_space)
 
     @staticmethod
     def is_action_allowed(context):
@@ -1262,7 +1397,7 @@ class AddBarAction(AbcAction):
 
     @staticmethod
     def is_bar_expected(context):
-        text = context.get_scope_info(TuneScope.BodyUpToSelection).text
+        text = context.get_scope_info(TuneScope.LineUpToSelection).text
         last_bar_offset = max([0] + [m.end(0) for m in bar_sep.finditer(text)])  # offset of last bar symbol
         text = text[last_bar_offset:]  # the text from the last bar symbol up to the selection point
         metre, default_len = AddBarAction.get_metre_and_default_length(context.get_scope_info(TuneScope.TuneUpToSelection).text)
@@ -1276,10 +1411,21 @@ class AddBarAction(AbcAction):
         return result
 
 
+class CombineUsingBeamAction(AbcAction):
+    def __init__(self):
+        super(CombineUsingBeamAction, self).__init__('beam_notes', display_name=_('Combine using beam'))
+
+    def can_execute(self, context, params=None):
+        return True # check if all notes are shorter than a quarter note
+
+    def execute(self, context, params=None):
+        text = re.sub(r'\s+', '`', context.match_text)
+        context.replace_match_text(text)
+
 
 class CombineToChordAction(AbcAction):
     def __init__(self):
-        super(CombineToChordAction, self).__init__('Combine to chord')
+        super(CombineToChordAction, self).__init__('combine_to_chord', display_name=_('Combine to chord'))
 
     def can_execute(self, context, params=None):
         return True
@@ -1291,7 +1437,7 @@ class CombineToChordAction(AbcAction):
 class MakeTripletsAction(AbcAction):
     notes_re = re.compile(AbcNoteGroup.note_or_chord_pattern)
     def __init__(self):
-        super(MakeTripletsAction, self).__init__('Make triplets')
+        super(MakeTripletsAction, self).__init__('make_triplets', display_name=_('Make triplets'))
 
     def can_execute(self, context, params=None):
         note_matches = self.notes_re.findall(context.match_text)
@@ -1310,10 +1456,10 @@ class PageFormatDirectiveChangeAction(ValueChangeAction):
         ValueDescription('leftmargin', _('Page width')),
         ValueDescription('rightmargin', _('Page width')),
         ValueDescription('staffwidth', _('Staff width')),
-        ValueDescription('landscape', _('Landscape'))
+        ValueDescription('landscape', _('Page orientation'))
     ]
     def __init__(self):
-        super(PageFormatDirectiveChangeAction, self).__init__('Change page format', PageFormatDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+        super(PageFormatDirectiveChangeAction, self).__init__('change_page_format', PageFormatDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader, display_name=_('Change page format'))
 
 
 class MeasureNumberingChangeAction(DirectiveChangeAction):
@@ -1328,7 +1474,7 @@ class MeasureNumberingChangeAction(DirectiveChangeAction):
         ValueDescription('10', _('Every 10 measures'))
     ]
     def __init__(self):
-        super(MeasureNumberingChangeAction, self).__init__('measurenb', 'Show measure numbers', MeasureNumberingChangeAction.values, valid_sections=AbcSection.TuneHeader)
+        super(MeasureNumberingChangeAction, self).__init__('measurenb', 'change_measurenb', MeasureNumberingChangeAction.values, valid_sections=AbcSection.TuneHeader, display_name=_('Show measure numbers'))
 
 
 class MeasureBoxChangeAction(DirectiveChangeAction):
@@ -1337,7 +1483,7 @@ class MeasureBoxChangeAction(DirectiveChangeAction):
         ValueDescription('1', _('Boxed'))
     ]
     def __init__(self):
-        super(MeasureBoxChangeAction, self).__init__('measurebox', 'Show measure box', MeasureBoxChangeAction.values, valid_sections=AbcSection.TuneHeader)
+        super(MeasureBoxChangeAction, self).__init__('measurebox', 'change_measurebox', MeasureBoxChangeAction.values, valid_sections=AbcSection.TuneHeader, display_name=_('Show measure box'))
 
 
 class FirstMeasureNumberChangeAction(DirectiveChangeAction):
@@ -1346,7 +1492,7 @@ class FirstMeasureNumberChangeAction(DirectiveChangeAction):
         ValueDescription('1', _('One'))
     ]
     def __init__(self):
-        super(FirstMeasureNumberChangeAction, self).__init__('setbarnb', 'First measure number', MeasureNumberingChangeAction.values, valid_sections=AbcSection.TuneHeader)
+        super(FirstMeasureNumberChangeAction, self).__init__('setbarnb', 'change_setbarnb', MeasureNumberingChangeAction.values, valid_sections=AbcSection.TuneHeader, display_name=_('First measure number'))
 
 
 class FontDirectiveChangeAction(ValueChangeAction):
@@ -1368,7 +1514,7 @@ class FontDirectiveChangeAction(ValueChangeAction):
         ValueDescription('setfont-4', _('Custom font 4'))
     ]
     def __init__(self):
-        super(FontDirectiveChangeAction, self).__init__('Change font directive', FontDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+        super(FontDirectiveChangeAction, self).__init__('change_font_directive', FontDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader, display_name=_('Change font directive'))
 
 
 class ScaleDirectiveChangeAction(ValueChangeAction):
@@ -1377,7 +1523,7 @@ class ScaleDirectiveChangeAction(ValueChangeAction):
         ValueDescription('staffscale', _('Staff scale factor'))
     ]
     def __init__(self):
-        super(ScaleDirectiveChangeAction, self).__init__('Change scale directive', ScaleDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader)
+        super(ScaleDirectiveChangeAction, self).__init__('change_scale_directive', ScaleDirectiveChangeAction.values, valid_sections=AbcSection.TuneHeader, display_name=_('Change scale directive'))
 
 
 class InsertDirectiveAction(InsertValueAction):
@@ -1388,7 +1534,7 @@ class InsertDirectiveAction(InsertValueAction):
         ValueDescription('titlefont', _('Font'))
     ]
     def __init__(self):
-        super(InsertDirectiveAction, self).__init__('Insert directive', InsertDirectiveAction.values)
+        super(InsertDirectiveAction, self).__init__('insert_directive', InsertDirectiveAction.values, display_name=_('Insert directive'))
 
 
 class InsertAlignSymbolAction(InsertValueAction):
@@ -1401,21 +1547,60 @@ class InsertAlignSymbolAction(InsertValueAction):
         CodeDescription('|', _('advances to the next bar'))
     ]
     def __init__(self):
-        super(InsertAlignSymbolAction, self).__init__('Insert align symbol', InsertAlignSymbolAction.values)
+        super(InsertAlignSymbolAction, self).__init__('insert_align_symbol', InsertAlignSymbolAction.values, display_name=_('Insert align symbol'))
+
+
+class InsertFieldAction(InsertValueAction):
+    values = [
+        ValueDescription('K:', _('Key / clef')),
+        ValueDescription('M:', name_to_display_text['meter']),
+        ValueDescription('Q:', name_to_display_text['tempo']),
+        ValueDescription('L:', name_to_display_text['unit note length']),
+        ValueDescription('V:', name_to_display_text['voice']),
+    ]
+    def __init__(self):
+        super(InsertFieldAction, self).__init__('insert_field', InsertFieldAction.values, display_name=_('Change...'))
+
+    def execute(self, context, params=None):
+        value = params.get('value')
+        if value is None:
+            super(InsertValueAction, self).execute(context, params)
+        else:
+            if not context.previous_character in '\r\n':
+                context.insert_text('[{0}]'.format(value))
+            else:
+                context.insert_text(value)
+
 
 class ActionSeparator(AbcAction):
     def __init__(self):
-        super(ActionSeparator, self).__init__('Separator')
+        super(ActionSeparator, self).__init__('separator')
 
     def get_action_html(self, context):
-        return '<BR>'
+        #return '<BR>'
+        return '<HR WIDTH="90%" NOSHADE>'
 
 
 ##################################################################################################
 #  REMOVE ACTIONS
 ##################################################################################################
 
+class RemoveAction(AbcAction):
+    def __init__(self):
+        super(RemoveAction, self).__init__('remove', display_name=_('Remove'))
 
+    def get_action_html(self, context):
+        desc = escape(self.display_name)
+        params = {}
+        action_url = self.get_action_url(params)
+        image_html = html_image('remove-black', desc)
+        columns = []
+        columns += [UrlTuple(action_url, image_html)]
+        columns += [UrlTuple(action_url, desc)]
+        return ActionSeparator().get_action_html(context) + html_table([tuple(columns)], cellpadding=2)
+
+    def execute(self, context, params):
+        context.replace_match_text('')
 
 
 
@@ -1425,9 +1610,10 @@ class ActionSeparator(AbcAction):
 
 
 class AbcActionHandler(object):
-    def __init__(self, actions = None):
+    def __init__(self, actions = None, parent=None):
         self._actions_by_name = {}
         self._actions_ordered = []
+        self.parent = parent
         if actions is not None:
             for action in actions:
                 self.add_action(action)
@@ -1437,7 +1623,10 @@ class AbcActionHandler(object):
         self._actions_by_name[action.name] = action
 
     def get_action(self, name):
-        return self._actions_by_name.get(name)
+        result = self._actions_by_name.get(name)
+        if result is None and self.parent:
+            result = self.parent.action_by_name(name)
+        return result
 
     def get_action_html(self, context):
         rows = []
@@ -1449,36 +1638,89 @@ class AbcActionHandler(object):
 class AbcActionHandlers(object):
     def __init__(self, elements):
         self.default_action_handler = AbcActionHandler()
+        self.registered_actions = {}
+        self.register_actions([
+            NewTuneAction(),
+            NewNoteOrRestAction(),
+            NewLineAction(),
+            RemoveAction(),
+            NoteDurationAction(),
+            AddSlurAction(),
+            MakeTripletsAction(),
+            CombineUsingBeamAction(),
+            InsertFieldAction(),
+            AbcStandardUrlAction(),
+            AccidentalChangeAction(),
+            PitchAction(),
+            BarChangeAction(),
+            RedefinableSymbolChangeAction(),
+            ChordChangeAction(),
+            RestDurationAction(),
+            MeasureRestDurationAction(),
+            CombineToChordAction(),
+            DynamicsDecorationChangeAction(),
+            ArticulationDecorationChangeAction(),
+            OrnamentDecorationChangeAction(),
+            DirectionDecorationChangeAction(),
+            FingeringDecorationChangeAction(),
+            RestVisibilityChangeAction(),
+            MeasureRestVisibilityChangeAction(),
+            AppoggiaturaOrAcciaccaturaChangeAction(),
+            InsertAnnotationAction(),
+            AddDecorationAction(),
+            AnnotationPositionAction(),
+            ConvertToAnnotationAction(),
+            InsertAlignSymbolAction(),
+            KeySignatureChangeAction(),
+            KeyModeChangeAction(),
+            UnitNoteLengthChangeAction(),
+            MeterChangeAction(),
+            FixCharactersAction(),
+            ClefChangeAction(),
+            StaffTransposeChangeAction(),
+            AbcOctaveChangeAction(),
+            PlaybackTransposeChangeAction(),
+            TempoNotationChangeAction(),
+            TempoNameChangeAction(),
+            TempoNoteLengthChangeAction(),
+            TempoNote2LengthChangeAction(),
+            ActionSeparator(),
+        ])
+
         self.action_handlers = {
-            'Empty document'     : AbcActionHandler([NewTuneAction()]),
-            'Empty line'         : AbcActionHandler([NewTuneAction(), NewNoteOrRestAction()]),
-            'Whitespace'         : AbcActionHandler([NewNoteOrRestAction()]),
-            'Note'               : AbcActionHandler([NewNoteOrRestAction(), ActionSeparator(), AccidentalChangeAction(), NoteDurationAction(), PitchAction(), AddDecorationAction(), InsertOptionalAccidental()]),
-            'Rest'               : AbcActionHandler([NewNoteOrRestAction(), ActionSeparator(), RestDurationAction(), RestVisibilityChangeAction()]),
-            'Measure rest'       : AbcActionHandler([NewNoteOrRestAction(), ActionSeparator(), MeasureRestDurationAction(), MeasureRestVisibilityChangeAction()]),
-            'Bar'                : AbcActionHandler([BarChangeAction()]),
-            'Annotation'         : AbcActionHandler([AnnotationPositionAction()]),
-            'Chord'              : AbcActionHandler([NoteDurationAction(), ChordChangeAction()]),
-            'Chord symbol'       : AbcActionHandler([ConvertToAnnotationAction()]),
-            'Grace notes'        : AbcActionHandler([AppoggiaturaOrAcciaccaturaChangeAction()]),
-            'Multiple notes'     : AbcActionHandler([AddSlurAction(), MakeTripletsAction(), CombineToChordAction()]),
-            'Multiple notes/chords' : AbcActionHandler([AddSlurAction(), MakeTripletsAction()]),
-            'Dynamics'           : AbcActionHandler([DynamicsDecorationChangeAction()]),
-            'Articulation'       : AbcActionHandler([ArticulationDecorationChangeAction()]),
-            'Ornament'           : AbcActionHandler([OrnamentDecorationChangeAction()]),
-            'Navigation'         : AbcActionHandler([NavigationDecorationChangeAction()]),
-            'Fingering'          : AbcActionHandler([FingeringDecorationChangeAction()]),
-            'Redefinable symbol' : AbcActionHandler([RedefinableSymbolChangeAction()]),
-            #'Stylesheet directive': AbcActionHandler([InsertDirectiveAction()]),
-            'w:'                 : AbcActionHandler([InsertAlignSymbolAction()]),
-            'K:'                 : AbcActionHandler([KeySignatureChangeAction(), KeyModeChangeAction()]),
-            'L:'                 : AbcActionHandler([UnitNoteLengthChangeAction()]),
-            'M:'                 : AbcActionHandler([MeterChangeAction()]),
-            '%'                  : AbcActionHandler([FixCharactersAction()])
+            'empty_document'         : self.create_handler(['new_tune']),
+            'abcversion'             : self.create_handler(['lookup_abc_standard']),
+            'empty_line'             : self.create_handler(['new_tune']),
+            'empty_line_file_header' : self.create_handler(['new_tune']),
+            'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'separator', 'insert_field']),
+            'Whitespace'             : self.create_handler(['new_note', 'remove']),
+            'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'insert_decoration', 'insert_annotation', 'separator', 'insert_field', 'remove']),
+            'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'separator', 'insert_field', 'remove']),
+            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'separator', 'insert_field', 'remove']),
+            'Bar'                    : self.create_handler(['change_bar', 'remove']),
+            'Annotation'             : self.create_handler(['change_annotation_position', 'remove']),
+            'Chord'                  : self.create_handler(['change_note_duration', 'change_chord', 'remove']),
+            'Chord symbol'           : self.create_handler(['convert_to_annotation', 'remove']),
+            'Grace notes'            : self.create_handler(['change_appoggiatura_acciaccatura', 'remove']),
+            'Multiple notes'         : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'combine_to_chord', 'remove']),
+            'Multiple notes/chords'  : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'remove']),
+            'Dynamics'               : self.create_handler(['change_dynamics', 'remove']),
+            'Articulation'           : self.create_handler(['change_articulation', 'remove']),
+            'Ornament'               : self.create_handler(['change_ornament', 'remove']),
+            'Direction'              : self.create_handler(['change_direction', 'remove']),
+            'Fingering'              : self.create_handler(['change_fingering', 'remove']),
+            'Redefinable symbol'     : self.create_handler(['change_redefinable_symbol']),
+            #'Stylesheet directive'  self.create_handler: self.create_handler([InsertDirectiveAction()]),
+            'w:'                     : self.create_handler(['insert_align_symbol']),
+            'K:'                     : self.create_handler(['change_key_signature', 'change_key_mode']),
+            'L:'                     : self.create_handler(['change_unit_note_length']),
+            'M:'                     : self.create_handler(['change_meter']),
+            'Q:'                     : self.create_handler(['change_tempo_notation', 'change_tempo_name', 'change_tempo_note1_length', 'change_tempo_note2_length']),
+            '%'                      : self.create_handler(['fix_characters'])
         }
 
         for key in ['V:', 'K:']:
-            self.add_actions(key, [ClefChangeAction(), StaffTransposeChangeAction(), PlaybackTransposeChangeAction(), AbcOctaveChangeAction()]) # ClefLineChangeAction()
+            self.add_actions(key, ['change_clef', 'staff_transpose', 'octave_shift', 'playback_transpose'])
 
         #for key in ['X:', 'T:']:
         #    self.add_actions(key, [NewVoiceAction()])
@@ -1486,8 +1728,7 @@ class AbcActionHandlers(object):
         for element in elements:
             if type(element) == AbcStringField:
                 key = element.keyword or element.name
-                self.add_actions(key, [FixCharactersAction()])
-
+                self.add_actions(key, ['fix_characters'])
 
     def get_action_handler(self, element):
         if element:
@@ -1495,11 +1736,27 @@ class AbcActionHandlers(object):
             return self.action_handlers.get(key, self.default_action_handler)
         return self.default_action_handler
 
-    def add_actions(self, key, actions):
+    def add_actions(self, key, action_names):
         action_handler = self.action_handlers.get(key)
         if action_handler is None:
-            self.action_handlers[key] = AbcActionHandler(actions)
+            self.action_handlers[key] = self.create_handler(action_names)
         else:
-            for action in actions:
-                action_handler.add_action(action)
+            for action_name in action_names:
+                action_handler.add_action(self.action_by_name(action_name))
 
+    def register_actions(self, actions):
+        for action in actions:
+            self.registered_actions[action.name] = action
+
+    def create_handler(self, action_names):
+        actions = []
+        for action_name in action_names:
+            actions.append(self.action_by_name(action_name))
+        return AbcActionHandler(actions, parent=self)
+
+    def action_by_name(self, action_name):
+        action = self.registered_actions.get(action_name)
+        if action is None:
+            print 'action {0} not registered'.format(action_name)
+        else:
+            return action

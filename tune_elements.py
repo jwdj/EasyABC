@@ -46,23 +46,51 @@ X:|reference number  |no     |first  |no     |no     |instruction
 Z:|transcription     |yes    |yes    |no     |no     |string
 """
 
-clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>treble|bass3|bass|tenor|alto2|alto1|alto|perc|none)(?P<stafftranspose>(?:[+-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?)'
+clef_name_pattern = 'treble|bass3|bass|tenor|auto|baritone|soprano|mezzosoprano|alto2|alto1|alto|perc|none|C[1-4]|F[3-5]|G[1-2]'
+simple_note_pattern = "[a-gA-G][',]*"
+clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>{1})(?P<stafftranspose>(?:[+^_-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?) *?(?P<score>(?: score={0}{0})?) *?(?P<sound>(?: sound={0}{0})?) *?(?P<shift>(?: shift={0}{0})?) *?(?P<instrument>(?: instrument={0}(?:/{0})?)?)'.format(simple_note_pattern, clef_name_pattern)
 
 abc_inner_pattern = {
-    'K:': r' ?(?P<tonic>(?:[A-G][b#]?|none)) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)' + clef_pattern,
-    'Q:': r' ?(?P<pre_name>"\w*"?) ?(?P<notelength>\d+/\d+)=(?P<bpm>\d+) ?(?P<post_name>"\w*"?)',
+    'K:': r' ?(?:(?P<tonic>(?:[A-G][b#]?|none)) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)'+clef_pattern+')?',
+    'Q:': r'(?P<pre_text>(?: ?"(?P<pre_name>\w*)")?)(?P<metronome>(?: ?(?P<note1>\d+/\d+) ?(?P<note2>\d+/\d+)? ?(?P<note3>\d+/\d+)? ?(?P<note4>\d+/\d+)?=(?P<bpm>\d+))?)(?P<post_text>(?: ?"(?P<post_name>\w*)")?)',
     'V:': r' ?(?P<name>\w+)' + clef_pattern
 }
 
 name_to_display_text = {
-    'staves' : _('Staff layout'),
+    'staves'                  : _('Staff layout'     ),
+    'area'                    : _('Area'             ),
+    'book'                    : _('Book'             ),
+    'composer'                : _('Composer'         ),
+    'discography'             : _('Discography'      ),
+    'file url'                : _('File url'         ),
+    'group'                   : _('Group'            ),
+    'history'                 : _('History'          ),
+    'instruction'             : _('Instruction'      ),
+    'key'                     : _('Key'              ),
+    'unit note length'        : _('Unit note length' ),
+    'meter'                   : _('Meter'            ),
+    'macro'                   : _('Macro'            ),
+    'notes'                   : _('Notes'            ),
+    'origin'                  : _('Origin'           ),
+    'parts'                   : _('Parts'            ),
+    'tempo'                   : _('Tempo'            ),
+    'rhythm'                  : _('Rhythm'           ),
+    'remark'                  : _('Remark'           ),
+    'source'                  : _('Source'           ),
+    'symbol line'             : _('Symbol line'      ),
+    'tune title'              : _('Tune title'       ),
+    'user defined'            : _('User defined'     ),
+    'voice'                   : _('Voice'            ),
+    'words'                   : _('Words'            ),
+    'reference number'        : _('Reference number' ),
+    'transcription'           : _('Transcription'    ),
 }
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
-TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'TuneUpToSelection', 'BodyUpToSelection', 'BodyAfterSelection', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText', 'PreviousCharacter', 'NextCharacter')
+TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'TuneUpToSelection', 'BodyUpToSelection', 'BodyAfterSelection', 'LineUpToSelection', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText', 'PreviousCharacter', 'NextCharacter')
 TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
@@ -275,12 +303,11 @@ class AbcElement(object):
     """
     Base class for each element in abc-code where element is a piece of structured abc-code
     """
-    def __init__(self, name, keyword=None, group_name=None, display_name=None, description=None, validation_pattern=None):
+    def __init__(self, name, keyword=None, display_name=None, description=None, validation_pattern=None):
         self.name = name
-        self.group_name = group_name
         self.keyword = keyword
         if display_name is None:
-            self.__display_name = name_to_display_text.get(name, _(name[:1].upper() + name[1:]))
+            self.__display_name = name_to_display_text.get(name, name[:1].upper() + name[1:])
         else:
             self.__display_name = display_name
         self.description = description
@@ -400,8 +427,8 @@ class AbcElement(object):
 
 
 class CompositeElement(AbcElement):
-    def __init__(self, name, keyword=None, group_name=None, display_name=None, description=None):
-        super(CompositeElement, self).__init__(name, keyword, group_name, display_name, description)
+    def __init__(self, name, keyword=None, display_name=None, description=None):
+        super(CompositeElement, self).__init__(name, keyword, display_name=display_name, description=description)
         self._elements = {}
 
     def add_element(self, element):
@@ -436,14 +463,14 @@ class CompositeElement(AbcElement):
 class AbcUnknown(AbcElement):
     pattern = ''
     def __init__(self):
-        super(AbcUnknown, self).__init__('Unknown')
+        super(AbcUnknown, self).__init__('Unknown', display_name=_('Unknown'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcUnknown.pattern
 
 
 class AbcInformationField(AbcElement):
     def __init__(self, keyword, name, file_header, tune_header, tune_body, inline, inner_pattern=None):
-        super(AbcInformationField, self).__init__(name, keyword, group_name='ABC information')
+        super(AbcInformationField, self).__init__(name, keyword)
         self.file_header = file_header
         self.tune_header = tune_header
         self.tune_body = tune_body
@@ -451,6 +478,8 @@ class AbcInformationField(AbcElement):
         self.inner_pattern = inner_pattern
         self.inner_re = None
         self.visible_match_group = 1
+        if inner_pattern:
+            self.visible_match_group = 0
 
         line_pattern = r'(?m)^' + re.escape(self.keyword) + self.rest_of_line_pattern
         if file_header:
@@ -486,7 +515,7 @@ class AbcInformationField(AbcElement):
 
 class AbcDirective(CompositeElement):
     def __init__(self):
-        super(AbcDirective, self).__init__('Stylesheet directive', group_name='stylesheet directive', description=_('A stylesheet directive is a line that starts with %%, followed by a directive that gives instructions to typesetting or player programs.'))
+        super(AbcDirective, self).__init__('Stylesheet directive', display_name=_('Stylesheet directive'), description=_('A stylesheet directive is a line that starts with %%, followed by a directive that gives instructions to typesetting or player programs.'))
         pattern = r'(?m)^(?:%%|I:)(?!%)' + self.rest_of_line_pattern + '|' + self.get_inline_pattern('I:')
         for section in ABC_SECTIONS:
             self._search_pattern[section] = pattern
@@ -504,7 +533,7 @@ class AbcInstructionField(AbcInformationField):
 
 class AbcMidiDirective(CompositeElement):
     def __init__(self):
-        super(AbcMidiDirective, self).__init__('MIDI directive', 'MIDI', group_name='MIDI', description=_('A directive that gives instructions to player programs.'))
+        super(AbcMidiDirective, self).__init__('MIDI directive', 'MIDI', display_name=_('MIDI directive'), description=_('A directive that gives instructions to player programs.'))
         # pattern = re.escape('<a name="%s"></a>' % name) + '(.*?)' + re.escape('<a name=')
         # self.html_re = re.compile(pattern, re.MULTILINE or re.IGNORECASE)
 
@@ -525,7 +554,7 @@ class Abcm2psDirective(AbcElement):
     table_replacement = (re.compile('<table>.*?</table>', re.IGNORECASE | re.DOTALL), '')
 
     def __init__(self, keyword, name, description=None):
-        super(Abcm2psDirective, self).__init__(keyword, name, group_name='abcm2ps', description=description)
+        super(Abcm2psDirective, self).__init__(keyword, name, description=description)
         self.html_replacements = [
             Abcm2psDirective.anchor_replacement,
             Abcm2psDirective.table_replacement
@@ -540,11 +569,18 @@ class Abcm2psDirective(AbcElement):
         return result
 
 
+class AbcVersionDirective(AbcElement):
+    pattern = r'^%abc-(?P<version>[\d\.]+)'
+    def __init__(self):
+        super(AbcVersionDirective, self).__init__('abcversion', display_name=_('ABC version'), description=_('It starts with the version of the ABC specification this file conforms to.'))
+        self._search_pattern[AbcSection.FileHeader] = AbcVersionDirective.pattern
+
+
 class AbcComment(AbcElement):
     #pattern = r'(?<!\\|^)%\s*(.*)|^%(?!%)\s*(.*)$'
     pattern = r'(?<!\\)%\s*(.*)$'
     def __init__(self):
-        super(AbcComment, self).__init__('Comment', '%')
+        super(AbcComment, self).__init__('Comment', '%', display_name=_('Comment'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcComment.pattern
         self._search_pattern[AbcSection.TuneBody] += '|`+'
@@ -569,7 +605,7 @@ class AbcComment(AbcElement):
 class AbcEmptyDocument(AbcElement):
     pattern = r'^$'
     def __init__(self):
-        super(AbcEmptyDocument, self).__init__('Empty document', display_name='Welcome to EasyABC',
+        super(AbcEmptyDocument, self).__init__('empty_document', display_name=_('Welcome to EasyABC'),
             description=_('Creating an abc-file from scratch can be difficult. This assist panel tries to help by providing hints and actions. But remember, typing is usually faster.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcEmptyLine.pattern
@@ -579,22 +615,26 @@ class AbcEmptyDocument(AbcElement):
 class AbcEmptyLine(AbcElement):
     pattern = r'^\s*$'
     def __init__(self):
-        super(AbcEmptyLine, self).__init__('Empty line', description=_('An empty line separates tunes.'))
+        super(AbcEmptyLine, self).__init__('empty_line', display_name=_('Empty line'), description=_('An empty line separates tunes.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcEmptyLine.pattern
 
 
 class AbcEmptyLineWithinTune(AbcElement):
-    pattern = r'^\s*$'
     def __init__(self):
-        super(AbcEmptyLineWithinTune, self).__init__('Empty line', description=_('Now you can add a note or rest.'))
-        for section in ABC_SECTIONS:
-            self._search_pattern[AbcSection.TuneBody] = AbcEmptyLine.pattern
+        super(AbcEmptyLineWithinTune, self).__init__('empty_line_tune', display_name=_('Empty line'), description=_('Notes, rests, or directives can be added.'))
+        self._search_pattern[AbcSection.TuneBody] = AbcEmptyLine.pattern
+
+
+class AbcEmptyLineWithinFileHeader(AbcElement):
+    def __init__(self):
+        super(AbcEmptyLineWithinFileHeader, self).__init__('empty_line_file_header', display_name=_('File header'), description=_('Everything above the first X: is the file header. The directives here apply to all the tunes that follow.'))
+        self._search_pattern[AbcSection.FileHeader] = AbcEmptyLine.pattern
 
 
 class AbcBodyElement(AbcElement):
-    def __init__(self, name, pattern, description=None):
-        super(AbcBodyElement, self).__init__(name, group_name='Music code', description=description)
+    def __init__(self, name, pattern, display_name=None, description=None):
+        super(AbcBodyElement, self).__init__(name, display_name=display_name, description=description)
         self._search_pattern[AbcSection.TuneBody] = pattern
         self.pattern = pattern
 
@@ -602,38 +642,38 @@ class AbcBodyElement(AbcElement):
 class AbcSpace(AbcBodyElement):
     pattern = r'\s+'
     def __init__(self):
-        super(AbcSpace, self).__init__('Whitespace', AbcSpace.pattern)
+        super(AbcSpace, self).__init__('Whitespace', AbcSpace.pattern, display_name=_('Whitespace'), description=_('Space is used to improve legibility and to prevent notes from sharing the same beam.'))
 
 
 class AbcAnnotation(AbcBodyElement):
     pattern = r'(?P<annotation>"(?P<pos>[\^_<>@])(?P<text>(?:\\"|[^"])*)")'
     def __init__(self):
-        super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern)
+        super(AbcAnnotation, self).__init__('Annotation', AbcAnnotation.pattern, display_name=_('Annotation'))
         self.visible_match_group = 'text'
 
 
 class AbcSlur(AbcBodyElement):
     pattern = r'\((?!\d)|\)'
     def __init__(self):
-        super(AbcSlur, self).__init__('Slur', AbcSlur.pattern)
+        super(AbcSlur, self).__init__('Slur', AbcSlur.pattern, display_name=_('Slur'))
 
 
 class TypesettingSpace(AbcBodyElement):
     pattern = 'y'
     def __init__(self):
-        super(TypesettingSpace, self).__init__('Typesetting extra space', TypesettingSpace.pattern, description=_('y can be used to add extra space between the surrounding notes; moreover, chord symbols and decorations can be attached to it, to separate them from notes.'))
+        super(TypesettingSpace, self).__init__('Typesetting extra space', TypesettingSpace.pattern, display_name=_('Typesetting extra space'), description=_('y can be used to add extra space between the surrounding notes; moreover, chord symbols and decorations can be attached to it, to separate them from notes.'))
 
 
 class RedefinableSymbol(AbcBodyElement):
     pattern = '[H-Wh-w~]'
     def __init__(self):
-        super(RedefinableSymbol, self).__init__('Redefinable symbol', RedefinableSymbol.pattern, description=_('As a short cut to writing symbols which avoids the !symbol! syntax, the letters H-W and h-w and the symbol ~ can be assigned with the U: field. For example, to assign the letter T to represent the trill, you can write: U: T = !trill!'))
+        super(RedefinableSymbol, self).__init__('Redefinable symbol', RedefinableSymbol.pattern, display_name=_('Redefinable symbol'), description=_('The letters H-W and h-w and the symbol ~ can be assigned with the U: field to provide a shortcut for the !symbol! syntax. For example, to assign the letter T to represent the trill, you can write: U: T = !trill!'))
 
 
 class AbcDecoration(AbcBodyElement):
     pattern = r"!([^!]+)!|\+([^!]+)\+|\."
     values = decoration_to_description
-    def __init__(self, name=None, subset=None):
+    def __init__(self, name=None, subset=None, display_name=None):
         if name is None:
             name = 'Decoration'
         if subset is None:
@@ -644,7 +684,7 @@ class AbcDecoration(AbcBodyElement):
             if without_exclamation:
                 without_exclamation = '|' + without_exclamation
             pattern = r'(?P<decoration>(?P<decomark>\+|!)(?P<deconame>{0})(?P=decomark){1})'.format(with_exclamation, without_exclamation)
-        super(AbcDecoration, self).__init__(name, pattern)
+        super(AbcDecoration, self).__init__(name, pattern, display_name=display_name)
 
     def get_description_html(self, context):
         html = super(AbcDecoration, self).get_description_html(context)
@@ -666,13 +706,13 @@ class AbcDynamicsDecoration(AbcDecoration):
         '!diminuendo)!', '!>)!'
     ]
     def __init__(self):
-        super(AbcDynamicsDecoration, self).__init__('Dynamics', AbcDynamicsDecoration.values)
+        super(AbcDynamicsDecoration, self).__init__('Dynamics', AbcDynamicsDecoration.values, display_name=_('Dynamics'))
 
 
 class AbcFingeringDecoration(AbcDecoration):
     values = ['!0!', '!1!', '!2!', '!3!', '!4!', '!5!']
     def __init__(self):
-        super(AbcFingeringDecoration, self).__init__('Fingering', AbcFingeringDecoration.values)
+        super(AbcFingeringDecoration, self).__init__('Fingering', AbcFingeringDecoration.values, display_name=_('Fingering'))
 
 
 class AbcOrnamentDecoration(AbcDecoration):
@@ -692,10 +732,10 @@ class AbcOrnamentDecoration(AbcDecoration):
         '!arpeggio!'
     ]
     def __init__(self):
-        super(AbcOrnamentDecoration, self).__init__('Ornament', AbcOrnamentDecoration.values)
+        super(AbcOrnamentDecoration, self).__init__('Ornament', AbcOrnamentDecoration.values, display_name=_('Ornament'))
 
 
-class AbcNavigationDecoration(AbcDecoration):
+class AbcDirectionDecoration(AbcDecoration):
     values = [
         '!segno!',
         '!coda!',
@@ -706,7 +746,7 @@ class AbcNavigationDecoration(AbcDecoration):
         '!fine!'
     ]
     def __init__(self):
-        super(AbcNavigationDecoration, self).__init__('Navigation', AbcNavigationDecoration.values)
+        super(AbcDirectionDecoration, self).__init__('Direction', AbcDirectionDecoration.values, display_name=_('Direction'))
 
 
 class AbcArticulationDecoration(AbcDecoration):
@@ -727,7 +767,7 @@ class AbcArticulationDecoration(AbcDecoration):
         '!breath!',
     ]
     def __init__(self):
-        super(AbcArticulationDecoration, self).__init__('Articulation', AbcArticulationDecoration.values)
+        super(AbcArticulationDecoration, self).__init__('Articulation', AbcArticulationDecoration.values, display_name=_('Articulation'))
 
 
 class AbcBrokenRhythm(AbcBodyElement):
@@ -747,44 +787,38 @@ class AbcBrokenRhythm(AbcBodyElement):
 class AbcTuplet(AbcBodyElement):
     pattern = r"\([1-9](?:\:[1-9]?)?(?:\:[1-9]?)?"
     def __init__(self):
-        super(AbcTuplet, self).__init__('Tuplet', AbcTuplet.pattern, description=_('Duplets, triplets, quadruplets, etc.'))
+        super(AbcTuplet, self).__init__('Tuplet', AbcTuplet.pattern, display_name=_('Tuplet'), description=_('Duplets, triplets, quadruplets, etc.'))
 
 
 class AbcBar(AbcBodyElement):
     pattern = r"\.?\|\||:*\|\]|\[\|:*|::|:+\||\|:+|\.?\||\[\|\]"
     def __init__(self):
-        super(AbcBar, self).__init__('Bar', AbcBar.pattern, description=_('Separates measures.'))
+        super(AbcBar, self).__init__('Bar', AbcBar.pattern, display_name=_('Bar'), description=_('Separates measures.'))
 
 
 class AbcVariantEnding(AbcBodyElement):
     pattern = r'\[[1-9](?:[,-][1-9])*|\|[1-9]'
     def __init__(self):
-        super(AbcVariantEnding, self).__init__('Variant ending', AbcVariantEnding.pattern, description=_('To play a different ending each time'))
+        super(AbcVariantEnding, self).__init__('Variant ending', AbcVariantEnding.pattern, display_name=_('Variant ending'), description=_('To play a different ending each time'))
 
 
 class AbcVoiceOverlay(AbcBodyElement):
     pattern = '&'
     def __init__(self):
-        super(AbcVoiceOverlay, self).__init__('Voice overlay', AbcVoiceOverlay.pattern, description=_("The & operator may be used to temporarily overlay several voices within one measure. Each & operator sets the time point of the music back by one bar line, and the notes which follow it form a temporary voice in parallel with the preceding one. This may only be used to add one complete bar's worth of music for each &. "))
+        super(AbcVoiceOverlay, self).__init__('Voice overlay', AbcVoiceOverlay.pattern, display_name=_('Voice overlay'), description=_("The & operator may be used to temporarily overlay several voices within one measure. Each & operator sets the time point of the music back by one bar line, and the notes which follow it form a temporary voice in parallel with the preceding one. This may only be used to add one complete bar's worth of music for each &. "))
 
 
 class AbcInvalidCharacter(AbcBodyElement):
     pattern = r'[^\d\w\s%s]' % re.escape('!"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~')
     def __init__(self):
-        super(AbcInvalidCharacter, self).__init__('Invalid character', AbcInvalidCharacter.pattern, description=_("This character is not allowed within the body of an abc tune."))
-
-
-class AbcChordBeginAndEnd(AbcBodyElement):
-    pattern = r'\[|\]'
-    def __init__(self):
-        super(AbcChordBeginAndEnd, self).__init__('Chord marker', AbcChordBeginAndEnd.pattern, description=_('Multiple simultaneous notes.'))
+        super(AbcInvalidCharacter, self).__init__('Invalid character', AbcInvalidCharacter.pattern, display_name=_('Invalid character'), description=_("This character is not allowed within the body of an abc tune."))
 
 
 class AbcChordSymbol(AbcBodyElement):
     #pattern = r'(?P<chordsymbol>"(?P<chordname>((?:\\"|[^"])*))")'
     pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
     def __init__(self):
-        super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern)
+        super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern, display_name=_('Chord symbol'))
 
 
 class AbcBaseNote(AbcBodyElement):
@@ -803,14 +837,14 @@ class AbcBaseNote(AbcBodyElement):
     basic_note_or_rest_pattern = '(?:{0}|{1})'.format(basic_note_pattern_without_len, basic_rest_pattern_without_len) + length_pattern
     basic_measure_rest_pattern = '(?P<rest>[ZX])(?P<length>(?:[1-9][0-9]*)?)'
 
-    def __init__(self, name, pattern, description=None):
-        super(AbcBaseNote, self).__init__(name, pattern, description=description)
+    def __init__(self, name, pattern, display_name=None, description=None):
+        super(AbcBaseNote, self).__init__(name, pattern, display_name=display_name, description=description)
 
 
 class AbcGraceNotes(AbcBaseNote):
     pattern = r'(?P<grace>{(?P<acciaccatura>/?)(?P<gracenote>[^}]*)})'
     def __init__(self):
-        super(AbcBaseNote, self).__init__('Grace notes', AbcGraceNotes.pattern)
+        super(AbcBaseNote, self).__init__('Grace notes', AbcGraceNotes.pattern, display_name=_('Grace notes'))
         self.visible_match_group = 'gracenote'
 
 
@@ -826,7 +860,7 @@ class AbcNoteGroup(AbcBaseNote):
     chord_pattern = r'(?P<chord>\[(?:{0}\s*)*\])'.format(remove_named_groups(note_or_rest_pattern)) + AbcBaseNote.length_pattern + note_group_pattern_postfix
     note_or_chord_pattern = r'({0}|{1})'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern)) + note_group_pattern_postfix
     def __init__(self):
-        super(AbcNoteGroup, self).__init__('Note group', AbcNoteGroup.note_or_chord_pattern) # '^{0}$'.format(AbcNoteGroup.pattern))
+        super(AbcNoteGroup, self).__init__('Note group', AbcNoteGroup.note_or_chord_pattern, display_name=_('Note group')) # '^{0}$'.format(AbcNoteGroup.pattern))
         #self.exact_match_required = True
         self.visible_match_group = 1
 
@@ -834,20 +868,20 @@ class AbcNoteGroup(AbcBaseNote):
 class AbcNoteOrChord(AbcBaseNote):
     pattern = AbcNoteGroup.note_or_chord_pattern
     def __init__(self):
-        super(AbcBaseNote, self).__init__('Note or chord', AbcNoteOrChord.pattern)
+        super(AbcBaseNote, self).__init__('Note or chord', AbcNoteOrChord.pattern, display_name=_('Note or chord'))
 
 
 class AbcChord(AbcBaseNote):
     pattern = AbcNoteGroup.chord_pattern
     def __init__(self):
-        super(AbcBaseNote, self).__init__('Chord', AbcChord.pattern)
+        super(AbcBaseNote, self).__init__('Chord', AbcChord.pattern, display_name=_('Chord'))
         #self.exact_match_required = True
 
 
 class AbcNote(AbcBaseNote):
     pattern = AbcNoteGroup.note_pattern
     def __init__(self):
-        super(AbcNote, self).__init__('Note', '({0})'.format(AbcNote.pattern))
+        super(AbcNote, self).__init__('Note', '({0})'.format(AbcNote.pattern), display_name=_('Note'))
         self.removable_match_groups = {
             'grace': _('Grace notes'),
             'chordsymbol': _('Chord symbol'),
@@ -859,28 +893,28 @@ class AbcNote(AbcBaseNote):
 class AbcNormalRest(AbcBaseNote):
     pattern = AbcNoteGroup.normal_rest_pattern
     def __init__(self):
-        super(AbcNormalRest, self).__init__('Rest', AbcNormalRest.pattern)
+        super(AbcNormalRest, self).__init__('Rest', AbcNormalRest.pattern, display_name=_('Rest'))
         self.visible_match_group = 0
 
 
 class AbcMeasureRest(AbcBaseNote):
     pattern = AbcBaseNote.basic_measure_rest_pattern
     def __init__(self):
-        super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern) # _('This rest spans one or more measures.')
+        super(AbcMeasureRest, self).__init__('Measure rest', AbcMeasureRest.pattern, display_name=_('Measure rest')) # _('This rest spans one or more measures.')
         self.visible_match_group = 0
 
 
 class AbcMultipleNotesAndChords(AbcBaseNote):
-    pattern = '(?:' +  AbcNoteGroup.note_or_chord_pattern + ' *){2,}'
+    pattern = '(?:' +  AbcNoteGroup.note_or_chord_pattern + '[ `]*){2,}'
     def __init__(self):
-        super(AbcMultipleNotesAndChords, self).__init__('Multiple notes/chords', '^{0}$'.format(AbcMultipleNotesAndChords.pattern))
+        super(AbcMultipleNotesAndChords, self).__init__('Multiple notes/chords', '^{0}$'.format(AbcMultipleNotesAndChords.pattern), display_name=_('Multiple notes/chords'))
         self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 
 class AbcMultipleNotes(AbcBaseNote):
-    pattern = '(?:' + AbcNoteGroup.note_or_rest_pattern + ' *){2,}'
+    pattern = '(?:' + AbcNoteGroup.note_or_rest_pattern + '[ `]*){2,}'
     def __init__(self):
-        super(AbcMultipleNotes, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern))
+        super(AbcMultipleNotes, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern), display_name=_('Multiple notes'))
         self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 
@@ -970,7 +1004,9 @@ class AbcStructure(object):
         result = [
             AbcEmptyDocument(),
             AbcEmptyLineWithinTune(),
+            AbcEmptyLineWithinFileHeader(),
             AbcEmptyLine(),
+            AbcVersionDirective(),
             directive,
             AbcComment(),
         ]
@@ -987,7 +1023,7 @@ class AbcStructure(object):
             inline = parts[5].strip() == 'yes'
             abc_type = parts[6].strip()
             if abc_type == 'instruction':
-                element = AbcInstructionField(name, keyword, file_header, tune_header, tune_body, inline, abc_inner_pattern.get(keyword))
+                element = AbcInstructionField(name, keyword, file_header, tune_header, tune_body, inline, abc_inner_pattern.get(keyword, '.*'))
             elif abc_type == 'string':
                 element = AbcStringField(name, keyword, file_header, tune_header, tune_body, inline)
             else:
@@ -1067,7 +1103,7 @@ class AbcStructure(object):
             AbcDynamicsDecoration(),
             AbcFingeringDecoration(),
             AbcOrnamentDecoration(),
-            AbcNavigationDecoration(),
+            AbcDirectionDecoration(),
             AbcArticulationDecoration(),
             AbcDecoration(),
             AbcGraceNotes(),
@@ -1078,7 +1114,6 @@ class AbcStructure(object):
             AbcNormalRest(),
             AbcMeasureRest(),
             AbcChord(),
-            AbcChordBeginAndEnd(),
             AbcVoiceOverlay(),
             AbcBrokenRhythm(),
             AbcInvalidCharacter(),

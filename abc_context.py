@@ -21,6 +21,7 @@ class AbcContext(object):
             TuneScope.BodyUpToSelection: self.get_scope_body_up_to_selection,
             TuneScope.BodyAfterSelection: self.get_scope_body_after_selection,
             TuneScope.TuneUpToSelection: self.get_scope_tune_up_to_selection,
+            TuneScope.LineUpToSelection: self.get_scope_line_up_to_selection,
             TuneScope.PreviousLine: self.get_scope_previous_line,
             TuneScope.MatchText: self.get_empty_scope_info, # is determined elsewhere
             TuneScope.InnerText: self.get_empty_scope_info, # is determined elsewhere
@@ -102,17 +103,6 @@ class AbcContext(object):
             scope_info = self.get_empty_scope_info()
         self._tune_scope_info[TuneScope.MatchText] = scope_info
 
-        self.inner_match = None
-        inner_scope_info = scope_info
-        if match:
-            try:
-                start = match.start('inner')
-                if start >= 0:
-                    stop = match.end('inner')
-                    inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
-            except IndexError:
-                pass # no group named inner present
-
         if inner_match:
             match = inner_match.match
             self.inner_match = match
@@ -120,11 +110,24 @@ class AbcContext(object):
             stop = match.end()
             offset += inner_match.offset
             inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+        elif match:
+            inner_scope_info = None
+            try:
+                start = match.start('inner')
+                if start >= 0:
+                    stop = match.end('inner')
+                    inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+            except IndexError:
+                pass # no group named inner present
         self._tune_scope_info[TuneScope.InnerText] = inner_scope_info
 
     @property
     def match_text(self):
         return self.get_scope_info(TuneScope.MatchText).text
+
+    @property
+    def inner_text(self):
+        return self.get_scope_info(TuneScope.InnerText).text
 
     @property
     def lines(self):
@@ -137,6 +140,10 @@ class AbcContext(object):
     @property
     def previous_line(self):
         return self.get_scope_info(TuneScope.PreviousLine).text
+
+    @property
+    def previous_character(self):
+        return self.get_scope_info(TuneScope.PreviousCharacter).text
 
     def get_scope_info(self, tune_scope):
         result = self._tune_scope_info.get(tune_scope)
@@ -214,6 +221,15 @@ class AbcContext(object):
         else:
             start_pos = self._editor.PositionFromLine(self.tune_start_line)
             end_pos = self._editor.GetCurrentPos()
+            return self.create_scope(start_pos, end_pos)
+
+    def get_scope_line_up_to_selection(self):
+        if self.tune_start_line is None:
+            return self.get_empty_scope_info()
+        else:
+            start_pos, end_pos = self._editor.GetSelection()
+            line_no = self._editor.GetCurrentLine()
+            start_pos = self._editor.PositionFromLine(line_no)
             return self.create_scope(start_pos, end_pos)
 
     def get_scope_previous_character(self):
