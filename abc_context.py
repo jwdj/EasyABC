@@ -326,7 +326,7 @@ class AbcContext(object):
                 tune_scope = TuneScope.InnerText
         return tune_scope
 
-    def replace_match_text(self, new_text, matchgroup=None, tune_scope=None):
+    def replace_match_text(self, new_text, matchgroup=None, tune_scope=None, caret_after_matchgroup=False):
         tune_scope = self.ensure_tune_scope(tune_scope)
         m = self.current_match
         if tune_scope == TuneScope.InnerText and self.inner_match:
@@ -337,6 +337,8 @@ class AbcContext(object):
             new_text = s[m.start():m.start(matchgroup)] + new_text + s[m.end(matchgroup):m.end()]
 
         self.replace_in_editor(new_text, tune_scope)
+        if matchgroup and caret_after_matchgroup:
+            self.set_relative_selection(m.end(matchgroup) - m.end())
 
     def replace_matchgroups(self, values, tune_scope=None):
         tune_scope = self.ensure_tune_scope(tune_scope)

@@ -17,33 +17,33 @@ except ImportError:
 #  http://abcnotation.com/wiki/abc:standard:v2.1#information_field_definition
 # keyword | name |file header | tune header | tune body | inline | type
 abc_keywords = """\
-A:|area              |yes    |yes    |no     |no     |string
-B:|book              |yes    |yes    |no     |no     |string
-C:|composer          |yes    |yes    |no     |no     |string
-D:|discography       |yes    |yes    |no     |no     |string
-F:|file url          |yes    |yes    |no     |no     |string
-G:|group             |yes    |yes    |no     |no     |string
-H:|history           |yes    |yes    |no     |no     |string
-I:|instruction       |yes    |yes    |yes    |yes    |instruction
-K:|key               |no     |last   |yes    |yes    |instruction
-L:|unit note length  |yes    |yes    |yes    |yes    |instruction
-M:|meter             |yes    |yes    |yes    |yes    |instruction
-m:|macro             |yes    |yes    |yes    |yes    |instruction
-N:|notes             |yes    |yes    |yes    |yes    |string
-O:|origin            |yes    |yes    |no     |no     |string
-P:|parts             |no     |yes    |yes    |yes    |instruction
-Q:|tempo             |no     |yes    |yes    |yes    |instruction
-R:|rhythm            |yes    |yes    |yes    |yes    |string
-r:|remark            |yes    |yes    |yes    |yes    |string
-S:|source            |yes    |yes    |no     |no     |string
-s:|symbol line       |no     |no     |yes    |no     |instruction
-T:|tune title        |no     |second |yes    |no     |string
-U:|user defined      |yes    |yes    |yes    |yes    |instruction
-V:|voice             |no     |yes    |yes    |yes    |instruction
-W:|words             |no     |yes    |yes    |no     |string
-w:|words             |no     |no     |yes    |no     |string
-X:|reference number  |no     |first  |no     |no     |instruction
-Z:|transcription     |yes    |yes    |no     |no     |string
+A:|area                  |yes    |yes    |no     |no     |string
+B:|book                  |yes    |yes    |no     |no     |string
+C:|composer              |yes    |yes    |no     |no     |string
+D:|discography           |yes    |yes    |no     |no     |string
+F:|file url              |yes    |yes    |no     |no     |string
+G:|group                 |yes    |yes    |no     |no     |string
+H:|history               |yes    |yes    |no     |no     |string
+I:|instruction           |yes    |yes    |yes    |yes    |instruction
+K:|key                   |no     |last   |yes    |yes    |instruction
+L:|unit note length      |yes    |yes    |yes    |yes    |instruction
+M:|meter                 |yes    |yes    |yes    |yes    |instruction
+m:|macro                 |yes    |yes    |yes    |yes    |instruction
+N:|notes                 |yes    |yes    |yes    |yes    |string
+O:|origin                |yes    |yes    |no     |no     |string
+P:|parts                 |no     |yes    |yes    |yes    |instruction
+Q:|tempo                 |no     |yes    |yes    |yes    |instruction
+R:|rhythm                |yes    |yes    |yes    |yes    |string
+r:|remark                |yes    |yes    |yes    |yes    |string
+S:|source                |yes    |yes    |no     |no     |string
+s:|symbol line           |no     |no     |yes    |no     |instruction
+T:|tune title            |no     |second |yes    |no     |string
+U:|user defined          |yes    |yes    |yes    |yes    |instruction
+V:|voice                 |no     |yes    |yes    |yes    |instruction
+W:|words (at the end)    |no     |yes    |yes    |no     |string
+w:|words (note aligned)  |no     |no     |yes    |no     |string
+X:|reference number      |no     |first  |no     |no     |instruction
+Z:|transcription         |yes    |yes    |no     |no     |string
 """
 
 clef_name_pattern = 'treble|bass3|bass|tenor|auto|baritone|soprano|mezzosoprano|alto2|alto1|alto|perc|none|C[1-4]|F[3-5]|G[1-2]'
@@ -81,7 +81,8 @@ name_to_display_text = {
     'tune title'              : _('Tune title'       ),
     'user defined'            : _('User defined'     ),
     'voice'                   : _('Voice'            ),
-    'words'                   : _('Words'            ),
+    'words (note aligned)'    : _('Words (note aligned)'),
+    'words (at the end)'      : _('Words (at the end)'),
     'reference number'        : _('Reference number' ),
     'transcription'           : _('Transcription'    ),
 }
@@ -652,6 +653,12 @@ class AbcAnnotation(AbcBodyElement):
         self.visible_match_group = 'text'
 
 
+class AbcEmptyChordOrAnnotation(AbcBodyElement):
+    pattern = r'"(?P<pos>[\^_<>@])?(?P<text>(?:\\"|[^"])*)"'
+    def __init__(self):
+        super(AbcEmptyChordOrAnnotation, self).__init__('EmptyChordOrAnnotation', AbcEmptyChordOrAnnotation.pattern, display_name=_('Chord symbol or annotation'))
+
+
 class AbcSlur(AbcBodyElement):
     pattern = r'\((?!\d)|\)'
     def __init__(self):
@@ -918,6 +925,12 @@ class AbcMultipleNotes(AbcBaseNote):
         self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 
+class AbcBackslash(AbcBodyElement):
+    pattern = r'\\[ \t]*$'
+    def __init__(self):
+        super(AbcBackslash, self).__init__('Backslash', AbcBackslash.pattern, display_name=_('Backslash'), description=_('In abc music code, by default, line-breaks in the code generate line-breaks in the typeset score and these can be suppressed by using a backslash.'))
+
+
 class AbcStructure(object):
     # static variables
     replace_regexes = None
@@ -1009,6 +1022,7 @@ class AbcStructure(object):
             AbcVersionDirective(),
             directive,
             AbcComment(),
+            AbcBackslash(),
         ]
 
         elements_by_keyword = {}
@@ -1075,6 +1089,8 @@ class AbcStructure(object):
 
         # elements = sorted(elements, key=lambda element: -len(element.keyword))  # longest match first
 
+        symbol_line = [element for element in result if element.keyword == 's:'][0]
+        result = [element for element in result if element.keyword != 's:']
 
         # midi guide
         # http://abc.sourceforge.net/abcMIDI/original/abcguide.txt
@@ -1097,6 +1113,7 @@ class AbcStructure(object):
         result += [
             AbcChordSymbol(),
             AbcAnnotation(),
+            AbcEmptyChordOrAnnotation(),
             AbcTuplet(),
             AbcVariantEnding(),
             AbcBar(),
@@ -1106,6 +1123,7 @@ class AbcStructure(object):
             AbcDirectionDecoration(),
             AbcArticulationDecoration(),
             AbcDecoration(),
+            symbol_line,
             AbcGraceNotes(),
             AbcSlur(),
             AbcMultipleNotes(),

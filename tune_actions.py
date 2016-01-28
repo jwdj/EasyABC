@@ -323,6 +323,7 @@ class ValueChangeAction(AbcAction):
 class InsertValueAction(ValueChangeAction):
     def __init__(self, name, supported_values, valid_sections=None, display_name=None, matchgroup=None):
         super(InsertValueAction, self).__init__(name, supported_values, valid_sections=valid_sections, display_name=display_name, matchgroup=matchgroup)
+        self.caret_after_matchgroup = False
 
     def can_execute(self, context, params=None):
         value = params.get('value')
@@ -339,7 +340,7 @@ class InsertValueAction(ValueChangeAction):
             if self.matchgroup:
                 text = context.get_matchgroup(self.matchgroup)
                 text += value
-                context.replace_match_text(text, self.matchgroup)
+                context.replace_match_text(text, self.matchgroup, caret_after_matchgroup=self.caret_after_matchgroup)
             else:
                 context.insert_text(value)
             if self.relative_selection is not None:
@@ -461,8 +462,8 @@ class TempoNote2LengthChangeAction(ValueChangeAction):
 
 class TempoNotationChangeAction(ValueChangeAction):
     values = [
-        ValueDescription('name', _('Name')),
-        ValueDescription('speed', _('Speed')),
+        ValueDescription('name', _('Only name')),
+        ValueDescription('speed', _('Only speed')),
         ValueDescription('name+speed', _('Name & speed')),
     ]
     def __init__(self):
@@ -749,6 +750,21 @@ class RestDurationAction(DurationAction):
     ]
     def __init__(self):
         super(RestDurationAction, self).__init__('change_rest_duration', RestDurationAction.values)
+
+
+class ChangeAnnotationAction(ValueChangeAction):
+    values = [
+        ValueDescription('"<(\u266f)"', _('Optional sharp')),
+        ValueDescription('"<(\u266e)"', _('Optional natural')),
+        ValueDescription('"<(\u266d)"', _('Optional flat')),
+        ValueDescription('"^rit."', _('Ritenuto')),
+        ValueDescription('"^a tempo"', _('A tempo')),
+        ValueDescription('"^Solo"', _('Solo'), common=False),
+        ValueDescription('"^Tutti"', _('Tutti'), common=False),
+    ]
+    def __init__(self):
+        super(ChangeAnnotationAction, self).__init__('change_annotation', ChangeAnnotationAction.values, matchgroup='annotation', display_name=_('Change annotation'))
+        self.caret_after_matchgroup = True
 
 
 class AnnotationPositionAction(ValueChangeAction):
@@ -1306,17 +1322,23 @@ class NewNoteOrRestAction(InsertValueAction):
 
 class InsertAnnotationAction(InsertValueAction):
     values = [
-        ValueDescription('"^"', _('Empty')),
+        ValueDescription('""', _('Chord symbol')),
+        ValueDescription('"<(" ">)"', _('Between parenthesis')),
         ValueDescription('"<(\u266f)"', _('Optional sharp'), common=False),
         ValueDescription('"<(\u266e)"', _('Optional natural'), common=False),
         ValueDescription('"<(\u266d)"', _('Optional flat'), common=False)
     ]
+    def __init__(self, name='insert_annotation_or_chord', matchgroup=None):
+        super(InsertAnnotationAction, self).__init__(name, InsertAnnotationAction.values, matchgroup=matchgroup, display_name=_('Insert annotation or chord'))
+        self.caret_after_matchgroup = True
+
+
+class AddAnnotationOrChordToNoteAction(InsertAnnotationAction):
     def __init__(self):
-        super(InsertAnnotationAction, self).__init__('insert_annotation', InsertAnnotationAction.values, matchgroup='decoanno', display_name=_('Insert annotation'))
-        #self.relative_selection = -1
+        super(AddAnnotationOrChordToNoteAction, self).__init__(name='add_annotation_or_chord_to_note', matchgroup='decoanno')
 
 
-class AddDecorationAction(InsertValueAction):
+class InsertDecorationAction(InsertValueAction):
     values = [
         ValueImageDescription('!mf!', 'mf', _('Dynamics')),
         ValueImageDescription('!trill!', 'trill', _('Ornament')),
@@ -1324,8 +1346,14 @@ class AddDecorationAction(InsertValueAction):
         ValueImageDescription('!segno!', 'segno', _('Direction')),
         ValueImageDescription('!5!', '5', _('Fingering'), common=False)
     ]
+    def __init__(self, name='insert_decoration', matchgroup=None):
+        super(InsertDecorationAction, self).__init__(name, InsertDecorationAction.values, matchgroup=matchgroup, display_name=_('Insert decoration'))
+        self.caret_after_matchgroup = True
+
+
+class AddDecorationToNoteAction(InsertDecorationAction):
     def __init__(self):
-        super(AddDecorationAction, self).__init__('insert_decoration', AddDecorationAction.values, matchgroup='decoanno', display_name=_('Insert decoration'))
+        super(AddDecorationToNoteAction, self).__init__(name='add_decoration_to_note', matchgroup='decoanno')
 
 
 class AddSlurAction(AbcAction):
@@ -1537,13 +1565,22 @@ class InsertDirectiveAction(InsertValueAction):
         super(InsertDirectiveAction, self).__init__('insert_directive', InsertDirectiveAction.values, display_name=_('Insert directive'))
 
 
-class InsertAlignSymbolAction(InsertValueAction):
+class InsertTextAlignSymbolAction(InsertValueAction):
     values = [
         CodeDescription('-', _('break between syllables within a word')),
         CodeDescription('_', _('previous syllable is to be held for an extra note')),
         CodeDescription('*', _('one note is skipped (* is equivalent to a blank syllable)')),
         CodeDescription('~', _('appears as a space; aligns multiple words under one note')),
         CodeDescription(r'\-', _('appears as hyphen; aligns multiple syllables under one note')),
+        CodeDescription('|', _('advances to the next bar'))
+    ]
+    def __init__(self):
+        super(InsertTextAlignSymbolAction, self).__init__('insert_text_align_symbol', InsertTextAlignSymbolAction.values, display_name=_('Insert align symbol'))
+
+
+class InsertAlignSymbolAction(InsertValueAction):
+    values = [
+        CodeDescription('*', _('one note is skipped')),
         CodeDescription('|', _('advances to the next bar'))
     ]
     def __init__(self):
@@ -1555,8 +1592,6 @@ class InsertFieldAction(InsertValueAction):
         ValueDescription('K:', _('Key / clef')),
         ValueDescription('M:', name_to_display_text['meter']),
         ValueDescription('Q:', name_to_display_text['tempo']),
-        ValueDescription('L:', name_to_display_text['unit note length']),
-        ValueDescription('V:', name_to_display_text['voice']),
     ]
     def __init__(self):
         super(InsertFieldAction, self).__init__('insert_field', InsertFieldAction.values, display_name=_('Change...'))
@@ -1570,6 +1605,20 @@ class InsertFieldAction(InsertValueAction):
                 context.insert_text('[{0}]'.format(value))
             else:
                 context.insert_text(value)
+
+
+class InsertFieldActionEmptyLineAction(InsertFieldAction):
+    values = [
+        ValueDescription('K:', _('Key / clef')),
+        ValueDescription('M:', name_to_display_text['meter']),
+        ValueDescription('Q:', name_to_display_text['tempo']),
+        ValueDescription('L:', name_to_display_text['unit note length']),
+        ValueDescription('V:', name_to_display_text['voice']),
+        ValueDescription('w:', name_to_display_text['words (note aligned)']),
+        ValueDescription('W:', name_to_display_text['words (at the end)']),
+    ]
+    def __init__(self):
+        super(InsertFieldAction, self).__init__('insert_field_on_empty_line', InsertFieldActionEmptyLineAction.values, display_name=_('Change...'))
 
 
 class ActionSeparator(AbcAction):
@@ -1649,6 +1698,7 @@ class AbcActionHandlers(object):
             MakeTripletsAction(),
             CombineUsingBeamAction(),
             InsertFieldAction(),
+            InsertFieldActionEmptyLineAction(),
             AbcStandardUrlAction(),
             AccidentalChangeAction(),
             PitchAction(),
@@ -1667,10 +1717,14 @@ class AbcActionHandlers(object):
             MeasureRestVisibilityChangeAction(),
             AppoggiaturaOrAcciaccaturaChangeAction(),
             InsertAnnotationAction(),
-            AddDecorationAction(),
+            AddAnnotationOrChordToNoteAction(),
+            InsertDecorationAction(),
+            AddDecorationToNoteAction(),
+            ChangeAnnotationAction(),
             AnnotationPositionAction(),
             ConvertToAnnotationAction(),
             InsertAlignSymbolAction(),
+            InsertTextAlignSymbolAction(),
             KeySignatureChangeAction(),
             KeyModeChangeAction(),
             UnitNoteLengthChangeAction(),
@@ -1692,13 +1746,13 @@ class AbcActionHandlers(object):
             'abcversion'             : self.create_handler(['lookup_abc_standard']),
             'empty_line'             : self.create_handler(['new_tune']),
             'empty_line_file_header' : self.create_handler(['new_tune']),
-            'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'separator', 'insert_field']),
+            'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'separator', 'insert_field_on_empty_line']),
             'Whitespace'             : self.create_handler(['new_note', 'remove']),
-            'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'insert_decoration', 'insert_annotation', 'separator', 'insert_field', 'remove']),
+            'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
             'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'separator', 'insert_field', 'remove']),
             'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'separator', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
-            'Annotation'             : self.create_handler(['change_annotation_position', 'remove']),
+            'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'remove']),
             'Chord'                  : self.create_handler(['change_note_duration', 'change_chord', 'remove']),
             'Chord symbol'           : self.create_handler(['convert_to_annotation', 'remove']),
             'Grace notes'            : self.create_handler(['change_appoggiatura_acciaccatura', 'remove']),
@@ -1710,8 +1764,10 @@ class AbcActionHandlers(object):
             'Direction'              : self.create_handler(['change_direction', 'remove']),
             'Fingering'              : self.create_handler(['change_fingering', 'remove']),
             'Redefinable symbol'     : self.create_handler(['change_redefinable_symbol']),
+            'EmptyChordOrAnnotation' : self.create_handler(['remove']),
             #'Stylesheet directive'  self.create_handler: self.create_handler([InsertDirectiveAction()]),
-            'w:'                     : self.create_handler(['insert_align_symbol']),
+            'w:'                     : self.create_handler(['insert_text_align_symbol']),
+            's:'                     : self.create_handler(['insert_decoration', 'insert_annotation_or_chord', 'insert_align_symbol']),
             'K:'                     : self.create_handler(['change_key_signature', 'change_key_mode']),
             'L:'                     : self.create_handler(['change_unit_note_length']),
             'M:'                     : self.create_handler(['change_meter']),
