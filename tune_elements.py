@@ -46,7 +46,7 @@ X:|reference number      |no     |first  |no     |no     |instruction
 Z:|transcription         |yes    |yes    |no     |no     |string
 """
 
-clef_name_pattern = 'treble|bass3|bass|tenor|auto|baritone|soprano|mezzosoprano|alto2|alto1|alto|perc|none|C[1-4]|F[3-5]|G[1-2]'
+clef_name_pattern = 'treble|bass3|bass|tenor|auto|baritone|soprano|mezzosoprano|alto2|alto1|alto|perc|none|C[1-5]|F[1-5]|G[1-5]'
 simple_note_pattern = "[a-gA-G][',]*"
 clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>{1})(?P<stafftranspose>(?:[+^_-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?) *?(?P<score>(?: score={0}{0})?) *?(?P<sound>(?: sound={0}{0})?) *?(?P<shift>(?: shift={0}{0})?) *?(?P<instrument>(?: instrument={0}(?:/{0})?)?)'.format(simple_note_pattern, clef_name_pattern)
 
@@ -96,16 +96,17 @@ TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
 class ValueDescription(object):
-    def __init__(self, value, description, common=True, show_value=False):
+    def __init__(self, value, description, common=True, show_value=False, alternate_values=[]):
         super(ValueDescription, self).__init__()
         self.value = value
         self.description = description
         self.show_value = show_value
         self.common = common
+        self.alternate_values = alternate_values
 
 class CodeDescription(ValueDescription):
-    def __init__(self, value, description, common=True):
-        super(CodeDescription, self).__init__(value, description, common=common, show_value=True)
+    def __init__(self, value, description, common=True, alternate_values=[]):
+        super(CodeDescription, self).__init__(value, description, common=common, show_value=True, alternate_values=alternate_values)
 
 class ValueImageDescription(ValueDescription):
     def __init__(self, value, image_name, description, common=True, show_value=False):
@@ -218,6 +219,40 @@ ABC_SECTIONS = [
     AbcSection.TuneBody,
     AbcSection.OutsideTune
 ]
+
+chord_notes = {
+    ''        : ( 0, 4, 7 ),                   # 'Major'
+    'm'       : ( 0, 3, 7 ),                   # 'Minor'
+    'dim'     : ( 0, 3, 6 ),                   # 'Diminished'
+    '+'       : ( 0, 4, 8 ),                   # 'Augmented'
+    'sus'     : ( 0, 5, 7 ),                   # 'Suspended'
+    'sus9'    : ( 0, 2, 7 ),                   # 'Suspended (2nd
+    '7'       : ( 0, 4, 7, 10 ),               # 'Seventh'
+    'M7'      : ( 0, 4, 7, 11 ),               # 'Major seventh'
+    'mM7'     : ( 0, 3, 7, 11 ),               # 'Minor-major seventh'
+    'm7'      : ( 0, 3, 7, 10 ),               # 'Minor seventh'
+    'augM7'   : ( 0, 4, 8, 11 ),               # 'Augmented-major seventh'
+    'aug7'    : ( 0, 4, 8, 10 ),               # 'Augmented seventh'
+    '6'       : ( 0, 4, 7, 9  ),               # 'Major sixth'
+    'm6'      : ( 0, 3, 7, 9  ),               # 'Minor sixth'
+    'm7b5'    : ( 0, 3, 6, 10 ),               # 'Half-diminished seventh'
+    'dim7'    : ( 0, 3, 6, 9 ),                # 'Diminished seventh'
+    '7b5'     : ( 0, 4, 6, 10 ),               # 'Seventh flat five'
+    '5'       : ( 0, 7 ),                      # 'Power-chord (no third
+    '7sus'    : ( 0, 5, 7, 10 ),               # 'Seventh suspended'
+    '7sus9'   : ( 0, 2, 7, 10 ),               # 'Seventh suspended (2nd
+    'M9'      : ( 0, 4, 7, 11, 14 ),           # 'Major 9th'
+    '9'       : ( 0, 4, 7, 10, 14 ),           # 'Dominant 9th'
+    'mM9'     : ( 0, 3, 7, 11, 14 ),           # 'Minor Major 9th'
+    'm9'      : ( 0, 3, 7, 10, 14 ),           # 'Minor Dominant 9th'
+    '+M9'     : ( 0, 4, 8, 11, 14 ),           # 'Augmented Major 9th'
+    '+9'      : ( 0, 4, 8, 10, 14 ),           # 'Augmented Dominant 9th'
+    'o/9'     : ( 0, 3, 6, 10, 14 ),           # 'Half-Diminished 9th'
+    'o/9b'    : ( 0, 3, 6, 10, 13 ),           # 'Half-Diminished Minor 9th'
+    'dim9'    : ( 0, 3, 6, 9, 14 ),            # 'Diminished 9th'
+    'dim9b'   : ( 0, 3, 6, 9, 13 ),            # 'Diminished Minor 9th'
+    '11'      : ( 0, 4, 7, 10, 14, 17 ),       # 'Dominant 11th'
+}
 
 unicode_char_to_abc = {
     r'\u00c0': r'\`A', r'\u00e0': r'\`a', r'\u00c8': r'\`E', r'\u00e8': r'\`e', r'\u00cc': r'\`I', r'\u00ec': r'\`i',
@@ -333,10 +368,10 @@ class AbcElement(object):
         for section in ABC_SECTIONS:
             pattern = self._search_pattern.get(section, None)
             if pattern is not None:
-                self._search_re[section] = re.compile(pattern)
+                self._search_re[section] = re.compile(pattern, re.UNICODE)
 
         if self.validation_pattern is not None:
-            self.__validation_re = re.compile(self.validation_pattern)
+            self.__validation_re = re.compile(self.validation_pattern, re.UNICODE)
 
     @property
     def valid_sections(self):
@@ -653,10 +688,10 @@ class AbcAnnotation(AbcBodyElement):
         self.visible_match_group = 'text'
 
 
-class AbcEmptyChordOrAnnotation(AbcBodyElement):
+class AbcChordOrAnnotation(AbcBodyElement):
     pattern = r'"(?P<pos>[\^_<>@])?(?P<text>(?:\\"|[^"])*)"'
     def __init__(self):
-        super(AbcEmptyChordOrAnnotation, self).__init__('EmptyChordOrAnnotation', AbcEmptyChordOrAnnotation.pattern, display_name=_('Chord symbol or annotation'))
+        super(AbcChordOrAnnotation, self).__init__('Chord or annotation', AbcChordOrAnnotation.pattern, display_name=_('Chord symbol or annotation'))
 
 
 class AbcSlur(AbcBodyElement):
@@ -822,8 +857,9 @@ class AbcInvalidCharacter(AbcBodyElement):
 
 
 class AbcChordSymbol(AbcBodyElement):
-    #pattern = r'(?P<chordsymbol>"(?P<chordname>((?:\\"|[^"])*))")'
-    pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
+    #simple_pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
+    #pattern = ur'(?P<chordsymbol>"(?P<chordnote>[A-G][b#\u266D\u266E\u266F]?)(?P<quality>[^/\d]*)(?P<th>2|4|5|6|7|9|11|13)?(?P<sus>sus[2|4|9]?)?(?P<additional>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?)")'
+    pattern = ur'"(?P<chordsymbol>(?P<chordnote>[A-G][b#\u266D\u266E\u266F]?)?(?P<chordname>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?))"'
     def __init__(self):
         super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern, display_name=_('Chord symbol'))
 
@@ -856,7 +892,7 @@ class AbcGraceNotes(AbcBaseNote):
 
 
 class AbcNoteGroup(AbcBaseNote):
-    note_group_pattern_prefix = r'(?P<gracenotes>{0}?)(?P<chordsymbols>{1}?)(?P<decoanno>(?P<decorations>{2})|(?P<annotations>{3})*)'.format(
+    note_group_pattern_prefix = ur'(?P<gracenotes>{0}?)(?P<chordsymbols>{1}?)(?P<decoanno>(?P<decorations>{2})|(?P<annotations>{3})*)'.format(
                                 AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern, AbcAnnotation.pattern)
     note_group_pattern_postfix = AbcBaseNote.pair_pattern + AbcBaseNote.tie_pattern
 
@@ -864,8 +900,8 @@ class AbcNoteGroup(AbcBaseNote):
     normal_rest_pattern = note_group_pattern_prefix + AbcBaseNote.basic_rest_pattern + AbcBaseNote.pair_pattern
     note_or_rest_pattern = note_group_pattern_prefix + AbcBaseNote.basic_note_or_rest_pattern
 
-    chord_pattern = r'(?P<chord>\[(?:{0}\s*)*\])'.format(remove_named_groups(note_or_rest_pattern)) + AbcBaseNote.length_pattern + note_group_pattern_postfix
-    note_or_chord_pattern = r'({0}|{1})'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern)) + note_group_pattern_postfix
+    chord_pattern = ur'(?P<chord>\[(?:{0}\s*)*\])'.format(remove_named_groups(note_or_rest_pattern)) + AbcBaseNote.length_pattern + note_group_pattern_postfix
+    note_or_chord_pattern = ur'({0}|{1})'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern)) + note_group_pattern_postfix
     def __init__(self):
         super(AbcNoteGroup, self).__init__('Note group', AbcNoteGroup.note_or_chord_pattern, display_name=_('Note group')) # '^{0}$'.format(AbcNoteGroup.pattern))
         #self.exact_match_required = True
@@ -888,7 +924,7 @@ class AbcChord(AbcBaseNote):
 class AbcNote(AbcBaseNote):
     pattern = AbcNoteGroup.note_pattern
     def __init__(self):
-        super(AbcNote, self).__init__('Note', '({0})'.format(AbcNote.pattern), display_name=_('Note'))
+        super(AbcNote, self).__init__('Note', u'({0})'.format(AbcNote.pattern), display_name=_('Note'))
         self.removable_match_groups = {
             'grace': _('Grace notes'),
             'chordsymbol': _('Chord symbol'),
@@ -914,14 +950,14 @@ class AbcMeasureRest(AbcBaseNote):
 class AbcMultipleNotesAndChords(AbcBaseNote):
     pattern = '(?:' +  AbcNoteGroup.note_or_chord_pattern + '[ `]*){2,}'
     def __init__(self):
-        super(AbcMultipleNotesAndChords, self).__init__('Multiple notes/chords', '^{0}$'.format(AbcMultipleNotesAndChords.pattern), display_name=_('Multiple notes/chords'))
+        super(AbcMultipleNotesAndChords, self).__init__('Multiple notes/chords', u'^{0}$'.format(AbcMultipleNotesAndChords.pattern), display_name=_('Multiple notes/chords'))
         self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 
 class AbcMultipleNotes(AbcBaseNote):
     pattern = '(?:' + AbcNoteGroup.note_or_rest_pattern + '[ `]*){2,}'
     def __init__(self):
-        super(AbcMultipleNotes, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern), display_name=_('Multiple notes'))
+        super(AbcMultipleNotes, self).__init__('Multiple notes', u'^{0}$'.format(AbcMultipleNotes.pattern), display_name=_('Multiple notes'))
         self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 
@@ -1113,7 +1149,7 @@ class AbcStructure(object):
         result += [
             AbcChordSymbol(),
             AbcAnnotation(),
-            AbcEmptyChordOrAnnotation(),
+            AbcChordOrAnnotation(),
             AbcTuplet(),
             AbcVariantEnding(),
             AbcBar(),

@@ -367,11 +367,10 @@ class InsertValueAction(ValueChangeAction):
 class ConvertToAnnotationAction(AbcAction):
     def __init__(self):
         super(ConvertToAnnotationAction, self).__init__('convert_to_annotation', display_name=_('Convert to annotation'))
-        self.matchgroup = 'chordname'
 
     def can_execute(self, context, params=None):
-        chord = context.get_matchgroup(self.matchgroup)
-        return chord and chord[0].lower() not in 'abcdefg'
+        chord = context.get_matchgroup('chordnote')
+        return chord is None # and chord[0].lower() not in 'abcdefg'
 
     def execute(self, context, params=None):
         annotation = '^' + context.get_matchgroup(self.matchgroup)
@@ -980,9 +979,9 @@ class ClefChangeAction(ValueChangeAction):
         ValueDescription('bass', _('Bass clef')),
         ValueDescription('tenor', _('Tenor clef'), common=False),
         ValueDescription('alto', _('Alto clef'), common=False),
-        ValueDescription('alto1', _('Soprano clef'), common=False),
-        ValueDescription('alto2', _('Mezzo-soprano clef'), common=False),
-        ValueDescription('bass3', _('Baritone clef'), common=False),
+        ValueDescription('C1', _('Soprano clef'), common=False),
+        ValueDescription('C2', _('Mezzo-soprano clef'), common=False),
+        ValueDescription('F3', _('Baritone clef'), common=False),
         ValueDescription('perc', _('Percussion clef'), common=False),
         ValueDescription('none', _('None'), common=False)
     ]
@@ -1101,15 +1100,84 @@ class ArticulationDecorationChangeAction(BaseDecorationChangeAction):
         super(ArticulationDecorationChangeAction, self).__init__('change_articulation', AbcArticulationDecoration.values, display_name=_('Change articulation marker'))
 
 
-class ChordChangeAction(ValueChangeAction):
-    def __init__(self):
-        super(ChordChangeAction, self).__init__('change_chord', [], 'chordsymbol', display_name=_('Change chord'))
+# class ChordChangeAction(ValueChangeAction):
+#     def __init__(self):
+#         super(ChordChangeAction, self).__init__('change_chord', [], 'chordsymbol', display_name=_('Change chord'))
+#
+#     def get_values(self, context):
+#         values = [
+#             ValueDescription('', _('No chord'))
+#         ]
+#         return values
 
-    def get_values(self, context):
-        values = [
-            ValueDescription('', _('No chord'))
-        ]
-        return values
+
+# class ChordQualityChangeAction(ValueChangeAction):
+#     values = [
+#         CodeDescription('', _('Major'), alternate_values=['maj']),
+#         CodeDescription('m', _('Minor'), alternate_values=['min']),
+#         CodeDescription('+', _('Augmented'), alternate_values=['aug']),
+#         CodeDescription('dim', _('Diminished')),
+#     ]
+#     def __init__(self):
+#         super(ChordQualityChangeAction, self).__init__('change_chord_quality', ChordQualityChangeAction.values, matchgroup='quality', display_name=_('Change chord type'))
+
+
+
+class ChordNameChangeAction(ValueChangeAction):
+    values = [
+        CodeDescription('',      _('Major')),                                          # { 0, 4, 7 }
+        CodeDescription('m',     _('Minor')),                                          # { 0, 3, 7 }
+        CodeDescription('dim',   _('Diminished')),                                     # { 0, 3, 6 }
+        CodeDescription('+',     _('Augmented'), alternate_values=['aug']),            # { 0, 4, 8 }
+        CodeDescription('sus',   _('Suspended'), alternate_values=['sus4']),           # { 0, 5, 7 }
+        CodeDescription('sus9',  _('Suspended (2nd)'), common=False),                  # { 0, 2, 7 }
+        CodeDescription('7',     _('Seventh')),                                        # { 0, 4, 7, 10 }
+        CodeDescription('M7',    _('Major seventh'), alternate_values=['maj7']),       # { 0, 4, 7, 11 }
+        #CodeDescription('mM7',  _('Minor-major seventh')),                            # { 0, 3, 7, 11 }
+        CodeDescription('m7',    _('Minor seventh')),                                  # { 0, 3, 7, 10 }
+        #CodeDescription('augM7',_('Augmented-major seventh')),                        # { 0, 4, 8, 11 }
+        CodeDescription('aug7',  _('Augmented seventh')),                              # { 0, 4, 8, 10 }
+        CodeDescription('6',     _('Major sixth')),                                    # { 0, 4, 7, 9  }
+        CodeDescription('m6',    _('Minor sixth')),                                    # { 0, 3, 7, 9  }
+        CodeDescription('m7b5',  _('Half-diminished seventh'), common=False),          # { 0, 3, 6, 10 }
+        CodeDescription('dim7',  _('Diminished seventh')),                             # { 0, 3, 6, 9 }
+        #CodeDescription('7b5',  _('Seventh flat five')),                              # { 0, 4, 6, 10 }
+        CodeDescription('5',     _('Power-chord (no third)')),                         # { 0, 7 }
+        CodeDescription('7sus',  _('Seventh suspended'), alternate_values=['7sus4']),  # { 0, 5, 7, 10 }
+        CodeDescription('7sus9', _('Seventh suspended (2nd)'), common=False),          # { 0, 2, 7, 10 }
+        CodeDescription('M9',    _('Major 9th')),                                      # { 0, 4, 7, 11, 14 }
+        CodeDescription('9',     _('Dominant 9th')),                                   # { 0, 4, 7, 10, 14 }
+        #CodeDescription('',     _('Minor Major 9th')),                                # { 0, 3, 7, 11, 14 }
+        CodeDescription('m9',    _('Minor Dominant 9th'), common=False),               # { 0, 3, 7, 10, 14 }
+        #CodeDescription('+M9',  _('Augmented Major 9th')),                            # { 0, 4, 8, 11, 14 }
+        #CodeDescription('+9',   _('Augmented Dominant 9th')),                         # { 0, 4, 8, 10, 14 }
+        #CodeDescription('o/9',   _('Half-Diminished 9th')),                            # { 0, 3, 6, 10, 14 }
+        #CodeDescription('o/9b',  _('Half-Diminished Minor 9th')),                      # { 0, 3, 6, 10, 13 }
+        #CodeDescription('dim9', _('Diminished 9th')),                                 # { 0, 3, 6, 9, 14 }
+        #CodeDescription('dim9b',_('Diminished Minor 9th')),                           # { 0, 3, 6, 9, 13 }
+        CodeDescription('11',    _('Dominant 11th'), common=False),                    # { 0, 4, 7, 10, 14, 17 }
+    ]
+    def __init__(self):
+        super(ChordNameChangeAction, self).__init__('change_chord_name', ChordNameChangeAction.values, matchgroup='chordname', display_name=_('Change chord name'))
+
+
+# class ChordSuspendedChangeAction(ValueChangeAction):
+#     values = [
+#         CodeDescription('', _('None')),
+#         CodeDescription('sus', _('Suspended 4th'), alternate_values=['sus4']),
+#         CodeDescription('sus9', _('Suspended 2nd')),
+#     ]
+#     def __init__(self):
+#         super(ChordSuspendedChangeAction, self).__init__('change_chord_suspended', ChordSuspendedChangeAction.values, matchgroup='sus', display_name=_('Change suspended'))
+
+class ChordBaseNoteChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('', _('Root position')),
+        ValueDescription('1', _('First inversion')),
+        ValueDescription('2', _('Second inversion')),
+    ]
+    def __init__(self):
+        super(ChordBaseNoteChangeAction, self).__init__('change_chord_bass_note', ChordBaseNoteChangeAction.values, matchgroup='bassnote', display_name=_('Change bass note'))
 
 
 class RedefinableSymbolChangeAction(ValueChangeAction):
@@ -1704,7 +1772,6 @@ class AbcActionHandlers(object):
             PitchAction(),
             BarChangeAction(),
             RedefinableSymbolChangeAction(),
-            ChordChangeAction(),
             RestDurationAction(),
             MeasureRestDurationAction(),
             CombineToChordAction(),
@@ -1738,6 +1805,8 @@ class AbcActionHandlers(object):
             TempoNameChangeAction(),
             TempoNoteLengthChangeAction(),
             TempoNote2LengthChangeAction(),
+            ChordNameChangeAction(),
+            ChordBaseNoteChangeAction(),
             ActionSeparator(),
         ])
 
@@ -1749,12 +1818,12 @@ class AbcActionHandlers(object):
             'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'separator', 'insert_field_on_empty_line']),
             'Whitespace'             : self.create_handler(['new_note', 'remove']),
             'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
-            'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'separator', 'insert_field', 'remove']),
-            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'separator', 'insert_field', 'remove']),
+            'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
+            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
             'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'remove']),
-            'Chord'                  : self.create_handler(['change_note_duration', 'change_chord', 'remove']),
-            'Chord symbol'           : self.create_handler(['convert_to_annotation', 'remove']),
+            'Chord'                  : self.create_handler(['change_note_duration', 'remove']),
+            'Chord symbol'           : self.create_handler(['change_chord_name', 'change_chord_bass_note', 'remove']),
             'Grace notes'            : self.create_handler(['change_appoggiatura_acciaccatura', 'remove']),
             'Multiple notes'         : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'combine_to_chord', 'remove']),
             'Multiple notes/chords'  : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'remove']),
@@ -1764,7 +1833,7 @@ class AbcActionHandlers(object):
             'Direction'              : self.create_handler(['change_direction', 'remove']),
             'Fingering'              : self.create_handler(['change_fingering', 'remove']),
             'Redefinable symbol'     : self.create_handler(['change_redefinable_symbol']),
-            'EmptyChordOrAnnotation' : self.create_handler(['remove']),
+            'Chord or annotation'    : self.create_handler(['convert_to_annotation', 'remove']),
             #'Stylesheet directive'  self.create_handler: self.create_handler([InsertDirectiveAction()]),
             'w:'                     : self.create_handler(['insert_text_align_symbol']),
             's:'                     : self.create_handler(['insert_decoration', 'insert_annotation_or_chord', 'insert_align_symbol']),

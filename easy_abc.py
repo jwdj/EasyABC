@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# EasyABC V1.3.7.0 2016/01/11
+program_name = 'EasyABC 1.3.7.1 2016-01-31'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
 #
@@ -283,6 +283,7 @@
 #   load_or_import(), load(), ask_save(), save(),
 #   save_as(), AbcToAbcCurrentTune(), OnHaveL(), OnDoubleL(),
 #   OnTranspose(), OnAlignBars(), create_symbols_popup_menu(),
+#   create_menu_bar(), create_menu(), append_menu_item()
 #   create_upload_context_menu(), setup_typing_assistance_menu(),
 #   setup_menus(), OnShowMessages(), ShowMessages(), OnShowAbcTune(),
 #   OnCloseFile(), OnSave(), OnSaveAs(), OnQuit(),
@@ -327,11 +328,6 @@
 #   CheckCanDrawSharpFlat(), NewMainFrame(), UnRegisterFrame(),
 #   GetAllFrames(), MacOpenFile(), OnInit(),
 
-
-
-
-
-program_name = 'EasyABC 1.3.7.0 2016-01-11'
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 
@@ -2210,6 +2206,7 @@ class FieldReferenceTree(htl.HyperTreeList):
             self.EnableSelectionVista(True)
 
         # 1.3.6.2 [JWDJ] moved get_sections to AbcStructure.get_sections
+        from tune_elements import AbcStructure # 1.3.7.1 [JWDJ] 2016-1 because of translation this import has to be done as late as possible
         for (title, fields) in AbcStructure.get_sections(cwd):
             child = self.AppendItem(self.root, title)
             self.SetPyData(child, None)
@@ -3717,22 +3714,21 @@ class FlexibleListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlA
 
 # 1.3.6 [SS] 2014-11-21
 class MySearchFrame(wx.Frame):
-    ''' For searching a directory of abc files for tunes containing
-    a string. '''
+    ''' For searching a directory of abc files for tunes containing a string. '''
     def __init__(self,parent,settings):
-        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, "Search files",style=wx.DEFAULT_FRAME_STYLE,name='searcher')
+        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Search files"), style=wx.DEFAULT_FRAME_STYLE, name='searcher')
         # Add a panel so it looks the correct on all platforms
         wx.Frame.SetDimensions(self,-1,-1,380,400)
         self.searchdata = ''
-        searchfold = wx.StaticText(self,-1,"Folder")
+        searchfold = wx.StaticText(self,-1, _("Folder"))
         self.frame = parent
         self.searchfoldtxt = wx.TextCtrl(self,-1,settings['searchfolder'],(-1,-1),(200,-1))
-        self.browsebut = wx.Button(self,-1,'Browse',size = (-1,26))
-        searchlab = wx.StaticText(self,-1,'String')
+        self.browsebut = wx.Button(self, -1, _('Browse'), size=(-1,26))
+        searchlab = wx.StaticText(self,-1, _('Text'))
         self.searchstring = wx.TextCtrl(self,-1,self.searchdata,(-1,-1),(200,-1))
-        self.startbut = wx.Button(self,-1,'Search', size = (-1,26))
+        self.startbut = wx.Button(self,-1, _('Search'), size = (-1,26))
         self.list_ctrl = wx.ListCtrl(self, size=(380,360), style=wx.LC_REPORT |wx.BORDER_SUNKEN|wx.LC_SINGLE_SEL)
-        self.list_ctrl.InsertColumn(0, 'Title', width=400)
+        self.list_ctrl.InsertColumn(0, _('Title'), width=400)
 
         self.settings = settings
         self.running = 0
@@ -3764,7 +3760,7 @@ class MySearchFrame(wx.Frame):
 
     def On_browse_abcsearch(self,evt):
         ''' Selects the folder to open for searching'''
-        dlg = wx.DirDialog(self,"Open","Choose a folder",wx.OPEN)
+        dlg = wx.DirDialog(self, _("Open"), _("Choose a folder"), wx.OPEN)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 self.settings['searchfolder'] = dlg.GetPath()
@@ -3803,7 +3799,7 @@ class MySearchFrame(wx.Frame):
                     abcmatches.append(pathname)
 
         progmax = len(abcmatches)
-        progdialog = wx.ProgressDialog('Searching directory','Remaining time',
+        progdialog = wx.ProgressDialog(_('Searching directory'), _('Remaining time'),
                      progmax,style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME |
                      wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
         try:
@@ -3875,7 +3871,7 @@ class MySearchFrame(wx.Frame):
 class MyHtmlFrame(wx.Frame):
     ''' Creates an html window for displaying the help info. '''
     def __init__(self):
-        wx.Frame.__init__(self, wx.GetApp().TopWindow,-1, title = 'Help Window'         ,name='htmlframe')
+        wx.Frame.__init__(self, wx.GetApp().TopWindow,-1, title = _('Help Window'), name='htmlframe')
 
         # Add a panel so it looks the correct on all platforms
         global overview
@@ -3889,7 +3885,7 @@ class MyOpenPopupMenu(wx.Menu):
     ''' menu which opens when you right click on the Open button'''
     def __init__(self):
         wx.Menu.__init__(self)
-        item = wx.MenuItem(self,-1,"Open abc file")
+        item = wx.MenuItem(self,-1, _("Open abc file"))
         self.AppendItem(item)
 
 
@@ -4000,7 +3996,6 @@ class MainFrame(wx.Frame):
         self.error_msg.Hide() # 1.3.7 [JWdJ] 2016-01-06
 
          # 1.3.6.3 [JWdJ] 2015-04-21 ABC Assist added
-        from tune_elements import AbcStructure # 1.3.7.1 [JWDJ] 2016-1 because of translation this import has to be done as late as possible
         from abc_assist_panel import AbcAssistPanel  # 1.3.7.1 [JWDJ] 2016-1 because of translation this import has to be done as late as possible
         self.abc_assist_panel = AbcAssistPanel(self, self.editor, cwd, self.settings)
         self.assist_pane = aui.AuiPaneInfo().Name("abcassist").CaptionVisible(True).Caption(_("ABC assist")).\
@@ -4185,6 +4180,8 @@ class MainFrame(wx.Frame):
 
     def OnPrintPreview(self, event):
         tune = self.GetSelectedTune()
+        if tune is None:
+            return
         # if landscape is set in the ABC code, let that influence the page format
         if ('%%landscape 1' in (tune.header + tune.abc) or
             '%%landscape true' in (tune.header + tune.abc)):
@@ -5860,9 +5857,6 @@ class MainFrame(wx.Frame):
         item = wx.MenuItem(menu, id, _('Export to &MIDI...'))
         menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnExportMidi, id=id)
-        ##item = wx.MenuItem(menu, wx.NewId(), _('Export to ps...'))
-        ##menu.AppendItem(item)
-        ##self.Bind(wx.EVT_MENU, self.OnExportPS, id=item.GetId())
         item = wx.MenuItem(menu, wx.NewId(), _('Export to &PDF...'))
         menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnExportPDF, id=item.GetId())
@@ -5889,247 +5883,177 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnDoReMiModeChange, id=doremi_id)
         return menu
 
-    def setup_menus(self):
+    def create_menu_bar(self, items):
         menuBar = wx.MenuBar()
+        for item in items:
+            label = item[0]
+            items = item[1]
+            if not isinstance(items, wx.Menu):
+                items = self.create_menu(items)
+            menuBar.Append(items, label)
+        return menuBar
 
-        insert_symbol_menu = wx.Menu()
+    def create_menu(self, items):
+        menu = wx.Menu()
+        for item in items:
+            if len(item) == 0:
+                menu.AppendSeparator()
+            elif len(item) == 2:
+                label = item[0]
+                sub_menu = item[1]
+                if not isinstance(sub_menu, wx.Menu):
+                    sub_menu = self.create_menu(sub_menu)
+                menu.AppendMenu(-1, label, sub_menu)
+            else:
+                if isinstance(item[0], int):
+                    id = item[0]
+                    item = tuple(list(item)[1:]) # strip id from tuple
+                    self.append_menu_item(menu, *item, id=id)
+                else:
+                    self.append_menu_item(menu, *item)
+        return menu
+
+    def append_menu_item(self, menu, label, description, handler, kind=wx.ITEM_NORMAL, id=-1):
+        menu_item = menu.Append(id, label, description, kind)
+        if handler is not None:
+            self.Bind(wx.EVT_MENU, handler, menu_item)
+        return menu_item
+
+    def setup_menus(self):
+        # 1.3.7.1 [JWDJ] creation of menu bar now more structured using less code
         ornaments = 'v u - accent staccato tenuto - open plus snap - trill pralltriller mordent roll fermata - 0 1 2 3 4 5 - turn turnx invertedturn invertedturnx - shortphrase breath'.split()
         dynamics = 'p pp ppp - f ff fff - mp mf sfz'.split()
         directions = 'coda segno D.C. D.S. fine barline repeat_left repeat_right repeat_both repeat1 repeat2'.split()
         self.popup_ornaments = self.create_symbols_popup_menu(ornaments)
         self.popup_dynamics = self.create_symbols_popup_menu(dynamics)
         self.popup_directions = self.create_symbols_popup_menu(directions)
-        insert_symbol_menu.AppendMenu(-1, _('Note ornaments'), self.popup_ornaments)
-        # 1.3.6.1 [SS] 2015-01-22
-        insert_symbol_menu.AppendMenu(-1, _('Directions'),     self.popup_directions)
-        insert_symbol_menu.AppendMenu(-1, _('Dynamics'),       self.popup_dynamics)
 
         transpose_menu = wx.Menu()
         for i in reversed(range(-12, 12+1)):
             if i < 0:
-                transpose_menu.Append(7050 + i, _('Down %d semitones') % abs(i))
+                self.append_menu_item(transpose_menu, _('Down %d semitones') % abs(i), '', lambda e, i=i: self.OnTranspose(i))
             elif i == 0:
                 transpose_menu.AppendSeparator()
             elif i > 0:
-                transpose_menu.Append(7050 + i, _('Up %d semitones') % i)
-            self.Bind(wx.EVT_MENU, lambda e, i=i: self.OnTranspose(i), id=7050+i)
+                self.append_menu_item(transpose_menu, _('Up %d semitones') % i, '', lambda e, i=i: self.OnTranspose(i))
 
-        note_length_menu = wx.Menu()
-        note_length_menu.Append(7091, _('Double note lengths\tCtrl+Shift++'))
-        note_length_menu.Append(7090, _('Halve note lengths\tCtrl+Shift+-'))
-        self.Bind(wx.EVT_MENU, self.OnHalveL,  id=7090)
-        self.Bind(wx.EVT_MENU, self.OnDoubleL, id=7091)
+        view_menu = wx.Menu()
+        self.append_menu_item(view_menu, _("&Refresh music")+"\tF5", "", self.OnToolRefresh)
+        self.mni_auto_refresh = self.append_menu_item(view_menu, _("&Automatically refresh music as I type"), "", None, kind=wx.ITEM_CHECK)
+        view_menu.AppendSeparator()
+        self.mni_reduced_margins = self.append_menu_item(view_menu, _("&Use reduced margins when displaying tunes on screen"), "", self.OnReducedMargins, kind=wx.ITEM_CHECK)
+        self.append_menu_item(view_menu, _("&Change editor font..."), "", self.OnChangeFont)
+        self.append_menu_item(view_menu, _("&Use default editor font"), "", self.OnUseDefaultFont)
+        view_menu.AppendSeparator()
+        self.append_menu_item(view_menu, _("&Reset window layout to default"), "", self.OnResetView)
+        #self.append_menu_item(view_menu, _("&Maximize/restore musical score pane\tCtrl+M"), "", self.OnToggleMusicPaneMaximize)
+        #view_menu.AppendSeparator()
+        #self.append_menu_item(view_menu, _('View rythm column...'), self.OnViewRythm, kind=wx.ITEM_CHECK)
 
-        export_selected_menu = wx.Menu()
-        export_selected_menu.Append(1032, _('as &PDF...'))
-        export_selected_menu.Append(1031, _('as &MIDI...'))
-        export_selected_menu.Append(1033, _('as &SVG...'))
-        export_selected_menu.Append(1034, _('as &HTML...'))
-        export_selected_menu.Append(1035, _('as Music&XML...'))
-        export_all_menu = wx.Menu()
-        export_all_menu.Append(1042, _("as a &PDF Book..."))
-        export_all_menu.Append(1046, _("as PDF &Files..."))
-        export_all_menu.Append(1041, _('as &MIDI...'))
-        export_all_menu.Append(1043, _("as &HTML..."))
-        #export_all_menu.Append(1044, _("as &EPUB..."))
-        export_all_menu.Append(1045, _('as Music&XML...'))
-        #mni_as_svg = export_all_menu.Append(1043, _('as &SVG...'))
-        #mni_as_svg.Enable(False)
-
-        tools_menu = wx.Menu()
+        self.recent_menu = wx.Menu()
 
         if wx.Platform == "__WXMSW__":
             close_shortcut = '\tAlt+F4'
         else:
             close_shortcut = '\tCtrl+W'
 
-        menu1 = wx.Menu()
-        menu1.Append(1001, _('&New\tCtrl+N'), _("Create a new file"))
-        menu1.Append(1002, _("&Open...\tCtrl+O"), _("Open an existing file"))
-        menu1.Append(1010, _("&Close") + close_shortcut, _("Close the current file"))
-        menu1.AppendSeparator()
-        menu1.Append(1020, _("&Import and add..."), _("Import a song in ABC, Midi or MusicXML format and add it to the current document."))
-        menu1.AppendSeparator()
-        menu1.AppendMenu(-1, _("&Export selected"), export_selected_menu)
-        menu1.AppendMenu(-1, _("Export &all"), export_all_menu)
-        #menu1.Append(1042, _("Export &all as PDF..."))
-        #menu1.Append(1043, _("Export &all as HTML..."))
-        #menu1.AppendMenu(-1, _("&Export all"), export_all_menu)
-        menu1.AppendSeparator()
-        menu1.Append(1003, _("&Save\tCtrl+S"), _("Save the active file"))
-        menu1.Append(1004, _("Save &As...\tShift+Ctrl+S"), _("Save the active file with a new filename"))
-        menu1.AppendSeparator()
-        menu1.Append(1021, _("&Print...\tCtrl+P"), _("Print the selected tune"))
-        menu1.Append(1022, _("&Print preview\tCtrl+Shift+P"))
-        menu1.Append(1023, _("P&age Setup..."), _("Change the printer and printing options"))
-        menu1.AppendSeparator()
-        self.recent_menu = wx.Menu()
-        menu1.AppendMenu(-1, _('&Recent files'), self.recent_menu)
-        menu1.AppendSeparator()
-        menu1.Append(wx.ID_EXIT, _("&Quit\tCtrl+Q"), _("Exit the application (prompt to save files)"))
-
-        menu2 = wx.Menu()
-        menu2.Append(2001, _("&Undo\tCtrl+Z"), _("Undo the last action"))
-        menu2.Append(2002, _("&Redo\tCtrl+Y"), _("Redo the last action"))
-        menu2.AppendSeparator()
-        menu2.Append(2003, _("&Cut\tCtrl+X"), _("Cut the selection and put it on the clipboard"))
-        menu2.Append(2004, _("&Copy\tCtrl+C"), _("Copy the selection and put it on the clipboard"))
-        menu2.Append(2005, _("&Paste\tCtrl+V"), _("Paste clipboard contents"))
-        menu2.Append(2006, _("&Delete\tDel"), _("Delete the selection"))
-        menu2.AppendSeparator()
-        menu2.AppendMenu(-1, _("&Insert musical symbol"), insert_symbol_menu)
-        menu2.AppendSeparator()
-        menu2.AppendMenu(-1, _("&Transpose"), transpose_menu)
-        menu2.AppendMenu(-1, _("&Change note length"), note_length_menu)
-        menu2.Append(2010, _("A&lign bars\tCtrl+Shift+A"))
-
-        menu2.AppendSeparator()
-        menu2.Append(2007, _("&Find...\tCtrl+F"))
-        menu2.Append(2008, _("&Find Next\tF3"))
-        menu2.Append(2009, _("&Replace...\tCtrl+H"))
-        menu2.AppendSeparator()
-        menu2.Append(2014, _("&Select all\tCtrl+A"))
-        #1.3.6.1 [SS] 2015-01-20 not used
-        #self.mni_find, self.mni_find_next, self.mni_replace = [menu2.FindItemById(i) for i in (2007, 2008, 2009)]
-
-        menu5 = wx.Menu()
-        menu5.Append(6010, _('Generate &incipits file...'))
-        menu5.Append(6011, _('&View incipits...'))
-        menu5.AppendSeparator()
-        menu5.Append(6014, _('&Renumber X: fields...'))
-        menu5.Append(6013, _('&Sort tunes...'))
-        menu5.Append(6020, _('Search directories')) # 1.3.6 [SS] 2014-11-21
-
-        menu3 = wx.Menu()
-        menu3.Append(5002, _("&ABC settings") + '...', "")
-        menu3.Append(5001, _("&Midi device settings") + "...", "")
-        #menu3.Append(5004, _("&Font settings") + "...", "")
-        menu3.AppendMenu(-1, _("ABC &typing assistance"), self.setup_typing_assistance_menu())
-        menu3.AppendSeparator()
-        #1.3.6.1 [SS] 2015-1-10 do not use 5003 (on Linux it will add Ctr-S shortcut)
-        menu3.Append(5007, _("&Clear cache..."), "")
-        menu3.Append(5005,_("Cold &restart"),"") # 1.3.6.1 [SS] 2014-12-28
-
-        menu4 = wx.Menu()
-        menu4.Append(6012, _("&Refresh music")+"\tF5", "")
-        self.mni_auto_refresh = menu4.AppendCheckItem(5004, _("&Automatically refresh music as I type"), "")
-        menu4.AppendSeparator()
-        self.mni_reduced_margins = menu4.AppendCheckItem(6005, _("&Use reduced margins when displaying tunes on screen"), "")
-        menu4.Append(6002, _("&Change editor font..."), "")
-        menu4.Append(6003, _("&Use default editor font"), "")
-        menu4.AppendSeparator()
-        ##menu4.Append(6004, _("&Show abcm2ps reference manual"), '')
-        ##Next Line commented by F. AUPEPIN to be added in menu Help
-        ##menu4.Append(6004, _("&Show fields and commands reference"), '')
-        ##menu4.AppendSeparator()
-        menu4.Append(6001, _("&Reset window layout to default"), "")
-        ##menu4.Append(6002, _("&Maximize/restore musical score pane\tCtrl+M"), "")
-        ##menu4.AppendSeparator()
-
-        ##menu4.AppendSeparator()
-        ##item = wx.MenuItem(menu4, wx.NewId(), _('View rythm column...'), kind=wx.ITEM_CHECK)
-        ##menu4.AppendItem(item)
-        ##self.Bind(wx.EVT_MENU, self.OnViewRythm, id=item.GetId())
-
-        #menu_TA = self.setup_typing_assistance_menu()
-        menu6 = wx.Menu()
-        menu6.Append(6004, _("&Show fields and commands reference"), '')
-        menu6.AppendSeparator()
-        menu6.Append(6015, _("&EasyABC Help"), _("Link to EasyABC Website"))
-        menu6.Append(6016, _("&ABC Standard Version 2.1"), _("Link to the ABC Standard version 2.1"))
-        menu6.Append(6017, _("&Learn ABC"), _("Link to the ABC notation website"))
-        # 1.3.6.1 [SS] 2015-01-28
-        menu6.Append(6018, _("&Abcm2ps help"), _("Link to the Abcm2ps website"))
-        # 1.3.6.1 [SS] 2015-01-28
-        menu6.Append(6019, _("&Abc2midi help"), _("Link to the Abc2midi website"))
-        menu6.AppendSeparator()
-
-        menu6.Append(wx.ID_ABOUT, _("About EasyABC") + "...")
-
-        menu7 = wx.Menu() #p09 2014-10-22
-        menu7.Append(7001, _("Messages"), _("Show warnings and errors"))
-        menu7.Append(7002, _("Input processed tune"),'')
-        menu7.Append(7004, _("Output midi file"),'')
-        menu7.Append(7003, _("Show settings status"),'')
-
-        menuBar.Append(menu1, _("&File"))
-        menuBar.Append(menu2, _("&Edit"))
-        menuBar.Append(menu3, _("&Settings"))
-        #menuBar.Append(menu_TA, _("ABC &typing assistance"))
-        menuBar.Append(menu5, _("&Tools"))
-        menuBar.Append(menu4, _("&View"))
-        menuBar.Append(menu7, _("&Internals"))  #p09 [SS]
-        menuBar.Append(menu6, _("&Help"))
+        menuBar = self.create_menu_bar([
+            (_("&File")     , [
+                (_('&New\tCtrl+N'), _("Create a new file"), self.OnNew),
+                (_("&Open...\tCtrl+O"), _("Open an existing file"), self.OnOpen),
+                (_("&Close") + close_shortcut, _("Close the current file"), self.OnCloseFile),
+                (),
+                (_("&Import and add..."), _("Import a song in ABC, Midi or MusicXML format and add it to the current document."), self.OnImport),
+                (),
+                (_("&Export selected"), [
+                    (_('as &PDF...'), '', self.OnExportPDF),
+                    (_('as &MIDI...'), '', self.OnExportMidi),
+                    (_('as &SVG...'), '', self.OnExportSVG),
+                    (_('as &HTML...'), '', self.OnExportHTML),
+                    (_('as Music&XML...'), '', self.OnExportMusicXML)]),
+                (_("Export &all"), [
+                    (_('as a &PDF Book...'), '', self.OnExportAllPDF),
+                    (_('as PDF &Files...'), '', self.OnExportAllPDFFiles),
+                    (_('as &MIDI...'), '', self.OnExportAllMidi),
+                    (_('as &HTML...'), '', self.OnExportAllHTML),
+                    #(_('as &EPUB...'), '', self.OnExportAllEpub),
+                    (_('as Music&XML...'), '', self.OnExportAllMusicXML)]),
+                (),
+                (_("&Save\tCtrl+S"), _("Save the active file"), self.OnSave),
+                (_("Save &As...\tShift+Ctrl+S"), _("Save the active file with a new filename"), self.OnSaveAs),
+                (),
+                (_("&Print...\tCtrl+P"), _("Print the selected tune"), self.OnPrint),
+                (_("&Print preview\tCtrl+Shift+P"), '', self.OnPrintPreview),
+                (_("P&age Setup..."), _("Change the printer and printing options"), self.OnPageSetup),
+                (),
+                (_('&Recent files'), self.recent_menu),
+                (),
+                (wx.ID_EXIT, _("&Quit\tCtrl+Q"), _("Exit the application (prompt to save files)"), self.OnQuit)]),
+            (_("&Edit")     , [
+                (_("&Undo\tCtrl+Z"), _("Undo the last action"), self.OnUndo),
+                (_("&Redo\tCtrl+Y"), _("Redo the last action"), self.OnRedo),
+                (),
+                (_("&Cut\tCtrl+X"), _("Cut the selection and put it on the clipboard"), self.OnCut),
+                (_("&Copy\tCtrl+C"), _("Copy the selection and put it on the clipboard"), self.OnCopy),
+                (_("&Paste\tCtrl+V"), _("Paste clipboard contents"), self.OnPaste),
+                (_("&Delete\tDel"), _("Delete the selection"), self.OnDelete),
+                (),
+                (_("&Insert musical symbol"), [
+                    (_('Note ornaments'), self.popup_ornaments),
+                    (_('Directions'),     self.popup_directions), # 1.3.6.1 [SS] 2015-01-22
+                    (_('Dynamics'),       self.popup_dynamics)]),
+                (),
+                (_("&Transpose"), transpose_menu),
+                (_("&Change note length"), [
+                    (_('Double note lengths\tCtrl+Shift++'), '', self.OnDoubleL),
+                    (_('Halve note lengths\tCtrl+Shift+-'), '', self.OnHalveL)]),
+                (_("A&lign bars\tCtrl+Shift+A"), '', self.OnAlignBars),
+                (),
+                (_("&Find...\tCtrl+F"), '', self.OnFind),
+                (_("&Find Next\tF3"), '', self.OnFindNext),
+                (_("&Replace...\tCtrl+H"), '', self.OnReplace),
+                (),
+                (_("&Select all\tCtrl+A"), '', self.OnSelectAll)]),
+            (_("&Settings") , [
+                (_("&ABC settings") + '...', "", self.OnAbcSettings),
+                (_("&Midi device settings") + "...", "", self.OnMidiSettings),
+                (_("ABC &typing assistance"), self.setup_typing_assistance_menu()),
+                (),
+                (_('&Clear cache') + '...', '', self.OnClearCache), #1.3.6.1 [SS] 2015-1-10 do not use 5003 (on Linux it will add Ctr-S shortcut)
+                (_('Cold &restart'), '', self.OnColdRestart)]), # 1.3.6.1 [SS] 2014-12-28
+            (_("&Tools")    , [
+                (_('Generate &incipits file...'), '', self.OnGenerateIncipits),
+                (_('&View incipits...'), '', self.OnViewIncipits),
+                (),
+                (_('&Renumber X: fields...'), '', self.OnRenumberTunes),
+                (_('&Sort tunes...'), '', self.OnSortTunes),
+                (_('Search directories...'), '', self.OnSearchDirectories)]), # 1.3.6 [SS] 2014-11-21
+            (_("&View")     , view_menu),
+            (_("&Internals"), [ #p09 [SS] 2014-10-22
+                (_("Messages"), _("Show warnings and errors"), self.OnShowMessages),
+                (_("Input processed tune"),'', self.OnShowAbcTune),
+                (_("Output midi file"), '', self.OnShowMidiFile),
+                (_("Show settings status"),'', self.OnShowSettings)]),
+            (_("&Help")     , [
+                (_("&Show fields and commands reference"), '', self.OnViewFieldReference),
+                (),
+                (_("&EasyABC Help"), _("Link to EasyABC Website"), self.OnEasyABCHelp),
+                (_("&ABC Standard Version 2.1"), _("Link to the ABC Standard version 2.1"), self.OnABCStandard),
+                (_("&Learn ABC"), _("Link to the ABC notation website"), self.OnABCLearn),
+                (_("&Abcm2ps help"), _("Link to the Abcm2ps website"), self.OnAbcm2psHelp),
+                (_("&Abc2midi help"), _("Link to the Abc2midi website"), self.OnAbc2midiHelp),
+                (),
+                (wx.ID_ABOUT, _("About EasyABC") + "...", '', self.OnAbout)
+            ]),
+        ])
 
         self.SetMenuBar(menuBar)
-        self.Bind(wx.EVT_MENU, self.OnNew, id=1001)
-        self.Bind(wx.EVT_MENU, self.OnOpen, id=1002)
-        self.Bind(wx.EVT_MENU, self.OnCloseFile, id=1010)
-        self.Bind(wx.EVT_MENU, self.OnExportMidi, id=1031)
-        self.Bind(wx.EVT_MENU, self.OnExportPDF, id=1032)
-        self.Bind(wx.EVT_MENU, self.OnExportSVG, id=1033)
-        self.Bind(wx.EVT_MENU, self.OnExportHTML, id=1034)
-        self.Bind(wx.EVT_MENU, self.OnExportMusicXML, id=1035)
-        self.Bind(wx.EVT_MENU, self.OnExportAllMidi, id=1041)
-        self.Bind(wx.EVT_MENU, self.OnExportAllPDF, id=1042)
-        self.Bind(wx.EVT_MENU, self.OnExportAllPDFFiles, id=1046)
-        self.Bind(wx.EVT_MENU, self.OnExportAllHTML, id=1043)
-        self.Bind(wx.EVT_MENU, self.OnExportAllEpub, id=1044)
-        self.Bind(wx.EVT_MENU, self.OnExportAllMusicXML, id=1045)
-        self.Bind(wx.EVT_MENU, self.OnImport, id=1020)
-        self.Bind(wx.EVT_MENU, self.OnSave, id=1003)
-        self.Bind(wx.EVT_MENU, self.OnSaveAs, id=1004)
-        self.Bind(wx.EVT_MENU, self.OnPrint, id=1021)
-        self.Bind(wx.EVT_MENU, self.OnPrintPreview, id=1022)
-        self.Bind(wx.EVT_MENU, self.OnPageSetup, id=1023)
-        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_EXIT)
-        self.Bind(wx.EVT_MENU, self.OnUndo, id=2001)
-        self.Bind(wx.EVT_MENU, self.OnRedo, id=2002)
-        self.Bind(wx.EVT_MENU, self.OnCut, id=2003)
-        self.Bind(wx.EVT_MENU, self.OnCopy, id=2004)
-        self.Bind(wx.EVT_MENU, self.OnPaste, id=2005)
-        self.Bind(wx.EVT_MENU, self.OnDelete, id=2006)
-        self.Bind(wx.EVT_MENU, self.OnFind, id=2007)
-        self.Bind(wx.EVT_MENU, self.OnFindNext, id=2008)
-        self.Bind(wx.EVT_MENU, self.OnReplace, id=2009)
-        self.Bind(wx.EVT_MENU, self.OnAlignBars, id=2010)
-        self.Bind(wx.EVT_MENU, self.OnGenerateIncipits, id=6010)
-        self.Bind(wx.EVT_MENU, self.OnViewIncipits, id=6011)
-        self.Bind(wx.EVT_MENU, self.OnSortTunes, id=6013)
-        self.Bind(wx.EVT_MENU, self.OnSearchDirectories, id=6020)
-        self.Bind(wx.EVT_MENU, self.OnRenumberTunes, id=6014)
-        self.Bind(wx.EVT_MENU, self.OnSelectAll, id=2014)
-        ##self.Bind(wx.EVT_MENU, self.OnAbout, id=4001)
-        self.Bind(wx.EVT_MENU, self.OnAbout, id=wx.ID_ABOUT)
-        self.Bind(wx.EVT_MENU, self.OnMidiSettings, id=5001)
-        self.Bind(wx.EVT_MENU, self.OnAbcSettings, id=5002)
-        self.Bind(wx.EVT_MENU, self.OnClearCache, id=5007)
-        self.Bind(wx.EVT_MENU, self.OnColdRestart, id=5005) # 1.3.6.1 [SS] 2014-12-28
-        self.Bind(wx.EVT_MENU, self.OnResetView, id=6001)
-        self.Bind(wx.EVT_MENU, self.OnChangeFont, id=6002)
-        self.Bind(wx.EVT_MENU, self.OnUseDefaultFont, id=6003)
-        self.Bind(wx.EVT_MENU, self.OnViewFieldReference, id=6004)
-        self.Bind(wx.EVT_MENU, self.OnReducedMargins, id=6005)
-        self.Bind(wx.EVT_MENU, self.OnToolRefresh, id=6012)
-        self.Bind(wx.EVT_MENU, self.OnEasyABCHelp, id=6015)
-        self.Bind(wx.EVT_MENU, self.OnABCStandard, id=6016)
-        self.Bind(wx.EVT_MENU, self.OnABCLearn, id=6017)
-        # 1.3.6.1 [SS] 2015-01-28
-        self.Bind(wx.EVT_MENU, self.OnAbcm2psHelp, id=6018)
-        self.Bind(wx.EVT_MENU, self.OnAbc2midiHelp, id=6019)
 
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
         self.Bind(wx.EVT_FIND_REPLACE, self.OnFindReplace)
         self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnFindReplaceAll)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
-        ##self.Bind(wx.EVT_MENU, self.OnToggleMusicPaneMaximize, id=6002)
-
-        #p09 2014-10-22
-        self.Bind(wx.EVT_MENU, self.OnShowMessages, id=7001)
-        self.Bind(wx.EVT_MENU, self.OnShowAbcTune,  id=7002)
-        self.Bind(wx.EVT_MENU, self.OnShowSettings, id=7003)
-        self.Bind(wx.EVT_MENU, self.OnShowMidiFile, id=7004)
 
     def ShowMessages(self):
         global execmessages
@@ -6286,7 +6210,10 @@ class MainFrame(wx.Frame):
             (self.find_dialog or self.replace_dialog).Raise()
 
     def OnFindNext(self, evt):
-        (self.find_dialog or self.replace_dialog).Raise()
+        dialog = self.find_dialog or self.replace_dialog
+        if dialog is None:
+            return
+        dialog.Raise()
         if self.find_data.GetFindString().startswith(':'):
             self.OnFindNextABC()
         else:
@@ -8017,16 +7944,14 @@ class MainFrame(wx.Frame):
             recent_files_menu_id = 1100
             for path in recent_files:
                 if path and os.path.exists(path):
-                    menu_item = self.recent_menu.Append(recent_files_menu_id, u'&{0}: {1}'.format(mru_index, path))
-                    self.Bind(wx.EVT_MENU, self.on_recent_file, menu_item)
+                    self.append_menu_item(self.recent_menu, u'&{0}: {1}'.format(mru_index, path), path, self.on_recent_file, id=recent_files_menu_id)
                     recent_files_menu_id += 1
                     mru_index += 1
 
-    def on_recent_file(self, evt):
-        recent_files_menu_id = 1100
-        mru_index = evt.Id - recent_files_menu_id
-        recent_files = self.settings.get('recentfiles', '').split('|')
-        path = recent_files[mru_index]
+    def on_recent_file(self, event):
+        menu = event.EventObject
+        menu_item = menu.FindItemById(event.Id)
+        path = menu_item.Help
         if not self.editor.GetModify() and not self.current_file:  # if a new unmodified document
             self.load(path)
         else:
