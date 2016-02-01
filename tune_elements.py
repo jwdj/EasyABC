@@ -368,10 +368,10 @@ class AbcElement(object):
         for section in ABC_SECTIONS:
             pattern = self._search_pattern.get(section, None)
             if pattern is not None:
-                self._search_re[section] = re.compile(pattern, re.UNICODE)
+                self._search_re[section] = re.compile(pattern)
 
         if self.validation_pattern is not None:
-            self.__validation_re = re.compile(self.validation_pattern, re.UNICODE)
+            self.__validation_re = re.compile(self.validation_pattern)
 
     @property
     def valid_sections(self):
@@ -695,7 +695,7 @@ class AbcChordOrAnnotation(AbcBodyElement):
 
 
 class AbcSlur(AbcBodyElement):
-    pattern = r'\((?!\d)|\)'
+    pattern = r'(?P<dash>\.?)\((?!\d)|\)'
     def __init__(self):
         super(AbcSlur, self).__init__('Slur', AbcSlur.pattern, display_name=_('Slur'))
 
@@ -857,7 +857,7 @@ class AbcInvalidCharacter(AbcBodyElement):
 
 
 class AbcChordSymbol(AbcBodyElement):
-    #simple_pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
+    basic_pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
     #pattern = ur'(?P<chordsymbol>"(?P<chordnote>[A-G][b#\u266D\u266E\u266F]?)(?P<quality>[^/\d]*)(?P<th>2|4|5|6|7|9|11|13)?(?P<sus>sus[2|4|9]?)?(?P<additional>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?)")'
     pattern = ur'"(?P<chordsymbol>(?P<chordnote>[A-G][b#\u266D\u266E\u266F]?)?(?P<chordname>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?))"'
     def __init__(self):
@@ -892,16 +892,16 @@ class AbcGraceNotes(AbcBaseNote):
 
 
 class AbcNoteGroup(AbcBaseNote):
-    note_group_pattern_prefix = ur'(?P<gracenotes>{0}?)(?P<chordsymbols>{1}?)(?P<decoanno>(?P<decorations>{2})|(?P<annotations>{3})*)'.format(
-                                AbcGraceNotes.pattern, AbcChordSymbol.pattern, AbcDecoration.pattern, AbcAnnotation.pattern)
+    note_group_pattern_prefix = r'(?P<gracenotes>{0}?)(?P<chordsymbols>{1}?)(?P<decoanno>(?P<decorations>{2})|(?P<annotations>{3})*)'.format(
+                                AbcGraceNotes.pattern, AbcChordSymbol.basic_pattern, AbcDecoration.pattern, AbcAnnotation.pattern)
     note_group_pattern_postfix = AbcBaseNote.pair_pattern + AbcBaseNote.tie_pattern
 
     note_pattern = note_group_pattern_prefix + AbcBaseNote.basic_note_pattern + note_group_pattern_postfix
     normal_rest_pattern = note_group_pattern_prefix + AbcBaseNote.basic_rest_pattern + AbcBaseNote.pair_pattern
     note_or_rest_pattern = note_group_pattern_prefix + AbcBaseNote.basic_note_or_rest_pattern
 
-    chord_pattern = ur'(?P<chord>\[(?:{0}\s*)*\])'.format(remove_named_groups(note_or_rest_pattern)) + AbcBaseNote.length_pattern + note_group_pattern_postfix
-    note_or_chord_pattern = ur'({0}|{1})'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern)) + note_group_pattern_postfix
+    chord_pattern = r'(?P<chord>\[(?:{0}\s*)*\])'.format(remove_named_groups(note_or_rest_pattern)) + AbcBaseNote.length_pattern + note_group_pattern_postfix
+    note_or_chord_pattern = r'({0}|{1})'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern)) + note_group_pattern_postfix
     def __init__(self):
         super(AbcNoteGroup, self).__init__('Note group', AbcNoteGroup.note_or_chord_pattern, display_name=_('Note group')) # '^{0}$'.format(AbcNoteGroup.pattern))
         #self.exact_match_required = True
@@ -924,7 +924,7 @@ class AbcChord(AbcBaseNote):
 class AbcNote(AbcBaseNote):
     pattern = AbcNoteGroup.note_pattern
     def __init__(self):
-        super(AbcNote, self).__init__('Note', u'({0})'.format(AbcNote.pattern), display_name=_('Note'))
+        super(AbcNote, self).__init__('Note', '({0})'.format(AbcNote.pattern), display_name=_('Note'))
         self.removable_match_groups = {
             'grace': _('Grace notes'),
             'chordsymbol': _('Chord symbol'),
@@ -950,14 +950,14 @@ class AbcMeasureRest(AbcBaseNote):
 class AbcMultipleNotesAndChords(AbcBaseNote):
     pattern = '(?:' +  AbcNoteGroup.note_or_chord_pattern + '[ `]*){2,}'
     def __init__(self):
-        super(AbcMultipleNotesAndChords, self).__init__('Multiple notes/chords', u'^{0}$'.format(AbcMultipleNotesAndChords.pattern), display_name=_('Multiple notes/chords'))
+        super(AbcMultipleNotesAndChords, self).__init__('Multiple notes/chords', '^{0}$'.format(AbcMultipleNotesAndChords.pattern), display_name=_('Multiple notes/chords'))
         self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 
 class AbcMultipleNotes(AbcBaseNote):
     pattern = '(?:' + AbcNoteGroup.note_or_rest_pattern + '[ `]*){2,}'
     def __init__(self):
-        super(AbcMultipleNotes, self).__init__('Multiple notes', u'^{0}$'.format(AbcMultipleNotes.pattern), display_name=_('Multiple notes'))
+        super(AbcMultipleNotes, self).__init__('Multiple notes', '^{0}$'.format(AbcMultipleNotes.pattern), display_name=_('Multiple notes'))
         self.tune_scope = TuneScope.SelectedText # a line always contains multiple notes so limit to selected text
 
 

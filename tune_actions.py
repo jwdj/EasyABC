@@ -1180,6 +1180,15 @@ class ChordBaseNoteChangeAction(ValueChangeAction):
         super(ChordBaseNoteChangeAction, self).__init__('change_chord_bass_note', ChordBaseNoteChangeAction.values, matchgroup='bassnote', display_name=_('Change bass note'))
 
 
+class SlurChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('', _('Normal')),
+        ValueDescription('.', _('Dashed')),
+    ]
+    def __init__(self):
+        super(SlurChangeAction, self).__init__('change_slur', SlurChangeAction.values, matchgroup='dash', display_name=_('Change slur'))
+
+
 class RedefinableSymbolChangeAction(ValueChangeAction):
     def __init__(self):
         super(RedefinableSymbolChangeAction, self).__init__('change_redefinable_symbol', [], display_name=_('Change redefinable symbol'))
@@ -1774,6 +1783,7 @@ class AbcActionHandlers(object):
             RedefinableSymbolChangeAction(),
             RestDurationAction(),
             MeasureRestDurationAction(),
+            SlurChangeAction(),
             CombineToChordAction(),
             DynamicsDecorationChangeAction(),
             ArticulationDecorationChangeAction(),
@@ -1834,6 +1844,7 @@ class AbcActionHandlers(object):
             'Fingering'              : self.create_handler(['change_fingering', 'remove']),
             'Redefinable symbol'     : self.create_handler(['change_redefinable_symbol']),
             'Chord or annotation'    : self.create_handler(['convert_to_annotation', 'remove']),
+            'Slur'                   : self.create_handler(['change_slur']),
             #'Stylesheet directive'  self.create_handler: self.create_handler([InsertDirectiveAction()]),
             'w:'                     : self.create_handler(['insert_text_align_symbol']),
             's:'                     : self.create_handler(['insert_decoration', 'insert_annotation_or_chord', 'insert_align_symbol']),
