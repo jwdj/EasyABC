@@ -49,6 +49,7 @@ Z:|transcription         |yes    |yes    |no     |no     |string
 clef_name_pattern = 'treble|bass3|bass|tenor|auto|baritone|soprano|mezzosoprano|alto2|alto1|alto|perc|none|C[1-5]|F[1-5]|G[1-5]'
 simple_note_pattern = "[a-gA-G][',]*"
 clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>{1})(?P<stafftranspose>(?:[+^_-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?) *?(?P<score>(?: score={0}{0})?) *?(?P<sound>(?: sound={0}{0})?) *?(?P<shift>(?: shift={0}{0})?) *?(?P<instrument>(?: instrument={0}(?:/{0})?)?)'.format(simple_note_pattern, clef_name_pattern)
+key_ladder = 'Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B#'.split(' ')
 
 abc_inner_pattern = {
     'K:': r' ?(?:(?P<tonic>(?:[A-G][b#]?|none)) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)'+clef_pattern+')?',
@@ -762,10 +763,8 @@ class AbcOrnamentDecoration(AbcDecoration):
         '!trill!',
         '!trill(!',
         '!trill)!',
-        '!lowermordent!',
-        '!uppermordent!',
-        '!mordent!',
-        '!pralltriller!',
+        '!mordent!', #'!lowermordent!',
+        '!pralltriller!', #'!uppermordent!',
         '!roll!',
         '!turn!',
         '!turnx!',
@@ -859,7 +858,7 @@ class AbcInvalidCharacter(AbcBodyElement):
 class AbcChordSymbol(AbcBodyElement):
     basic_pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
     #pattern = ur'(?P<chordsymbol>"(?P<chordnote>[A-G][b#\u266D\u266E\u266F]?)(?P<quality>[^/\d]*)(?P<th>2|4|5|6|7|9|11|13)?(?P<sus>sus[2|4|9]?)?(?P<additional>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?)")'
-    pattern = ur'"(?P<chordsymbol>(?P<chordnote>[A-G][b#\u266D\u266E\u266F]?)?(?P<chordname>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?))"'
+    pattern = ur'"(?P<chordsymbol>(?P<chordnote>(?:[A-G][b#\u266D\u266E\u266F]?)?)(?P<chordname>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?))"'
     def __init__(self):
         super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern, display_name=_('Chord symbol'))
 
@@ -900,7 +899,7 @@ class AbcNoteGroup(AbcBaseNote):
     normal_rest_pattern = note_group_pattern_prefix + AbcBaseNote.basic_rest_pattern + AbcBaseNote.pair_pattern
     note_or_rest_pattern = note_group_pattern_prefix + AbcBaseNote.basic_note_or_rest_pattern
 
-    chord_pattern = r'(?P<chord>\[(?:{0}\s*)*\])'.format(remove_named_groups(note_or_rest_pattern)) + AbcBaseNote.length_pattern + note_group_pattern_postfix
+    chord_pattern = r'(?P<chord>{0}\[(?:{1}\s*)*\])'.format(note_group_pattern_prefix, remove_named_groups(note_or_rest_pattern)) + AbcBaseNote.length_pattern + note_group_pattern_postfix
     note_or_chord_pattern = r'({0}|{1})'.format(remove_named_groups(note_or_rest_pattern), remove_named_groups(chord_pattern)) + note_group_pattern_postfix
     def __init__(self):
         super(AbcNoteGroup, self).__init__('Note group', AbcNoteGroup.note_or_chord_pattern, display_name=_('Note group')) # '^{0}$'.format(AbcNoteGroup.pattern))
@@ -918,7 +917,7 @@ class AbcChord(AbcBaseNote):
     pattern = AbcNoteGroup.chord_pattern
     def __init__(self):
         super(AbcBaseNote, self).__init__('Chord', AbcChord.pattern, display_name=_('Chord'))
-        #self.exact_match_required = True
+        self.visible_match_group = 'chord'
 
 
 class AbcNote(AbcBaseNote):
@@ -1127,23 +1126,6 @@ class AbcStructure(object):
 
         symbol_line = [element for element in result if element.keyword == 's:'][0]
         result = [element for element in result if element.keyword != 's:']
-
-        # midi guide
-        # http://abc.sourceforge.net/abcMIDI/original/abcguide.txt
-
-    #     elements = [
-    #         Abcm2psElement('pagewidth', _('Page width'), 'unit'),
-    #         Abcm2psElement('pageheight', _('Page height'), 'unit'),
-    #         Abcm2psElement('topmargin', _('Top margin'), 'unit'),
-    #         Abcm2psElement('botmargin', _('Bottom margin'), 'unit'),
-    #         Abcm2psElement('leftmargin', _('Left margin'), 'unit'),
-    #         Abcm2psElement('rightmargin', _('Right margin'), 'unit'),
-    #         Abcm2psElement('staffwidth', _('Staff width'), 'unit'),
-    #         Abcm2psElement('landscape', _('Landscape'), 'bool'),
-    #         Abcm2psElement('scale', _('Page scale factor'), 'float'),
-    #         Abcm2psElement('staffscale', _('Staff scale factor'), 'float'),
-    #         Abcm2psElement('setbarnb', _('First measure number'), 'int'),
-    #         Abcm2psElement('measurenb', _('Measure numbers'), 'int', measure_number_options),
 
         # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result += [

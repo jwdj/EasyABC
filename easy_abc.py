@@ -1,8 +1,8 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.1 2016-01-31'
+program_name = 'EasyABC 1.3.7.1 2016-02-03'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015 Seymour Shlien (mail:seymour.shlien@crc.ca)
+# Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,10 @@ program_name = 'EasyABC 1.3.7.1 2016-01-31'
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# V1.3.7.1
+# - Dutch translation
+# - ABC assist improvements
 #
 # V1.3.7.0
 # Incremental improvements and bug fixes.
@@ -7951,7 +7955,7 @@ class MainFrame(wx.Frame):
     def on_recent_file(self, event):
         menu = event.EventObject
         menu_item = menu.FindItemById(event.Id)
-        path = menu_item.Help
+        path = menu_item.Help # 1.3.7.1 [JWDJ] sometimes wrong recent file was opened
         if not self.editor.GetModify() and not self.current_file:  # if a new unmodified document
             self.load(path)
         else:
@@ -7992,7 +7996,7 @@ class MyFileDropTarget(wx.FileDropTarget):
             self.frame.OnTuneSelected(None)
 
 class AboutFrame(wx.Dialog):
-    htmlpage = _('''
+    htmlpage = '''
 <html>
 <body bgcolor="#FAFAF0">
 <center><img src="img/abclogo.png"/>
@@ -8049,7 +8053,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 </ul>
 </body>
 </html>
-''').format(program_name)
+'''.format(program_name)
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, _('About EasyABC'), size=(900, 600) )

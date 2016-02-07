@@ -86,10 +86,10 @@ def html_table(rows, headers=None, cellpadding=0, row_has_td=False, indent=0, wi
     return html_enclose_attr('table', attributes, result)
 
 def html_image(image_name, description):
-    image_path = '{0}/img/{1}.png'.format(application_path, image_name)
+    image_path = u'{0}/img/{1}.png'.format(application_path, image_name)
     image_html = ''
     if os.path.exists(image_path):
-        image_html = '<img src="{0}" border="0" alt="{1}">'.format(path2url(image_path), description or '')
+        image_html = u'<img src="{0}" border="0" alt="{1}">'.format(path2url(image_path), description or '')
     return image_html
 
 
@@ -824,7 +824,6 @@ class AppoggiaturaOrAcciaccaturaChangeAction(ValueChangeAction):
 
 
 class KeyChangeAction(ValueChangeAction):
-    _key_ladder = 'Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B#'.split(' ')
     _mode_to_num = {
         '':    -2,
         'm':   +1,
@@ -882,9 +881,9 @@ class KeySignatureChangeAction(KeyChangeAction):
             return tonic != value
         else:
             value = int(value)
-            middle_idx = len(KeyChangeAction._key_ladder) // 2
+            middle_idx = len(key_ladder) // 2
             try:
-                tonic_idx = KeyChangeAction._key_ladder.index(tonic)
+                tonic_idx = key_ladder.index(tonic)
             except ValueError:
                 return True
 
@@ -907,18 +906,18 @@ class KeySignatureChangeAction(KeyChangeAction):
             context.replace_match_text(value, tune_scope=TuneScope.InnerText)
         else:
             value = int(value)
-            middle_idx = len(KeyChangeAction._key_ladder) // 2
+            middle_idx = len(key_ladder) // 2
             new_value = middle_idx + value
 
             mode = context.get_matchgroup('mode')
             mode_idx = self.abc_mode_to_number(mode)
             if mode_idx is None:
                 new_value -= 2 # assume major scale
-                tonic = KeyChangeAction._key_ladder[new_value]
+                tonic = key_ladder[new_value]
                 context.replace_match_text(tonic, tune_scope=TuneScope.InnerText)
             else:
                 new_value += mode_idx
-                tonic = KeyChangeAction._key_ladder[new_value]
+                tonic = key_ladder[new_value]
                 context.replace_match_text(tonic, matchgroup='tonic')
 
 
@@ -939,7 +938,7 @@ class KeyModeChangeAction(KeyChangeAction):
         if context.inner_match is None:
             return False
         tonic = context.get_matchgroup('tonic')
-        return tonic in KeyChangeAction._key_ladder
+        return tonic in key_ladder
 
     def can_execute(self, context, params=None):
         value = params.get('value')
@@ -947,7 +946,7 @@ class KeyModeChangeAction(KeyChangeAction):
             return super(KeyModeChangeAction, self).can_execute(context, params)
         else:
             tonic = context.get_matchgroup('tonic')
-            if tonic in KeyChangeAction._key_ladder:
+            if tonic in key_ladder:
                 value = int(params.get('value'))
                 mode = context.get_matchgroup(self.matchgroup)
                 current_value = self.abc_mode_to_number(mode)
@@ -964,8 +963,7 @@ class KeyModeChangeAction(KeyChangeAction):
             tonic = context.get_matchgroup('tonic')
             mode = context.get_matchgroup(self.matchgroup)
             current_mode = self.abc_mode_to_number(mode)
-            ladder = KeyChangeAction._key_ladder
-            tonic = ladder[ladder.index(tonic) - current_mode + value]
+            tonic = key_ladder[key_ladder.index(tonic) - current_mode + value]
             for mode, num in KeyChangeAction._mode_to_num.iteritems():
                 if num == value:
                     context.replace_matchgroups([('tonic', tonic), ('mode', mode)])
@@ -1047,7 +1045,6 @@ class BaseDecorationChangeAction(ValueChangeAction):
             value = ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark])
             values.append(value)
         super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration', display_name=display_name)
-        #self.relative_selection = -1
 
 
     def is_current_value(self, context, value):
@@ -1100,27 +1097,25 @@ class ArticulationDecorationChangeAction(BaseDecorationChangeAction):
         super(ArticulationDecorationChangeAction, self).__init__('change_articulation', AbcArticulationDecoration.values, display_name=_('Change articulation marker'))
 
 
-# class ChordChangeAction(ValueChangeAction):
-#     def __init__(self):
-#         super(ChordChangeAction, self).__init__('change_chord', [], 'chordsymbol', display_name=_('Change chord'))
-#
-#     def get_values(self, context):
-#         values = [
-#             ValueDescription('', _('No chord'))
-#         ]
-#         return values
+class ChordNoteChangeAction(ValueChangeAction):
+    def __init__(self):
+        super(ChordNoteChangeAction, self).__init__('change_chord_note', [], 'chordnote', display_name=_('Change chord'))
 
+    def get_values(self, context):
+        i = key_ladder.index('C') # todo: retrieve from K:
+        values = [
+            self.get_value_for_chord(i, False),
+            self.get_value_for_chord(i-1, False),
+            self.get_value_for_chord(i+1, False),
+            self.get_value_for_chord(i+3, True),
+            self.get_value_for_chord(i+2, True),
+            self.get_value_for_chord(i+4, True),
+        ]
+        return values
 
-# class ChordQualityChangeAction(ValueChangeAction):
-#     values = [
-#         CodeDescription('', _('Major'), alternate_values=['maj']),
-#         CodeDescription('m', _('Minor'), alternate_values=['min']),
-#         CodeDescription('+', _('Augmented'), alternate_values=['aug']),
-#         CodeDescription('dim', _('Diminished')),
-#     ]
-#     def __init__(self):
-#         super(ChordQualityChangeAction, self).__init__('change_chord_quality', ChordQualityChangeAction.values, matchgroup='quality', display_name=_('Change chord type'))
-
+    def get_value_for_chord(self, index, is_minor):
+        chord = key_ladder[index]
+        return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D').replace('m', ' ' + _('minor')))
 
 
 class ChordNameChangeAction(ValueChangeAction):
@@ -1160,6 +1155,9 @@ class ChordNameChangeAction(ValueChangeAction):
     def __init__(self):
         super(ChordNameChangeAction, self).__init__('change_chord_name', ChordNameChangeAction.values, matchgroup='chordname', display_name=_('Change chord name'))
 
+    def is_action_allowed(self, context):
+        return super(ChordNameChangeAction, self).is_action_allowed(context) and context.get_matchgroup('chordnote')
+
 
 # class ChordSuspendedChangeAction(ValueChangeAction):
 #     values = [
@@ -1178,6 +1176,9 @@ class ChordBaseNoteChangeAction(ValueChangeAction):
     ]
     def __init__(self):
         super(ChordBaseNoteChangeAction, self).__init__('change_chord_bass_note', ChordBaseNoteChangeAction.values, matchgroup='bassnote', display_name=_('Change bass note'))
+
+    def is_action_allowed(self, context):
+        return super(ChordBaseNoteChangeAction, self).is_action_allowed(context) and context.get_matchgroup('chordnote')
 
 
 class SlurChangeAction(ValueChangeAction):
@@ -1815,6 +1816,7 @@ class AbcActionHandlers(object):
             TempoNameChangeAction(),
             TempoNoteLengthChangeAction(),
             TempoNote2LengthChangeAction(),
+            ChordNoteChangeAction(),
             ChordNameChangeAction(),
             ChordBaseNoteChangeAction(),
             ActionSeparator(),
@@ -1832,8 +1834,8 @@ class AbcActionHandlers(object):
             'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
             'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'remove']),
-            'Chord'                  : self.create_handler(['change_note_duration', 'remove']),
-            'Chord symbol'           : self.create_handler(['change_chord_name', 'change_chord_bass_note', 'remove']),
+            'Chord'                  : self.create_handler(['new_note', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'separator', 'remove']),
+            'Chord symbol'           : self.create_handler(['change_chord_note', 'change_chord_name', 'change_chord_bass_note', 'remove']),
             'Grace notes'            : self.create_handler(['change_appoggiatura_acciaccatura', 'remove']),
             'Multiple notes'         : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'combine_to_chord', 'remove']),
             'Multiple notes/chords'  : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'remove']),
@@ -1843,7 +1845,7 @@ class AbcActionHandlers(object):
             'Direction'              : self.create_handler(['change_direction', 'remove']),
             'Fingering'              : self.create_handler(['change_fingering', 'remove']),
             'Redefinable symbol'     : self.create_handler(['change_redefinable_symbol']),
-            'Chord or annotation'    : self.create_handler(['convert_to_annotation', 'remove']),
+            'Chord or annotation'    : self.create_handler(['change_chord_note', 'convert_to_annotation', 'remove']),
             'Slur'                   : self.create_handler(['change_slur']),
             #'Stylesheet directive'  self.create_handler: self.create_handler([InsertDirectiveAction()]),
             'w:'                     : self.create_handler(['insert_text_align_symbol']),
