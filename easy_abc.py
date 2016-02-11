@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.1 2016-02-03'
+program_name = 'EasyABC 1.3.7.1 2016-02-11'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -1080,8 +1080,8 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
     execmessages += '\n' + stdout_value + stderr_value
 
-
     if process.returncode < 0:
+        execmessages += '\n' + _('%s exited abnormally (errorcode %#8x)') % ('Abcm2ps', process.returncode & 0xffffffff)
         raise Abcm2psException('Unknown error - abcm2ps may have crashed')
     #dt = datetime.now() - t
     ##if wx.Platform != "__WXGTK__":
@@ -1119,7 +1119,7 @@ def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):
     stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
     execmessages += '\n' + stderr_value
     if process.returncode < 0:
-        raise Abcm2psException('Unknown error - abc2abc may have crashed')
+        execmessages += '\n' + _('%s exited abnormally (errorcode %#8x)') % ('Abc2abc', process.returncode & 0xffffffff)
     stderr_value = stderr_value.strip().decode(abcm2ps_default_encoding, 'replace')
     stdout_value = stdout_value.decode(abcm2ps_default_encoding, 'replace')
     if process.returncode == 0:
@@ -1140,13 +1140,13 @@ def MidiToMftext (midi2abc_path, midifile):
         stdout_value, stderr_value = process.communicate()
         #print stdout_value
 
-        midiframe = MyMidiTextTree('Disassembled Midi File')
+        midiframe = MyMidiTextTree(_('Disassembled Midi File'))
         midiframe.Show(True)
         midi_data = stdout_value
         midi_lines = midi_data.splitlines()
         midiframe.LoadMidiData(midi_lines)
     else:
-        wx.MessageBox(_("Cannot find the executable midi2abc. Be sure it is in your bin folder and its path is defined in ABC Setup/File Settings."), ("Error") ,wx.ICON_ERROR | wx.OK)
+        wx.MessageBox(_("Cannot find the executable midi2abc. Be sure it is in your bin folder and its path is defined in ABC Setup/File Settings."), _("Error") ,wx.ICON_ERROR | wx.OK)
 
 
 # p09 2014-10-14 [SS]
@@ -1186,7 +1186,6 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
     if wx.Platform == "__WXMSW__":
         creationflags = win32process.CREATE_NO_WINDOW
     # p09 we already checked for gs_path in restore_settings() 2014-10-14
-    fontmap_dir = r'D:\MyFontmap'
     cmd2 = [gs_path, '-sDEVICE=pdfwrite', '-sOutputFile=%s' % pdf_file, '-dBATCH', '-dNOPAUSE', ps_file]
     # [SS] 2015-04-08
     if wx.Platform == "__WXMAC__":
@@ -1684,7 +1683,7 @@ def abc_to_midi(abc_code, settings, midi_file_name):
             stdout_value = re.sub(r'(?m)(writing MIDI file .*\r?\n?)', '', stdout_value)
         if process.returncode != 0:
             # 1.3.7.0 [SS] 2016-01-06
-            execmessages += '\n' + _('AbcToMidi exited abnormally (errorcode %#8x)') % (process.returncode & 0xffffffff)
+            execmessages += '\n' + _('%s exited abnormally (errorcode %#8x)') % ('AbcToMidi', process.returncode & 0xffffffff)
             return None
 
         #if humanize:
@@ -1746,6 +1745,7 @@ def change_texts_into_chords(abc):
     return re.sub(r'(?<!\\)"[^_]([A-G][#b]? ?%s)(?<!\\)"' % optional_chord_type, r'"\1"', abc)
 
 def NWCToXml(filepath, cache_dir, nwc2xml_path):
+    global execmessages
     nwc_file_path = os.path.join(cache_dir, 'temp_nwc.nwc')
     xml_file_path = os.path.join(cache_dir, 'temp_nwc.xml')
     if os.path.exists(xml_file_path):
@@ -1768,6 +1768,8 @@ def NWCToXml(filepath, cache_dir, nwc2xml_path):
     cmd = [nwc2xml_path, nwc_file_path]
     process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags = creationflags)
     stdout_value, stderr_value = process.communicate()
+    if process.returncode < 0:
+        execmessages += '\n' + _('%s exited abnormally (errorcode %#8x)') % ('Nwc2xml', process.returncode & 0xffffffff)
 
     if not os.path.exists(xml_file_path) or process.returncode != 0:
         stderr_value = stderr_value.replace(os.path.dirname(nwc_file_path) + os.sep, '')  # simply any reference to the file path in the error message
@@ -2359,12 +2361,11 @@ class MyNoteBook(wx.Frame):
         # 1.3.6.1 [SS] 2015-02-02
         abcm2pspage = MyAbcm2psPage(nb,settings,abcsettings)
         xmlpage    = MyXmlPage(nb,settings)
-        nb.AddPage(abcm2pspage,"Abcm2ps")
-        nb.AddPage(chordpage,"Abc2midi")
-        nb.AddPage(voicepage,"Voices")
-        nb.AddPage(xmlpage,"Xml")
-        nb.AddPage(abcsettings,"File Settings")
-
+        nb.AddPage(abcm2pspage, _("Abcm2ps"))
+        nb.AddPage(chordpage, _("Abc2midi"))
+        nb.AddPage(voicepage, _("Voices"))
+        nb.AddPage(xmlpage, _("Xml"))
+        nb.AddPage(abcsettings, _("File Settings"))
 
         sizer = wx.BoxSizer()
         sizer.Add(nb,1,wx.ALL|wx.EXPAND)

@@ -402,6 +402,9 @@ class AbcElement(object):
                     break
         return result
 
+    def get_regex_for_section(self, section):
+        return self._search_re.get(section, None)
+
     def matches_text(self, context, text):
         regex = self._search_re.get(context.abc_section, None)
         if regex is not None:
@@ -832,7 +835,7 @@ class AbcTuplet(AbcBodyElement):
 
 
 class AbcBar(AbcBodyElement):
-    pattern = r"\.?\|\||:*\|\]|\[\|:*|::|:+\||\|:+|\.?\||\[\|\]"
+    pattern = r"(?:\.?\|\||:*\|\]|\[\|:*|::|:+\||\|:+|\.?\||\[\|\])[1-9]?"
     def __init__(self):
         super(AbcBar, self).__init__('Bar', AbcBar.pattern, display_name=_('Bar'), description=_('Separates measures.'))
 
@@ -1129,8 +1132,8 @@ class AbcStructure(object):
 
         # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result += [
-            AbcChordSymbol(),
             AbcAnnotation(),
+            AbcChordSymbol(),
             AbcChordOrAnnotation(),
             AbcTuplet(),
             AbcVariantEnding(),

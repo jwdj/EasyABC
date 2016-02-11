@@ -8,7 +8,7 @@
 ;
 ; Seymour Shlien
 
-#define MyAppName "EasyABC-1.3.7"
+#define MyAppName "EasyABC"
 #define MyAppVersion "1.3.7.1"
 #define MyAppPublisher "seymour shlien"
 #define MyAppURL "ifdo.ca/~seymour/easy/"
@@ -21,14 +21,14 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{964A5677-C80C-47DB-A333-672AC7D7D70A}}
-AppName={#MyAppName}
+AppName={#MyAppName} {#MyAppVersion}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\{#MyAppName}
+DefaultDirName={pf}\{#MyAppName}-{#MyAppVersion}
 DefaultGroupName={#MyAppName}
 LicenseFile={#MyBuildFolder}\gpl-license.txt
 OutputBaseFilename=setupEasy137

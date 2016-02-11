@@ -1178,7 +1178,7 @@ class ChordBaseNoteChangeAction(ValueChangeAction):
         super(ChordBaseNoteChangeAction, self).__init__('change_chord_bass_note', ChordBaseNoteChangeAction.values, matchgroup='bassnote', display_name=_('Change bass note'))
 
     def is_action_allowed(self, context):
-        return super(ChordBaseNoteChangeAction, self).is_action_allowed(context) and context.get_matchgroup('chordnote')
+        return False # super(ChordBaseNoteChangeAction, self).is_action_allowed(context) and context.get_matchgroup('chordnote')
 
 
 class SlurChangeAction(ValueChangeAction):
@@ -1397,6 +1397,12 @@ class NewNoteOrRestAction(InsertValueAction):
                 value = u' ' + value
             context.insert_text(value)
 
+    def get_values(self, context):
+        values = super(NewNoteOrRestAction, self).get_values(context)
+        if context.current_element.name == 'empty_line_tune':
+            values = [values[0][:-1]]
+        return values
+
 
 class InsertAnnotationAction(InsertValueAction):
     values = [
@@ -1504,7 +1510,8 @@ class AddBarAction(AbcAction):
     @staticmethod
     def is_bar_expected(context):
         text = context.get_scope_info(TuneScope.LineUpToSelection).text
-        last_bar_offset = max([0] + [m.end(0) for m in bar_sep.finditer(text)])  # offset of last bar symbol
+        bar_re = re.compile(AbcBar.pattern)
+        last_bar_offset = max([0] + [m.end(0) for m in bar_re.finditer(text)])  # offset of last bar symbol
         text = text[last_bar_offset:]  # the text from the last bar symbol up to the selection point
         metre, default_len = AddBarAction.get_metre_and_default_length(context.get_scope_info(TuneScope.TuneUpToSelection).text)
 
@@ -1537,7 +1544,7 @@ class CombineToChordAction(AbcAction):
         return True
 
     def execute(self, context, params=None):
-        context.replace_match_text('[{0}]'.format(context.match_text))
+        context.replace_match_text('[{0}]'.format(context.match_text.replace(' ', '')))
 
 
 class MakeTripletsAction(AbcAction):
@@ -1690,10 +1697,10 @@ class InsertFieldActionEmptyLineAction(InsertFieldAction):
         ValueDescription('K:', _('Key / clef')),
         ValueDescription('M:', name_to_display_text['meter']),
         ValueDescription('Q:', name_to_display_text['tempo']),
-        ValueDescription('L:', name_to_display_text['unit note length']),
-        ValueDescription('V:', name_to_display_text['voice']),
-        ValueDescription('w:', name_to_display_text['words (note aligned)']),
-        ValueDescription('W:', name_to_display_text['words (at the end)']),
+        # ValueDescription('L:', name_to_display_text['unit note length']),
+        # ValueDescription('V:', name_to_display_text['voice']),
+        # ValueDescription('w:', name_to_display_text['words (note aligned)']),
+        # ValueDescription('W:', name_to_display_text['words (at the end)']),
     ]
     def __init__(self):
         super(InsertFieldAction, self).__init__('insert_field_on_empty_line', InsertFieldActionEmptyLineAction.values, display_name=_('Change...'))
