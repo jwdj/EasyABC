@@ -2554,10 +2554,10 @@ class AbcFileSettingsFrame(wx.Panel):
 
             frame = app._frames[0]
             frame.restore_settings()
-            frame.book.Show(False)
-            frame.book.Destroy()
-            frame.book = MyNoteBook(self.settings)
-            frame.book.Show()
+            frame.settingsbook.Show(False)
+            frame.settingsbook.Destroy()
+            frame.settingsbook = MyNoteBook(self.settings, self.statusbar)
+            frame.settingsbook.Show()
 
     def append_exe(self, path, paths):
         if path and not path in paths and os.path.isfile(path) and os.access(path, os.X_OK):
@@ -4097,7 +4097,7 @@ class MainFrame(wx.Frame):
         self.OnClearCache(None) # P09 2014-10-26
 
         # 1.3.7 [JWdJ] 2016-01-06
-        self.ShowAbcAssist(self.settings.get('show_abc_assist', False))
+        self.ShowAbcAssist(self.settings.get('show_abc_assist', True))
 
         # 1.3.6.3 [SS] 2015-05-04
         self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
@@ -6105,7 +6105,7 @@ class MainFrame(wx.Frame):
         if hasattr(self.current_midi_tune,'midi_file'):
             MidiToMftext (midi2abc_path,self.current_midi_tune.midi_file)
         else:
-            wx.MessageBox(_("You need to create the midi file by playing the tune"), ("Error") ,wx.ICON_ERROR | wx.OK)
+            wx.MessageBox(_("You need to create the midi file by playing the tune"), _("Error") ,wx.ICON_ERROR | wx.OK)
 
 
     def OnCloseFile(self, evt):
@@ -6342,7 +6342,7 @@ class MainFrame(wx.Frame):
 
     def OnChangeFont(self, evt):
         font = wx.GetFontFromUser(self, self.editor.GetFont(), _('Select a font for the ABC editor'))
-        if font.IsOk():
+        if font and font.IsOk():
             f = font
             self.settings['font'] = (f.GetPointSize(), f.GetFamily(), f.GetStyle(), f.GetWeight(), f.GetUnderlined(), f.GetFaceName())
             self.OnSettingsChanged()

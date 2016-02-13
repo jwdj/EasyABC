@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-02-11 21:51+0100\n"
-"PO-Revision-Date: 2016-02-11 21:51+0100\n"
+"POT-Creation-Date: 2016-02-11 22:22+0100\n"
+"PO-Revision-Date: 2016-02-13 11:16+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -1286,7 +1286,7 @@ msgstr "&Transponeren"
 
 #: easy_abc.py:6012
 msgid "&Change note length"
-msgstr "Andere nootlengte\tAlt-C"
+msgstr "Andere nootlengte"
 
 #: easy_abc.py:6013
 msgid "Double note lengths\tCtrl+Shift++"
@@ -1382,7 +1382,7 @@ msgstr "Toon fouten en waarschuwingen"
 
 #: easy_abc.py:6039
 msgid "Input processed tune"
-msgstr "Uiteindelijke abc-bestand"
+msgstr "Uiteindelijke ABC-bestand"
 
 #: easy_abc.py:6040
 msgid "Output midi file"
@@ -2205,6 +2205,18 @@ msgstr "Dominant undecime"
 #: tune_actions.py:1153
 msgid "Change chord name"
 msgstr "Verander akkoord"
+
+#: tune_actions.py:1170
+msgid "Root position"
+msgstr "Grondligging"
+
+#: tune_actions.py:1171
+msgid "First inversion"
+msgstr "Eerste omkering"
+
+#: tune_actions.py:1172
+msgid "Second inversion"
+msgstr "Tweede omkering"
 
 #: tune_actions.py:1175
 msgid "Change bass note"
@@ -3152,15 +3164,6 @@ msgstr ""
 
 #~ msgid "Tutti"
 #~ msgstr "Tutti"
-
-#~ msgid "Root position"
-#~ msgstr "Grondligging"
-
-#~ msgid "First inversion"
-#~ msgstr "Eerste omkering"
-
-#~ msgid "Second inversion"
-#~ msgstr "Tweede omkering"
 
 #~ msgid "Use the factory page settings of {0}"
 #~ msgstr "Terug naar de standaard pagina-instellingen van {0}"

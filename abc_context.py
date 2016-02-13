@@ -145,6 +145,10 @@ class AbcContext(object):
     def previous_character(self):
         return self.get_scope_info(TuneScope.PreviousCharacter).text
 
+    @property
+    def tune_body(self):
+        return self.get_scope_info(TuneScope.TuneBody).text
+
     def get_scope_info(self, tune_scope):
         result = self._tune_scope_info.get(tune_scope)
         if result is None:

@@ -468,3 +468,21 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - ABC assist: Added action to change duration for measure rest (Z/X)
 
 - Updated Fields and Command Reference
+
+
+1.3.7.1
+- Added Dutch translation
+- Much more text can now be translated
+- ABC assist: When adding a note or rest a space is added for better legibility
+- ABC assist: To preserve space adding a note and a rest have been combined. Multi measure rest can still be attained via 'Change duration' when selecting a regular rest (z)
+- ABC assist: To preserve space only the most common options are shown for several actions. To see all the options click on the arrow beside the action.
+- ABC assist: Adding notes places bars where needed
+- ABC assist: If you select a couple of notes there now is an options to place a beam (in case of eight notes or shorter) to get multiple notes under 1 beam.
+- ABC assist: If you add a new tune in an empty file a %abc header is added. If you select the first line you can open the specification the tune is made with.
+- ABC assist: an icon to go to the next line has been added too for people who don't want to use a keyboard in combination with the mouse.
+- ABC assist: It now is possible to change key/clef, metre, tempo in the body section of a tune
+- abc2xml.py has been updated from version 62 to 69
+- xml2abc.py has been updated from version 54 to 60
+- The class AbcContext has moved from abc_assist_panel.py to abc_context.py
+- The InnoSetup configuration file has been updated for the translation to Dutch and renamed to setupEasy137.iss
+- setup.py has been updated for the translation to Dutch and a fix for cx_Freeze placing all files in the same folder has been added

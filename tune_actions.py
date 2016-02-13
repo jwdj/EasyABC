@@ -757,9 +757,6 @@ class ChangeAnnotationAction(ValueChangeAction):
         ValueDescription('"<(\u266e)"', _('Optional natural')),
         ValueDescription('"<(\u266d)"', _('Optional flat')),
         ValueDescription('"^rit."', _('Ritenuto')),
-        ValueDescription('"^a tempo"', _('A tempo')),
-        ValueDescription('"^Solo"', _('Solo'), common=False),
-        ValueDescription('"^Tutti"', _('Tutti'), common=False),
     ]
     def __init__(self):
         super(ChangeAnnotationAction, self).__init__('change_annotation', ChangeAnnotationAction.values, matchgroup='annotation', display_name=_('Change annotation'))
@@ -1104,18 +1101,19 @@ class ChordNoteChangeAction(ValueChangeAction):
     def get_values(self, context):
         i = key_ladder.index('C') # todo: retrieve from K:
         values = [
-            self.get_value_for_chord(i, False),
-            self.get_value_for_chord(i-1, False),
-            self.get_value_for_chord(i+1, False),
-            self.get_value_for_chord(i+3, True),
-            self.get_value_for_chord(i+2, True),
-            self.get_value_for_chord(i+4, True),
+            self.get_value_for_chord(i),
+            self.get_value_for_chord(i-1),
+            self.get_value_for_chord(i+1),
+            self.get_value_for_chord(i+3),
+            self.get_value_for_chord(i+2),
+            self.get_value_for_chord(i+4),
+            self.get_value_for_chord(i+5),
         ]
         return values
 
-    def get_value_for_chord(self, index, is_minor):
+    def get_value_for_chord(self, index):
         chord = key_ladder[index]
-        return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D').replace('m', ' ' + _('minor')))
+        return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D'))
 
 
 class ChordNameChangeAction(ValueChangeAction):
@@ -1382,7 +1380,7 @@ class NewSpaceAction(AbcAction):
 
 
 class NewNoteOrRestAction(InsertValueAction):
-    values = ['C D E F G A B c d e f g a b z'.split(' ') + [ValueImageDescription(os.linesep, 'enter', description='')]]
+    values = ['C D E F G A B c d e f g a b'.split(' ')]
     def __init__(self):
         super(NewNoteOrRestAction, self).__init__('new_note', supported_values=NewNoteOrRestAction.values, valid_sections=AbcSection.TuneBody, display_name=_('New note/rest'))
 
@@ -1391,23 +1389,29 @@ class NewNoteOrRestAction(InsertValueAction):
         if value is None:
             super(NewNoteOrRestAction, self).execute(context, params)
         else:
-            if AddBarAction.is_bar_expected(context):
-                value = AddBarAction.get_bar_value(context) + u' ' + value
-            elif not context.previous_character in '` \t\r\n':
-                value = u' ' + value
+            if self.is_outside_chord(context):
+                if AddBarAction.is_bar_expected(context):
+                    value = AddBarAction.get_bar_value(context) + u' ' + value
+                elif not context.previous_character in '` \t\r\n':
+                    value = u' ' + value
             context.insert_text(value)
 
     def get_values(self, context):
         values = super(NewNoteOrRestAction, self).get_values(context)
-        if context.current_element.name == 'empty_line_tune':
-            values = [values[0][:-1]]
+        if self.is_outside_chord(context):
+            values = [values[0] + ['z']]
+            if not isinstance(context.current_element, AbcEmptyLineWithinTune):
+                values = [values[0] + [ValueImageDescription(os.linesep, 'enter', description='')]]
         return values
+
+    def is_outside_chord(self, context):
+        return not isinstance(context.current_element, AbcChord)
 
 
 class InsertAnnotationAction(InsertValueAction):
     values = [
         ValueDescription('""', _('Chord symbol')),
-        ValueDescription('"<(" ">)"', _('Between parenthesis')),
+        ValueDescription('"<("">)"', _('Between parenthesis')),
         ValueDescription('"<(\u266f)"', _('Optional sharp'), common=False),
         ValueDescription('"<(\u266e)"', _('Optional natural'), common=False),
         ValueDescription('"<(\u266d)"', _('Optional flat'), common=False)
@@ -1705,6 +1709,9 @@ class InsertFieldActionEmptyLineAction(InsertFieldAction):
     def __init__(self):
         super(InsertFieldAction, self).__init__('insert_field_on_empty_line', InsertFieldActionEmptyLineAction.values, display_name=_('Change...'))
 
+    def is_action_allowed(self, context):
+        return super(InsertFieldActionEmptyLineAction, self).is_action_allowed(context) and context.tune_body != ''
+
 
 class ActionSeparator(AbcAction):
     def __init__(self):
@@ -1834,14 +1841,14 @@ class AbcActionHandlers(object):
             'abcversion'             : self.create_handler(['lookup_abc_standard']),
             'empty_line'             : self.create_handler(['new_tune']),
             'empty_line_file_header' : self.create_handler(['new_tune']),
-            'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'separator', 'insert_field_on_empty_line']),
-            'Whitespace'             : self.create_handler(['new_note', 'remove']),
-            'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
-            'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
-            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'separator', 'insert_field', 'remove']),
+            'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'insert_field_on_empty_line']),
+            'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
+            'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
+            'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
+            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
             'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'remove']),
-            'Chord'                  : self.create_handler(['new_note', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'separator', 'remove']),
+            'Chord'                  : self.create_handler(['new_note', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'remove']),
             'Chord symbol'           : self.create_handler(['change_chord_note', 'change_chord_name', 'change_chord_bass_note', 'remove']),
             'Grace notes'            : self.create_handler(['change_appoggiatura_acciaccatura', 'remove']),
             'Multiple notes'         : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'combine_to_chord', 'remove']),
