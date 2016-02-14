@@ -53,7 +53,7 @@ key_ladder = 'Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B#'.split(' '
 
 abc_inner_pattern = {
     'K:': r' ?(?:(?P<tonic>(?:[A-G][b#]?|none)) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)'+clef_pattern+')?',
-    'Q:': r'(?P<pre_text>(?: ?"(?P<pre_name>\w*)")?)(?P<metronome>(?: ?(?P<note1>\d+/\d+) ?(?P<note2>\d+/\d+)? ?(?P<note3>\d+/\d+)? ?(?P<note4>\d+/\d+)?=(?P<bpm>\d+))?)(?P<post_text>(?: ?"(?P<post_name>\w*)")?)',
+    'Q:': r'(?P<pre_text>(?: ?"(?P<pre_name>(?:\\"|[^"])*)")?)(?P<metronome>(?: ?(?P<note1>\d+/\d+) ?(?P<note2>\d+/\d+)? ?(?P<note3>\d+/\d+)? ?(?P<note4>\d+/\d+)?=(?P<bpm>\d+))?)(?P<post_text>(?: ?"(?P<post_name>\w*)")?)',
     'V:': r' ?(?P<name>\w+)' + clef_pattern
 }
 
@@ -227,7 +227,7 @@ chord_notes = {
     'dim'     : ( 0, 3, 6 ),                   # 'Diminished'
     '+'       : ( 0, 4, 8 ),                   # 'Augmented'
     'sus'     : ( 0, 5, 7 ),                   # 'Suspended'
-    'sus9'    : ( 0, 2, 7 ),                   # 'Suspended (2nd
+    'sus2'    : ( 0, 2, 7 ),                   # 'Suspended (2nd)
     '7'       : ( 0, 4, 7, 10 ),               # 'Seventh'
     'M7'      : ( 0, 4, 7, 11 ),               # 'Major seventh'
     'mM7'     : ( 0, 3, 7, 11 ),               # 'Minor-major seventh'
@@ -241,7 +241,7 @@ chord_notes = {
     '7b5'     : ( 0, 4, 6, 10 ),               # 'Seventh flat five'
     '5'       : ( 0, 7 ),                      # 'Power-chord (no third
     '7sus'    : ( 0, 5, 7, 10 ),               # 'Seventh suspended'
-    '7sus9'   : ( 0, 2, 7, 10 ),               # 'Seventh suspended (2nd
+    '7sus2'   : ( 0, 2, 7, 10 ),               # 'Seventh suspended (2nd
     'M9'      : ( 0, 4, 7, 11, 14 ),           # 'Major 9th'
     '9'       : ( 0, 4, 7, 10, 14 ),           # 'Dominant 9th'
     'mM9'     : ( 0, 3, 7, 11, 14 ),           # 'Minor Major 9th'
