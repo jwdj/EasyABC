@@ -32,11 +32,11 @@ from datetime import datetime
 
 # 1.3.6.2 [JWdJ] 2015-02-12 tags evaluated only once
 svg_namespace = 'http://www.w3.org/2000/svg'
-use_tag = '{%s}use' % svg_namespace
-abc_tag = '{%s}abc' % svg_namespace
-path_tag = '{%s}path' % svg_namespace
-tspan_tag = '{%s}tspan' % svg_namespace
-group_tag = '{%s}g' % svg_namespace
+#use_tag = '{%s}use' % svg_namespace
+#abc_tag = '{%s}abc' % svg_namespace
+#path_tag = '{%s}path' % svg_namespace
+#tspan_tag = '{%s}tspan' % svg_namespace
+#group_tag = '{%s}g' % svg_namespace
 xlink_namespace = 'http://www.w3.org/1999/xlink'
 href_tag = '{%s}href' % xlink_namespace
 
@@ -99,28 +99,29 @@ class SvgPage(object):
         children = []
         if svg is not None:
             # 1.3.6.2 [JWdJ] 2015-02-14 width and height in inches is useless, use viewbox instead
-            viewbox = self.svg.get('viewBox')
+            viewbox = svg.get('viewBox')
             if viewbox:
                 m = self.renderer.viewbox_re.match(viewbox)
                 if m:
                     self.svg_width, self.svg_height = float(m.group(1)), float(m.group(2))
             else:
                 # 1.3.6.5 [JWdJ] 2015-11-05 newer versions abcm2ps no longer have viewBox but do specify width and height in pixels
-                width_in_pixels = self.svg.get('width')
+                width_in_pixels = svg.get('width')
                 m = self.renderer.float_px_re.match(width_in_pixels)
                 if m:
                     self.svg_width = float(m.group(1))
 
-                height_in_pixels = self.svg.get('height')
+                height_in_pixels = svg.get('height')
                 m = self.renderer.float_px_re.match(height_in_pixels)
                 if m:
                     self.svg_height = float(m.group(1))
 
-            self.process_xml_tree()
+            # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
+            self.base_color = svg.attrib.get('color', self.base_color)
             self.id_to_element = {}
             self.class_attributes = {}
             self.notes_in_row = {} # 1.3.6.3 [JWDJ] contains for each row of abctext note information
-            children = [c for c in self.parse_elements(self.svg, {}) if c.name not in ['defs','style']]
+            children = [c for c in self.parse_elements(svg, {}) if c.name not in ['defs','style']]
 
         self.root_group = SvgElement('g', {}, children)
 
@@ -166,6 +167,7 @@ class SvgPage(object):
 
     def parse_elements(self, elements, parent_attributes):
         result = []
+        last_e_use = []
         for element in elements:
             name = element.tag.replace('{%s}' % svg_namespace, '')
             attributes = self.parse_attributes(element, parent_attributes)
@@ -179,22 +181,29 @@ class SvgPage(object):
                 self.parse_css(element.text)
             else:
                 svg_element = SvgElement(name, attributes, children)
-                #if name == 'path':
-                #    svg_element.path = self.parse_path(element.attrib['d'])
                 if name == 'abc':
                     note_type = element.get('type')
                     row, col = int(element.get('row')), int(element.get('col'))
+                    scale = attributes.get('parent_scale', 1.0)
+                    if scale:
+                        self.scale = scale # JWDJ: older version of abcm2ps use page scaling of 0.75
+
                     x, y, width, height = [float(element.get(x)) for x in ('x', 'y', 'width', 'height')]
+
                     note_data = NoteData(note_type, row, col, x, y, width, height)
                     notes_in_row = self.notes_in_row.get(row, None)
                     if notes_in_row is None:
                         self.notes_in_row[row] = [note_data]
                     else:
                         notes_in_row.append(note_data)
-                    scale = attributes.get('parent_scale')
-                    if scale:
-                        self.scale = scale # JWDJ: older version of abcm2ps use page scaling of 0.75
-                if name == 'text':
+                    # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
+                    if note_type in ['N', 'R']: #, 'B']:  # if note/rest meta-data
+                        desc = (note_type, row, col, x, y, width, height)
+                        for e_use in last_e_use:
+                            e_use.attributes['desc'] = desc
+                    last_e_use = []
+
+                elif name == 'text':
                     # 1.3.6.3 [JWDJ] 2015-3 fixes !sfz! (z in sfz was missing)
                     text = u''.join(element.itertext())
                     text = text.replace('\n', '')
@@ -203,32 +212,13 @@ class SvgPage(object):
                 element_id = element.attrib.get('id')
                 if element_id:
                     self.id_to_element[element_id] = svg_element
+                elif name == 'use': # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
+                    href = element.get(href_tag)
+                    if href not in ['#hl', '#hl1', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
+                        last_e_use.append(svg_element)
+
                 result.append(svg_element)
         return result
-
-    def process_xml_tree(self):
-        # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
-        self.base_color = self.svg.attrib.get('color', self.base_color)
-
-        # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
-        for element in self.svg.getiterator():
-            last_e_use = []
-            # 1.3.6.3 [JWDJ] 2015-3 use iter() because getchildren is deprecated
-            for e in element.iter():
-                if e.tag == use_tag:
-                    if e.get('id') is None: # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
-                        href = e.get(href_tag)
-                        if href not in ['#hl', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
-                            last_e_use.append(e)
-                elif e.tag == abc_tag:
-                    atype = e.get('type')
-                    if atype in ['N', 'R']: #, 'B']:  # if note/rest meta-data
-                        row, col = int(e.get('row')), int(e.get('col'))
-                        x, y, width, height = [float(e.get(x)) for x in ('x', 'y', 'width', 'height')]
-                        desc = (atype, row, col, x, y, width, height)
-                        for e_use in last_e_use:
-                            e_use.set('desc', desc)
-                    last_e_use = []
 
     def hit_test(self, x, y, return_closest_hit=False):
         min_dist = 9999999
@@ -282,11 +272,12 @@ class SvgRenderer(object):
         self.renderer = wx.GraphicsRenderer.GetDefaultRenderer()
         self.path_part_re = re.compile(r'([-+]?\d+(\.\d+)?|\w|\s)')
         self.transform_re = re.compile(r'(\w+)\((.+?)\)')
+        self.transform_split_re = re.compile(r',\s*|\s+')
         self.color_re = re.compile(r'color:(#[0-9a-f]{6})')
         self.scale_re = re.compile(r'scale\((.+?)\)')
         self.viewbox_re = re.compile(r'0 0 (\d+) (\d+)')
         self.float_px_re = re.compile(r'^(\d*(?:\.\d+))?px$')
-        self.zoom = 2.0
+        self.zoom = 1.0
         self.min_width = 1
         self.min_height = 1
         self.empty_page = SvgPage(self, None)
@@ -361,36 +352,24 @@ class SvgRenderer(object):
             dc.Clear()
         dc = wx.GraphicsContext.Create(dc)
         self.default_transform = dc.GetTransform()
-        #self.set_fill(dc, 'white')
-        #dc.DrawRectangle(0, 0, 1000, 1000)
-        #self.default_matrix = dc.GetTransform()
         page.notes = []
         dc.PushState()
         dc.Scale(self.zoom, self.zoom)
         self.draw_svg_element(page, dc, page.root_group, False, page.base_color)
-        #matrix = dc.CreateMatrix()
-        #matrix.Scale(self.zoom, self.zoom)
-        #matrix.Invert()
-        #print self.zoom
-        #dc.SetTransform(self.default_matrix)
-        #dc.Scale(1, -1)
-        dc.PopState()        
+        dc.PopState()
 
         # in order to reveal all the sensitive areas in the music pane,
         # change False to True in the next line.
         if False:
             dc.PushState()
             dc.Scale(self.zoom, self.zoom)
-            print dc.GetTransform().Get()
-            #dc.SetTransform(self.default_transform)
             for x, y, abc_row, abc_col, desc in page.notes:
+                x /= self.zoom
+                y /= self.zoom
                 self.set_fill(dc, 'none')
                 self.set_stroke(dc, 'red')            
                 dc.DrawRoundedRectangle(x-6, y-6, 12, 12, 4)
             dc.PopState()     
-            #print (x, y)
-            
-        #self.buffer.SaveFile('DC.png', wx.BITMAP_TYPE_PNG)
 
     def parse_path(self, svg_path_str):
         ''' Translates the path data in the svg file to instructions for drawing
@@ -487,9 +466,9 @@ class SvgRenderer(object):
     #
     #     return matrix
 
-    def do_transform(self, dc, svg_transform):                
+    def do_transform(self, dc, svg_transform):
         for t, args in self.transform_re.findall(svg_transform or ''):
-            args = map(float, re.split(',\s*|\s+', args))            
+            args = map(float, self.transform_split_re.split(args))
             if t == 'translate':
                 dc.Translate(*args)                    
             elif t == 'rotate':                
@@ -527,7 +506,8 @@ class SvgRenderer(object):
             # convert from something like "5,5" to (5,5)
             dasharray = tuple([int(x.strip()) for x in dasharray.split(',')])
         # 1.3.6.3 [JWDJ] 2015-3 search cache once instead of twice
-        pen = self.stroke_cache.get((svg_stroke, line_width, dasharray))
+        key = (svg_stroke, line_width, dasharray)
+        pen = self.stroke_cache.get(key)
         if pen is None:
             if svg_stroke == 'none':
                 pen = self.renderer.CreatePen(wx.NullPen)
@@ -547,18 +527,18 @@ class SvgRenderer(object):
                     wxpen.SetStyle(wx.USER_DASH)
                 wxpen.SetJoin(wx.JOIN_MITER)
                 pen = self.renderer.CreatePen(wxpen)
-            self.stroke_cache[(svg_stroke, line_width, dasharray)] = pen
+            self.stroke_cache[key] = pen
         dc.SetPen(pen)
 
-    def zoom_matrix(self, matrix):
-        sm = self.renderer.CreateMatrix()
-        sm.Scale(self.zoom, self.zoom)
-        sm.Concat(matrix)
-        # on Mac OSX the default matrix is not equal to the identity matrix so we need to apply it too:
-        om = self.renderer.CreateMatrix(*self.default_matrix.Get())
-        om.Concat(sm)
-        return om
-
+    # 1.3.7.2 [JWdJ] not used
+    # def zoom_matrix(self, matrix):
+    #     sm = self.renderer.CreateMatrix()
+    #     sm.Scale(self.zoom, self.zoom)
+    #     sm.Concat(matrix)
+    #     # on Mac OSX the default matrix is not equal to the identity matrix so we need to apply it too:
+    #     om = self.renderer.CreateMatrix(*self.default_matrix.Get())
+    #     om.Concat(sm)
+    #     return om
 
     def draw_svg_element(self, page, dc, svg_element, highlight, current_color):
         ''' This is the main engine for converting the svg items in the svg file into graphics
@@ -639,17 +619,7 @@ class SvgRenderer(object):
             # abcm2ps specific:
             desc = attr.get('desc')
             if desc:
-                matrix_inv = self.renderer.CreateMatrix(*dc.GetTransform().Get())  #*self.get_transform(transform).Get())
-                matrix_inv.Invert()
-                matrix_inv.Concat(self.default_transform)   # the default transform on mac is not the identity matrix - the y-coordinates goes the other direction
-                user_x, user_y = matrix_inv.TransformPoint(x, y)
-
-                user_x *= self.zoom * page.scale**2 #0.75
-                user_y *= self.zoom * page.scale**2 #0.75
-                #print (user_x, user_y), ((desc[3] + desc[5] / 2) * self.scale, (desc[4] + desc[6] / 2) * self.scale)
-                #user_x = (desc[3] + desc[5] / 2) * self.scale
-                #user_y = (desc[4] + desc[6] / 2) * self.scale
-
+                user_x, user_y = self.transform_point(dc, x, y)
                 abc_row, abc_col = desc[1], desc[2]
                 page.notes.append((user_x, user_y, abc_row, abc_col, desc))
                 note_index = len(page.notes)-1
@@ -747,6 +717,11 @@ class SvgRenderer(object):
 
         if transform:
             dc.PopState()
+
+    def transform_point(self, dc, x, y):
+        matrix = self.renderer.CreateMatrix(*dc.GetTransform().Get())  #*self.get_transform(transform).Get())
+        matrix.Concat(self.default_transform)   # the default transform on mac is not the identity matrix - the y-coordinates goes the other direction
+        return matrix.TransformPoint(x, y)
 
 class MyApp(wx.App):
     def OnInit(self):

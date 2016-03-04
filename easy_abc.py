@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.1 2016-02-11'
+program_name = 'EasyABC 1.3.7.2 2016-03-04'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -4546,6 +4546,13 @@ class MainFrame(wx.Frame):
             self.renderer.zoom = self.zoom_factor # 1.3.6.2 [JWdJ] 2015-02
             self.music_pane.redraw()
 
+    def OnZoomSliderClick(self, evt):
+        if evt.ControlDown() or evt.ShiftDown():
+            self.zoom_slider.SetValue(1000)
+            self.OnZoomSlider(None)
+        else:
+            evt.Skip()
+
     def OnPlayTimer(self, evt):
         if self.mc and not self.is_closed:
             offset = self.mc.Tell()
@@ -4574,6 +4581,7 @@ class MainFrame(wx.Frame):
         # self.show_toolbar_panel(self.bpm_slider.Parent, state)
         self.show_toolbar_panel(self.media_slider.Parent, state)
         self.toolbar.Realize()
+        wx.Yield()
 
     def show_toolbar_panel(self, panel, visible):
         #for sizer_item in panel.Sizer.Children:
@@ -4646,6 +4654,7 @@ class MainFrame(wx.Frame):
         self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, 1000, 500, 3000, (30, 60), (130, 22))
         self.zoom_slider.SetTickFreq(10, 0)
         self.Bind(wx.EVT_SLIDER, self.OnZoomSlider, self.zoom_slider)
+        self.zoom_slider.Bind(wx.EVT_LEFT_DOWN, self.OnZoomSliderClick)
 
         # 1.3.6.2 [JWdJ] 2015-02-15 text 'Page' was drawn multiple times. Replaced StaticLabel with StaticText
         self.cur_page_combo = self.add_combobox_to_toolbar(_('Page'), choices=['99 / 99'], style=wx.CB_DROPDOWN | wx.CB_READONLY)
@@ -6452,7 +6461,7 @@ class MainFrame(wx.Frame):
                 wx.CallAfter(self.music_pane.redraw)
 
             x, y = closest_xy
-            x, y = x*self.zoom_factor, y*self.zoom_factor
+            #x, y = x*self.zoom_factor, y*self.zoom_factor
             #sx, sy = self.music_pane.GetScrollPos(wx.HORIZONTAL), self.music_pane.GetScrollPos(wx.VERTICAL)
             sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
             vw, vh = self.music_pane.GetVirtualSizeTuple()
@@ -7676,7 +7685,7 @@ class MainFrame(wx.Frame):
                 self.manager.LoadPerspective(perspective)
         #self.bpm_slider.SetValue(settings.get('tempo', 100))
         self.bpm_slider.SetValue(0)
-        self.zoom_slider.SetValue(settings.get('score_zoom', 1100))
+        self.zoom_slider.SetValue(settings.get('score_zoom', 1000))
         self.author = settings.get('author', '')
         self.mni_auto_refresh.Check(settings.get('auto_refresh', True))
         self.mni_reduced_margins.Check(settings.get('reduced_margins', True))

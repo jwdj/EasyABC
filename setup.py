@@ -5,8 +5,8 @@ import sys
 import glob
 import os.path
 
-version = '1.3.7.1'
-description = "ABC Editor and Converter"
+version = '1.3.7.2'
+description = "EasyABC"
 long_description = "Nils Liberg's EasyABC 1.3.7 (Seymour Shlien)"
 url = 'http://www.nilsliberg.se/ksp/easyabc/'
 author = 'Nils Liberg'
