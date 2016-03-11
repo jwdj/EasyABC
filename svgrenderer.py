@@ -286,6 +286,10 @@ class SvgRenderer(object):
         self.highlight_color = '#cc0000'
         self.default_transform = None
         #self.update_buffer(self.empty_page)
+        if wx.Platform == "__WXMAC__":
+            self.transform_point = self.transform_point_osx
+        else:
+            self.transform_point = self.transform_point_normal
 
     def update_buffer(self, page):
         width, height = max(self.min_width, page.svg_width * self.zoom), \
@@ -350,7 +354,11 @@ class SvgRenderer(object):
         if clear_background:            
             dc.SetBackground(wx.WHITE_BRUSH)
             dc.Clear()
+        #h = dc.Size[1] # for simulating OSX
         dc = wx.GraphicsContext.Create(dc)
+        #dc.Translate(0, h) # for simulating OSX
+        #dc.Scale(1, -1) # for simulating OSX
+
         self.default_transform = dc.GetTransform()
         page.notes = []
         dc.PushState()
@@ -718,10 +726,19 @@ class SvgRenderer(object):
         if transform:
             dc.PopState()
 
-    def transform_point(self, dc, x, y):
-        matrix = self.renderer.CreateMatrix(*dc.GetTransform().Get())  #*self.get_transform(transform).Get())
-        matrix.Concat(self.default_transform)   # the default transform on mac is not the identity matrix - the y-coordinates goes the other direction
+    def transform_point_normal(self, dc, x, y):
+        matrix = self.renderer.CreateMatrix(*dc.GetTransform().Get())
         return matrix.TransformPoint(x, y)
+
+    def transform_point_osx(self, dc, x, y):
+        a, b, c, d, tx, ty = dc.GetTransform().Get()
+        def_a, def_b, def_c, def_d, def_tx, def_ty = self.default_transform.Get()
+        matrix = self.renderer.CreateMatrix(a, b, c, d * def_d, tx, def_ty - ty)
+        #print 'default transform:', self.default_transform.Get()
+        #print 'matrix:', matrix.Get()
+        new_xy = matrix.TransformPoint(x, y)
+        #print (x,y), new_xy
+        return new_xy
 
 class MyApp(wx.App):
     def OnInit(self):
