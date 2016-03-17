@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.2 2016-03-04'
+program_name = 'EasyABC 1.3.7.2 2016-03-16'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -5891,7 +5891,13 @@ class MainFrame(wx.Frame):
         self.mni_TA_do_re_mi = menu.AppendCheckItem(doremi_id, _("&Do-re-mi mode") + " (experimental)" + "\tCtrl+D", "")
         #self.mni_TA_do_re_mi.Enable(False)
         self.mni_TA_add_note_durations = menu.AppendCheckItem(wx.NewId(), _("Add note &durations"), "")
-        self.mni_TA_add_bar = menu.AppendCheckItem(wx.NewId(), _("Add &bar"), "")
+
+        add_bar_menu = wx.Menu()
+        self.mni_TA_add_bar_disabled = add_bar_menu.Append(wx.ID_ANY, _('Disabled'), kind=wx.ITEM_RADIO)
+        self.mni_TA_add_bar = add_bar_menu.Append(wx.ID_ANY, _('Using spacebar'), kind=wx.ITEM_RADIO)
+        self.mni_TA_add_bar_auto = add_bar_menu.Append(wx.ID_ANY, _('Automatic'), kind=wx.ITEM_RADIO)
+        menu.AppendMenu(wx.ID_ANY, _('Add &bar'), add_bar_menu)
+
         self.mni_TA_add_right = menu.AppendCheckItem(wx.NewId(), _('Add &matching right symbol: ), ], } and "'), "")
         self.Bind(wx.EVT_MENU, self.GrayUngray, id=self.mni_TA_active.GetId())
         self.Bind(wx.EVT_MENU, self.OnDoReMiModeChange, id=doremi_id)
@@ -6574,16 +6580,22 @@ class MainFrame(wx.Frame):
 
         at_end_of_line = not self.editor.GetTextRange(self.editor.GetCurrentPos(), self.editor.GetLineEndPosition(self.editor.GetCurrentLine())).strip('| : ] [')
 
-        if c == ' ' and self.mni_TA_active.IsChecked() and not is_inside_field and is_default_style:
-            try:
-                if not self.FixNoteDurations():
+        if self.mni_TA_active.IsChecked() and not is_inside_field and is_default_style:
+            if c == ' ':
+                try:
+                    self.FixNoteDurations()
+                    if self.add_bar_if_needed():
+                        return
+                    else:
+                        evt.Skip()
+                except Exception:
                     evt.Skip()
-            except Exception:
-                evt.Skip()
-                raise
+                    raise
+            elif self.mni_TA_add_bar_auto.IsChecked() and c not in "-/<,'1234567890":
+                self.add_bar_if_needed()
 
         # when there is a selection and 's' is pressed it serves as a shortcut for slurring
-        elif p1 != p2 and c == 's':
+        if p1 != p2 and c == 's':
             c = '('
 
         elif c == ':':
@@ -6785,30 +6797,8 @@ class MainFrame(wx.Frame):
 ##                self.music_pane.redraw()
 ##            wx.CallLater(1260, restore)
 
-    def FixNoteDurations(self):
-        # 1.3.6.2 [JWdJ] 2015-02
-        use_add_note_durations = self.mni_TA_active.IsChecked() and self.mni_TA_add_note_durations.IsChecked()
-        use_add_bar = self.mni_TA_active.IsChecked() and self.mni_TA_add_bar.IsChecked()
-        if not use_add_note_durations and not use_add_bar:
-            return
-
-        tune = self.GetSelectedTune()
-        if not tune:
-            return
-
-        line_start_offset = self.editor.PositionFromLine(self.editor.GetCurrentLine())
-        text = self.editor.GetTextRange(line_start_offset, self.editor.GetCurrentPos())
-        abc_up_to_selection = self.editor.GetTextRange(tune.offset_start, self.editor.GetCurrentPos())
-
-        # find the position of the last bar symbol or space
-        start_offset = max([0] + [m.start(0) for m in re.finditer('(%s)| ' % bar_sep.pattern, text)])
-        text = text[start_offset:]
-        notes = get_notes_from_abc(text, exclude_grace_notes=True)
-        note_durations = []
-        note_pattern = re.compile(r"(?P<note>([_=^]?[A-Ga-gxz]([,']+)?))(?P<len>\d{0,2}/\d{1,2}|/+|\d{0,2})(?P<dur_mod>[><]?)")
-
-        # determine L: and M: fields
-        lines = re.split('\r\n|\r|\n', abc_up_to_selection)
+    def get_metre_and_default_length(self, abc):
+        lines = re.split('\r\n|\r|\n', abc)
         default_len = Fraction(1, 8)
         metre = Fraction(4, 4)
         # 1.3.7 [JWdJ] 2016-01-06
@@ -6835,6 +6825,31 @@ class MainFrame(wx.Frame):
                     metre = Fraction(2, 2)
             for m in re.finditer(r'\[L:\s*(\d+)/(\d+)\]', line):
                 default_len = Fraction(int(m.group(1)), int(m.group(2)))
+        return metre, default_len
+
+
+    def FixNoteDurations(self):
+        # 1.3.6.2 [JWdJ] 2015-02
+        use_add_note_durations = self.mni_TA_active.IsChecked() and self.mni_TA_add_note_durations.IsChecked()
+        if not use_add_note_durations:
+            return
+
+        tune = self.GetSelectedTune()
+        if not tune:
+            return
+
+        line_start_offset = self.editor.PositionFromLine(self.editor.GetCurrentLine())
+        text = self.editor.GetTextRange(line_start_offset, self.editor.GetCurrentPos())
+        abc_up_to_selection = self.editor.GetTextRange(tune.offset_start, self.editor.GetCurrentPos())
+
+        # find the position of the last bar symbol or space
+        start_offset = max([0] + [m.start(0) for m in re.finditer('(%s)| ' % bar_sep.pattern, text)])
+        text = text[start_offset:]
+        notes = get_notes_from_abc(text, exclude_grace_notes=True)
+        note_pattern = re.compile(r"(?P<note>([_=^]?[A-Ga-gxz]([,']+)?))(?P<len>\d{0,2}/\d{1,2}|/+|\d{0,2})(?P<dur_mod>[><]?)")
+
+        # determine L: and M: fields
+        metre, default_len = self.get_metre_and_default_length(abc_up_to_selection)
 
         # 1.3.6.3 [JWdJ] 2015-03
         if use_add_note_durations and not '[' in text:
@@ -6888,13 +6903,23 @@ class MainFrame(wx.Frame):
                     sel_start += extra_offset
                     self.editor.SetSelection(sel_start, sel_start)
 
+    def add_bar_if_needed(self):
+        tune = self.GetSelectedTune()
+        if not tune:
+            return
+
         # check if the bar is full and a new bar should start
         # 1.3.6.2 [JWdJ] 2015-02
+        use_add_bar = self.mni_TA_active.IsChecked() and (self.mni_TA_add_bar.IsChecked() or self.mni_TA_add_bar_auto.IsChecked())
         if use_add_bar:
             current_pos = self.editor.GetCurrentPos()
+            line_start_offset = self.editor.PositionFromLine(self.editor.GetCurrentLine())
             text = self.editor.GetTextRange(line_start_offset, current_pos)
+            abc_up_to_selection = self.editor.GetTextRange(tune.offset_start, current_pos)
+
             start_offset = max([0] + [m.end(0) for m in bar_sep.finditer(text)])  # offset of last bar symbol
             text = text[start_offset:]  # the text from the last bar symbol up to the selection point
+            metre, default_len = self.get_metre_and_default_length(abc_up_to_selection)
 
             # 1.3.6.1 [JWdJ] 2015-01-28 bar lines for multirest Zn
             end_of_line_offset = self.editor.GetLineEndPosition(self.editor.GetCurrentLine())
@@ -6953,6 +6978,10 @@ class MainFrame(wx.Frame):
 
         if evt.GetKeyCode() == wx.WXK_RETURN:
             line = self.editor.GetCurrentLine()
+            # 1.3.7.2 [JWDJ] 2016-03-17
+            if self.mni_TA_active.IsChecked() and self.mni_TA_add_bar_auto.IsChecked() and not is_inside_field and is_default_style:
+                self.add_bar_if_needed()
+
             # 1.3.6.3 [JWDJ] 2015-04-21 Added line continuation
             for prefix in ['W:', 'w:', 'N:', 'H:', '%%', '%', '+:']:
                 if self.editor.GetLine(line-1).startswith(prefix) and self.editor.GetLine(line).startswith(prefix):
@@ -7053,7 +7082,7 @@ class MainFrame(wx.Frame):
         redo.Enable(self.editor.CanRedo())
         paste.Enable(self.editor.CanPaste())
 
-        for mni in (self.mni_TA_auto_case, self.mni_TA_do_re_mi, self.mni_TA_add_bar, self.mni_TA_add_note_durations, self.mni_TA_add_right):
+        for mni in (self.mni_TA_auto_case, self.mni_TA_do_re_mi, self.mni_TA_add_note_durations, self.mni_TA_add_right, self.mni_TA_add_bar_disabled, self.mni_TA_add_bar, self.mni_TA_add_bar_auto):
             mni.Enable(self.mni_TA_active.IsChecked())
         #self.mni_TA_do_re_mi.Enable(False)
 
@@ -7230,6 +7259,7 @@ class MainFrame(wx.Frame):
         # MusicUpdateThread.run posts an event MusicUpdateDoneEvent with the svg_files
         tune = evt.GetValue()
         self.current_svg_tune = tune
+        self.current_page_index = 0 # 1.3.7.2 [JWDJ] always go to first page after switching tunes
         self.svg_tunes.add(tune) # 1.3.6.3 [JWDJ] for proper disposable of svg files
         self.UpdateMusicPane()
         #self.SetErrorMessage(error) 1.3.6 [SS] 2014-12-07
@@ -7694,6 +7724,7 @@ class MainFrame(wx.Frame):
         self.mni_TA_do_re_mi.Check(settings.get('typing_assistance_do_re_mi', False))
         self.mni_TA_add_note_durations.Check(settings.get('typing_assistance_add_note_durations', False))
         self.mni_TA_add_bar.Check(settings.get('typing_assistance_add_bar', True))
+        self.mni_TA_add_bar_auto.Check(settings.get('typing_assistance_add_bar_auto', False))
         self.mni_TA_add_right.Check(settings.get('typing_assistance_add_right', True))
         self.OnZoomSlider(None)
         self.Update()
@@ -7750,6 +7781,7 @@ class MainFrame(wx.Frame):
         settings['typing_assistance_do_re_mi'] = self.mni_TA_do_re_mi.IsChecked()
         settings['typing_assistance_add_note_durations'] = self.mni_TA_add_note_durations.IsChecked()
         settings['typing_assistance_add_bar'] = self.mni_TA_add_bar.IsChecked()
+        settings['typing_assistance_add_bar_auto'] = self.mni_TA_add_bar_auto.IsChecked()
         settings['typing_assistance_add_right'] = self.mni_TA_add_right.IsChecked()
         self.settings['tune_col_widths'] = [self.tune_list.GetColumnWidth(i) for i in range(self.tune_list.GetColumnCount())]
 

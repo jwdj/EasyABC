@@ -32,6 +32,7 @@ from datetime import datetime
 
 # 1.3.6.2 [JWdJ] 2015-02-12 tags evaluated only once
 svg_namespace = 'http://www.w3.org/2000/svg'
+svg_ns = '{%s}' % svg_namespace
 #use_tag = '{%s}use' % svg_namespace
 #abc_tag = '{%s}abc' % svg_namespace
 #path_tag = '{%s}path' % svg_namespace
@@ -65,11 +66,12 @@ class SvgElement(object):
         self.attributes = attributes  
         self.children = children
 
-    def tree_iter(self):
-        yield self
-        for child in self.children:
-            for c in child.tree_iter():
-                yield c
+    # 1.3.7.2 [JWDJ] not used
+    # def tree_iter(self):
+    #     yield self
+    #     for child in self.children:
+    #         for c in child.tree_iter():
+    #             yield c
 
 # 1.3.6.2 [JWdJ] 2015-02-22 introduced SvgPage for better handling of multiple pages.
  
@@ -169,7 +171,7 @@ class SvgPage(object):
         result = []
         last_e_use = []
         for element in elements:
-            name = element.tag.replace('{%s}' % svg_namespace, '')
+            name = element.tag.replace(svg_ns, '')
             attributes = self.parse_attributes(element, parent_attributes)
             if name in ['g', 'defs']:
                 # 1.3.6.3 [JWDJ] 2015-3 use list(element) because getchildren is deprecated
@@ -179,44 +181,43 @@ class SvgPage(object):
 
             if name == 'style' and attributes.get('type') == 'text/css':
                 self.parse_css(element.text)
+            elif name == 'abc':
+                note_type = element.get('type')
+                row, col = int(element.get('row')), int(element.get('col'))
+                scale = attributes.get('parent_scale', 1.0)
+                if scale:
+                    self.scale = scale # JWDJ: older version of abcm2ps use page scaling of 0.75
+
+                x, y, width, height = [float(element.get(x)) for x in ('x', 'y', 'width', 'height')]
+
+                note_data = NoteData(note_type, row, col, x, y, width, height)
+                notes_in_row = self.notes_in_row.get(row, None)
+                if notes_in_row is None:
+                    self.notes_in_row[row] = [note_data]
+                else:
+                    notes_in_row.append(note_data)
+                # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
+                if note_type in ['N', 'R']: #, 'B']:  # if note/rest meta-data
+                    desc = (note_type, row, col, x, y, width, height)
+                    for e_use in last_e_use:
+                        e_use.attributes['desc'] = desc
+                last_e_use = []
             else:
                 svg_element = SvgElement(name, attributes, children)
-                if name == 'abc':
-                    note_type = element.get('type')
-                    row, col = int(element.get('row')), int(element.get('col'))
-                    scale = attributes.get('parent_scale', 1.0)
-                    if scale:
-                        self.scale = scale # JWDJ: older version of abcm2ps use page scaling of 0.75
-
-                    x, y, width, height = [float(element.get(x)) for x in ('x', 'y', 'width', 'height')]
-
-                    note_data = NoteData(note_type, row, col, x, y, width, height)
-                    notes_in_row = self.notes_in_row.get(row, None)
-                    if notes_in_row is None:
-                        self.notes_in_row[row] = [note_data]
-                    else:
-                        notes_in_row.append(note_data)
-                    # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
-                    if note_type in ['N', 'R']: #, 'B']:  # if note/rest meta-data
-                        desc = (note_type, row, col, x, y, width, height)
-                        for e_use in last_e_use:
-                            e_use.attributes['desc'] = desc
-                    last_e_use = []
-
-                elif name == 'text':
+                if name == 'text':
                     # 1.3.6.3 [JWDJ] 2015-3 fixes !sfz! (z in sfz was missing)
                     text = u''.join(element.itertext())
                     text = text.replace('\n', '')
                     ##text = text.replace('(= )show ', ' = ')  # Temporary work-around for abcm2ps6.3.3 bug
                     svg_element.attributes['text'] = text
-                element_id = element.attrib.get('id')
-                if element_id:
-                    self.id_to_element[element_id] = svg_element
-                elif name == 'use': # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
-                    href = element.get(href_tag)
-                    if href not in ['#hl', '#hl1', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
-                        last_e_use.append(svg_element)
-
+                else:
+                    element_id = element.attrib.get('id')
+                    if element_id:
+                        self.id_to_element[element_id] = svg_element
+                    elif name == 'use': # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
+                        href = element.get(href_tag)
+                        if href not in ['#hl', '#hl1', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
+                            last_e_use.append(svg_element)
                 result.append(svg_element)
         return result
 
@@ -606,7 +607,7 @@ class SvgRenderer(object):
             self.set_stroke(dc, stroke, float(attr.get('stroke-width', 1.0)), attr.get('stroke-linecap', 'butt'), attr.get('stroke-dasharray', None))
             
         #print 'setmatrix', matrix.Get(), '[%s]' % attr.get('transform', '')
-                
+
         # 1.3.6.2 [JWdJ] 2015-02-14 Process most common names first (path, ellipse, use)
         if name == 'path':
             path = self.parse_path(attr['d'])
@@ -615,12 +616,6 @@ class SvgRenderer(object):
             #    dc.SetPen(wx.Pen('#000000', 1, wx.SOLID))
             #End of patch
             dc.DrawPath(path, wx.WINDING_RULE)
-        elif name == 'ellipse':
-            cx, cy, rx, ry = attr.get('cx', 0), attr.get('cy', 0), attr['rx'], attr['ry']
-            cx, cy, rx, ry = map(float, (cx, cy, rx, ry))
-            path = dc.CreatePath()
-            path.AddEllipse(cx-rx, cy-ry, rx+rx, ry+ry)
-            dc.DrawPath(path)
         elif name == 'use':
             x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
             element_id = attr[href_tag][1:]
@@ -638,7 +633,17 @@ class SvgRenderer(object):
             dc.Translate(x, y)
             self.draw_svg_element(page, dc, page.id_to_element[element_id], highlight, current_color)
             dc.PopState()
-
+        elif name == 'ellipse':
+            cx, cy, rx, ry = attr.get('cx', 0), attr.get('cy', 0), attr['rx'], attr['ry']
+            cx, cy, rx, ry = map(float, (cx, cy, rx, ry))
+            path = dc.CreatePath()
+            path.AddEllipse(cx-rx, cy-ry, rx+rx, ry+ry)
+            dc.DrawPath(path)
+        elif name == 'circle':
+            cx, cy, r = map(float, (attr.get('cx', 0), attr.get('cy', 0), attr['r']))
+            path = dc.CreatePath()
+            path.AddCircle(cx, cy, r)
+            dc.DrawPath(path)
         elif name == 'text':
             text = attr['text']
             if not self.can_draw_sharps_and_flats:
@@ -692,7 +697,6 @@ class SvgRenderer(object):
                                 attr.get('font-weight', '<none>'),
                                 attr.get('font-style', '<none>'),
                                 x, y, height, descent, dc.GetTransform().Get()))
-                                
         elif name == 'rect':
             x, y, width, height = attr.get('x', 0), attr.get('y', 0), attr['width'], attr['height']
             if '%' in width:
@@ -710,12 +714,7 @@ class SvgRenderer(object):
             path.AddLineToPoint(x, y+height)
             path.AddLineToPoint(x, y)
             dc.DrawPath(path)                     
-        elif name == 'circle':
-            cx, cy, r = map(float, (attr.get('cx', 0), attr.get('cy', 0), attr['r']))            
-            path = dc.CreatePath()
-            path.AddCircle(cx, cy, r)
-            dc.DrawPath(path)     
-        elif name == 'line':            
+        elif name == 'line':
             x1, y1, x2, y2 = map(float, (attr['x1'], attr['y1'], attr['x2'], attr['y2']))            
             # 1.3.6.3 [JWDJ] 2015-3 Fill and stroke already have been set
             # self.set_fill(dc, 'none')
