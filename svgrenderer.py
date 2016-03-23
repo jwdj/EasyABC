@@ -732,7 +732,7 @@ class SvgRenderer(object):
     def transform_point_osx(self, dc, x, y):
         a, b, c, d, tx, ty = dc.GetTransform().Get()
         def_a, def_b, def_c, def_d, def_tx, def_ty = self.default_transform.Get()
-        matrix = self.renderer.CreateMatrix(a, b, c, d * def_d, tx, def_ty - ty)
+        matrix = self.renderer.CreateMatrix(a, b, c, d * def_d, tx, def_ty - ty) # last param could also be: def_ty + ty * def_d
         #print 'default transform:', self.default_transform.Get()
         #print 'matrix:', matrix.Get()
         new_xy = matrix.TransformPoint(x, y)

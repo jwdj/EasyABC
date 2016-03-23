@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.2 2016-03-16'
+program_name = 'EasyABC 1.3.7.2 2016-03-23'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -16,6 +16,10 @@ program_name = 'EasyABC 1.3.7.2 2016-03-16'
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# V1.3.7.2
+# - Note selection bug on OSX fixed
+# - 'Add bar' type assist now has option automatic
 #
 # V1.3.7.1
 # - Dutch translation
@@ -7258,8 +7262,12 @@ class MainFrame(wx.Frame):
     def OnMusicUpdateDone(self, evt): # MusicUpdateDoneEvent
         # MusicUpdateThread.run posts an event MusicUpdateDoneEvent with the svg_files
         tune = evt.GetValue()
+        same_tune = False
+        if self.current_svg_tune:
+            same_tune = self.current_svg_tune.tune_header_start_line_index == tune.tune_header_start_line_index
         self.current_svg_tune = tune
-        self.current_page_index = 0 # 1.3.7.2 [JWDJ] always go to first page after switching tunes
+        if not same_tune:
+            self.current_page_index = 0 # 1.3.7.2 [JWDJ] always go to first page after switching tunes
         self.svg_tunes.add(tune) # 1.3.6.3 [JWDJ] for proper disposable of svg files
         self.UpdateMusicPane()
         #self.SetErrorMessage(error) 1.3.6 [SS] 2014-12-07
@@ -7723,8 +7731,8 @@ class MainFrame(wx.Frame):
         self.mni_TA_auto_case.Check(settings.get('typing_assistance_auto_case', False))
         self.mni_TA_do_re_mi.Check(settings.get('typing_assistance_do_re_mi', False))
         self.mni_TA_add_note_durations.Check(settings.get('typing_assistance_add_note_durations', False))
-        self.mni_TA_add_bar.Check(settings.get('typing_assistance_add_bar', True))
-        self.mni_TA_add_bar_auto.Check(settings.get('typing_assistance_add_bar_auto', False))
+        self.mni_TA_add_bar.Check(settings.get('typing_assistance_add_bar', False))
+        self.mni_TA_add_bar_auto.Check(settings.get('typing_assistance_add_bar_auto', True))
         self.mni_TA_add_right.Check(settings.get('typing_assistance_add_right', True))
         self.OnZoomSlider(None)
         self.Update()
