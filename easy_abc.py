@@ -7264,7 +7264,7 @@ class MainFrame(wx.Frame):
         tune = evt.GetValue()
         same_tune = False
         if self.current_svg_tune:
-            same_tune = self.current_svg_tune.tune_header_start_line_index == tune.tune_header_start_line_index
+            same_tune = self.current_svg_tune.tune_header_start_line_index == tune.tune_header_start_line_index and self.current_svg_tune.first_note_line_index == tune.first_note_line_index
         self.current_svg_tune = tune
         if not same_tune:
             self.current_page_index = 0 # 1.3.7.2 [JWDJ] always go to first page after switching tunes
