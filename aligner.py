@@ -6,6 +6,7 @@ from fraction import Fraction
 bar_sep_symbols = ':|][|: :|[2 :|]2 :||: [|] :|] [|: :|| ||: :|: |:: ::| |[1 :|2 |] || [| :: .| |1 |: :| [1 [2 |'.split()
 bar_sep = re.compile('(%s)' % '|'.join(' *' + re.escape(x)+' *' for x in bar_sep_symbols))
 bar_sep_without_space = re.compile('(%s)' % '|'.join(re.escape(x) for x in bar_sep_symbols))
+bar_and_voice_overlay_sep = re.compile('(%s)' % '|'.join(' *' + re.escape(x)+' *' for x in (bar_sep_symbols + ['&'])))
 
 def get_default_len(abc):
     if re.search(r'(?m)^L: *mcm_default', abc):

@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.2 2016-03-23'
+program_name = 'EasyABC 1.3.7.2 2016-03-27'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -398,7 +398,7 @@ from abc_search import abc_matches_iter
 from fraction import Fraction
 from music_score_panel import MusicScorePanel
 from svgrenderer import SvgRenderer
-from aligner import align_lines, extract_incipit, bar_sep, bar_sep_without_space, get_bar_length
+from aligner import align_lines, extract_incipit, bar_sep, bar_sep_without_space, get_bar_length, bar_and_voice_overlay_sep
 ##from midi_processing import humanize_midi
 from Queue import Queue # 1.3.6.2 [JWdJ] 2015-02
 
@@ -6596,7 +6596,17 @@ class MainFrame(wx.Frame):
                     evt.Skip()
                     raise
             elif self.mni_TA_add_bar_auto.IsChecked() and c not in "-/<,'1234567890":
-                self.add_bar_if_needed()
+                if c in '|:]&':
+                    if c == ':':
+                        bar_text = ':|'
+                    elif c == ']':
+                        bar_text = '|]'
+                    else:
+                        bar_text = c
+                    if self.add_bar_if_needed(bar_text):
+                        return
+                else:
+                    self.add_bar_if_needed()
 
         # when there is a selection and 's' is pressed it serves as a shortcut for slurring
         if p1 != p2 and c == 's':
@@ -6907,7 +6917,7 @@ class MainFrame(wx.Frame):
                     sel_start += extra_offset
                     self.editor.SetSelection(sel_start, sel_start)
 
-    def add_bar_if_needed(self):
+    def add_bar_if_needed(self, bar_text = '|'):
         tune = self.GetSelectedTune()
         if not tune:
             return
@@ -6921,7 +6931,7 @@ class MainFrame(wx.Frame):
             text = self.editor.GetTextRange(line_start_offset, current_pos)
             abc_up_to_selection = self.editor.GetTextRange(tune.offset_start, current_pos)
 
-            start_offset = max([0] + [m.end(0) for m in bar_sep.finditer(text)])  # offset of last bar symbol
+            start_offset = max([0] + [m.end(0) for m in bar_and_voice_overlay_sep.finditer(text)])  # offset of last bar symbol
             text = text[start_offset:]  # the text from the last bar symbol up to the selection point
             metre, default_len = self.get_metre_and_default_length(abc_up_to_selection)
 
@@ -6935,10 +6945,10 @@ class MainFrame(wx.Frame):
 
             if (duration >= metre and not bar_sep.match(rest_of_line) and
                     not (text.rstrip() and text.rstrip()[-1] in '[]:|')):
-                self.insert_bar()
+                self.insert_bar(bar_text)
                 return True
 
-    def insert_bar(self):
+    def insert_bar(self, bar_text = '|'):
         # 1.3.6.3 [JWDJ] 2015-3 don't add space before or after bar if space already present
         current_pos = self.editor.GetCurrentPos()
         pre_space = ''
@@ -6947,7 +6957,7 @@ class MainFrame(wx.Frame):
             pre_space = ' '
         if current_pos == self.editor.GetTextLength() or self.editor.GetTextRange(current_pos, current_pos+1) != ' ':
             post_space = ' '
-        self.AddTextWithUndo(pre_space+'|'+post_space)
+        self.AddTextWithUndo(pre_space + bar_text + post_space)
         if not post_space:
             skip_space_pos = self.editor.GetCurrentPos() + 1
             self.editor.SetSelection(skip_space_pos, skip_space_pos)
