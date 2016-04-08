@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.2 2016-03-27'
+program_name = 'EasyABC 1.3.7.3 2016-04-08'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -3374,8 +3374,9 @@ class MyAbcm2psPage(wx.Panel):
         self.settings['abcm2ps_extra_params'] = self.extras.GetValue()
 
     def OnBrowse_format(self,evt):
+        default_dir = os.path.dirname(self.settings.get('abcm2ps_format_path', ''))
         dlg = wx.FileDialog(
-                self, message=_("Find PostScript format file"), defaultFile="",  style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
+                self, message=_("Find PostScript format file"), defaultFile="", defaultDir=default_dir, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
@@ -3442,7 +3443,7 @@ class MyXmlPage(wx.Panel):
         # 1.3.6 [SS] 2014-12-19
         XmlCompressed_toolTip = _('When checked, abc2xml produces compressed xml files with extension mxl.')
         self.chkXmlCompressed.SetToolTip(wx.ToolTip(XmlCompressed_toolTip))
-        XmlUnfold_toolTip = _('When checked, xml2abc turns off repeat translation and instead unfolds simple repeats instead.')
+        XmlUnfold_toolTip = _('When checked, xml2abc turns off repeat translation and instead unfolds simple repeats.')
         self.chkXmlUnfold.SetToolTip(wx.ToolTip(XmlUnfold_toolTip))
         XmlMidi_toolTip = _('When checked, xml2abc outputs commands for midi volume and panning and the channel number. These commands are output in addition to the midi program number when it is present in the xml file.')
         self.chkXmlMidi.SetToolTip(wx.ToolTip(XmlMidi_toolTip))
@@ -3719,7 +3720,19 @@ class FlexibleListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlA
         else:
             return (None, None)
 
+    def SelectItem(self, index, select=True):
+        self.Select(index, select)
+        #if select:
+        #    self.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        #else:
+        #    self.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
 
+    def DeselectAll(self):
+        item = self.GetFirstSelected()
+        while item != -1:
+            nextItem = self.GetNextSelected(item)
+            self.SelectItem(item, False)
+            item = nextItem
 
 # 1.3.6 [SS] 2014-11-21
 class MySearchFrame(wx.Frame):
@@ -3916,7 +3929,6 @@ class MainFrame(wx.Frame):
         self.current_midi_tune = None # 1.3.6.3 [JWdJ] 2015-03
         self.midi_tunes = AbcTunes()
         self.__current_page_index = 0 # 1.3.6.2 [JWdJ] 2015-02
-        self.loop_midi_playback = False
         self.applied_tempo_multiplier = 1.0 # 1.3.6.4 [JWdJ] 2015-05
         self.is_closed = False
         self.app_dir = app_dir
@@ -4422,9 +4434,11 @@ class MainFrame(wx.Frame):
 
     def stop_playing(self):
         if self.mc:
-            self.play_button.SetBitmap(self.play_bitmap)
             self.mc.Stop()
-            self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
+            #self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
+            self.play_button.SetBitmap(self.play_bitmap)
+            self.play_button.Refresh()
+            self.media_slider.SetValue(0)
 
     def is_playing(self):
         return self.mc and self.mc.GetState() == wx.media.MEDIASTATE_PLAYING
@@ -4433,9 +4447,8 @@ class MainFrame(wx.Frame):
         return self.mc and self.mc.GetState() == wx.media.MEDIASTATE_PAUSED
 
     def set_playback_rate(self, playback_rate):
-        if self.mc and (self.is_playing() or wx.Platform != "__WXMAC__"):
+        if self.mc and (self.is_playing() or wx.Platform != "__WXMAC__"): # after setting playbackrate on Windows the self.mc.GetState() becomes MEDIASTATE_STOPPED
             self.mc.PlaybackRate = playback_rate
-            # self.normalize_volume() # [JWDJ] why here?
 
     def update_playback_rate(self):
         tempo_multiplier = self.get_tempo_multiplier() / self.applied_tempo_multiplier
@@ -4473,7 +4486,6 @@ class MainFrame(wx.Frame):
         if self.mc.Load(path):
             if wx.Platform == "__WXMSW__" and platform.release() != 'XP':
                 # 1.3.6.3 [JWDJ] 2015-3 It seems mc.Play() triggers the OnMediaLoaded event
-                # time.sleep(0.15) # is way to short anyway (JWDJ)
                 # self.OnMediaLoaded(None)
                 self.mc.Play() # does not start playing but triggers OnMediaLoaded event
         else:
@@ -4481,15 +4493,16 @@ class MainFrame(wx.Frame):
                           _("Error"), wx.ICON_ERROR | wx.OK)
 
     def OnMediaLoaded(self, evt):
-        self.media_slider.SetRange(0, self.mc.Length())
-        self.media_slider.SetValue(0)
-        self.OnBpmSlider(None)
         def play():
-            self.normalize_volume()
             # if wx.Platform == "__WXMAC__":
             #    time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
             #self.mc.Seek(self.play_start_offset, wx.FromStart)
             self.play_button.SetBitmap(self.pause_bitmap)
+            self.media_slider.SetRange(0, self.mc.Length())
+            self.media_slider.SetValue(0)
+            self.OnBpmSlider(None)
+            if wx.Platform == "__WXMAC__":
+                self.mc.Seek(0) # When using wx.media.MEDIABACKEND_QUICKTIME the music starts playing too early (when loading a file)
             self.play()
             self.update_playback_rate()
 
@@ -4534,6 +4547,7 @@ class MainFrame(wx.Frame):
         # 1.3.6.3 [SS] 2015-04-03
         #self.play_panel.Show(False)
         self.flip_tempobox(False)
+        self.media_slider.SetValue(0)
         self.reset_BpmSlider()
         if wx.Platform != "__WXMSW__":
             self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
@@ -4558,13 +4572,13 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def OnPlayTimer(self, evt):
-        if self.mc and not self.is_closed:
+        if not self.is_closed and self.mc and self.is_playing():
             offset = self.mc.Tell()
             self.media_slider.SetValue(offset)
             #if self.mc.GetState() == wx.media.MEDIASTATE_PLAYING and offset > self.play_end_offset + 300:
             #    self.mc.Stop()
-            if offset <= 0 and not self.is_playing() and self.loop_midi_playback:
-                self.play_again()
+            #if offset <= 0 and not self.is_playing() and self.loop_midi_playback:
+            #    self.play_again()
 
     def OnRecordBpmSelected(self, evt):
         for item in self.bpm_menu.GetMenuItems():
@@ -4584,6 +4598,7 @@ class MainFrame(wx.Frame):
             mc media player'''
         # self.show_toolbar_panel(self.bpm_slider.Parent, state)
         self.show_toolbar_panel(self.media_slider.Parent, state)
+        self.loop_check.Show(state)
         self.toolbar.Realize()
         wx.Yield()
 
@@ -4669,7 +4684,9 @@ class MainFrame(wx.Frame):
         self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, 0, -100, 100, (-1, -1), (130, 22))
         if wx.Platform == "__WXMSW__":
             self.bpm_slider.SetTick(0)  # place a tick in the middle for neutral tempo
-        self.media_slider = self.add_slider_to_toolbar(_('Play position'), False, 25, 1, 100, (-1, -1), (130, 22))
+        self.media_slider = self.add_slider_to_toolbar(_('Play position'), False, 0, 0, 100, (-1, -1), (130, 22))
+
+        self.loop_check = self.add_checkbox_to_toolbar(_('Loop'))
 
         self.Bind(wx.EVT_SLIDER, self.OnSeek, self.media_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
@@ -4724,6 +4741,11 @@ class MainFrame(wx.Frame):
         box.AddSpacer(20)
         panel.SetSizer(box)
         panel.SetAutoLayout(True)
+
+    def add_checkbox_to_toolbar(self, *args, **kwargs):
+        control = wx.CheckBox(self.toolbar, -1, *args, **kwargs)
+        self.toolbar.AddControl(control)
+        return control
 
     def OnViewRythm(self, evt):
         pass
@@ -5479,12 +5501,21 @@ class MainFrame(wx.Frame):
 
             wx.CallAfter(play)
 
+    @property
+    def loop_midi_playback(self):
+        return self.loop_check.GetValue()
+
+    @loop_midi_playback.setter
+    def loop_midi_playback(self, value):
+        return self.loop_check.SetValue(value)
+
     def OnToolPlayLoop(self, evt):
-        if not self.settings['midiplayer_path']:
-            self.loop_midi_playback = True
-        else:
+        if self.settings['midiplayer_path']:
             wx.MessageBox(_('Looping is not possible when using an external midi player. Empty the midiplayer path in Settings -> ABC Settings -> File Settings to regain the looping ability when you double click the play button'), _('Looping unavailable'), wx.OK | wx.ICON_INFORMATION)
-        self.OnToolPlay(evt)
+        else:
+            self.loop_midi_playback = True
+        if not self.is_playing():
+            self.OnToolPlay(evt)
 
     def OnToolRefresh(self, evt):
         self.last_refresh_time = datetime.now()
@@ -6507,7 +6538,8 @@ class MainFrame(wx.Frame):
                 index = self.tune_list.GetItemData(i)
                 if index == found_index and i != self.tune_list.GetFirstSelected():
                     new_tune_selected = True
-                    self.tune_list.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+                    self.tune_list.DeselectAll()
+                    self.tune_list.SelectItem(i)
                     self.tune_list.EnsureVisible(i)
                     self.music_pane.Scroll(0, 0)
             if not new_tune_selected:
@@ -6943,7 +6975,7 @@ class MainFrame(wx.Frame):
             else:
                 duration = get_bar_length(text, default_len, metre)
 
-            if (duration >= metre and not bar_sep.match(rest_of_line) and
+            if (duration == metre and not bar_sep.match(rest_of_line) and
                     not (text.rstrip() and text.rstrip()[-1] in '[]:|')):
                 self.insert_bar(bar_text)
                 return True
@@ -7105,7 +7137,9 @@ class MainFrame(wx.Frame):
             self.UpdateTuneList()
             self.OnTuneSelected(None)
         elif evt.GetKeyCode() == 345: #F6
-            self.PlayMidi()
+            self.OnToolPlay(evt)
+            self.play_button.Refresh()
+            #self.play_button.Update()
         elif evt.GetKeyCode() == 346: #F7
             self.OnToolStop(evt)
         else:
@@ -7346,6 +7380,7 @@ class MainFrame(wx.Frame):
             return None
 
     def OnTuneDoubleClicked(self, evt):
+        self.OnToolStop(evt)
         self.OnToolPlay(evt)
         evt.Skip()
 
@@ -7395,7 +7430,7 @@ class MainFrame(wx.Frame):
         if self.tune_list.GetFirstSelected() > 0:
             selected_tune_index = self.tune_list.GetItemData(self.tune_list.GetFirstSelected())
         else:
-            selected_tune_index =None
+            selected_tune_index = None
         tunes = self.GetTunes()
         self.tune_list.itemDataMap = dict(enumerate(self.tunes))
 
@@ -7413,7 +7448,7 @@ class MainFrame(wx.Frame):
                 #self.tune_list.SetStringItem(index, 2, rythm)
                 self.tune_list.SetItemData(index, index)
                 if index == selected_tune_index:
-                    self.tune_list.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+                    self.tune_list.SelectItem(index)
 
 
             # try to restore scroll state
