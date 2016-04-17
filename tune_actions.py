@@ -12,7 +12,9 @@ import urllib
 import webbrowser
 from fraction import Fraction
 #import urlparse
-from aligner import bar_sep, get_bar_length
+from aligner import get_bar_length
+from generalmidi import general_midi_instruments
+from abc_tune import AbcTune
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
 
@@ -236,7 +238,8 @@ class ValueChangeAction(AbcAction):
                 url_tuple = UrlTuple(action_url, html_image('arrow-down', _('More options')))
             return html_table([[row + '&nbsp;', url_tuple_to_href(url_tuple)]])
 
-    def enclose_action_url(self, action_url, value):
+    @staticmethod
+    def enclose_action_url(action_url, value):
         if action_url is not None:
             return UrlTuple(action_url, value)
         return value
@@ -662,18 +665,22 @@ class DurationAction(ValueChangeAction):
             context.replace_matchgroups([('length', ''), ('pair', '')])
         elif value == 'Z':
             match = context.get_matchgroup('rest')
+            new_value = None
             if match == 'z':
                 new_value = 'Z'
             elif match == 'x':
                 new_value = 'X'
-            context.replace_matchgroups([('rest', new_value), ('length', ''), ('pair', '')])
+            if new_value:
+                context.replace_matchgroups([('rest', new_value), ('length', ''), ('pair', '')])
         elif value == 'z':
             match = context.get_matchgroup('rest')
+            new_value = None
             if match == 'Z':
                 new_value = 'z'
             elif match == 'X':
                 new_value = 'x'
-            context.replace_matchgroups([('rest', new_value), ('length', '')])
+            if new_value:
+                context.replace_matchgroups([('rest', new_value), ('length', '')])
         elif value == '1':
             context.replace_matchgroups([('length', '')])
         elif value in '/23+=':
@@ -1124,7 +1131,8 @@ class ChordNoteChangeAction(ValueChangeAction):
         ]
         return values
 
-    def get_value_for_chord(self, index):
+    @staticmethod
+    def get_value_for_chord(index):
         chord = key_ladder[index]
         return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D'))
 
@@ -1244,7 +1252,8 @@ class UrlAction(AbcAction):
     def get_link_text(self, context):
         return _('more')
 
-    def get_href(self, url, display_text):
+    @staticmethod
+    def get_href(url, display_text):
         return u'<a href="{0}">{1}</a>'.format(url, escape(display_text))
 
     def get_action_html(self, context):
@@ -1258,13 +1267,13 @@ class UrlAction(AbcAction):
 class Abcm2psUrlAction(UrlAction):
     def __init__(self, keyword):
         url = 'http://moinejf.free.fr/abcm2ps-doc/{0}.xhtml'.format(urllib.quote(keyword))
-        super(AbcAction, self).__init__('lookup_abcm2ps', url)
+        super(UrlAction, self).__init__('lookup_abcm2ps', url)
 
 
 class Abc2MidiUrlAction(UrlAction):
     def __init__(self, keyword):
         url = 'http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_body.html#{0}'.format(urllib.quote(keyword))
-        super(AbcAction, self).__init__('lookup_abc2midi', url)
+        super(UrlAction, self).__init__('lookup_abc2midi', url)
 
 class AbcStandardUrlAction(UrlAction):
     def __init__(self):
@@ -1408,7 +1417,8 @@ class NewNoteOrRestAction(InsertValueAction):
                 values = [values[0] + [ValueImageDescription(os.linesep, 'enter', description='')]]
         return values
 
-    def is_outside_chord(self, context):
+    @staticmethod
+    def is_outside_chord(context):
         return not isinstance(context.current_element, AbcChord)
 
 
@@ -1473,7 +1483,6 @@ class AddBarAction(AbcAction):
     @staticmethod
     def get_bar_value(context):
         prev_char = context.get_scope_info(TuneScope.PreviousCharacter).text
-        next_char = context.get_scope_info(TuneScope.NextCharacter).text
         pre_space = ''
         if prev_char not in ' \r\n:':
             pre_space = ' '
@@ -1485,43 +1494,13 @@ class AddBarAction(AbcAction):
             return False
 
     @staticmethod
-    def get_metre_and_default_length(abc):
-        lines = re.split('\r\n|\r|\n', abc)
-        default_len = Fraction(1, 8)
-        metre = Fraction(4, 4)
-        # 1.3.7 [JWdJ] 2016-01-06
-        meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
-        for line in lines:
-            m = re.match(r'^L:\s*(\d+)/(\d+)', line)
-            if m:
-                default_len = Fraction(int(m.group(1)), int(m.group(2)))
-            m = re.search(r'^{0}'.format(meter_pattern), line)
-            if m:
-                # 1.3.7 [JWdJ] 2016-01-06
-                if m.group(1) is not None:
-                    metre = Fraction(int(m.group(1)), int(m.group(2)))
-                elif m.group(3) == 'C':
-                    metre = Fraction(4, 4)
-                elif m.group(3) == 'C|':
-                    metre = Fraction(2, 2)
-            for m in re.finditer(r'\[{0}\]'.format(meter_pattern), line):
-                if m.group(1) is not None:
-                    metre = Fraction(int(m.group(1)), int(m.group(2)))
-                elif m.group(3) == 'C':
-                    metre = Fraction(4, 4)
-                elif m.group(3) == 'C|':
-                    metre = Fraction(2, 2)
-            for m in re.finditer(r'\[L:\s*(\d+)/(\d+)\]', line):
-                default_len = Fraction(int(m.group(1)), int(m.group(2)))
-        return metre, default_len
-
-    @staticmethod
     def is_bar_expected(context):
         text = context.get_scope_info(TuneScope.LineUpToSelection).text
         bar_re = re.compile(AbcBar.pattern)
         last_bar_offset = max([0] + [m.end(0) for m in bar_re.finditer(text)])  # offset of last bar symbol
         text = text[last_bar_offset:]  # the text from the last bar symbol up to the selection point
-        metre, default_len = AddBarAction.get_metre_and_default_length(context.get_scope_info(TuneScope.TuneUpToSelection).text)
+        tune_upto_selection = context.get_scope_info(TuneScope.TuneUpToSelection).text
+        metre, default_len = AbcTune(tune_upto_selection).get_metre_and_default_length()
 
         if re.match(r"^[XZ]\d*$", text):
             duration = metre
@@ -1744,7 +1723,7 @@ class RemoveAction(AbcAction):
         columns += [UrlTuple(action_url, desc)]
         return ActionSeparator().get_action_html(context) + html_table([tuple(columns)], cellpadding=2)
 
-    def execute(self, context, params):
+    def execute(self, context, params=None):
         context.replace_match_text('')
 
 

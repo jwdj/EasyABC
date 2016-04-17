@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.3 2016-04-08'
+program_name = 'EasyABC 1.3.7.3 2016-04-16'
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -367,7 +367,6 @@ import time
 import traceback
 import xml.etree.cElementTree as ET
 import zipfile
-import uuid # 1.3.6.3 [JWdJ] 2015-04-22
 from datetime import datetime
 from collections import deque, namedtuple
 from UserString import MutableString
@@ -383,7 +382,7 @@ import wx.lib.platebtn as platebtn
 import wx.lib.mixins.listctrl as listmix
 import wx.lib.agw.hypertreelist as htl
 from wx.lib.embeddedimage import PyEmbeddedImage
-from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
+# from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED # 1.3.7.3 [JWdJ] 2016-04-09
 from wx import GetTranslation as _
 
 ##from xml2abc_nils import xml_to_abc
@@ -393,7 +392,8 @@ from midi2abc import midi_to_abc, Note, duration2abc
 from generalmidi import general_midi_instruments
 # from ps_parser import Abcm2psOutputParser # 1.3.6.3 [JWdJ] 2015-04-22
 from abc_styler import ABCStyler
-from abc_character_encoding import decode_abc, encode_abc
+from abc_character_encoding import decode_abc
+# from abc_character_encoding import encode_abc # 1.3.7.3 [JWdJ] 2016-04-09
 from abc_search import abc_matches_iter
 from fraction import Fraction
 from music_score_panel import MusicScorePanel
@@ -428,80 +428,27 @@ class AbortException(Exception): pass
 class Abcm2psException(Exception): pass
 class NWCConversionException(Exception): pass
 
-# 1.3.6.3 [JWdJ] renamed BaseTune to AbcTune and added functions
-class AbcTune(object):
-    def __init__(self, abc_code, tune_id=None):
-        self.__abc_code = abc_code
-        self.__abc_lines = None
-        self.__tune_header_start_line_index = None
-        self.__first_note_line_index = None
-        self.__tune_id = tune_id
+from abc_tune import AbcTune
 
-    @property
-    def abc_code(self):
-        return self.__abc_code
-
-    @property
-    def abc_lines(self):
-        if self.__abc_lines is None:
-            self.__abc_lines = self.abc_code.splitlines()
-        return self.__abc_lines
-
-    @property
-    def first_note_line_index(self):
-        if self.__first_note_line_index is None:
-            line_no = 1 # start with 1 because body starts 1 line after K field
-            for line in iter(self.abc_lines):
-                if line.startswith('K:'):
-                    self.__first_note_line_index = line_no
-                    break
-                line_no += 1
-
-        return self.__first_note_line_index
-
-    @property
-    def tune_header_start_line_index(self):
-        if self.__tune_header_start_line_index is None:
-            line_no = 0 # start with 0 because header starts with the X field
-            for line in iter(self.abc_lines):
-                if line.startswith('X:'):
-                    self.__tune_header_start_line_index = line_no
-                    break
-                line_no += 1
-        return self.__tune_header_start_line_index
-
-    @staticmethod
-    def generate_tune_id(abc_code):
-        return uuid.uuid4()
-
-    @property
-    def tune_id(self):
-        if self.__tune_id is None:
-            self.__tune_id = self.generate_tune_id(self.abc_code)
-        return self.__tune_id
-
-    @staticmethod
-    def generate_temp_file_name(path, ending, replace_ending=None):
-        i = 0
-        file_exists = True
-        while file_exists:
-            file_name = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, ending)))
-            file_exists = os.path.exists(file_name)
-            if not file_exists and replace_ending is not None:
-                f = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, replace_ending)))
-                file_exists = os.path.exists(f)
-            i += 1
-
-        return file_name
-
+def generate_temp_file_name(path, ending, replace_ending=None):
+    i = 0
+    file_exists = True
+    while file_exists:
+        file_name = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, ending)))
+        file_exists = os.path.exists(file_name)
+        if not file_exists and replace_ending is not None:
+            f = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, replace_ending)))
+            file_exists = os.path.exists(f)
+        i += 1
+    return file_name
 
 # 1.3.6.3 [JWdJ] 2015-04-22
-class MidiTune(AbcTune):
+class MidiTune(object):
     """ Container for abc2midi-generated .midi files """
-    def __init__(self, abc_code, midi_file=None, error=None, tune_id=None):
-        super(MidiTune, self).__init__(abc_code, tune_id)
+    def __init__(self, abc_tune, midi_file=None, error=None):
         self.error = error
         self.midi_file = midi_file
+        self.abc_tune = abc_tune
 
     def cleanup(self):
         if self.midi_file:
@@ -510,13 +457,13 @@ class MidiTune(AbcTune):
             self.midi_file = None
 
 # 1.3.6.2 [JWdJ]
-class SvgTune(AbcTune):
+class SvgTune(object):
     """ Container for abcm2ps-generated .svg files """
-    def __init__(self, abc_code, svg_files, error=None, tune_id=None):
-        super(SvgTune, self).__init__(abc_code, tune_id=tune_id)
+    def __init__(self, abc_tune, svg_files, error=None):
         self.error = error
         self.svg_files = svg_files
         self.pages = {}
+        self.abc_tune = abc_tune
 
     def render_page(self, page_index, renderer):
         if 0 <= page_index < self.page_count:
@@ -539,6 +486,19 @@ class SvgTune(AbcTune):
     def page_count(self):
         return len(self.svg_files)
 
+    @property
+    def first_note_line_index(self):
+        if self.abc_tune:
+            return self.abc_tune.first_note_line_index
+        return -1
+
+    @property
+    def tune_header_start_line_index(self):
+        if self.abc_tune:
+            return self.abc_tune.tune_header_start_line_index
+        return -1
+
+
 # 1.3.6.3 [JWdJ] 2015-04-22
 class AbcTunes(object):
     """ A holder for created tunes. Takes care of proper cleanup. """
@@ -552,8 +512,8 @@ class AbcTunes(object):
         return tune
 
     def add(self, tune):
-        if tune.abc_code and self.cache_size > 0:
-            tune_id = tune.tune_id
+        if tune.abc_tune and self.cache_size > 0:
+            tune_id = tune.abc_tune.tune_id
             #if tune_id in self.__tunes:
             #    print 'tune already cached'
             while len(self.cached_tune_ids) >= self.cache_size:
@@ -582,6 +542,11 @@ doremi_suffixes = 'oeiaoaioOEIAOAIOlLhH'
 
 execmessages = u''
 visible_abc_code = u''
+
+line_end_re = re.compile('\r\n|\r|\n')
+
+def text_to_lines(text):
+    return line_end_re.split(text)
 
 # 1.3.6.3 [JWDJ] one function to determine font size
 def get_normal_fontsize(): 
@@ -676,6 +641,7 @@ def launch_file(filepath):
         subprocess.call(('open', filepath))
     elif os.name == 'posix':
         subprocess.call(('xdg-open', filepath))
+    return True
 
 def remove_non_note_fragments(abc, exclude_grace_notes=False):
     ''' remove parts of the ABC which is not notes or bar symbols by replacing them by spaces (in order to preserve offsets) '''
@@ -804,7 +770,7 @@ def change_abc_tempo(abc_code, tempo_multiplier):
     if n1 == 0:
         default_tempo = 120
         extra_line = 'Q:%d' % int(default_tempo * tempo_multiplier)
-        lines = re.split('\r\n|\r|\n', abc_code)
+        lines = text_to_lines(abc_code)
         for i in range(len(lines)):
             if lines[i].startswith('X:'):
                 lines.insert(i+1, extra_line)
@@ -842,7 +808,7 @@ def add_table_of_contents_to_postscript_file(filepath):
     codecs.open(filepath, 'wb', 'utf-8').write(os.linesep.join(new_lines))
 
 def sort_abc_tunes(abc_code, sort_fields, keep_free_text=True):
-    lines = re.split('\r\n|\r|\n', abc_code)
+    lines = text_to_lines(abc_code)
     tunes = []
     file_header = []
     preceeding_lines = []
@@ -1379,11 +1345,10 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
     abc_code = process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier)
     visible_abc_code = abc_code #p09 2014-10-22 [SS]
 
-    tune_id = AbcTune.generate_tune_id(abc_code)
-
+    abc_tune = AbcTune(abc_code)
     if midi_file_name is None:
-        midi_file_name = os.path.abspath(os.path.join(cache_dir, 'temp%s.midi' % tune_id))
-        # midi_file_name = AbcTune.generate_temp_file_name(cache_dir, '.midi')
+        midi_file_name = os.path.abspath(os.path.join(cache_dir, 'temp%s.midi' % abc_tune.tune_id))
+        # midi_file_name = generate_temp_file_name(cache_dir, '.midi')
     midi_file = abc_to_midi(abc_code, settings, midi_file_name)
     # P09 2014-10-26 [SS]
     MyInfoFrame.update_text()
@@ -1401,7 +1366,7 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
         statusbar.SetStatusText('')
 
     if midi_file:
-        return MidiTune(abc_code, midi_file, tune_id=tune_id)
+        return MidiTune(abc_tune, midi_file)
     else:
         return None
 
@@ -1452,12 +1417,12 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     add_midi_chordprog_extra_line = True
     add_midi_introduction = settings.get('midi_intro')  # 1.3.6.4 [SS] 2015-07-05
 
-    if test_for_guitar_chords (abc_code) == False:
-        add_midi_chordprog_extra_line  = False
+    if not test_for_guitar_chords(abc_code):
+        add_midi_chordprog_extra_line = False
         add_midi_gchord_extra_line = False
 
     # 1.3.6.3 [JWDJ] 2015-04-17 header was forgotten when checking for MIDI directives
-    abclines = re.split('\r\n|\r|\n', header + abc_code)
+    abclines = text_to_lines(header + abc_code)
     for i in range(len(abclines)):
         line = abclines[i]
         if line.startswith('%%MIDI program'):
@@ -1549,7 +1514,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     ####  modify abc_code to add MIDI instruction just after voice definition
     # (because using channel only in header doesn't seem to allow association with voice
 
-    abclines = re.split('\r\n|\r|\n', abc_code) # 1.3.6.3 [JWDJ] 2015-04-17 split abc_code without header
+    abclines = text_to_lines(abc_code) # 1.3.6.3 [JWDJ] 2015-04-17 split abc_code without header
 
     # 1.3.7.0 [SS] 2016-01-05 
     # always add %%MIDI control 7 so user can control volume of melody
@@ -1627,9 +1592,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     # 1.3.6.4 [SS] 2014-07-07 replacement for process_abc_code
     # we do not want any abcm2ps options added
-    sections = []
-    sections.append(abcheader.rstrip() + os.linesep)
-    sections.append(abc_code)
+    sections = [abcheader.rstrip() + os.linesep, abc_code]
     abc_code = ''.join(sections) # put it together
     abc_code = re.sub(r'\[\[(.*/)(.+?)\]\]', r'\2', abc_code)  # strip PmWiki links and just include the link text
     if tempo_multiplier:
@@ -1644,7 +1607,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     # make sure that X field is on the first line since abc2midi doesn't seem to support
     # fields and instructions that come before the X field
-    abclines = re.split('\r\n|\r|\n', abc_code) # take it apart again
+    abclines = text_to_lines(abc_code) # take it apart again
     for i in range(len(abclines)):
         if abclines[i].startswith('X:'):
             line = abclines[i]
@@ -1803,6 +1766,7 @@ class MusicPrintout(wx.Printout):
         self.svg_files = svg_files
         self.zoom = zoom
         self.painted_on_screen = painted_on_screen
+        self.renderer = SvgRenderer(self.can_draw_sharps_and_flats)
 
     def HasPage(self, page):
         return page <= len(self.svg_files)
@@ -1821,18 +1785,12 @@ class MusicPrintout(wx.Printout):
 
         svg = open(self.svg_files[page-1], 'rb').read()
         #new versions of abcm2ps adds a suffix 'in' to width and height
-        #m = re.search(r'width="(\d+)"\s+height="(\d+)"', svg)
-        #width, height = int(m.group(1)), int(m.group(2))
+        #new versions of abcm2ps adds a suffix 'px' to width and height
+        # 1.3.7.3 [JWDJ] use svg renderer to calculate width and height
+        page = self.renderer.svg_to_page(svg)
 
-        m = re.search(r'width="(\d+[.]?\d*)(?:in"|")\s+height="(\d+[.]?\d*)(?:in"|")', svg)
-        if re.search('^\d+$', m.group(1)):
-            width = int(m.group(1))
-        else:
-            width = float(m.group(1))*72
-        if re.search('^\d+$', m.group(2)):
-            height = int(m.group(2))
-        else:
-            height = float(m.group(2))*72 # The factor 72 changes inches to pixels.
+        width = page.svg_width
+        height = page.svg_height
 
         maxX = width
         maxY = height
@@ -1857,7 +1815,7 @@ class MusicPrintout(wx.Printout):
 
         # Calculate the position on the DC for centering the graphic
         posX = (w - (width * actualScale)) / 2.0
-        posY = (h - (height * actualScale)) / 2.0
+        #posY = (h - (height * actualScale)) / 2.0
         posY = 0
 
         # Set the scale and origin
@@ -1868,14 +1826,14 @@ class MusicPrintout(wx.Printout):
         if wx.Platform in ("__WXMSW__", "__WXMAC__") and (not self.painted_on_screen or True):
             # special case for windows since it doesn't support creating a GraphicsContext from a PrinterDC:
             dc.SetUserScale(actualScale/self.zoom, actualScale/self.zoom)
-            r = SvgRenderer(self.can_draw_sharps_and_flats)
-            r.zoom = self.zoom
-            r.set_svg(svg)
-            dc.DrawBitmap(r.buffer, 0, 0)
+            self.renderer.zoom = self.zoom
+            self.renderer.update_buffer(page)
+            self.renderer.draw(page)
+            dc.DrawBitmap(self.renderer.buffer, 0, 0)
         else:
-            r = SvgRenderer(self.can_draw_sharps_and_flats)
-            r.zoom = 1.0
-            r.set_svg(svg, dc)
+            self.renderer.zoom = 1.0
+            self.renderer.update_buffer(page)
+            self.renderer.draw(page, dc=dc)
 
         return True
 
@@ -1904,7 +1862,7 @@ class MusicUpdateThread(threading.Thread):
         while not self.want_abort:
             task = self.queue.get()
             self.queue.task_done()
-            tune_id = None
+            abc_tune = None
             svg_files, error = [], u''
             try:
                 abc_code, abc_header = task
@@ -1913,9 +1871,9 @@ class MusicUpdateThread(threading.Thread):
                 else:
                     # 1.3.6.3 [JWDJ] splitted pre-processing abc and generating svg
                     abc_code = process_abc_code(self.settings, abc_code, abc_header, minimal_processing=not self.settings.get('reduced_margins', True))
-                    tune_id = AbcTune.generate_tune_id(abc_code)
-                    file_name = os.path.abspath(os.path.join(self.cache_dir, 'temp-%s-.svg' % tune_id))
-                    # file_name = AbcTune.generate_temp_file_name(self.cache_dir, '-.svg', replace_ending='-001.svg')
+                    abc_tune = AbcTune(abc_code)
+                    file_name = os.path.abspath(os.path.join(self.cache_dir, 'temp-%s-.svg' % abc_tune.tune_id))
+                    # file_name = generate_temp_file_name(self.cache_dir, '-.svg', replace_ending='-001.svg')
                     svg_files, error = abc_to_svg(abc_code, self.cache_dir, self.settings, target_file_name=file_name)
             except Abcm2psException as e:
                 # if abcm2ps crashes, then wait at least 10 seconds until next invocation
@@ -1931,7 +1889,7 @@ class MusicUpdateThread(threading.Thread):
                 error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))
                 print error_msg
                 pass
-            svg_tune = SvgTune(abc_code, svg_files, error, tune_id=tune_id)
+            svg_tune = SvgTune(abc_tune, svg_files, error)
             wx.PostEvent(self.notify_window, MusicUpdateDoneEvent(-1, svg_tune))
 
     # 1.3.6.2 [JWdJ] 2015-02 rewritten
@@ -3296,7 +3254,7 @@ class MyAbcm2psPage(wx.Panel):
     def OnPSScale(self,evt):
         val = self.scaleval.GetValue()
         m   = re.findall("\d+.\d+|\d+",val)
-        if len(m) > 0 and float(val) >0.1 and float(val) < 1.5:
+        if len(m) > 0 and 0.1 < float(val) < 1.5:
             self.settings['abcm2ps_scale'] = str(val)
 
     def OnPSleftmarg(self,evt):
@@ -3349,13 +3307,11 @@ class MyAbcm2psPage(wx.Panel):
 
     def OnFormat(self,evt):
         path = evt.String
-        self.settings['abcm2ps_format_path'] =  path
+        self.settings['abcm2ps_format_path'] = path
         # 1.3.6.4 [SS] 2015-09-11
-        if path and not path in self.format_choices and os.path.isfile(path) and os.access(path, os.R_OK):
-            self.format_choices.append(path)
-            self.settings['abcm2ps_format_choices'] = '|'.join(self.format_choices)
-            # [SS] the SetItems does not work correctly in wxpython 2.7
-            #self.formatf.SetItems(str(self.settings['abcm2ps_format_choices']))
+        self.update_format_choices(path)
+        # [SS] the SetItems does not work correctly in wxpython 2.7
+        #self.formatf.SetItems(str(self.settings['abcm2ps_format_choices']))
 
     # 1.3.6.4 [SS] 2015-09-21
     def OnClean(self,evt):
@@ -3374,24 +3330,24 @@ class MyAbcm2psPage(wx.Panel):
         self.settings['abcm2ps_extra_params'] = self.extras.GetValue()
 
     def OnBrowse_format(self,evt):
-        default_dir = os.path.dirname(self.settings.get('abcm2ps_format_path', ''))
+        default_dir, default_file = os.path.split(self.settings.get('abcm2ps_format_path', ''))
         dlg = wx.FileDialog(
-                self, message=_("Find PostScript format file"), defaultFile="", defaultDir=default_dir, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
+                self, message=_("Find PostScript format file"), defaultFile=default_file, defaultDir=default_dir, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
                 self.formatf.SetValue(path)
-                # 1.3.6.4 [SS] 2015-09-11
-                if path and not path in self.format_choices and os.path.isfile(path) and os.access(path, os.R_OK):
-                    self.format_choices.append(dlg.GetPath())
-                    self.settings['abcm2ps_format_choices'] = '|'.join(self.format_choices)
-                    if wx.Platform != "__WXMSW__":
-                        self.settings['abcm2ps_format_path'] = path  # 1.3.6.4 [SS] 2015-09-17 in case control.SetValue(path) does not trigger OnChangePath
-
-
-
+                self.update_format_choices(path)
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+
+    def update_format_choices(self, path):
+        # 1.3.6.4 [SS] 2015-09-11
+        if path and not path in self.format_choices and os.path.isfile(path) and os.access(path, os.R_OK):
+            self.format_choices.append(path)
+            self.settings['abcm2ps_format_choices'] = '|'.join(self.format_choices)
+            if wx.Platform != "__WXMSW__":
+                self.settings['abcm2ps_format_path'] = path  # 1.3.6.4 [SS] 2015-09-17 in case control.SetValue(path) does not trigger OnChangePath
 
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
@@ -3417,8 +3373,6 @@ class MyXmlPage(wx.Panel):
         credit     = wx.StaticText(self,-1,'credit filter')
         ulength    = wx.StaticText(self,-1,'unit length')
 
-
-
         self.XmlPage = wx.TextCtrl(self, -1, size=(300,20))
         self.maxchars = wx.TextCtrl(self,-1, size=(40,20))
         self.maxbars  = wx.TextCtrl(self,-1, size=(40,20))
@@ -3439,7 +3393,6 @@ class MyXmlPage(wx.Panel):
         self.unitval.SetValue(str(self.settings.get('xml_d')))
         self.XmlPage.SetValue(self.settings.get('xml_p'))
 
-
         # 1.3.6 [SS] 2014-12-19
         XmlCompressed_toolTip = _('When checked, abc2xml produces compressed xml files with extension mxl.')
         self.chkXmlCompressed.SetToolTip(wx.ToolTip(XmlCompressed_toolTip))
@@ -3459,7 +3412,6 @@ class MyXmlPage(wx.Panel):
         self.unitval.SetToolTip(wx.ToolTip(unitval_toolTip))
         voltaval_toolTip = _("The default (V=0) translates volta backets in all voices. V=1 prevents abcm2ps to write volta brackets on all but the first voice. (A %%repbra 0 command is added to each voice that hides its volta's.) When V=2 abcm2ps only typesets volta brackets on the first voice of each xml-part. When V=3 the volta brackets are only translated for the first abc voice, which has the same effect on the output of abcm2ps as V=1, but the abc code is not suited for abc2midi.")
         self.voltaval.SetToolTip(wx.ToolTip(voltaval_toolTip))
-
 
         # 1.3.6 [SS] 2014-12-20
         self.chkXmlCompressed.Bind(wx.EVT_CHECKBOX,self.OnXmlCompressed)
@@ -3520,11 +3472,9 @@ class MyXmlPage(wx.Panel):
         gridsizer2.Add(xmlpage,0,0,0)
         gridsizer2.Add(self.XmlPage,0,0,0)
 
-
         self.SetSizer(box)
         self.Fit()
         self.Layout()
-
 
     def OnXmlCompressed(self,evt):
         self.settings['xmlcompressed']   = self.chkXmlCompressed.GetValue()
@@ -3552,7 +3502,6 @@ class MyXmlPage(wx.Panel):
 
     def OnXmlPage(self,evt):
         self.settings['xml_p']           = self.XmlPage.GetValue()
-
 
 
 class MidiOptionsFrame(wx.Dialog):
@@ -3626,6 +3575,7 @@ class MidiOptionsFrame(wx.Dialog):
     def OnCancel(self, evt):
         self.EndModal(wx.ID_CANCEL)
 
+
 class ErrorFrame(wx.Dialog):
     def __init__(self, parent, error_msg):
         wx.Dialog.__init__(self, parent, -1, _('Errors'), wx.DefaultPosition, wx.Size(700, 80))
@@ -3669,6 +3619,7 @@ class ErrorFrame(wx.Dialog):
     def OnCancel(self, evt):
         self.EndModal(wx.ID_CANCEL)
 
+
 class ProgressFrame(wx.Frame):
     def __init__(self, parent, ID, title=_('Converting...')):
         wx.Frame.__init__(self, parent, ID, title, wx.DefaultPosition, wx.Size(500, 80))
@@ -3676,7 +3627,6 @@ class ProgressFrame(wx.Frame):
         self.Centre()
     def SetPercent(self, percent):
         self.gauge.SetValue(percent)
-
 
 
 class FlexibleListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlAutoWidthMixin):
@@ -3758,7 +3708,6 @@ class MySearchFrame(wx.Frame):
         self.searchpaths = {}
         self.count = 0
 
-
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         sizer1   = wx.GridBagSizer(vgap=8,hgap=8)
         sizer2   = wx.BoxSizer(wx.VERTICAL)
@@ -3779,7 +3728,6 @@ class MySearchFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON,self.On_start_search,self.startbut)
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED,self.OnItemSelected,self.list_ctrl)
 
-
     def On_browse_abcsearch(self,evt):
         ''' Selects the folder to open for searching'''
         dlg = wx.DirDialog(self, _("Open"), _("Choose a folder"), wx.OPEN)
@@ -3790,7 +3738,6 @@ class MySearchFrame(wx.Frame):
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
-
     def On_start_search(self,evt):
         ''' Initializes dictionaries and calls find_abc_files'''
         self.list_ctrl.DeleteAllItems()
@@ -3799,7 +3746,6 @@ class MySearchFrame(wx.Frame):
         self.searchpaths = {}
         self.count = 0
         self.find_abc_files()
-
 
 # 1.3.6 [SS] 2014-11-23
     def find_abc_files(self):
@@ -3867,7 +3813,6 @@ class MySearchFrame(wx.Frame):
                 self.count += 1
             loc = linend
 
-
 # 1.3.6 [SS] 2014-12-02
     def OnItemSelected(self,evt):
         ''' Responds to a selected title in the search listbox results. The abc file
@@ -3887,28 +3832,6 @@ class MySearchFrame(wx.Frame):
         # SetCurrentPos will position the editor on the selected tune
         # and should automatically position the music window and the tune_list.
         frame.editor.SetCurrentPos(loc)
-
-
-
-class MyHtmlFrame(wx.Frame):
-    ''' Creates an html window for displaying the help info. '''
-    def __init__(self):
-        wx.Frame.__init__(self, wx.GetApp().TopWindow,-1, title = _('Help Window'), name='htmlframe')
-
-        # Add a panel so it looks the correct on all platforms
-        global overview
-        html = wx.html.HtmlWindow(self)
-        if "gtk2" in wx.PlatformInfo:
-            html.SetStandardFonts()
-        html.SetPage(overview)
-
-
-class MyOpenPopupMenu(wx.Menu):
-    ''' menu which opens when you right click on the Open button'''
-    def __init__(self):
-        wx.Menu.__init__(self)
-        item = wx.MenuItem(self,-1, _("Open abc file"))
-        self.AppendItem(item)
 
 
 class MainFrame(wx.Frame):
@@ -3988,7 +3911,8 @@ class MainFrame(wx.Frame):
         # self.media_file_loaded = False
         self.play_music_thread = None
 
-        self.tune_list = FlexibleListCtrl(self, -1, style=wx.LC_REPORT | wx.LC_SINGLE_SEL) #wx.LC_NO_HEADER)
+        # 1.3.7.3 [JWDJ] Removed wx.LC_SINGLE_SEL to enable multiselect tunes
+        self.tune_list = FlexibleListCtrl(self, -1, style=wx.LC_REPORT) #wx.LC_NO_HEADER)
 
         self.tune_list.InsertColumn(0, _('No.'), wx.LIST_FORMAT_RIGHT)
         self.tune_list.InsertColumn(1, _('Title'))
@@ -4029,7 +3953,6 @@ class MainFrame(wx.Frame):
 
         for pane_info in [tune_list_pane, editor_pane, music_pane_info, self.error_pane, self.assist_pane]:
             pane_info.Floatable(False).Dockable(False).Snappable(False).NotebookDockable(False)
-
 
         # do layout
         self.manager.AddPane(self.music_pane, music_pane_info)
@@ -4168,73 +4091,65 @@ class MainFrame(wx.Frame):
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
     def OnPrint(self, event):
-        tune = self.GetSelectedTune()
-        if not tune:
+        self.print_or_preview_svg(only_preview=False)
+
+    def OnPrintPreview(self, event):
+        self.print_or_preview_svg(only_preview=True)
+
+    def print_or_preview_svg(self, only_preview):
+        tunes = self.GetSelectedTunes()
+        if len(tunes) == 0:
             return
         # if landscape is set in the ABC code, let that influence the page format
-        if ('%%landscape 1' in (tune.header + tune.abc) or
-            '%%landscape true' in (tune.header + tune.abc)):
+        abc = u''
+        header = None
+        title = None
+        for tune in tunes:
+            abc += tune.abc
+            if header is None:
+                header = tune.header
+            if title is None:
+                title = tune.title
+        fullabc = header + abc
+        if '%%landscape 1' in fullabc or '%%landscape true' in fullabc:
             self.printData.SetOrientation(wx.LANDSCAPE)
-        if ('%%landscape 0' in (tune.header + tune.abc) or
-            '%%landscape false' in (tune.header + tune.abc)):
+        if '%%landscape 0' in fullabc or '%%landscape false' in fullabc:
             self.printData.SetOrientation(wx.PORTRAIT)
         use_landscape = self.printData.GetOrientation() == wx.LANDSCAPE
 
         # 1.3.6 [SS] 2014-12-02  2014-12-07
-        svg_files, error = AbcToSvg(tune.abc, tune.header, self.cache_dir,
+        svg_files, error = AbcToSvg(abc, header, self.cache_dir,
                                     self.settings,
                                     minimal_processing=True,
                                     landscape=use_landscape)
         self.update_statusbar_and_messages()
         if svg_files:
             pdd = wx.PrintDialogData(self.printData)
-            pdd.SetToPage(len(svg_files))
-            printer = wx.Printer(pdd)
-            printout = MusicPrintout(svg_files, zoom=10.0, title=tune.title,
-                                     can_draw_sharps_and_flats=self.settings['can_draw_sharps_and_flats'])
+            printout = MusicPrintout(svg_files, zoom=10.0, title=title, can_draw_sharps_and_flats=self.settings['can_draw_sharps_and_flats'])
+            if only_preview:
+                printout_for_preview = MusicPrintout(svg_files, zoom=1.0, title=title, painted_on_screen=True, can_draw_sharps_and_flats=self.settings['can_draw_sharps_and_flats'])
+                self.preview = wx.PrintPreview(printout_for_preview, printout, pdd)
 
-            if not printer.Print(self, printout, True):
-                wx.MessageBox(_("There was a problem printing.\nPerhaps your current printer is not set correctly?"), _("Printing"), wx.OK)
+                if wx.Platform == "__WXMAC__":
+                    self.preview.SetZoom(100)
+
+                if not self.preview.Ok():
+                    return
+
+                pfrm = wx.PreviewFrame(self.preview, self, _("EasyABC - print preview"))
+
+                pfrm.Initialize()
+                pfrm.SetPosition(self.GetPosition())
+                pfrm.SetSize(self.GetSize())
+                pfrm.Show(True)
             else:
-                self.printData = wx.PrintData( printer.GetPrintDialogData().GetPrintData() )
-            printout.Destroy()
-
-    def OnPrintPreview(self, event):
-        tune = self.GetSelectedTune()
-        if tune is None:
-            return
-        # if landscape is set in the ABC code, let that influence the page format
-        if ('%%landscape 1' in (tune.header + tune.abc) or
-            '%%landscape true' in (tune.header + tune.abc)):
-            self.printData.SetOrientation(wx.LANDSCAPE)
-        if ('%%landscape 0' in (tune.header + tune.abc) or
-            '%%landscape false' in (tune.header + tune.abc)):
-            self.printData.SetOrientation(wx.PORTRAIT)
-        use_landscape = self.printData.GetOrientation() == wx.LANDSCAPE
-        #1.3.6 [SS] 2014-12-02 2014-12-07
-        svg_files, error = AbcToSvg(tune.abc, tune.header, self.cache_dir,
-                                    self.settings,
-                                    minimal_processing=True,
-                                    landscape=use_landscape)
-        self.update_statusbar_and_messages()
-        if svg_files:
-            data = wx.PrintDialogData(self.printData)
-            printout = MusicPrintout(svg_files, zoom=1.0, title=tune.title, painted_on_screen=True, can_draw_sharps_and_flats=self.settings['can_draw_sharps_and_flats'])
-            printout2 = MusicPrintout(svg_files, zoom=10.0, title=tune.title, can_draw_sharps_and_flats=self.settings['can_draw_sharps_and_flats'])
-            self.preview = wx.PrintPreview(printout, printout2, data)
-
-            if wx.Platform == "__WXMAC__":
-                self.preview.SetZoom(100)
-
-            if not self.preview.Ok():
-                return
-
-            pfrm = wx.PreviewFrame(self.preview, self, _("EasyABC - print preview"))
-
-            pfrm.Initialize()
-            pfrm.SetPosition(self.GetPosition())
-            pfrm.SetSize(self.GetSize())
-            pfrm.Show(True)
+                #pdd.SetToPage(len(svg_files))
+                printer = wx.Printer(pdd)
+                if printer.Print(self, printout, True):
+                    self.printData = wx.PrintData( printer.GetPrintDialogData().GetPrintData() )
+                else:
+                    wx.MessageBox(_("There was a problem printing.\nPerhaps your current printer is not set correctly?"), _("Printing"), wx.OK)
+                # printout.Destroy()
 
     def GetAbcToPlay(self):
         tune = self.GetSelectedTune()
@@ -4287,7 +4202,7 @@ class MainFrame(wx.Frame):
         # how many lines are there before the X: line in the processed ABC code?
 
         # 1.3.6 [SS] 2014-12-17
-        lines = re.split('\r\n|\r|\n', process_abc_code(self.settings,tune.abc,
+        lines = text_to_lines(process_abc_code(self.settings,tune.abc,
                 tune.header,
                 minimal_processing=not self.settings.get('reduced_margins', True)))
         num_header_lines = 0
@@ -4435,7 +4350,7 @@ class MainFrame(wx.Frame):
     def stop_playing(self):
         if self.mc:
             self.mc.Stop()
-            #self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
+            self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
             self.play_button.SetBitmap(self.play_bitmap)
             self.play_button.Refresh()
             self.media_slider.SetValue(0)
@@ -4766,7 +4681,7 @@ class MainFrame(wx.Frame):
             try:
                 notes = re.split(r'K:.*\s*', abc, 1)[1]  # extract part after first K: field
                 notes = re.sub(r'\[\w:.*?\]', '', notes) # remove fields
-                return len([l for l in re.split(r'\r\n|\r|\n', notes) if l.strip()])  # return number of non-empty lines
+                return len([l for l in text_to_lines(notes) if l.strip()])  # return number of non-empty lines
             except IndexError:
                 return 1
 
@@ -4775,7 +4690,7 @@ class MainFrame(wx.Frame):
             tune = self.GetTune(i)
 
             # make a copy of the tune header in order to be able to restore it after the incip extraction
-            lines = re.split('\r\n|\r|\n', tune.abc)
+            lines = text_to_lines(tune.abc)
             header = []
             title_count = 0
             for line in lines:
@@ -4934,7 +4849,7 @@ class MainFrame(wx.Frame):
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 xnum = int(dlg.GetValue())
-                lines = re.split('\r\n|\r|\n', self.editor.GetText())
+                lines = text_to_lines(self.editor.GetText())
                 for i in range(len(lines)):
                     if re.match('X:\s*\d+\s*$', lines[i]):
                         if lines[i].startswith('X: '):
@@ -4980,318 +4895,127 @@ class MainFrame(wx.Frame):
         return filename
 
     def OnExportMidi(self, evt):
-        # 1.3.6.3 [SS] 2015-05-07
-        global execmessages
-
-        tune = self.GetSelectedTune()
-        if tune:
-            # 1.3.6 [SS] 2014-11-16 2014-12-08
-            tempo_multiplier = self.get_tempo_multiplier()
-            midi_tune = AbcToMidi(tune.abc, tune.header, self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
-
-            if midi_tune:
-                midi_file = midi_tune.midi_file
-                filename = self.GetFileNameForTune(tune, '.mid')
-                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard="Midi file (*.mid)|*.mid", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-                try:
-                    if dlg.ShowModal() == wx.ID_OK:
-                        shutil.copy(midi_file, dlg.GetPath())
-                        # 1.3.6.3 [SS] 2015-05-07
-                        filepath = dlg.GetPath()
-                        execmessages = execmessages + u'creating '+ filepath.encode('utf-8') + u'\n'
-                finally:
-                    dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-                    midi_tune.cleanup()
-
-            # 1.3.6 [SS] 2014-12-08
-            self.statusbar.SetStatusText(_('Midi file was written'))
+        self.export_tunes(_('Midi file'), '.mid', self.export_midi, only_selected=True)
 
     #Add an export all tunes to MIDI option
     def OnExportAllMidi(self, evt):
-        # 1.3.6.3 [SS] 2015-05-07
-        global execmessages
+        self.export_tunes(_('Midi file'), '.mid', self.export_midi, only_selected=False)
 
-        dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-        ntunes = self.tune_list.GetItemCount()
-        outstring = _('There are {0} midi files to create').format(ntunes)
-        self.statusbar.SetStatusText(outstring)
-        progdialog = None
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                tunes = [self.GetTune(i) for i in range(self.tune_list.GetItemCount())]
-                #tunes = [self.GetTune(i) for i in ntunes]
-
-                # 1.3.6 [SS] 2014-12-08
-                progdialog = wx.ProgressDialog(_('Searching directory'), _('Remaining time'),
-                     ntunes,style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME |
-                     wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
-
-                j = 0
-                for tune in tunes:
-
-                    j += 1
-                    running = progdialog.Update(j)
-                    if running[0] == False or j > ntunes:
-                        break
-
-                    # 1.3.6 [SS] 2014-11-16 2014-12-08
-                    tempo_multiplier = self.get_tempo_multiplier()
-                    midi_tune = AbcToMidi(tune.abc, tune.header, self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
-
-                    if midi_tune:
-                        midi_file = midi_tune.midi_file
-                        filename = self.GetFileNameForTune(tune, '.mid')
-                        filepath = os.path.join(dlg.GetPath(), filename)
-#                       dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard="Midi file (*.mid)|*.mid", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-#                       if dlg.ShowModal() == wx.ID_OK:
-                        try:
-                            shutil.copy(midi_file, filepath.encode('utf-8'))
-                        except:
-                            print 'failed to create ',filepath.encode('utf-8')
-
-                        # 1.3.6.3 [SS] 2015-05-07
-                        execmessages = execmessages + u'creating '+ filepath.encode('utf-8') + u'\n'
-
-                        midi_tune.cleanup()
-        finally:
-            dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-        # 1.3.6 [SS] 2014-12-08
-            if progdialog:
-                progdialog.Destroy()
-        self.statusbar.SetStatusText(_('All midi files were written'))
+    def export_midi(self, tune, filepath):
+        tempo_multiplier = self.get_tempo_multiplier()
+        midi_tune = AbcToMidi(tune.abc, tune.header, self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
+        if midi_tune:
+            try:
+                shutil.copy(midi_tune.midi_file, filepath)
+                return True
+            except:
+                print 'failed to create ',filepath
+            finally:
+                midi_tune.cleanup()
+        return False
 
     #Add an export all tunes to individual PDF option
     def OnExportAllPDFFiles(self, evt):
-        # 1.3.6 [SS] 2014-12-08
-        ntunes = self.tune_list.GetItemCount()
-        outstring = _('There are %d PDF files to create') % ntunes
-        self.statusbar.SetStatusText(outstring)
-
-        dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                tunes = [self.GetTune(i) for i in range(self.tune_list.GetItemCount())]
-                #for i in range(self.tune_list.GetItemCount()):
-                #    self.tune_list.Select(i)
-                #    tunes.append(self.GetSelectedTune())
-
-                # 1.3.6 [SS] 2014-12-08
-                progdialog = wx.ProgressDialog(_('Searching directory'), _('Remaining time'),
-                     ntunes,style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME |
-                     wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
-                j = 0
-
-                global execmessages
-                execmessages = u''
-
-                for tune in tunes:
-                    # 1.3.6 [SS] 2014-12-08
-                    j += 1
-                    running = progdialog.Update(j)
-                    if running[0] == False or j > ntunes:
-                        break
-
-                    pdf_file = AbcToPDF(self.settings,tune.abc, tune.header, self.cache_dir, self.settings.get('abcm2ps_extra_params', ''),
-                                                       self.settings.get('abcm2ps_path', ''),
-                                                       self.settings.get('gs_path',''),
-                                                       #self.settings.get('ps2pdf_path',''),
-                                                       self.settings.get('abcm2ps_format_path', ''))
-                    if pdf_file:
-                        filename = self.GetFileNameForTune(tune, '.pdf')
-                        filepath = os.path.join(dlg.GetPath(), filename)
-                        # 1.3.6 [SS] 2014-12-08
-                        try:
-                            shutil.copy(pdf_file, filepath.encode('utf-8'))
-                        except:
-                            print 'failed to create ',filepath.encode('utf-8')
-        finally:
-            launch_file(dlg.GetPath())
-            dlg.Destroy()
-            # 1.3.6 [SS] 2014-12-08
-            progdialog.Destroy()
-            self.statusbar.SetStatusText(_('PDF files created.'))
+        self.export_pdf_tunes(only_selected=False)
 
     def OnExportPDF(self, evt):
+        self.export_pdf_tunes(only_selected=True)
+
+    def export_pdf(self, tune, filepath):
+        pdf_file = AbcToPDF(self.settings,tune.abc, tune.header, self.cache_dir, self.settings.get('abcm2ps_extra_params', ''),
+                                           self.settings.get('abcm2ps_path', ''),
+                                           self.settings.get('gs_path',''),
+                                           #self.settings.get('ps2pdf_path',''),
+                                           self.settings.get('abcm2ps_format_path', ''))
+        if pdf_file:
+            return self.copy_to_destination_and_launch_file(pdf_file, filepath)
+
+        return False
+
+    def export_pdf_tunes(self, only_selected=False):
         if not os.path.exists(self.settings.get('gs_path')):
             dlg = wx.MessageDialog(self, _('ghostscript was not found here. Go to settings and indicate the path'), _('Warning'), wx.OK)
             dlg.ShowModal()
             return
-        tune = self.GetSelectedTune()
-        if tune:
-            global execmessages
-            execmessages = u''
-            pdf_file = AbcToPDF(self.settings,tune.abc, tune.header, self.cache_dir, self.settings.get('abcm2ps_extra_params', ''),
-                                                       self.settings.get('abcm2ps_path', ''),
-                                                       self.settings.get('gs_path',''),
-                                                       #self.settings.get('ps2pdf_path',''),
-                                                       self.settings.get('abcm2ps_format_path', ''))
-            if pdf_file:
-                filename = self.GetFileNameForTune(tune, '.pdf')
-                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_("PDF file") + " (*.pdf)|*.pdf", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-                try:
-                    if dlg.ShowModal() == wx.ID_OK:
-                        self.copy_to_destination_and_launch_file(pdf_file, dlg.GetPath())
-                finally:
-                    dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+        self.export_tunes(_('PDF file'), '.pdf', self.export_pdf, only_selected=only_selected)
 
     def OnExportSVG(self, evt):
-        tune = self.GetSelectedTune()
-        if tune:
-            filename = self.GetFileNameForTune(tune, '.svg')
-            dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_("SVG file") + " (*.svg)|*.svg", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            try:
-                if dlg.ShowModal() == wx.ID_OK:
-                    path = dlg.GetPath()
-                    #shutil.copy(svg_file, path)
-                    # 1.3.6 [SS] 2014-12-02 2014-12-07
-                    svg_files, error = AbcToSvg(tune.abc, tune.header,
-                                                         self.cache_dir,
-                                                         self.settings,
-                                                         target_file_name=path,
-                                                         with_annotations=False)
-                    self.update_statusbar_and_messages()
-                    if svg_files:
-                        launch_file(svg_files[0])
-                    else:
-                        pass
-            finally:
-                dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+        self.export_tunes(_('SVG file'), '.svg', self.export_svg, only_selected=True)
 
+    def export_svg(self, tune, filepath):
+        #shutil.copy(svg_file, path)
+        # 1.3.6 [SS] 2014-12-02 2014-12-07
+        svg_files, error = AbcToSvg(tune.abc, tune.header,
+                                             self.cache_dir,
+                                             self.settings,
+                                             target_file_name=filepath,
+                                             with_annotations=False)
+        if svg_files:
+            return launch_file(svg_files[0])
+        return False
 
     def OnExportMusicXML(self, evt):
-        tune = self.GetSelectedTune()
-
-        # 1.3.6 [SS] 2014-12-10
-        global execmessages, visible_abc_code
-        visible_abc_code = ''
-        for abcline in tune.abc:
-            visible_abc_code = visible_abc_code + abcline
-        mxl = self.settings['xmlcompressed']
-        pageFormat = []
-
-        # 1.3.6 [SS] 2014-12-21 (does not work on musescore?)
-        #if self.settings['xml_p'] != '' and self.settings['xml_p'] != 0:
-            #p = self.settings['xml_p'].split(',')
-            #for elem in p:
-                #pageFormat.append(float(elem))
-            #print pageFormat
-        info_messages = []
-
-        if tune:       # [SS] 1.3.6 2014-12-15
-            if mxl:
-                filename = self.GetFileNameForTune(tune, '.mxl')
-                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_('Compressed MusicXML') + " (*.mxl)|*.mxl", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            else:
-                filename = self.GetFileNameForTune(tune, '.xml')
-                dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_('MusicXML') + " (*.xml)|*.xml", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            try:
-                if dlg.ShowModal() == wx.ID_OK:
-                    try:
-                        errors = []
-                        #1.3.6 [SS] 2014-12-10
-                        abc_to_xml(tune.header + os.linesep + tune.abc, dlg.GetPath(),mxl, pageFormat, info_messages)
-                        execmessages = u'abc_to_mxl   compression = ' + str(mxl) + '\n'
-                        for infoline in info_messages:
-                            execmessages += infoline
-                    except Exception as e:
-                        error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)) + os.linesep + os.linesep.join(errors)
-                        mdlg = ErrorFrame(self, _('Error during conversion of X:{0} ("{1}"): {2}').format(tune.xnum, tune.title, error_msg))
-                        result = mdlg.ShowModal()
-                        mdlg.Destroy()
-            finally:
-                dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-            # 1.3.6 2014-11-12 2014-12-10 [SS]
-            self.statusbar.SetStatusText(_('XML file was created.'))
-            MyInfoFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
-            MyAbcFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
+        self.export_tunes_to_musicxml(only_selected=True)
 
     def OnExportAllMusicXML(self, evt):
-        dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-        ntunes = self.tune_list.GetItemCount()
+        self.export_tunes_to_musicxml(only_selected=False)
 
-        #1.3.6 [SS] 2014-12-10
+    def export_tunes_to_musicxml(self, only_selected):
+        mxl = self.settings['xmlcompressed']
+        global execmessages
+        execmessages = 'abc_to_mxl   compression = ' + str(mxl) + '\n'
+        extension = '.xml'
+        filetype = _('MusicXML')
+        if mxl:
+            extension = '.mxl'
+            filetype = _('Compressed MusicXML')
+
+        self.export_tunes(filetype, extension, self.export_musicxml, only_selected=only_selected)
+
+    def export_musicxml(self, tune, filepath):
         global execmessages
         mxl = self.settings['xmlcompressed']
         pageFormat = []
+        errors = []
+        # 1.3.6.3 [SS] 2015-05-07
         info_messages = []
-        execmessages = 'abc_to_mxl   compression = ' + str(mxl) + '\n'
-
         try:
-            if dlg.ShowModal() == wx.ID_OK:
-                tunes = [self.GetTune(i) for i in range(self.tune_list.GetItemCount())]
-                #for i in range(self.tune_list.GetItemCount()):
-                #    self.tune_list.Select(i)
-                #    tunes.append(self.GetSelectedTune())
+            abc_to_xml(tune.header + os.linesep + tune.abc, filepath, mxl, pageFormat, info_messages)
+        except Exception as e:
+            error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)) + os.linesep + os.linesep.join(errors)
+            mdlg = ErrorFrame(self, _('Error during conversion of X:{0} ("{1}"): {2}').format(tune.xnum, tune.title, error_msg))
+            result = mdlg.ShowModal()
+            mdlg.Destroy()
+            return result == wx.ID_OK  # if ok is pressed, continue to process other tunes, if cancel, do not process more tunes
 
-                # 1.3.6 [SS] 2014-12-08
-                progdialog = wx.ProgressDialog(_('Searching directory'),_('Remaining time'),
-                     ntunes,style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME |
-                     wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
-                j = 0
-
-                for tune in tunes:
-
-                    # 1.3.6 [SS] 2014-12-08
-                    j += 1
-                    running = progdialog.Update(j)
-                    if running[0] == False or j > ntunes:
-                        break
-
-                    filename = self.GetFileNameForTune(tune, '.xml')
-                    filepath = os.path.join(dlg.GetPath(), filename)
-                    errors = []
-                    # 1.3.6.3 [SS] 2015-05-07
-                    info_messages = []
-                    try:
-                        abc_to_xml(tune.header + os.linesep + tune.abc, filepath, mxl, pageFormat, info_messages)
-                    except Exception as e:
-                        error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)) + os.linesep + os.linesep.join(errors)
-                        mdlg = ErrorFrame(self, _('Error during conversion of X:{0} ("{1}"): {2}').format(tune.xnum, tune.title, error_msg))
-                        result = mdlg.ShowModal()
-                        mdlg.Destroy()
-                        if result != wx.ID_OK:  # if ok is pressed, continue to process other tunes, if cancel, do not process more tunes
-                            break
-                    # 1.3.6 [SS] 2014-12-10
-                    for infoline in info_messages:
-                        execmessages += infoline
-        finally:
-            dlg.Destroy()
-            self.statusbar.SetStatusText(_('XML files were created.'))
-            progdialog.Destroy()
-            # 1.3.6 [SS] 2014-12-10
-            MyInfoFrame.update_text() # 1.3.6.3 [JWDJ] 2015-04-27
-
+        # 1.3.6 [SS] 2014-12-10
+        for infoline in info_messages:
+            execmessages += infoline
+        return True
 
     def OnExportHTML(self, evt):
-        tune = self.GetSelectedTune()
-        if tune:
-            filename = self.GetFileNameForTune(tune, '.html')
-            dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, wildcard=_("HTML file") + " (*.html)|*.html", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            try:
-                if dlg.ShowModal() == wx.ID_OK:
-                    path = dlg.GetPath()
-                    # 1.3.6 [SS] 2014-12-02 2014-12-07
-                    svg_files, error = AbcToSvg(tune.abc, tune.header,
-                                                         self.cache_dir,
-                                                         self.settings,
-                                                         with_annotations=False)
-                    self.update_statusbar_and_messages()
-                    if svg_files:
-                        f = codecs.open(path, 'wb', 'UTF-8')
-                        f.write('<html xmlns="http://www.w3.org/1999/xhtml">\n')
-                        f.write('<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> </head>\n')
-                        f.write('<body>\n\n')
-                        for fn in svg_files:
-                            svg = codecs.open(fn, 'rb', 'UTF-8').read()
-                            svg = svg[svg.index('<svg'):]
-                            f.write(svg)
-                            f.write('\n\n')
-                        f.write('</body></html>')
-                        f.close()
-                        launch_file(path)
-            finally:
-                dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+        self.export_tunes(_('HTML file'), '.html', self.export_html, only_selected=True)
+
+    def export_html(self, tune, filepath):
+        # 1.3.6 [SS] 2014-12-02 2014-12-07
+        svg_files, error = AbcToSvg(tune.abc, tune.header,
+                                             self.cache_dir,
+                                             self.settings,
+                                             with_annotations=False)
+        if svg_files:
+            f = codecs.open(filepath, 'wb', 'UTF-8')
+            f.write('<html xmlns="http://www.w3.org/1999/xhtml">\n')
+            f.write('<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> </head>\n')
+            f.write('<body>\n\n')
+            for fn in svg_files:
+                svg = codecs.open(fn, 'rb', 'UTF-8').read()
+                svg = svg[svg.index('<svg'):]
+                f.write(svg)
+                f.write('\n\n')
+            f.write('</body></html>')
+            f.close()
+            return launch_file(filepath)
+        return False
 
     def OnExportAllHTML(self, evt):
         global execmessages # 1.3.6.3 [SS] 2015-05-09
@@ -5416,9 +5140,10 @@ class MainFrame(wx.Frame):
     def copy_to_destination_and_launch_file(self, file_name, destination_path):
         try:
             shutil.copy(file_name, destination_path)
-            launch_file(destination_path)
+            return launch_file(destination_path)
         except IOError as ex:
             print u'Failed to create %s: %s' % (destination_path.encode('utf-8'), os.strerror(ex.errno))
+        return False
 
     def OnExportAllPDF(self, evt):
         if self.current_file:
@@ -5445,6 +5170,87 @@ class MainFrame(wx.Frame):
                     wx.MessageBox(_("Error: there was some trouble saving the file."), _("File could not be saved properly"), wx.OK)
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+
+    def export_tune(self, tune, file_type, extension, convert_func, path, show_save_dialog=True):
+        # 1.3.6.3 [SS] 2015-05-07
+        global execmessages
+        filename = self.GetFileNameForTune(tune, extension)
+        filepath = os.path.join(path or '', filename)
+
+        if show_save_dialog:
+            wildcard = u'{0} (*{1})|*{1}'.format(file_type, extension)
+            default_dir, filename = os.path.split(filepath)
+            dlg = wx.FileDialog(self, message=_("Export tune as ..."), defaultFile=filename, defaultDir=default_dir, wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            try:
+                if dlg.ShowModal() == wx.ID_OK:
+                    filepath = dlg.GetPath()
+                else:
+                    return False
+            finally:
+                dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+
+        filepath = filepath.encode('utf-8')
+        if convert_func(tune, filepath):
+            execmessages = execmessages + u'creating '+ filepath + u'\n'
+            # 1.3.6 [SS] 2014-12-08
+            self.statusbar.SetStatusText(_('{0} was written').format(file_type))
+            return True
+        return False
+
+    def export_tunes(self, file_type, extension, convert_func, only_selected=False):
+        if only_selected:
+            tunes = self.GetSelectedTunes()
+            ntunes = len(tunes)
+        else:
+            ntunes = self.tune_list.GetItemCount()
+            tunes = [self.GetTune(i) for i in range(ntunes)]
+
+        if ntunes == 0:
+            return
+
+        individual_save_dialog = only_selected
+
+        path = ''
+        if not individual_save_dialog:
+            dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+            try:
+                if dlg.ShowModal() == wx.ID_OK:
+                    path = dlg.GetPath()
+                else:
+                    return
+            finally:
+                dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+
+        global execmessages
+        execmessages = u''
+
+        self.statusbar.SetStatusText(_('There are {0} files to create').format(ntunes))
+        progdialog = None
+        try:
+            self.SetCursor(wx.HOURGLASS_CURSOR)
+
+            # 1.3.6 [SS] 2014-12-08
+            progdialog = wx.ProgressDialog(_('Exporting'), _('Remaining time'), ntunes,
+                                           style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
+            j = 0
+            for tune in tunes:
+                j += 1
+                running = progdialog.Update(j)
+                if running[0] == False or j > ntunes:
+                    break
+
+                success = self.export_tune(tune, file_type, extension, convert_func, path, show_save_dialog=individual_save_dialog)
+                if not success:
+                    break
+        finally:
+            self.SetCursor(wx.STANDARD_CURSOR)
+            if progdialog:
+                progdialog.Destroy()
+        self.update_statusbar_and_messages()
+        if success:
+            self.statusbar.SetStatusText(_('Export completed'))
+        else:
+            self.statusbar.SetStatusText(_('Export failed'))
 
     def OnMusicPaneDoubleClick(self, evt):
         self.editor.SetFocus()
@@ -5507,7 +5313,7 @@ class MainFrame(wx.Frame):
 
     @loop_midi_playback.setter
     def loop_midi_playback(self, value):
-        return self.loop_check.SetValue(value)
+        self.loop_check.SetValue(value)
 
     def OnToolPlayLoop(self, evt):
         if self.settings['midiplayer_path']:
@@ -5902,16 +5708,12 @@ class MainFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnUploadTune, id=id)
             item.Enable(False)  # disabled for now
 
-        id = wx.NewId()
-        item = wx.MenuItem(menu, id, _('Export to &MIDI...'))
-        menu.AppendItem(item)
-        self.Bind(wx.EVT_MENU, self.OnExportMidi, id=id)
-        item = wx.MenuItem(menu, wx.NewId(), _('Export to &PDF...'))
-        menu.AppendItem(item)
-        self.Bind(wx.EVT_MENU, self.OnExportPDF, id=item.GetId())
-        item = wx.MenuItem(menu, wx.NewId(), _('Export to &SVG...'))
-        menu.AppendItem(item)
-        self.Bind(wx.EVT_MENU, self.OnExportSVG, id=item.GetId())
+        self.append_to_menu(menu, [
+            (_('Export to &MIDI...'), '', self.OnExportMidi),
+            (_('Export to &PDF...'), '', self.OnExportPDF),
+            (_('Export to &SVG...'), '', self.OnExportSVG),
+            (_('Export to &HTML...'), '', self.OnExportHTML),
+            (_('Export to Music&XML...'), '', self.OnExportMusicXML)])
 
         return menu
 
@@ -5950,6 +5752,10 @@ class MainFrame(wx.Frame):
 
     def create_menu(self, items):
         menu = wx.Menu()
+        self.append_to_menu(menu, items)
+        return menu
+
+    def append_to_menu(self, menu, items):
         for item in items:
             if len(item) == 0:
                 menu.AppendSeparator()
@@ -5966,7 +5772,6 @@ class MainFrame(wx.Frame):
                     self.append_menu_item(menu, *item, id=id)
                 else:
                     self.append_menu_item(menu, *item)
-        return menu
 
     def append_menu_item(self, menu, label, description, handler, kind=wx.ITEM_NORMAL, id=-1):
         menu_item = menu.Append(id, label, description, kind)
@@ -6844,35 +6649,7 @@ class MainFrame(wx.Frame):
 ##            wx.CallLater(1260, restore)
 
     def get_metre_and_default_length(self, abc):
-        lines = re.split('\r\n|\r|\n', abc)
-        default_len = Fraction(1, 8)
-        metre = Fraction(4, 4)
-        # 1.3.7 [JWdJ] 2016-01-06
-        meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
-        for line in lines:
-            m = re.match(r'^L:\s*(\d+)/(\d+)', line)
-            if m:
-                default_len = Fraction(int(m.group(1)), int(m.group(2)))
-            m = re.search(r'^{0}'.format(meter_pattern), line)
-            if m:
-                # 1.3.7 [JWdJ] 2016-01-06
-                if m.group(1) is not None:
-                    metre = Fraction(int(m.group(1)), int(m.group(2)))
-                elif m.group(3) == 'C':
-                    metre = Fraction(4, 4)
-                elif m.group(3) == 'C|':
-                    metre = Fraction(2, 2)
-            for m in re.finditer(r'\[{0}\]'.format(meter_pattern), line):
-                if m.group(1) is not None:
-                    metre = Fraction(int(m.group(1)), int(m.group(2)))
-                elif m.group(3) == 'C':
-                    metre = Fraction(4, 4)
-                elif m.group(3) == 'C|':
-                    metre = Fraction(2, 2)
-            for m in re.finditer(r'\[L:\s*(\d+)/(\d+)\]', line):
-                default_len = Fraction(int(m.group(1)), int(m.group(2)))
-        return metre, default_len
-
+        return AbcTune(abc).get_metre_and_default_length()
 
     def FixNoteDurations(self):
         # 1.3.6.2 [JWdJ] 2015-02
@@ -7350,7 +7127,7 @@ class MainFrame(wx.Frame):
             abc = re.sub(r'(?ms)(^%%begintext.*%%endtext.*?[\r\n]+)', '', abc)
             abc = re.sub(r'(?m)(^%%(EPS|text|multicol|center|sep|vskip|newpage).*[\r\n]*)', '', abc)
 
-            num_header_lines = len(re.findall(r'\r\n|\r|\n', abc))
+            num_header_lines = len(line_end_re.findall(abc))
 
             return (abc, num_header_lines)
         else:
@@ -7358,11 +7135,18 @@ class MainFrame(wx.Frame):
 
     def GetSelectedTune(self, add_file_header=True):
         selItem = self.tune_list.GetFirstSelected()
-        #print 'GetSelectedTune = ',selItem
         if selItem >= 0:
             return self.GetTune(selItem, add_file_header)
         else:
             return None
+
+    def GetSelectedTunes(self, add_file_header=True):
+        tunes = []
+        i = self.tune_list.GetFirstSelected()
+        while i >= 0:
+            tunes.append(self.GetTune(i, add_file_header))
+            i = self.tune_list.GetNextSelected(i)
+        return tunes
 
     def GetTune(self, listbox_index, add_file_header=True):
         index = self.tune_list.GetItemData(listbox_index)  # remap index in case items are sorted
@@ -7462,9 +7246,7 @@ class MainFrame(wx.Frame):
 
         self.tunes = tunes
 
-        if len(self.tunes) == 1 and self.tune_list.GetFirstSelected() == -1:
-            self.tune_list.Select(0)
-            self.OnTuneSelected(None)
+        self.SelectOnlyTuneIfTuneNotSelected()
 
         self.UpdateTuneListVisibility()
 
@@ -7483,12 +7265,13 @@ class MainFrame(wx.Frame):
 ##            self.manager.Update
 
     def OnTimer(self, evt):
-        #self.UpdateTuneList()
+        self.SelectOnlyTuneIfTuneNotSelected()
+        self.OnToolRefresh(None)
+
+    def SelectOnlyTuneIfTuneNotSelected(self):
         if len(self.tunes) == 1 and self.tune_list.GetFirstSelected() == -1:
-            #self.tune_list.SetSelection(0)
             self.tune_list.Select(0)
             self.OnTuneSelected(None)
-        self.OnToolRefresh(None)
 
     def GetTunes(self):
         n = self.editor.GetLineCount()
@@ -7595,9 +7378,10 @@ class MainFrame(wx.Frame):
         global execmessages, visible_abc_code
         info_messages = []
         # [SS] 2014-12-18
-        options = namedtuple ('Options', 'u m c d n b v x p j')                     # emulate the options object
+        options = namedtuple ('Options', 'u m c d n b v x p j t')                     # emulate the options object
         options.m = 0; options.j = 0; options.p = []; options.b = 0; options.d = 0  # unused options
         options.n = 0; options.v = 0; options.u = 0; options.c = 0; options.x = 0   # but all may be used if needed
+        options.t = 0
         if self.settings['xmlunfold']:
             options.u = 1
         if self.settings['xmlmidi']:

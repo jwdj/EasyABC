@@ -1,6 +1,7 @@
 from tune_elements import *
 import wx
 
+
 class AbcContext(object):
     def __init__(self, editor, settings, on_invalidate=None):
         self._editor = editor
@@ -23,8 +24,8 @@ class AbcContext(object):
             TuneScope.TuneUpToSelection: self.get_scope_tune_up_to_selection,
             TuneScope.LineUpToSelection: self.get_scope_line_up_to_selection,
             TuneScope.PreviousLine: self.get_scope_previous_line,
-            TuneScope.MatchText: self.get_empty_scope_info, # is determined elsewhere
-            TuneScope.InnerText: self.get_empty_scope_info, # is determined elsewhere
+            TuneScope.MatchText: self.get_empty_scope_info,  # is determined elsewhere
+            TuneScope.InnerText: self.get_empty_scope_info,  # is determined elsewhere
             TuneScope.PreviousCharacter: self.get_scope_previous_character,
             TuneScope.NextCharacter: self.get_scope_next_character,
         }
@@ -78,7 +79,7 @@ class AbcContext(object):
             if line.startswith('X:'):
                 end_found = True
             else:
-                end_found = not line.strip() # last empty line is also part of the body
+                end_found = not line.strip()  # last empty line is also part of the body
                 end_line_no += 1
         return end_line_no
 
@@ -103,6 +104,7 @@ class AbcContext(object):
             scope_info = self.get_empty_scope_info()
         self._tune_scope_info[TuneScope.MatchText] = scope_info
 
+        inner_scope_info = None
         if inner_match:
             match = inner_match.match
             self.inner_match = match
@@ -111,14 +113,13 @@ class AbcContext(object):
             offset += inner_match.offset
             inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
         elif match:
-            inner_scope_info = None
             try:
                 start = match.start('inner')
                 if start >= 0:
                     stop = match.end('inner')
                     inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
             except IndexError:
-                pass # no group named inner present
+                pass  # no group named inner present
         self._tune_scope_info[TuneScope.InnerText] = inner_scope_info
 
     @property
@@ -276,7 +277,8 @@ class AbcContext(object):
             end_pos = self._editor.PositionFromLine(self.body_end_line)
             return self.create_scope(start_pos, end_pos)
 
-    def get_empty_scope_info(self):
+    @staticmethod
+    def get_empty_scope_info():
         return TuneScopeInfo(None, None, None)
 
     def create_scope(self, start_pos, end_pos):
@@ -293,7 +295,7 @@ class AbcContext(object):
             selection_start, selection_end = self._editor.GetSelection()
             selection_end += relative_selection
             if selection_start > selection_end:
-               selection_start = selection_end
+                selection_start = selection_end
             self._editor.SetSelection(selection_start, selection_end)
 
     def replace_selection(self, text, selection_start=None, selection_end=None):
@@ -308,7 +310,7 @@ class AbcContext(object):
                 self._editor.SetSelectionEnd(selection_end)
 
             selection_start, selection_end = self._editor.GetSelection()
-            #selected_text = self._editor.GetTextRange(selection_start, selection_end)
+            # selected_text = self._editor.GetTextRange(selection_start, selection_end)
             i = 0
             # while i < len(selected_text) and i < len(text) and selected_text[-(1 + i)] == text[-(1 + i)]:
             #     i += 1
@@ -383,7 +385,7 @@ class AbcContext(object):
             result = default
         return result
 
-    def invalidate(self): # context has changed so is not valid anymore
+    def invalidate(self):  # context has changed so is not valid anymore
         self._tune_scope_info = {}
         self.current_element = None
         self._current_match = None

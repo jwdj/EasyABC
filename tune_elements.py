@@ -2,6 +2,7 @@ import re
 import os
 import io
 import urllib
+import urllib2
 import logging
 from collections import namedtuple
 from wx import GetTranslation as _
@@ -97,16 +98,16 @@ TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
 class ValueDescription(object):
-    def __init__(self, value, description, common=True, show_value=False, alternate_values=[]):
+    def __init__(self, value, description, common=True, show_value=False, alternate_values=None):
         super(ValueDescription, self).__init__()
         self.value = value
         self.description = description
         self.show_value = show_value
         self.common = common
-        self.alternate_values = alternate_values
+        self.alternate_values = alternate_values or []
 
 class CodeDescription(ValueDescription):
-    def __init__(self, value, description, common=True, alternate_values=[]):
+    def __init__(self, value, description, common=True, alternate_values=None):
         super(CodeDescription, self).__init__(value, description, common=common, show_value=True, alternate_values=alternate_values)
 
 class ValueImageDescription(ValueDescription):
@@ -320,7 +321,7 @@ def remove_named_groups(pattern):
     :param pattern: regular expression pattern
     :return: regular expression pattern where named groups are removed
     """
-    return re.sub(r'(?<=\(\?)P\<[^\>]+\>', ':', pattern)
+    return re.sub(r'(?<=\(\?)P<[^>]+>', ':', pattern)
 
 def replace_named_group(pattern, old_group, new_group=None):
     """
@@ -333,7 +334,17 @@ def replace_named_group(pattern, old_group, new_group=None):
         replace_value = ':'
     else:
         replace_value = 'P<{0}>'.format(new_group)
-    return re.sub(r'(?<=\(\?)P\<{0}>'.format(old_group), replace_value, pattern)
+    return re.sub(r'(?<=\(\?)P<{0}>'.format(old_group), replace_value, pattern)
+
+def get_html_from_url(url):
+    result = u''
+    try:
+        result = urllib2.urlopen(url).read()
+    except urllib2.HTTPError as ex:
+        pass
+    except urllib2.URLError as ex:
+        pass
+    return result
 
 
 class AbcElement(object):
@@ -421,17 +432,6 @@ class AbcElement(object):
     def get_description_url(self, context):
         return None
 
-    @staticmethod
-    def get_html_from_url(url):
-        result = u''
-        try:
-            result = urllib2.urlopen(url).read()
-        except urllib2.HTTPError as ex:
-            pass
-        except urllib2.URLError as ex:
-            pass
-        return result
-
     def get_header_text(self, context):
         return self.__display_name
 
@@ -442,7 +442,7 @@ class AbcElement(object):
         result = None
         url = self.get_description_url(context)
         if url:
-            result = self.get_html_from_url(url)
+            result = get_html_from_url(url)
         if not result:
             result = u'<h1>%s</h1>' % escape(self.get_header_text(context))
             description = self.get_description_text(context)
@@ -600,11 +600,11 @@ class Abcm2psDirective(AbcElement):
             Abcm2psDirective.table_replacement
         ]
 
-    def get_description_url(self):
+    def get_description_url(self, context):
         return 'http://moinejf.free.fr/abcm2ps-doc/%s.xhtml' % urllib.quote(self.name)
 
     def get_html_from_url(self, url):
-        result = super(Abcm2psDirective, self).get_html_from_url(url)
+        result = get_html_from_url(url)
         result = replace_text(result, self.html_replacements)
         return result
 

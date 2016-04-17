@@ -492,3 +492,13 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Note selection bug on OSX fixed
 - 'Add bar' type assist now has option automatic
 - when switching tune the first page of that tune is selected
+
+1.3.7.3
+- Fixed error when importing MusicXML-files
+- Multiple tunes can now be selected to print or export
+- Fixed printing pages (score was too small with newer versions of abcm2ps)
+- Automatic bars are now placed only when length of measure exactly matches metre (used to be greater or equal)
+- Fixed: When double-clicking the play button the tune was paused. Now it starts loop-mode as it should
+- Added loop checkbox to toolbar so looping of a tune can be switched on or off during play
+- Path selected for format-file is used when using the browse button.
+

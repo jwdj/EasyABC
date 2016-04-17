@@ -2,7 +2,7 @@
 # coding=latin-1
 '''
 Copyright (C) 2012: W.G. Vree
-Contributions: M. Tarenskeen, N. Liberg, Paul Villiger
+Contributions: M. Tarenskeen, N. Liberg, Paul Villiger, Janus Meuris
 
 This program is free software; you can redistribute it and/or modify it under the terms of the
 GNU General Public License as published by the Free Software Foundation; either version 2 of
@@ -17,7 +17,7 @@ try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import os, sys, types, re
 
-VERSION = 60
+VERSION = 62
 
 python3 = sys.version_info.major > 2
 if python3:
@@ -166,7 +166,7 @@ class Music:
     def appendNote (s, v, note, noot):
         note.ns.append (noot)
         s.appendObj (v, note, int (note.dur))
-        if noot != 'z':             # real notes and grace notes
+        if noot != 'z' and noot != 'x':         # real notes and grace notes
             s.lastnote = note       # remember last note for later modifications (chord, grace)
             s.cnt.inc ('note', v)   # count number of real notes in each voice
             if not note.grace:                  # for every real note
@@ -686,7 +686,7 @@ def getMelisma (maat):                  # get melisma from notes in maat
     for note in maat:                   # every note should get an underscore
         if not isinstance (note, Note): continue    # skip Elem's
         if note.grace: continue         # skip grace notes
-        if note.ns [0] == 'z': break    # stop on first rest
+        if note.ns [0] in 'zx': break   # stop on first rest
         ms.append ('_')
     return ' '.join (ms)
 
@@ -761,9 +761,10 @@ class Parser:
         acc = note.findtext ('accidental')  # should be the notated accidental
         alt = note.findtext ('pitch/alter') # pitch alteration (midi)
         if alt == None and s.msralts.get (ptc, 0): alt = 0  # no alt but key implies alt -> natural!!
+        if alt == None and (p, v) in s.curalts: alt = 0     # no alt but previous note had one -> natural!!
         if acc == None and alt == None: return p    # no acc, no alt
         elif acc != None:
-            alt = acc2alt [acc]
+            alt = acc2alt [acc]      # acc takes precedence over the pitch here!
         else:   # now see if we really must add an accidental
             alt = int (alt)
             if (p, v) in s.curalts:  # the note in this voice has been altered before
@@ -810,7 +811,7 @@ class Parser:
             o, p = 5,'E'                    # make it an E5 ??
         nttn = n.find ('notations')     # add ornaments
         if nttn != None: s.doNotations (note, nttn)
-        if r != None: noot = 'z'
+        if r != None: noot = 'x' if n.get ('print-object') == 'no' else 'z'
         else: noot = s.ntAbc (p, int (o), n, v)
         if n.find ('unpitched') != None:
             clef = s.curClef [s.curStf [v]]     # the current clef for this voice
@@ -919,13 +920,13 @@ class Parser:
                     else:                   x = '!>)!'
                 else: raise ValueError ('wrong wedge type')
                 s.msc.appendElem (vs, x)        # to first voice
-            txt = dirtyp.findtext ('words')     # insert text annotations
-            if txt:
+            wrds = dirtyp.find ('words')     # insert text annotations
+            if wrds != None:
                 plc = plcmnt == 'below' and '_' or '^'
-                if int (e.get ('default-y', '0')) < 0: plc = '_'
-                txt = txt.replace ('"','\\"').replace ('\n', ' ')
+                if float (wrds.get ('default-y', '0')) < 0: plc = '_'
+                txt = (wrds.text or '').replace ('"','\\"').replace ('\n', ' ')
                 if s.jscript: txt = txt.strip ()
-                s.msc.appendElem (vs, '"%s%s"' % (plc, txt)) # to first voice
+                if txt: s.msc.appendElem (vs, '"%s%s"' % (plc, txt)) # to first voice
             for key, val in dynamics_map.items ():
                 if dirtyp.find ('dynamics/' + key) != None:
                     s.msc.appendElem (vs, val)  # to first voice
@@ -1022,6 +1023,8 @@ class Parser:
                     composer += [line.strip () for line in creator.text.split ('\n')]
                 elif creator.get ('type') in ('lyricist', 'transcriber'):
                     lyricist += [line.strip () for line in creator.text.split ('\n')]
+        for rights in e.findall ('identification/rights'):
+            lyricist += [line.strip () for line in rights.text.split ('\n')]
         for credit in e.findall('credit'):
             cs = ''.join (e.text or '' for e in credit.findall('credit-words'))
             credits += [re.sub (r'\s*[\r\n]\s*', ' ', cs)]
