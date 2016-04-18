@@ -204,20 +204,19 @@ class SvgPage(object):
                 last_e_use = []
             else:
                 svg_element = SvgElement(name, attributes, children)
+                element_id = element.attrib.get('id')
+                if element_id:
+                    self.id_to_element[element_id] = svg_element
                 if name == 'text':
                     # 1.3.6.3 [JWDJ] 2015-3 fixes !sfz! (z in sfz was missing)
                     text = u''.join(element.itertext())
                     text = text.replace('\n', '')
                     ##text = text.replace('(= )show ', ' = ')  # Temporary work-around for abcm2ps6.3.3 bug
                     svg_element.attributes['text'] = text
-                else:
-                    element_id = element.attrib.get('id')
-                    if element_id:
-                        self.id_to_element[element_id] = svg_element
-                    elif name == 'use': # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
-                        href = element.get(href_tag)
-                        if href not in ['#hl', '#hl1', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
-                            last_e_use.append(svg_element)
+                elif name == 'use': # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
+                    href = element.get(href_tag)
+                    if href not in ['#hl', '#hl1', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
+                        last_e_use.append(svg_element)
                 result.append(svg_element)
         return result
 
