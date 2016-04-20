@@ -291,6 +291,18 @@ class SvgRenderer(object):
         else:
             self.transform_point = self.transform_point_normal
 
+    def destroy(self):
+        if self.renderer:
+            self.renderer = None # do not destroy!
+            self.path_cache = None
+            self.fill_cache = None
+            self.stroke_cache = None
+            self.transform_cache = None
+        if self.buffer:
+            self.buffer.Destroy()
+            self.buffer = None
+        self.default_transform = None
+
     def update_buffer(self, page):
         width, height = max(self.min_width, page.svg_width * self.zoom), \
                         max(self.min_height, page.svg_height * self.zoom + 100)

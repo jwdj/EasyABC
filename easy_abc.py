@@ -1766,7 +1766,6 @@ class MusicPrintout(wx.Printout):
         self.svg_files = svg_files
         self.zoom = zoom
         self.painted_on_screen = painted_on_screen
-        self.renderer = SvgRenderer(self.can_draw_sharps_and_flats)
 
     def HasPage(self, page):
         return page <= len(self.svg_files)
@@ -1787,54 +1786,57 @@ class MusicPrintout(wx.Printout):
         #new versions of abcm2ps adds a suffix 'in' to width and height
         #new versions of abcm2ps adds a suffix 'px' to width and height
         # 1.3.7.3 [JWDJ] use svg renderer to calculate width and height
-        page = self.renderer.svg_to_page(svg)
+        renderer = SvgRenderer(self.can_draw_sharps_and_flats)
+        try:
+            page = renderer.svg_to_page(svg)
 
-        width = page.svg_width
-        height = page.svg_height
+            width = page.svg_width
+            height = page.svg_height
 
-        maxX = width
-        maxY = height
+            maxX = width
+            maxY = height
 
-        # Let's have at least 0 device units margin
-        marginX = 0
-        marginY = 0
+            # Let's have at least 0 device units margin
+            marginX = 0
+            marginY = 0
 
-        # Add the margin to the graphic size
-        maxX += 2 * marginX
-        maxY += 2 * marginY
+            # Add the margin to the graphic size
+            maxX += 2 * marginX
+            maxY += 2 * marginY
 
-        # Get the size of the DC in pixels
-        (w, h) = dc.GetSizeTuple()
+            # Get the size of the DC in pixels
+            (w, h) = dc.GetSizeTuple()
 
-        # Calculate a suitable scaling factor
-        scaleX = float(w) / maxX
-        scaleY = float(h) / maxY
+            # Calculate a suitable scaling factor
+            scaleX = float(w) / maxX
+            scaleY = float(h) / maxY
 
-        # Use x or y scaling factor, whichever fits on the DC
-        actualScale = min(scaleX, scaleY)
+            # Use x or y scaling factor, whichever fits on the DC
+            actualScale = min(scaleX, scaleY)
 
-        # Calculate the position on the DC for centering the graphic
-        posX = (w - (width * actualScale)) / 2.0
-        #posY = (h - (height * actualScale)) / 2.0
-        posY = 0
+            # Calculate the position on the DC for centering the graphic
+            posX = (w - (width * actualScale)) / 2.0
+            #posY = (h - (height * actualScale)) / 2.0
+            posY = 0
 
-        # Set the scale and origin
-        dc.SetUserScale(actualScale, actualScale)
-        dc.SetDeviceOrigin(int(posX), int(posY))
+            # Set the scale and origin
+            dc.SetUserScale(actualScale, actualScale)
+            dc.SetDeviceOrigin(int(posX), int(posY))
 
-        #-------------------------------------------
-        if wx.Platform in ("__WXMSW__", "__WXMAC__") and (not self.painted_on_screen or True):
-            # special case for windows since it doesn't support creating a GraphicsContext from a PrinterDC:
-            dc.SetUserScale(actualScale/self.zoom, actualScale/self.zoom)
-            self.renderer.zoom = self.zoom
-            self.renderer.update_buffer(page)
-            self.renderer.draw(page)
-            dc.DrawBitmap(self.renderer.buffer, 0, 0)
-        else:
-            self.renderer.zoom = 1.0
-            self.renderer.update_buffer(page)
-            self.renderer.draw(page, dc=dc)
-
+            #-------------------------------------------
+            if wx.Platform in ("__WXMSW__", "__WXMAC__") and (not self.painted_on_screen or True):
+                # special case for windows since it doesn't support creating a GraphicsContext from a PrinterDC:
+                dc.SetUserScale(actualScale/self.zoom, actualScale/self.zoom)
+                renderer.zoom = self.zoom
+                renderer.update_buffer(page)
+                renderer.draw(page)
+                dc.DrawBitmap(renderer.buffer, 0, 0)
+            else:
+                renderer.zoom = 1.0
+                renderer.update_buffer(page)
+                renderer.draw(page, dc=dc)
+        finally:
+            renderer.destroy()
         return True
 
 class MusicUpdateDoneEvent(wx.PyCommandEvent):
@@ -4041,6 +4043,11 @@ class MainFrame(wx.Frame):
         # 1.3.6.3 [SS] 2015-05-04
         self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
         execmessages = _('You are running {0} on {1}\nYou can get the latest version on http://sourceforge.net/projects/easyabc/\n'.format(program_name, wx.Platform))
+
+    def Destroy(self):
+        self.renderer.destroy()
+        self.renderer = None
+        super(MainFrame, self).Destroy()
 
     # 1.3.6.2 [JWdJ] 2015-02
     @property
