@@ -398,7 +398,7 @@ class AbcElement(object):
         text = context.get_scope_info(self.tune_scope).text
         p1, p2 = context.get_selection_within_scope(self.tune_scope)
 
-        if p1 == p2 and p1 > 0 and text[p1 - 1] not in ' \r\n\t':
+        if p1 == p2 and 0 < p1 <= len(text) and text[p1 - 1] not in ' \r\n\t':
             p1 -= 1
             for m in regex.finditer(text):
                 if m.start() <= p1 < m.end():
@@ -406,7 +406,7 @@ class AbcElement(object):
                     break
         else:
             if p1 > len(text):
-                print u'Selection past length: {0} {1} {2}'.format(p1, len(text), text)
+                print(u'Selection ({0}) past length ({1})'.format(p1, len(text)))
             for m in regex.finditer(text):
                 if m.start() <= p1 <= p2 <= m.end():
                     result = m

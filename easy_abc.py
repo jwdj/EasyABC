@@ -1,6 +1,8 @@
 #!/usr/bin/python2.7
 #
-program_name = 'EasyABC 1.3.7.3 2016-04-16'
+
+program_name = 'EasyABC 1.3.7.3 2016-05-05'
+
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
 #
@@ -335,6 +337,19 @@ program_name = 'EasyABC 1.3.7.3 2016-04-16'
 #class MyApp()
 #   CheckCanDrawSharpFlat(), NewMainFrame(), UnRegisterFrame(),
 #   GetAllFrames(), MacOpenFile(), OnInit(),
+
+
+# # for finding memory leaks uncomment following two lines
+# import gc
+# gc.set_debug(gc.DEBUG_LEAK)
+#
+# # for finding segmentation fault or bus error (pip install faulthandler)
+# try:
+#     import faulthandler  # pip install faulthandler
+#     faulthandler.enable()
+# except ImportError:
+#     print('faulthandler not installed. Try: pip install faulthandler')
+#     pass
 
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
@@ -1776,13 +1791,13 @@ class MusicPrintout(wx.Printout):
         fromPage, toPage = minPage, maxPage
         return (minPage,maxPage,fromPage,toPage)
 
-    def OnPrintPage(self, page):
+    def OnPrintPage(self, page_no):
         dc = self.GetDC()
 
         #-------------------------------------------
         # One possible method of setting scaling factors...
 
-        svg = open(self.svg_files[page-1], 'rb').read()
+        svg = open(self.svg_files[page_no-1], 'rb').read()
         #new versions of abcm2ps adds a suffix 'in' to width and height
         #new versions of abcm2ps adds a suffix 'px' to width and height
         # 1.3.7.3 [JWDJ] use svg renderer to calculate width and height
@@ -3982,10 +3997,11 @@ class MainFrame(wx.Frame):
         self.index = 1
         self.tunes = []
         self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.OnTimer)
+        self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
         self.timer.Start(2000, wx.TIMER_CONTINUOUS)
 
         self.tune_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnTuneSelected)
+        self.tune_list.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnTuneDeselected)
         self.tune_list.Bind(wx.EVT_LEFT_DCLICK, self.OnTuneDoubleClicked)
         self.tune_list.Bind(wx.EVT_LEFT_DOWN, self.OnTuneListClick)
         self.editor.Bind(stc.EVT_STC_STYLENEEDED, self.styler.OnStyleNeeded)
@@ -4026,9 +4042,9 @@ class MainFrame(wx.Frame):
         self.UpdateTuneList()
         self.UpdateTuneListVisibility(True)
 
-        self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.OnPlayTimer)
-        self.timer.Start(150)
+        self.play_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.OnPlayTimer, self.play_timer)
+        self.play_timer.Start(150)
         self.music_update_thread.start()
 
         self.editor.SetFocus()
@@ -4352,6 +4368,7 @@ class MainFrame(wx.Frame):
     def play_again(self):
         if not self.is_playing():
             self.mc.Seek(0)
+            self.update_playback_rate()
             self.mc.Play()
 
     def stop_playing(self):
@@ -4418,27 +4435,28 @@ class MainFrame(wx.Frame):
         def play():
             # if wx.Platform == "__WXMAC__":
             #    time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
-            #self.mc.Seek(self.play_start_offset, wx.FromStart)
+            # self.mc.Seek(self.play_start_offset, wx.FromStart)
             self.play_button.SetBitmap(self.pause_bitmap)
             self.media_slider.SetRange(0, self.mc.Length())
             self.media_slider.SetValue(0)
             self.OnBpmSlider(None)
-            if wx.Platform == "__WXMAC__":
-                self.mc.Seek(0) # When using wx.media.MEDIABACKEND_QUICKTIME the music starts playing too early (when loading a file)
-            self.play()
             self.update_playback_rate()
+            if wx.Platform == "__WXMAC__":
+                self.mc.Seek(0)  # When using wx.media.MEDIABACKEND_QUICKTIME the music starts playing too early (when loading a file)
+                time.sleep(0.5)  # hopefully this fixes the first notes not being played
+            self.play()
 
         wx.CallAfter(play)
 
     def OnMediaStop(self, evt):
-        #if media is finished but playback as a loop was used relaunch the playback immediatly
-        #and prevent media of being stop (event is vetoed as explained in MediaCtrl documentation)
+        # if media is finished but playback as a loop was used relaunch the playback immediatly
+        # and prevent media of being stop (event is vetoed as explained in MediaCtrl documentation)
         if self.mc and self.loop_midi_playback:
             self.play_again()
             evt.Veto()
 
     def OnMediaFinished(self, evt):
-        #if media is finished but playback as a loop was used relaunch the playback immediatly
+        # if media is finished but playback as a loop was used relaunch the playback immediatly
         # (OnMediaStop should already have restarted it if required as event STOP arrive before FINISHED)
         if self.mc:
             if self.loop_midi_playback:
@@ -4494,13 +4512,9 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def OnPlayTimer(self, evt):
-        if not self.is_closed and self.mc and self.is_playing():
+        if not self.is_closed and self.media_slider.Parent.Shown and self.mc: # and self.is_playing():
             offset = self.mc.Tell()
             self.media_slider.SetValue(offset)
-            #if self.mc.GetState() == wx.media.MEDIASTATE_PLAYING and offset > self.play_end_offset + 300:
-            #    self.mc.Stop()
-            #if offset <= 0 and not self.is_playing() and self.loop_midi_playback:
-            #    self.play_again()
 
     def OnRecordBpmSelected(self, evt):
         for item in self.bpm_menu.GetMenuItems():
@@ -7175,6 +7189,11 @@ class MainFrame(wx.Frame):
         self.OnToolPlay(evt)
         evt.Skip()
 
+    def OnTuneDeselected(self, evt):
+        selected = self.tune_list.GetFirstSelected()
+        if selected >= 0 and self.tune_list.GetNextSelected(selected) < 0:
+            self.OnTuneSelected(evt)
+
     def OnTuneSelected(self, evt):
         global execmessages # [SS] 1.3.6 2014-11-11
         #print 'evt = '+ str(evt) + '  ' + str(self.tune_list.GetFirstSelected())
@@ -7182,7 +7201,7 @@ class MainFrame(wx.Frame):
         #self.execmessage_time set by OnDropFile(self, filename)
 
         # 1.3.6.4 [SS] 2015-06-11 -- to maintain consistency for different media players
-        self.reset_BpmSlider()
+        # self.reset_BpmSlider()
 
         dt = datetime.now() - self.execmessage_time # 1.3.6 [SS] 2014-12-11
         dtime = dt.seconds*1000 + dt.microseconds/1000

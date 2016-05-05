@@ -41,106 +41,122 @@ class ABCStyler:
             self.styling_startpos = pos+1
 
     def OnStyleNeeded(self, event):        
-        start = self.e.GetEndStyled()    # this is the first character that needs styling
+        STYLE_DEFAULT = self.STYLE_DEFAULT
+        STYLE_COMMENT_NORMAL = self.STYLE_COMMENT_NORMAL
+        STYLE_COMMENT_SPECIAL = self.STYLE_COMMENT_SPECIAL
+        STYLE_GRACE = self.STYLE_GRACE
+        STYLE_FIELD = self.STYLE_FIELD
+        STYLE_FIELD_VALUE = self.STYLE_FIELD_VALUE
+        STYLE_FIELD_INDEX = self.STYLE_FIELD_INDEX
+        STYLE_EMBEDDED_FIELD = self.STYLE_EMBEDDED_FIELD
+        STYLE_EMBEDDED_FIELD_VALUE = self.STYLE_EMBEDDED_FIELD_VALUE
+        STYLE_BAR = self.STYLE_BAR
+        STYLE_STRING = self.STYLE_STRING
+        STYLE_ORNAMENT_EXCL = self.STYLE_ORNAMENT_EXCL
+        STYLE_ORNAMENT_PLUS = self.STYLE_ORNAMENT_PLUS
+        STYLE_ORNAMENT = self.STYLE_ORNAMENT
+        STYLE_LYRICS = self.STYLE_LYRICS
+        editor = self.e
+        color_to = self.ColorTo
+        get_char_at = editor.GetCharAt
+        start = editor.GetEndStyled()    # this is the first character that needs styling
         end = event.GetPosition()        # this is the last character that needs styling        
-        start = self.e.PositionFromLine(self.e.LineFromPosition(start))
-        state = self.e.GetStyleAt(start-1)  # init style
-        if start >= 0:
-            if chr(self.e.GetCharAt(start-1)) == '}':
-                state = self.STYLE_DEFAULT
+        start = editor.PositionFromLine(editor.LineFromPosition(start))
+        state = editor.GetStyleAt(start-1)  # init style
         lengthDoc = end + 1
-
         self.styling_startpos = start
-        self.e.StartStyling(start, 31)   # only style the text style bits
+        editor.StartStyling(start, 31)   # only style the text style bits
         i = start
-        ch = chr(self.e.GetCharAt(i))
-        chNext = chr(self.e.GetCharAt(i+1))
-        chPrev = chr(self.e.GetCharAt(i-1))
+        ch = chr(get_char_at(i))
+        chNext = chr(get_char_at(i+1))
+        chPrev = chr(get_char_at(i-1))
+        if chPrev == '}':
+            state = STYLE_DEFAULT  # why?
         while i <= lengthDoc:
             advance = True
-            if state == self.STYLE_DEFAULT:
+            if state == STYLE_DEFAULT:
                 if (ch == '|' or (ch == ':' and chNext in '|:')) or (ch == '[' and chNext in '1234'):
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_BAR
-                elif chPrev in '\r\n[\x00' and ch in 'ABCDEFGHIJKLMNOPQRSTUVWwXYZ' and chNext == ':':
-                    self.ColorTo(i-1, state)                    
+                    color_to(i-1, state)
+                    state = STYLE_BAR
+                elif chPrev in '\r\n[\x00' and ch in 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ' and chNext == ':':
+                    color_to(i-1, state)
                     if ch == 'X':
-                        state = self.STYLE_FIELD_INDEX
+                        state = STYLE_FIELD_INDEX
                     elif chPrev in '\r\n' and ch in ('w', 'W'):
-                        state = self.STYLE_LYRICS                        
+                        state = STYLE_LYRICS
                     elif chPrev in '\r\n':
-                        state = self.STYLE_FIELD
+                        state = STYLE_FIELD
                     elif chNext != '[':
-                        state = self.STYLE_EMBEDDED_FIELD   # field on the [M:3/4] form                    
+                        state = STYLE_EMBEDDED_FIELD   # field on the [M:3/4] form
                     else:
-                        state = self.STYLE_DEFAULT
+                        state = STYLE_DEFAULT
                 elif ch == '!':
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_ORNAMENT_EXCL
+                    color_to(i-1, state)
+                    state = STYLE_ORNAMENT_EXCL
                 elif ch == '+':
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_ORNAMENT_PLUS
-                elif ord('h') <= ord(ch.lower()) <= ord('x'): ## ch in 'uvTHLMPSO':
-                    self.ColorTo(i-1, state)
-                    self.ColorTo(i, self.STYLE_ORNAMENT)
-                    state = self.STYLE_DEFAULT
+                    color_to(i-1, state)
+                    state = STYLE_ORNAMENT_PLUS
                 elif ch == '%' and chNext != '%':
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_COMMENT_NORMAL                    
+                    color_to(i-1, state)
+                    state = STYLE_COMMENT_NORMAL
                 elif ch == '%' and chNext == '%':
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_COMMENT_SPECIAL
+                    color_to(i-1, state)
+                    state = STYLE_COMMENT_SPECIAL
                 elif ch == '"':
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_STRING
+                    color_to(i-1, state)
+                    state = STYLE_STRING
                 elif ch == '{':
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_GRACE
-            elif state == self.STYLE_BAR:
+                    color_to(i-1, state)
+                    state = STYLE_GRACE
+                elif ch in 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~':
+                    color_to(i-1, state)
+                    color_to(i, STYLE_ORNAMENT)
+                    state = STYLE_DEFAULT
+            elif state == STYLE_BAR:
                 if ch not in '|[]:1234':
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_DEFAULT
+                    color_to(i-1, state)
+                    state = STYLE_DEFAULT
                     advance = False
-            elif state in [self.STYLE_FIELD, self.STYLE_EMBEDDED_FIELD, self.STYLE_FIELD_INDEX, self.STYLE_FIELD_VALUE, self.STYLE_EMBEDDED_FIELD_VALUE, self.STYLE_COMMENT_NORMAL, self.STYLE_COMMENT_SPECIAL]:
+            elif state in [STYLE_FIELD, STYLE_EMBEDDED_FIELD, STYLE_FIELD_INDEX, STYLE_FIELD_VALUE, STYLE_EMBEDDED_FIELD_VALUE, STYLE_COMMENT_NORMAL, STYLE_COMMENT_SPECIAL]:
 #Do not check for ] in other case thant STYLE EMBEDDED to avoid going in default style if used in comments or commands like %%staves/%%scores
-#                if ch in '\r\n]' or (state == self.STYLE_EMBEDDED_FIELD_VALUE and ch == ']'):
-                if ch in '\r\n' or (state == self.STYLE_EMBEDDED_FIELD_VALUE and ch == ']'):
-                    self.ColorTo(i-1, state)
-                    state = self.STYLE_DEFAULT
-                    self.ColorTo(i, state)
-                elif state == self.STYLE_FIELD and ch == ':':
-                    self.ColorTo(i, state)
-                    state = self.STYLE_FIELD_VALUE
-                elif state == self.STYLE_EMBEDDED_FIELD and ch == ':':
-                    self.ColorTo(i, state)
-                    state = self.STYLE_EMBEDDED_FIELD_VALUE
-                #elif state == self.STYLE_EMBEDDED_FIELD_VALUE and ch == ']':
-                #    self.ColorTo(i, state)
-                #    state = self.STYLE_DEFAULT
-                    
-            elif state == self.STYLE_STRING:
+#                if ch in '\r\n]' or (state == STYLE_EMBEDDED_FIELD_VALUE and ch == ']'):
+                if ch in '\r\n' or (state == STYLE_EMBEDDED_FIELD_VALUE and ch == ']'):
+                    color_to(i-1, state)
+                    state = STYLE_DEFAULT
+                    color_to(i, state)
+                elif state == STYLE_FIELD and ch == ':':
+                    color_to(i, state)
+                    state = STYLE_FIELD_VALUE
+                elif state == STYLE_EMBEDDED_FIELD and ch == ':':
+                    color_to(i, state)
+                    state = STYLE_EMBEDDED_FIELD_VALUE
+                #elif state == STYLE_EMBEDDED_FIELD_VALUE and ch == ']':
+                #    color_to(i, state)
+                #    state = STYLE_DEFAULT
+
+            elif state == STYLE_STRING:
                 if ch == '"' and chPrev != '\\' or ch in '\r\n':
-                    self.ColorTo(i, state)
-                    state = self.STYLE_DEFAULT
-            elif state == self.STYLE_LYRICS:
+                    color_to(i, state)
+                    state = STYLE_DEFAULT
+            elif state == STYLE_LYRICS:
                 if ch in '\r\n':
-                    self.ColorTo(i, state)
-                    state = self.STYLE_DEFAULT
-            elif state == self.STYLE_GRACE:
+                    color_to(i, state)
+                    state = STYLE_DEFAULT
+            elif state == STYLE_GRACE:
                 if ch == '}':
-                    self.ColorTo(i, state)
-                    state = self.STYLE_DEFAULT
-            elif state == self.STYLE_ORNAMENT_EXCL:
+                    color_to(i, state)
+                    state = STYLE_DEFAULT
+            elif state == STYLE_ORNAMENT_EXCL:
                 if ch in '!\r\n':
-                    self.ColorTo(i, state)
-                    state = self.STYLE_DEFAULT                
-            elif state == self.STYLE_ORNAMENT_PLUS:
+                    color_to(i, state)
+                    state = STYLE_DEFAULT
+            elif state == STYLE_ORNAMENT_PLUS:
                 if ch in '+\r\n':
-                    self.ColorTo(i, state)
-                    state = self.STYLE_DEFAULT
+                    color_to(i, state)
+                    state = STYLE_DEFAULT
 #force to go back to STYLE_DEFAULT if in none of the previous case
             else:
-                state = self.STYLE_DEFAULT
+                state = STYLE_DEFAULT
 
 #go back to default style if next character is \r\n (to avoid some strange syntax highlighting whith lyrics at least on mac version)
             if chNext in '\r\n':
@@ -151,6 +167,6 @@ class ABCStyler:
                 i += 1
                 chPrev = ch
                 ch = chNext
-                chNext = chr(self.e.GetCharAt(i+1))
+                chNext = chr(get_char_at(i+1))
 
-        self.ColorTo(end, state)
+        color_to(end, state)
