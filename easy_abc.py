@@ -7292,7 +7292,7 @@ class MainFrame(wx.Frame):
 
     def OnTimer(self, evt):
         self.SelectOnlyTuneIfTuneNotSelected()
-        self.OnToolRefresh(None)
+        # self.OnToolRefresh(None)
 
     def SelectOnlyTuneIfTuneNotSelected(self):
         if len(self.tunes) == 1 and self.tune_list.GetFirstSelected() == -1:
