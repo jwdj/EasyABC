@@ -50,23 +50,40 @@ class ABCStyler:
         STYLE_LYRICS = self.STYLE_LYRICS
         editor = self.e
         get_char_at = editor.GetCharAt
+        get_text_range = editor.GetTextRangeRaw
         set_styling = editor.SetStyling
         start = editor.GetEndStyled()    # this is the first character that needs styling
         end = event.GetPosition()        # this is the last character that needs styling        
         line_start = editor.LineFromPosition(start)
         start = editor.PositionFromLine(line_start)
         state = editor.GetStyleAt(start-1)  # init style
-        lengthDoc = end + 1
+        text_length = editor.GetTextLength()
+        old_state = state
         editor.StartStyling(start, 31)   # only style the text style bits
+        buffer_size = min(1024, end-start)
         i = start
-        ch = chr(get_char_at(i))
-        chNext = chr(get_char_at(i+1))
         chPrev = chr(get_char_at(i-1))
+        ch = chr(get_char_at(i))
+
+        next_buffer = get_text_range(i+1, min(i+1 + buffer_size, text_length))
+        buffer_pos = 0
+
         char_count = 0
-        if chPrev == '}':
-            state = STYLE_DEFAULT  # why?
-        while i <= lengthDoc:
-            old_state = state
+        for i in xrange(i, end):
+            # chNext = chr(get_char_at(i+1))
+            try:
+                chNext = next_buffer[buffer_pos]
+                buffer_pos += 1
+            except IndexError:
+                next_buffer = get_text_range(i+1, min(i+1 + buffer_size, text_length))
+                buffer_pos = 0
+                try:
+                    chNext = next_buffer[buffer_pos]
+                    buffer_pos += 1
+                except IndexError:
+                    chNext = '\x00' # reached end of text
+
+            next_state = state
 
             if state == STYLE_BAR:
                 if ch not in '|[]:1234':
@@ -75,20 +92,17 @@ class ABCStyler:
             if ch in '\r\n':  # go back to default style if next character is \r\n (to avoid some strange syntax highlighting whith lyrics at least on mac version)
                 state = STYLE_DEFAULT
             elif state == STYLE_DEFAULT:
-                if (ch == '|' or (ch == ':' and chNext in '|:')) or (ch == '[' and chNext in '1234'):
-                    state = STYLE_BAR
-                elif chPrev in '\r\n[\x00' and ch in 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ' and chNext == ':':
-                    if ch == 'X':
-                        state = STYLE_FIELD_INDEX
-                    elif chPrev in '\r\n':
-                        if ch in ('w', 'W'):
-                            state = STYLE_LYRICS
-                        else:
-                            state = STYLE_FIELD
-                    elif chNext != '[':
+                if chPrev in '\r\n[\x00' and ch in 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ' and chNext == ':':
+                    if chPrev == '[':
                         state = STYLE_EMBEDDED_FIELD   # field on the [M:3/4] form
+                    elif ch in ('w', 'W'):
+                        state = STYLE_LYRICS
+                    elif ch == 'X':
+                        state = STYLE_FIELD_INDEX
                     else:
-                        state = STYLE_DEFAULT
+                        state = STYLE_FIELD
+                elif (ch == '|' or (ch == ':' and chNext in '|:')) or (ch == '[' and chNext in '1234'):
+                    state = STYLE_BAR
                 elif ch == '!':
                     state = STYLE_ORNAMENT_EXCL
                 elif ch == '+':
@@ -113,34 +127,36 @@ class ABCStyler:
                     state = STYLE_DEFAULT
             elif state == STYLE_FIELD:
                 if ch == ':':
-                    state = STYLE_FIELD_VALUE
+                    next_state = STYLE_FIELD_VALUE
             elif state == STYLE_EMBEDDED_FIELD:
                 if ch == ':':
-                    state = STYLE_EMBEDDED_FIELD_VALUE
+                    next_state = STYLE_EMBEDDED_FIELD_VALUE
             elif state == STYLE_STRING:
                 if ch == '"' and chPrev != '\\':
-                    state = STYLE_DEFAULT
+                    next_state = STYLE_DEFAULT
             elif state == STYLE_GRACE:
                 if ch == '}':
-                    state = STYLE_DEFAULT
+                    next_state = STYLE_DEFAULT
             elif state == STYLE_ORNAMENT_EXCL:
                 if ch == '!':
-                    state = STYLE_DEFAULT
+                    next_state = STYLE_DEFAULT
             elif state == STYLE_ORNAMENT_PLUS:
                 if ch == '+':
-                    state = STYLE_DEFAULT
+                    next_state = STYLE_DEFAULT
             #elif state not in [STYLE_LYRICS, STYLE_BAR, STYLE_COMMENT_NORMAL, STYLE_COMMENT_SPECIAL, STYLE_FIELD_INDEX]:
             #    state = STYLE_DEFAULT  # force to go back to STYLE_DEFAULT if in none of the previous case
 
             if old_state != state: # and char_count > 0:
                 set_styling(char_count, old_state)
                 char_count = 0
+                old_state = state
+                next_state = state
 
             char_count += 1
-            i += 1
             chPrev = ch
             ch = chNext
-            chNext = chr(get_char_at(i+1))
+
+            state = next_state
 
         if char_count > 0:
             set_styling(char_count, old_state)

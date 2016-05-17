@@ -276,7 +276,7 @@ program_name = 'EasyABC 1.3.7.3 2016-05-05'
 #   OnMediaStop(), OnMediaFinished(), OnToolRecord(),
 #   OnToolStop(), OnSeek(), OnZoomSlider(), OnPlayTimer(),
 #   OnRecordBpmSelected(), OnRecordMetreSelected(), flip_toolbar(),
-#   setup_toolbar(), OnViewRythm(), OnRecordStop(), OnDoReMiModeChange(),
+#   setup_toolbar(), OnRecordStop(), OnDoReMiModeChange(),
 #   generate_incipits_abc(), OnGenerateIncipits(), OnViewIncipits()
 #   OnSortTunes(), OnRenumberTunes(), OnSearchDirectories(),
 #   OnUploadTune(), OnGetFileNameForTune(), OnExportMidi(),
@@ -310,7 +310,7 @@ program_name = 'EasyABC 1.3.7.3 2016-05-05'
 #   FixNoteDurations(), AddTextWithUndo(), OnKeyDownEvent(),
 #   StartKeyboardInputMode(), OnEditorMouseRelease(),
 #   OnPosChanged(), OnModified(), AutomaticUpdate(),
-#   OnChange(),  GrayUnGray(), OnUpdate(), OnClose(),
+#   OnChangeText(),  GrayUnGray(), OnUpdate(), OnClose(),
 #   DetermineMidiPlayRange(), PlayMidi(), GetTextPositionOfTune()
 #   OnTuneListClick(), SetErrorMessage(), OnPageSelected(),
 #   UpdateMusicPane(), OnMusicUpdateDone(), GetTextRangeOfTune()
@@ -357,6 +357,7 @@ utf8_byte_order_mark = chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
 import os, os.path
 import sys
 import wx
+
 if os.getenv('EASYABCDIR'):
     cwd = os.getenv('EASYABCDIR')
 else:
@@ -559,9 +560,11 @@ execmessages = u''
 visible_abc_code = u''
 
 line_end_re = re.compile('\r\n|\r|\n')
+tune_index_re = re.compile(r'^X:\s*(\d+)')
 
 def text_to_lines(text):
     return line_end_re.split(text)
+
 
 # 1.3.6.3 [JWDJ] one function to determine font size
 def get_normal_fontsize(): 
@@ -571,12 +574,19 @@ def get_normal_fontsize():
         font_size = 14
     return font_size
 
+
 def read_text_if_file_exists(filepath):
     ''' reads the contents of the given file if it exists, otherwise returns the empty string '''
     if filepath and os.path.exists(filepath):
         return open(filepath, 'rb').read()
     else:
         return ''
+
+
+def show_in_browser(url):
+    handle = webbrowser.get()
+    handle.open(url)
+
 
 # p09 2014-10-14 [SS]
 def get_ghostscript_path():
@@ -2479,7 +2489,7 @@ class AbcFileSettingsFrame(wx.Panel):
         wildcard = self.exe_file_mask
         default_dir = os.path.dirname(control.GetValue()) # 1.3.6.3 [JWDJ] uses current folder as default
         dlg = wx.FileDialog(
-                self, message=_("Choose a file"), defaultDir=default_dir, defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
+                self, message=_("Choose a file"), defaultDir=default_dir, defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
@@ -3349,7 +3359,7 @@ class MyAbcm2psPage(wx.Panel):
     def OnBrowse_format(self,evt):
         default_dir, default_file = os.path.split(self.settings.get('abcm2ps_format_path', ''))
         dlg = wx.FileDialog(
-                self, message=_("Find PostScript format file"), defaultFile=default_file, defaultDir=default_dir, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
+                self, message=_("Find PostScript format file"), defaultFile=default_file, defaultDir=default_dir, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
@@ -3933,7 +3943,6 @@ class MainFrame(wx.Frame):
 
         self.tune_list.InsertColumn(0, _('No.'), wx.LIST_FORMAT_RIGHT)
         self.tune_list.InsertColumn(1, _('Title'))
-        #self.tune_list.InsertColumn(2, _('Rythm'))
 
         self.tune_list.SetAutoLayout(True)
         self.editor = stc.StyledTextCtrl(self, -1)
@@ -3985,7 +3994,6 @@ class MainFrame(wx.Frame):
 
         self.styler = ABCStyler(self.editor)
         self.InitEditor()
-        self.editor.Colourise(0, self.editor.GetLength())
 
         self.editor.SetDropTarget(MyFileDropTarget(self))
         self.tune_list.SetDropTarget(MyFileDropTarget(self))
@@ -4005,7 +4013,7 @@ class MainFrame(wx.Frame):
         self.tune_list.Bind(wx.EVT_LEFT_DCLICK, self.OnTuneDoubleClicked)
         self.tune_list.Bind(wx.EVT_LEFT_DOWN, self.OnTuneListClick)
         self.editor.Bind(stc.EVT_STC_STYLENEEDED, self.styler.OnStyleNeeded)
-        self.editor.Bind(stc.EVT_STC_CHANGE, self.OnChange)
+        self.editor.Bind(stc.EVT_STC_CHANGE, self.OnChangeText)
         self.editor.Bind(stc.EVT_STC_MODIFIED, self.OnModified)
         self.editor.Bind(stc.EVT_STC_UPDATEUI, self.OnPosChanged)
         self.editor.Bind(wx.EVT_LEFT_UP, self.OnEditorMouseRelease)
@@ -4039,6 +4047,7 @@ class MainFrame(wx.Frame):
         self.tune_list.Bind(wx.EVT_KEY_DOWN, self.OnUpdate)
         self.music_pane.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 
+        self.updating_text = False
         self.UpdateTuneList()
         self.UpdateTuneListVisibility(True)
 
@@ -4683,9 +4692,6 @@ class MainFrame(wx.Frame):
         self.toolbar.AddControl(control)
         return control
 
-    def OnViewRythm(self, evt):
-        pass
-
     def OnRecordStop(self, evt):
         notes = evt.GetValue()
         if notes:
@@ -4737,8 +4743,10 @@ class MainFrame(wx.Frame):
 
         # extract file header
         lines = []
-        for i in range(self.editor.GetLineCount()):
-            line = self.editor.GetLine(i)
+        editor = self.editor
+        get_line = editor.GetLine
+        for i in xrange(editor.GetLineCount()):
+            line = get_line(i)
             if line.startswith('X:') or line.startswith('T:'):
                 break
             elif re.match(r'%%.*|[a-zA-Z_]:.*', line):
@@ -5295,7 +5303,7 @@ class MainFrame(wx.Frame):
         item = self.GetMenuBar().FindItemById(evt.Id)
         self.editor.SetSelectionEnd(self.editor.GetSelectionStart())
         self.AddTextWithUndo(item.GetHelp())
-        self.OnToolRefresh(None)
+        self.refresh_tunes()
 
     # 1.3.6.3 [JWDJ] 2015-3 centralized enabling of play button
     def update_play_button(self):
@@ -5345,6 +5353,9 @@ class MainFrame(wx.Frame):
             self.OnToolPlay(evt)
 
     def OnToolRefresh(self, evt):
+        self.refresh_tunes()
+
+    def refresh_tunes(self):
         self.last_refresh_time = datetime.now()
         self.UpdateTuneList()
         self.OnTuneSelected(None)
@@ -5473,7 +5484,7 @@ class MainFrame(wx.Frame):
                    _('Any file') + " (*.*)|*"
         dlg = wx.FileDialog(
             self, message=_("Open ABC file"), #defaultDir='',
-            defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
+            defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 if not self.editor.GetModify() and not self.current_file:     # if a new unmodified document
@@ -5493,13 +5504,13 @@ class MainFrame(wx.Frame):
                    _('Any file') + " (*.*)|*"
         dlg = wx.FileDialog(
             self, message=_('Import and add tune'), #defaultDir='',
-            defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.CHANGE_DIR )
+            defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 self.OnDropFile(dlg.GetPath())
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-        self.UpdateTuneList()
+        # self.UpdateTuneList() # 1.3.7.4 [JWDJ] No need to explicitly update tunelist, because adding lines triggers UpdateTuneList
 
     def get_encoding(self, abc_code):
         encoding = 'latin-1'
@@ -5565,10 +5576,14 @@ class MainFrame(wx.Frame):
         #self.document_name = os.path.basename(filepath) #1.3.6 [SS] 2014-12-01
         self.document_name = filepath
         self.SetTitle('%s - %s' % (program_name, self.document_name))
-        self.editor.ClearAll()
-        self.editor.SetText(text)
-        self.editor.SetSavePoint()
-        self.editor.EmptyUndoBuffer()
+        self.updating_text = True
+        try:
+            self.editor.ClearAll()
+            self.editor.SetText(text)
+            self.editor.SetSavePoint()
+            self.editor.EmptyUndoBuffer()
+        finally:
+            self.updating_text = False
         self.UpdateTuneList()
         self.tune_list.Select(0)
 
@@ -5617,7 +5632,7 @@ class MainFrame(wx.Frame):
             defaultDir = os.path.dirname(self.current_file) or directory or cwd
         dlg = wx.FileDialog(
                 self, message=_('Save ABC file %s') % self.document_name, defaultDir=defaultDir,
-                defaultFile="", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.CHANGE_DIR
+                defaultFile="", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR
                 )
         try:
             result = dlg.ShowModal()
@@ -5828,8 +5843,6 @@ class MainFrame(wx.Frame):
         view_menu.AppendSeparator()
         self.append_menu_item(view_menu, _("&Reset window layout to default"), "", self.OnResetView)
         #self.append_menu_item(view_menu, _("&Maximize/restore musical score pane\tCtrl+M"), "", self.OnToggleMusicPaneMaximize)
-        #view_menu.AppendSeparator()
-        #self.append_menu_item(view_menu, _('View rythm column...'), self.OnViewRythm, kind=wx.ITEM_CHECK)
 
         self.recent_menu = wx.Menu()
 
@@ -5923,6 +5936,8 @@ class MainFrame(wx.Frame):
                 (_("&Learn ABC"), _("Link to the ABC notation website"), self.OnABCLearn),
                 (_("&Abcm2ps help"), _("Link to the Abcm2ps website"), self.OnAbcm2psHelp),
                 (_("&Abc2midi help"), _("Link to the Abc2midi website"), self.OnAbc2midiHelp),
+                (),
+                (_("&Check for update..."), _("Link to EasyABC download page"), self.OnCheckLastestVersion),
                 (),
                 (wx.ID_ABOUT, _("About EasyABC") + "...", '', self.OnAbout)
             ]),
@@ -6128,27 +6143,25 @@ class MainFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def OnCheckLastestVersion(self, evt):
+        show_in_browser('https://sourceforge.net/projects/easyabc/files/EasyABC/')
+
     def OnEasyABCHelp(self, evt):
-        handle = webbrowser.get()
-        handle.open('http://www.nilsliberg.se/ksp/easyabc/')
+        show_in_browser('http://www.nilsliberg.se/ksp/easyabc/')
 
     def OnABCStandard(self, evt):
-        handle = webbrowser.get()
-        handle.open('http://abcnotation.com/wiki/abc:standard:v2.1')
+        show_in_browser('http://abcnotation.com/wiki/abc:standard:v2.1')
 
     def OnABCLearn(self, evt):
-        handle = webbrowser.get()
-        handle.open('http://abcnotation.com/learn')
+        show_in_browser('http://abcnotation.com/learn')
 
     # 1.3.6.1 [SS] 2015-01-28
     def OnAbcm2psHelp(self, evt):
-        handle = webbrowser.get()
-        handle.open('http://moinejf.free.fr/abcm2ps-doc/')
+        show_in_browser('http://moinejf.free.fr/abcm2ps-doc/')
 
     # 1.3.6.1 [SS] 2015-01-28
     def OnAbc2midiHelp(self, evt):
-        handle = webbrowser.get()
-        handle.open('http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html')
+        show_in_browser('http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html')
 
 
     def OnClearCache(self, evt):
@@ -6176,7 +6189,6 @@ class MainFrame(wx.Frame):
                     pass
             self.svg_tunes.cleanup()
             self.midi_tunes.cleanup()
-        self.OnToolRefresh(None)
 
 
     # 1.3.6.1 [SS] 2014-12-28 2015-01-22
@@ -6352,43 +6364,48 @@ class MainFrame(wx.Frame):
 
     def OnMovedToDifferentLine(self, queue_number_movement):
         #print 'OnMovedToDifferentLine = ',queue_number_movement,' ',self.queue_number_movement
-        if self.queue_number_movement == queue_number_movement:
-            new_tune_selected = False
-            found_index = None
-            line_no = self.editor.LineFromPosition(self.editor.GetCurrentPos())
-            for i, (index, title, rythm, startline) in enumerate(self.tunes):
-                if startline > line_no:
-                    break
-                found_index = i
-            for i in range(self.tune_list.GetItemCount()):
-                index = self.tune_list.GetItemData(i)
-                if index == found_index and i != self.tune_list.GetFirstSelected():
-                    new_tune_selected = True
-                    self.tune_list.DeselectAll()
-                    self.tune_list.SelectItem(i)
-                    self.tune_list.EnsureVisible(i)
-                    self.music_pane.Scroll(0, 0)
-            if not new_tune_selected:
-                self.ScrollMusicPaneToMatchEditor(select_closest_page=self.mni_auto_refresh.IsChecked())
+        if self.queue_number_movement != queue_number_movement:
+            return
+        new_tune_selected = False
+        line_no = self.editor.LineFromPosition(self.editor.GetCurrentPos())
+        total_tunes = self.tune_list.GetItemCount()
+        found_index = next((i for i, (index, title, startline) in enumerate(self.tunes) if startline > line_no), total_tunes) - 1
 
-            if self.abc_assist_panel.IsShown():
-                self.abc_assist_panel.update_assist()
+        tune_list = self.tune_list
+        get_item_data = tune_list.GetItemData
+        if found_index == -1:
+            tune_list.DeselectAll()
+        else:
+            index = next((i for i in xrange(tune_list.GetItemCount()) if get_item_data(i) == found_index), -1)  # list could be sorted
+            if index != -1:
+                if index == tune_list.GetFirstSelected():
+                    self.ScrollMusicPaneToMatchEditor(select_closest_page=self.mni_auto_refresh.IsChecked())
+                else:
+                    tune_list.DeselectAll()
+                    tune_list.SelectItem(index)
+                    tune_list.EnsureVisible(index)
+                    self.music_pane.Scroll(0, 0)
+
+        if self.abc_assist_panel.IsShown():
+            self.abc_assist_panel.update_assist()
 
     def AutoInsertXNum(self):
         xNum = 0
-        for line_no in range(self.editor.GetLineCount()):
-            m = re.match(r'^X:\s*(\d+)', self.editor.GetLine(line_no))
+        editor = self.editor
+        get_line = editor.GetLine
+        for line_no in xrange(editor.GetLineCount()):
+            m = tune_index_re.match(get_line(line_no))
             if m:
                 xNum = max(xNum, int(m.group(1)))
 
-        line = self.editor.GetCurrentLine()
+        line = editor.GetCurrentLine()
         # start = self.editor.PositionFromLine(line)
-        p = self.editor.GetCurrentPos()
-        self.editor.BeginUndoAction()
-        self.editor.SetSelection(p, p)
-        self.editor.ReplaceSelection(str(xNum+1))
-        self.editor.SetSelection(self.editor.GetLineEndPosition(line), self.editor.GetLineEndPosition(line))
-        self.editor.EndUndoAction()
+        p = editor.GetCurrentPos()
+        editor.BeginUndoAction()
+        editor.SetSelection(p, p)
+        editor.ReplaceSelection(str(xNum+1))
+        editor.SetSelection(editor.GetLineEndPosition(line), editor.GetLineEndPosition(line))
+        editor.EndUndoAction()
 
     def DoReMiToNote(self, char):
         if char in doremi_prefixes:
@@ -6454,23 +6471,24 @@ class MainFrame(wx.Frame):
                     evt.Skip()
                     raise
             elif self.mni_TA_add_bar_auto.IsChecked() and c not in "-/<,'1234567890":
-                if c in '|:]&':
-                    if c == ':':
-                        bar_text = ':|'
-                    elif c == ']':
+                if c in '|]&':
+                    if c == ']':
                         bar_text = '|]'
                     else:
                         bar_text = c
                     if self.add_bar_if_needed(bar_text):
                         return
-                else:
-                    self.add_bar_if_needed()
+                elif c == ':':
+                    if not (line.rstrip(), caret) == (u'X', 1) and self.add_bar_if_needed(':|'):
+                        return
+                elif self.add_bar_if_needed():
+                    return
 
         # when there is a selection and 's' is pressed it serves as a shortcut for slurring
         if p1 != p2 and c == 's':
             c = '('
 
-        elif c == ':':
+        if c == ':':
             evt.Skip()
             if (line.rstrip(), caret) == (u'X', 1):
                 wx.CallAfter(self.AutoInsertXNum)
@@ -6904,16 +6922,20 @@ class MainFrame(wx.Frame):
 
 
     def OnModified(self, evt):
+        if self.updating_text:
+            return
         if evt.GetLinesAdded() != 0:
             wx.CallAfter(self.UpdateTuneList)
 
     def AutomaticUpdate(self, update_number):
         if self.queue_number_refresh_music == update_number:
-            self.OnToolRefresh(None)
+            self.refresh_tunes()
 
-    def OnChange(self, event):
-        self.GrayUngray()
+    def OnChangeText(self, event):
         event.Skip()
+        if self.updating_text:
+            return
+        self.GrayUngray()
         # if auto-refresh is on
         if self.mni_auto_refresh.IsChecked():
             self.queue_number_refresh_music += 1
@@ -6932,8 +6954,7 @@ class MainFrame(wx.Frame):
 
     def OnUpdate(self, evt):
         if evt.GetKeyCode() == 344: #F5
-            self.UpdateTuneList()
-            self.OnTuneSelected(None)
+            self.refresh_tunes()
         elif evt.GetKeyCode() == 345: #F6
             self.OnToolPlay(evt)
             self.play_button.Refresh()
@@ -7116,11 +7137,14 @@ class MainFrame(wx.Frame):
 
     def GetTextRangeOfTune(self, offset):
         position = offset
-        start_line = self.editor.LineFromPosition(position)
+        editor = self.editor
+        start_line = editor.LineFromPosition(position)
+        line_count = editor.GetLineCount()
+        get_line = editor.GetLine
         end_line = start_line + 1
-        while end_line < self.editor.GetLineCount() and not self.editor.GetLine(end_line).startswith('X:'):
+        while end_line < line_count and not get_line(end_line).startswith('X:'):
             end_line += 1
-        end_position = self.editor.GetLineEndPosition(end_line-1)
+        end_position = editor.GetLineEndPosition(end_line-1)
         return (position, end_position)
 
     def GetFileHeaderBlock(self):
@@ -7129,8 +7153,9 @@ class MainFrame(wx.Frame):
             lines = []
             # 1.3.6.4 [SS] 2015-09-07
             getall = False
-            for i in range(self.editor.GetLineCount()):
-                line = self.editor.GetLine(i)
+            get_line = self.editor.GetLine
+            for i in xrange(self.editor.GetLineCount()):
+                line = get_line(i)
                 if line.startswith('X:') or line.startswith('T:'):
                     break
                 elif re.match(r'%%beginps',line):
@@ -7172,7 +7197,7 @@ class MainFrame(wx.Frame):
     def GetTune(self, listbox_index, add_file_header=True):
         index = self.tune_list.GetItemData(listbox_index)  # remap index in case items are sorted
         if index in self.tune_list.itemDataMap:
-            (xnum, title, rythm, line_no) = self.tune_list.itemDataMap[index]
+            (xnum, title, line_no) = self.tune_list.itemDataMap[index]
             offset_start = self.editor.PositionFromLine(line_no)
             offset_start, offset_end = self.GetTextRangeOfTune(offset_start)
             if add_file_header:
@@ -7180,7 +7205,7 @@ class MainFrame(wx.Frame):
             else:
                 header, num_header_lines = '', 0
             abc = self.editor.GetTextRange(offset_start, offset_end)
-            return Tune(xnum, title, rythm, offset_start, offset_end, abc, header, num_header_lines)
+            return Tune(xnum, title, '', offset_start, offset_end, abc, header, num_header_lines)
         else:
             return None
 
@@ -7204,7 +7229,7 @@ class MainFrame(wx.Frame):
         # self.reset_BpmSlider()
 
         dt = datetime.now() - self.execmessage_time # 1.3.6 [SS] 2014-12-11
-        dtime = dt.seconds*1000 + dt.microseconds/1000
+        dtime = dt.seconds*1000 + dt.microseconds // 1000
         if evt is not None and dtime > 20000:
             execmessages = ''
         self.selected_tune = None
@@ -7242,33 +7267,34 @@ class MainFrame(wx.Frame):
         else:
             selected_tune_index = None
         tunes = self.GetTunes()
-        self.tune_list.itemDataMap = dict(enumerate(self.tunes))
+        tune_list = self.tune_list
+        tune_list.itemDataMap = dict(enumerate(tunes))
 
         different = (len(tunes) != len(self.tunes))
         if not different:
             for tune1, tune2 in zip(tunes, self.tunes):
-                different = different or (tune1[:-1] != tune2[:-1])    # compare xnum, title and rythm but not line_no
+                different = different or (tune1[:-1] != tune2[:-1])    # compare xnum, title but not line_no
         if different:
-            top_item = self.tune_list.GetTopItem()
-            self.tune_list.Freeze()
-            self.tune_list.DeleteAllItems()
-            for xnum, title, rythm, line_no in tunes:
-                index = self.tune_list.InsertStringItem(self.tune_list.GetItemCount(), str(xnum))
-                self.tune_list.SetStringItem(index, 1, title)
-                #self.tune_list.SetStringItem(index, 2, rythm)
-                self.tune_list.SetItemData(index, index)
-                if index == selected_tune_index:
-                    self.tune_list.SelectItem(index)
+            top_item = tune_list.GetTopItem()
+            tune_list.Freeze()
+            tune_list.DeleteAllItems()
+            for xnum, title, line_no in tunes:
+                index = tune_list.InsertStringItem(tune_list.GetItemCount(), str(xnum))
+                tune_list.SetStringItem(index, 1, title)
+                tune_list.SetItemData(index, index)
 
+            last_index = tune_list.GetItemCount() - 1
+            if selected_tune_index is not None and selected_tune_index <= last_index:
+                tune_list.Select(selected_tune_index)
 
             # try to restore scroll state
             if tunes and top_item >= 0:
-                last_visible_index = top_item + self.tune_list.GetCountPerPage() - 1
-                if last_visible_index > self.tune_list.GetItemCount()-1:
-                    last_visible_index = self.tune_list.GetItemCount()-1
-                self.tune_list.EnsureVisible(last_visible_index)
+                last_visible_index = top_item + tune_list.GetCountPerPage() - 1
+                if last_visible_index > last_index:
+                    last_visible_index = last_index
+                tune_list.EnsureVisible(last_visible_index)
 
-            self.tune_list.Thaw()
+            tune_list.Thaw()
 
         self.tunes = tunes
 
@@ -7292,7 +7318,6 @@ class MainFrame(wx.Frame):
 
     def OnTimer(self, evt):
         self.SelectOnlyTuneIfTuneNotSelected()
-        # self.OnToolRefresh(None)
 
     def SelectOnlyTuneIfTuneNotSelected(self):
         if len(self.tunes) == 1 and self.tune_list.GetFirstSelected() == -1:
@@ -7301,34 +7326,37 @@ class MainFrame(wx.Frame):
 
     def GetTunes(self):
         n = self.editor.GetLineCount()
+        editor = self.editor
+        pos_from_line = editor.PositionFromLine
+        get_text_range = editor.GetTextRange
+        get_line = editor.GetLine
+        search_tune_index = tune_index_re.search
         cur_index = None
         cur_startline = None
         tunes = []
-        for i in range(n):
-            p = self.editor.PositionFromLine(i)
+        tunes_append = tunes.append
+        for i in xrange(n):
+            p = pos_from_line(i)
             try:
-                t = self.editor.GetTextRange(p, p+2)
+                t = get_text_range(p, p+2)
             except:
                 t = ''
             if t == 'X:':
                 if cur_index is not None:
-                    tunes.append((cur_index, cur_title, cur_rythm, cur_startline))
-                text = self.editor.GetLine(i)
-                m = re.search(r'X: *(\d+)', text)
+                    tunes_append((cur_index, cur_title, cur_startline))
+                text = get_line(i)
+                m = search_tune_index(text)
                 if m:
                     cur_index = int(m.group(1))
                     cur_startline = i
                 else:
                     cur_index = None
                 cur_title = u''
-                cur_rythm = u''
             elif cur_index is not None and t == 'T:' and not cur_title:
-                cur_title = decode_abc(self.editor.GetLine(i)[2:].strip())
-            elif cur_index is not None and t == 'R:' and not cur_rythm:
-                cur_rythm = decode_abc(self.editor.GetLine(i)[2:].strip())
+                cur_title = decode_abc(get_line(i)[2:].strip())
 
         if cur_index is not None:
-            tunes.append((cur_index, unicode(cur_title or ''), unicode(cur_rythm or ''), cur_startline))
+            tunes_append((cur_index, cur_title, cur_startline))
         return tunes
 
     def GetTuneAbc(self, startpos):
@@ -7397,6 +7425,7 @@ class MainFrame(wx.Frame):
         self.editor.StyleSetSpec(self.styler.STYLE_ORNAMENT_PLUS, "fore:#888888,face:%s,size:%d" % (font, size))
         self.editor.StyleSetSpec(self.styler.STYLE_ORNAMENT_EXCL, "fore:#888888,face:%s,size:%d" % (font, size))
 
+        self.editor.SetModEventMask(wx.stc.STC_MODEVENTMASKALL & ~(wx.stc.STC_MOD_CHANGESTYLE | wx.stc.STC_PERFORMED_USER)) # [1.3.7.4] JWDJ: don't fire OnModified on style changes
         self.editor.Colourise(0, self.editor.GetLength())
 
 
@@ -7557,7 +7586,7 @@ class MainFrame(wx.Frame):
 
     def OnReducedMargins(self, evt):
         self.settings['reduced_margins'] = self.mni_reduced_margins.IsChecked()
-        self.OnToolRefresh(None)
+        self.refresh_tunes()
 
     def load_settings(self, load_window_size_pos=False, load_perspective=True):
         try:
