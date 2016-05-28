@@ -1854,7 +1854,7 @@ if __name__ == '__main__':
         if not os.path.isdir (pad): parser.error ('%s is not a directory' % pad)
     if options.p:   # set page formatting values
         try:        # space, page-height, -width, margin-left, -right, -top, -bottom
-            mxm.pageFmtCmd = map (float, options.p.split (','))
+            mxm.pageFmtCmd = list(map (float, options.p.split (',')))
             if len (mxm.pageFmtCmd) != 7: raise ValueError ('-p needs 7 values')
         except Exception as err: parser.error (err)
 

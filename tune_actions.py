@@ -1,6 +1,9 @@
 import re
 import os
 import sys
+
+PY3 = sys.version_info.major > 2
+
 from collections import namedtuple
 from wx import GetTranslation as _
 from tune_elements import *
@@ -8,13 +11,24 @@ try:
     from html import escape  # py3
 except ImportError:
     from cgi import escape  # py2
-import urllib
-import webbrowser
-from fraction import Fraction
-#import urlparse
+
+try:
+    from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
+    from urllib.request import urlopen, Request, urlretrieve
+    from urllib.error import HTTPError, URLError
+except ImportError:
+    from urlparse import urlparse, urlunparse, parse_qsl # py2
+    from urllib import urlencode, urlretrieve, quote
+    from urllib2 import urlopen, Request, HTTPError, URLError
+
+
+from fractions import Fraction
 from aligner import get_bar_length
 from generalmidi import general_midi_instruments
 from abc_tune import AbcTune
+
+if PY3:
+    basestring = str
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
 
@@ -120,7 +134,7 @@ class AbcAction(object):
         if params is None:
             return self.name
         else:
-            return '{0}?{1}'.format(self.name, urllib.urlencode(params))
+            return '{0}?{1}'.format(self.name, urlencode(params))
 
 
 class ValueChangeAction(AbcAction):
@@ -221,7 +235,7 @@ class ValueChangeAction(AbcAction):
             if isinstance(value, ValueDescription):
                 if not value.common:
                     return False
-            elif hasattr(value, '__iter__'):
+            elif not isinstance(value, basestring) and hasattr(value, '__iter__'):
                 if not self.contains_only_common(value):
                     return False
         return True
@@ -622,7 +636,6 @@ class DurationAction(ValueChangeAction):
                 else:
                     divisor = 2
                 result = result * Fraction(1, divisor)
-            result.reduce()
         return result
 
     @staticmethod
@@ -686,22 +699,20 @@ class DurationAction(ValueChangeAction):
         elif value in '/23+=':
             frac = self.length_to_fraction(context.get_matchgroup('length'))
             if value == '/':
-                frac.denominator *= 2
+                frac *= Fraction(1, 2)
             elif value == '2':
-                frac.numerator *= 2
+                frac *= Fraction(2, 1)
             elif value == '3':
-                frac.numerator *= 3
-                frac.denominator *= 2
+                frac *= Fraction(3, 2)
             elif value == '+':
                 frac += 1
             elif value == '=':
                 frac -= 1
-            frac.reduce()
 
             if frac.numerator == 1:
                 text = ''
             else:
-                text =str(frac.numerator)
+                text = str(frac.numerator)
 
             if frac.denominator != 1:
                 if frac.denominator == 2:
@@ -981,10 +992,8 @@ class KeyModeChangeAction(KeyChangeAction):
             mode = context.get_matchgroup(self.matchgroup)
             current_mode = self.abc_mode_to_number(mode)
             tonic = key_ladder[key_ladder.index(tonic) - current_mode + value]
-            for mode, num in KeyChangeAction._mode_to_num.iteritems():
-                if num == value:
-                    context.replace_matchgroups([('tonic', tonic), ('mode', mode)])
-                    break
+            d = KeyChangeAction._mode_to_num
+            [context.replace_matchgroups([('tonic', tonic), ('mode', mode)]) for mode in list(d) if d[mode] == value]
 
 
 class ClefChangeAction(ValueChangeAction):
@@ -1266,13 +1275,13 @@ class UrlAction(AbcAction):
 
 class Abcm2psUrlAction(UrlAction):
     def __init__(self, keyword):
-        url = 'http://moinejf.free.fr/abcm2ps-doc/{0}.xhtml'.format(urllib.quote(keyword))
+        url = 'http://moinejf.free.fr/abcm2ps-doc/{0}.xhtml'.format(urllib.parse.quote(keyword))
         super(UrlAction, self).__init__('lookup_abcm2ps', url)
 
 
 class Abc2MidiUrlAction(UrlAction):
     def __init__(self, keyword):
-        url = 'http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_body.html#{0}'.format(urllib.quote(keyword))
+        url = 'http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_body.html#{0}'.format(urllib.parse.quote(keyword))
         super(UrlAction, self).__init__('lookup_abc2midi', url)
 
 class AbcStandardUrlAction(UrlAction):
@@ -1309,11 +1318,7 @@ class NewTuneAction(AbcAction):
         return context.abc_section in [AbcSection.FileHeader, AbcSection.OutsideTune]
 
     def execute(self, context, params=None):
-        last_tune_id = 0
-        tune_text = context.get_scope_info(TuneScope.FullText).text
-        for m in NewTuneAction.tune_re.finditer(tune_text):
-            last_tune_id = max(last_tune_id, int(m.group(1)))
-
+        last_tune_id = context.get_last_tune_id()
         new_tune_id = last_tune_id + 1
         text = u'X:%d' % new_tune_id
         text += os.linesep + 'T:' + _('Untitled') + '%d' % new_tune_id
@@ -1322,7 +1327,7 @@ class NewTuneAction(AbcAction):
         text += os.linesep + 'L:1/4'
         text += os.linesep + 'K:C' + os.linesep
 
-        if not tune_text or tune_text.isspace():
+        if not context.contains_text:
             text = '%abc-2.1' + os.linesep + os.linesep + text
         elif context.previous_line and not context.previous_line.isspace():
             text = os.linesep + text
@@ -1892,6 +1897,6 @@ class AbcActionHandlers(object):
     def action_by_name(self, action_name):
         action = self.registered_actions.get(action_name)
         if action is None:
-            print 'action {0} not registered'.format(action_name)
+            print('action {0} not registered'.format(action_name))
         else:
             return action

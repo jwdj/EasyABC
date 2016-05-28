@@ -1,7 +1,10 @@
 import re
 import string
 import os
-from fraction import Fraction
+from fractions import Fraction
+import sys
+if sys.version_info.major > 2:
+    basestring = str
 
 bar_sep_symbols = ':|][|: :|[2 :|]2 :||: [|] :|] [|: :|| ||: :|: |:: ::| |[1 :|2 |] || [| :: .| |1 |: :| [1 [2 |'.split()
 bar_sep = re.compile('(%s)' % '|'.join(' *' + re.escape(x)+' *' for x in bar_sep_symbols))
@@ -92,7 +95,7 @@ def get_bar_length(abc, default_length, metre):
                 tuplet_notes_left = tuplet_notes
             continue
         length = match.group('length')
-        if type(default_length) in (str, unicode) and default_length == 'mcm_default':
+        if isinstance(default_length, basestring) and default_length == 'mcm_default':
             length = length.split('/')[0]  # ignore any fraction
             multiplier = Fraction(1, int(length))
             for dot in match.group('dot'):
@@ -329,4 +332,4 @@ K:Bb
 |:F2|F4 d2Bc|d2FA B2B,C|(DB,)B,B, (DB,)B,B,|F2F2 F4|
 e4 g2cd|e2AB c2FG|({B}(A)F)FF (AF)FF|(dB)BB B2:| '''        
 
-    print extract_incipit(s, num_repeats=2, num_bars=2)
+    print(extract_incipit(s, num_repeats=2, num_bars=2))

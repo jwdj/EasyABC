@@ -29,6 +29,9 @@ import wx
 from math import hypot, radians
 import traceback
 from datetime import datetime
+from wxhelper import wx_colour
+import sys
+PY3 = sys.version_info.major > 2
 
 # 1.3.6.2 [JWdJ] 2015-02-12 tags evaluated only once
 svg_namespace = 'http://www.w3.org/2000/svg'
@@ -333,7 +336,10 @@ class SvgRenderer(object):
         
         if self.buffer is None or width != self.buffer.GetWidth() or height != self.buffer.GetHeight():            
             #print 'create new buffer!!!!!!!!', (width, height)
-            self.buffer = wx.EmptyBitmap(width, height, 32)    
+            if PY3:
+                self.buffer = wx.Bitmap(width, height, 32)
+            else:
+                self.buffer = wx.EmptyBitmap(width, height, 32)
 
     def svg_to_page(self, svg):
         try:
@@ -341,8 +347,7 @@ class SvgRenderer(object):
             page = SvgPage(self, svg_xml)
             return page
         except:
-            print 'warning:',
-            traceback.print_exc()
+            print('warning: %s' % traceback.print_exc())
             self.clear()
             raise
 
@@ -357,8 +362,7 @@ class SvgRenderer(object):
             ##if wx.Platform != "__WXGTK__":
             ##    print 'draw_time    \t', t.seconds*1000 + t.microseconds/1000
         except:
-            print 'warning:',
-            traceback.print_exc()
+            print('warning: %s' % traceback.print_exc())
             self.clear()
             raise
 
@@ -480,7 +484,7 @@ class SvgRenderer(object):
     #                 if wx.Platform == "__WXMSW__":
     #                     angle = args[0]
     #                 else:
-    #                     angle = math.radians(args[0])
+    #                     angle = radians(args[0])
     #                 #matrix.Translate(-4,  0)
     #                 #matrix.Rotate(angle)
     #             elif t == 'scale':
@@ -495,12 +499,13 @@ class SvgRenderer(object):
     #     return matrix
 
     def do_transform(self, dc, svg_transform):
+        split_transform = self.transform_split_re.split
         for t, args in self.transform_re.findall(svg_transform or ''):
-            args = map(float, self.transform_split_re.split(args))
+            args = list(map(float, split_transform(args)))
             if t == 'translate':
                 dc.Translate(*args)                    
             elif t == 'rotate':                
-                dc.Rotate(math.radians(args[0]))
+                dc.Rotate(radians(args[0]))
             elif t == 'scale':
                 if len(args) == 1:
                     args *= 2
@@ -521,7 +526,7 @@ class SvgRenderer(object):
             elif svg_fill.startswith('#'): # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
                 brush = self.renderer.CreateBrush(wx.Brush(svg_fill, wx.SOLID))
             else:
-                brush = self.renderer.CreateBrush(wx.Brush(wx.NamedColour(svg_fill), wx.SOLID))
+                brush = self.renderer.CreateBrush(wx.Brush(wx_colour(svg_fill), wx.SOLID))
             self.fill_cache[svg_fill] = brush
         dc.SetBrush(brush)
 
@@ -540,7 +545,7 @@ class SvgRenderer(object):
             if svg_stroke == 'none':
                 pen = self.renderer.CreatePen(wx.NullPen)
             else:                
-                wxpen = wx.Pen(wx.NamedColour(svg_stroke), line_width)                
+                wxpen = wx.Pen(wx_colour(svg_stroke), line_width)
                 if linecap == 'butt':
                     wxpen.SetCap(wx.CAP_BUTT)
                 elif linecap == 'round':
@@ -700,7 +705,7 @@ class SvgRenderer(object):
                 y += 1
             else:
                 wxfont.SetPointSize(font_size)
-            font = dc.CreateFont(wxfont, wx.NamedColour(attr.get('fill', 'black')))                
+            font = dc.CreateFont(wxfont, wx_colour(attr.get('fill', 'black')))
             dc.SetFont(font)
             (width, height, descent, externalLeading) = dc.GetFullTextExtent(text)                
             if attr.get('text-anchor') == 'middle':
@@ -734,7 +739,7 @@ class SvgRenderer(object):
             path.AddLineToPoint(x, y)
             dc.DrawPath(path)                     
         elif name == 'line':
-            x1, y1, x2, y2 = map(float, (attr['x1'], attr['y1'], attr['x2'], attr['y2']))            
+            x1, y1, x2, y2 = map(float, (attr['x1'], attr['y1'], attr['x2'], attr['y2']))
             # 1.3.6.3 [JWDJ] 2015-3 Fill and stroke already have been set
             # self.set_fill(dc, 'none')
             # self.set_stroke(dc, stroke, float(attr.get('stroke-width', 1.0)), attr.get('stroke-linecap', 'butt'), attr.get('stroke-dasharray', None))
@@ -776,7 +781,7 @@ if __name__ == "__main__":
     dc.Clear()
     dc = wx.GraphicsContext.Create(dc)
     dc.SetBrush(dc.CreateBrush(wx.BLACK_BRUSH))
-    print 'default matrix', dc.GetTransform().Get()
+    print('default matrix %s' % dc.GetTransform().Get())
     import math
     original_matrix = dc.GetTransform()
     path = dc.CreatePath()
@@ -789,7 +794,7 @@ if __name__ == "__main__":
     if wx.Platform == "__WXMSW__":
         a = 45
     else:
-        a = math.radians(45)
+        a = radians(45)
 
     original = dc.CreateMatrix(*original_matrix.Get())
     om = dc.CreateMatrix(*original_matrix.Get())
@@ -800,20 +805,20 @@ if __name__ == "__main__":
     om.Concat(m2)
     dc.SetTransform(om)
     dc.DrawPath(path)
-    print 'new matrix', matrix_to_str(dc.GetTransform())
+    print('new matrix %s' % matrix_to_str(dc.GetTransform()))
     om.Concat(m1)
     om.Concat(m0)
     dc.SetTransform(om)
     dc.DrawPath(path)
-    print 'new matrix', matrix_to_str(dc.GetTransform())
+    print('new matrix', matrix_to_str(dc.GetTransform()))
 
-    print '----'
+    print('----')
     dc.SetTransform(original)    
     dc.Scale(0.5, 0.5)    
     dc.Translate(150, 150)
-    dc.Rotate(math.radians(25))
+    dc.Rotate(radians(25))
     dc.Scale(0.5, 0.5)
-    print 'new matrix', matrix_to_str(dc.GetTransform())
+    print('new matrix %s' % matrix_to_str(dc.GetTransform()))
     
     buffer.SaveFile('dc_test_linux.png', wx.BITMAP_TYPE_PNG)
     if True:
@@ -821,12 +826,12 @@ if __name__ == "__main__":
         m1 = r.CreateMatrix(); m1.Scale(1.0, -1.0)
         m2 = r.CreateMatrix(); m2.Translate(50, 60)
         m1.Concat(m2)
-        print m1.TransformPoint(100, 100)
+        print(m1.TransformPoint(100, 100))
         
         m1 = r.CreateMatrix(); m1.Scale(1.0, -1.0)
         m2 = r.CreateMatrix(); m2.Translate(50, 60)
         m2.Concat(m1)
-        print m1.TransformPoint(100, 100) 
+        print(m1.TransformPoint(100, 100)) 
         
         renderer = SvgRenderer(True)
         #renderer.set_svg(open(os.path.join('abc', 'cache', 'temp_02e3f5d62f001.svg'), 'rb').read())

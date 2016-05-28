@@ -1,6 +1,9 @@
 import wx
 import traceback
 import sys
+from wxhelper import wx_cursor
+import sys
+PY3 = sys.version_info.major > 2
 
 class MusicScorePanel(wx.ScrolledWindow):
     def __init__(self, parent, renderer):
@@ -28,8 +31,8 @@ class MusicScorePanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftButtonUp)
         self.Bind(wx.EVT_MOTION, self.OnMouseMotion)        
         self.OnNoteSelectionChangedDesc = None
-        self.cross_cursor = wx.StockCursor(wx.CURSOR_CROSS)
-        self.pointer_cursor = wx.StockCursor(wx.CURSOR_ARROW)
+        self.cross_cursor = wx_cursor(wx.CURSOR_CROSS)
+        self.pointer_cursor = wx_cursor(wx.CURSOR_ARROW)
         self.drag_start_x = None
         self.drag_start_y = None
         self.drag_rect = None
@@ -146,7 +149,7 @@ class MusicScorePanel(wx.ScrolledWindow):
             if self.drag_start_x is not None and self.drag_start_y is not None:
                 x, y = self.get_xy_of_mouse_event(event)
                 self.drag_rect = (min(self.drag_start_x, x), min(self.drag_start_y, y), abs(self.drag_start_x-x), abs(self.drag_start_y-y))
-                rect = wx.Rect(*map(lambda x: int(x), self.drag_rect))
+                rect = wx.Rect(*map(int, self.drag_rect))
                 old_selection = page.selected_indices.copy()
                 page.select_notes(rect)
                 if old_selection != page.selected_indices and self.OnNoteSelectionChangedDesc:
@@ -260,7 +263,8 @@ class MusicScorePanel(wx.ScrolledWindow):
 
     def Draw(self):
         dc = wx.BufferedDC(None, self.renderer.buffer)
-        dc.BeginDrawing()
+        if not PY3:
+            dc.BeginDrawing()
         try:
             try:
                 dc.SetBackground(wx.WHITE_BRUSH)
@@ -269,9 +273,10 @@ class MusicScorePanel(wx.ScrolledWindow):
                 if self.current_page != self.renderer.empty_page:
                     self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
             finally:
-                dc.EndDrawing()
+                if not PY3:
+                    dc.EndDrawing()
         except Exception as e:
-            error_msg = ''.join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback))
-            print 'Warning: %s' % error_msg
+            error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+            print('Warning: %s' % error_msg)
 
 

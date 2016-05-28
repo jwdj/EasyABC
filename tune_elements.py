@@ -1,8 +1,18 @@
 import re
 import os
 import io
-import urllib
-import urllib2
+import sys
+PY3 = sys.version_info.major > 2
+
+try:
+    from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
+    from urllib.request import urlopen, Request, urlretrieve
+    from urllib.error import HTTPError, URLError
+except ImportError:
+    from urlparse import urlparse, urlunparse, parse_qsl # py2
+    from urllib import urlencode, urlretrieve, quote
+    from urllib2 import urlopen, Request, HTTPError, URLError
+
 import logging
 from collections import namedtuple
 from wx import GetTranslation as _
@@ -10,6 +20,9 @@ try:
     from html import escape  # py3
 except ImportError:
     from cgi import escape  # py2
+
+if PY3:
+    unichr = chr
 
 # this file contains many regular expression patterns
 # for understanding these regular expressions:
@@ -272,11 +285,19 @@ unicode_char_to_abc = {
     r'\u0152': r'\OE', r'\u0153': r'\oe', r'\u00df': r'\ss', r'\u00d0': r'\DH', r'\u00f0': r'\dh', r'\u00de': r'\TH',
     r'\u00fe': r'\th' }
 
+unicode_re = re.compile(r'\\u[0-9a-fA-F]{4}')
+
+def unicode_escape_to_char(value):
+    if PY3:
+        return bytes(value, 'utf-8').decode('unicode-escape')
+    else:
+        return unicode(str(value), 'unicode-escape')
+
 def unicode_text_to_abc(text):
     result = text
     if text:
         for ustr in unicode_char_to_abc:
-            ch = unicode(ustr, 'unicode-escape')
+            ch = unicode_escape_to_char(ustr)
             result = result.replace(ch, unicode_char_to_abc[ustr])
     return result
 
@@ -284,23 +305,24 @@ def unicode_text_to_html_abc(text):
     result = text
     if text:
         for ustr in unicode_char_to_abc:
-            ch = unicode(ustr, 'unicode-escape')
+            ch = unicode_escape_to_char(ustr)
             html = escape(ch)
             result = result.replace(ch, html)
             result = result.replace(ch, unicode_char_to_abc[ustr])
     return result
 
-unicode_re = re.compile(r'\\u[0-9a-fA-F]{4}')
-
 def abc_text_to_unicode(text):
-    result = unicode(text)
+    if PY3:
+        result = text
+    else:
+        result = unicode(text)
     if text:
         for m in unicode_re.finditer(text):
             ustr = m.group()
-            ch = unicode(str(ustr), 'unicode-escape')
+            ch = unicode_escape_to_char(ustr)
             result = result.replace(ustr, ch)
         for ustr in unicode_char_to_abc:
-            ch = unicode(ustr, 'unicode-escape')
+            ch = unicode_escape_to_char(ustr)
             html = escape(ch)
             result = result.replace(html, ch)
             result = result.replace(unicode_char_to_abc[ustr], ch)
@@ -339,10 +361,10 @@ def replace_named_group(pattern, old_group, new_group=None):
 def get_html_from_url(url):
     result = u''
     try:
-        result = urllib2.urlopen(url).read()
-    except urllib2.HTTPError as ex:
+        result = urlopen(url).read()
+    except HTTPError as ex:
         pass
-    except urllib2.URLError as ex:
+    except URLError as ex:
         pass
     return result
 
@@ -601,7 +623,7 @@ class Abcm2psDirective(AbcElement):
         ]
 
     def get_description_url(self, context):
-        return 'http://moinejf.free.fr/abcm2ps-doc/%s.xhtml' % urllib.quote(self.name)
+        return 'http://moinejf.free.fr/abcm2ps-doc/%s.xhtml' % quote(self.name)
 
     def get_html_from_url(self, url):
         result = get_html_from_url(url)
@@ -650,6 +672,13 @@ class AbcEmptyDocument(AbcElement):
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcEmptyLine.pattern
         self.tune_scope = TuneScope.FullText
+
+    def matches(self, context):
+        if context.contains_text:
+            return None
+        else:
+            regex = self._search_re.get(context.abc_section, None)
+            return regex.match('')
 
 
 class AbcEmptyLine(AbcElement):
@@ -975,6 +1004,7 @@ class AbcStructure(object):
     valid_directive_re = None
     from_to_directive_re = None
     abc_field_re = None
+    _instance = None # singleton instance
 
     @staticmethod
     def get_sections(cwd):
@@ -1168,7 +1198,7 @@ class AbcStructure(object):
             try:
                 element.freeze()
             except Exception as ex:
-                print 'Exception in element {0}: {1}'.format(element.name, ex)
+                print('Exception in element {0}: {1}'.format(element.name, ex))
                 logging.exception(ex)
 
         return result

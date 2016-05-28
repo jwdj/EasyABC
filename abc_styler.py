@@ -13,6 +13,12 @@
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+PY3 = sys.version_info.major > 2
+if PY3:
+    xrange = range
+
+
 class ABCStyler:
     def __init__(self, styled_text_ctrl):
         self.e = styled_text_ctrl
@@ -60,12 +66,14 @@ class ABCStyler:
         text_length = editor.GetTextLength()
         old_state = state
         editor.StartStyling(start, 31)   # only style the text style bits
-        buffer_size = min(1024, end-start)
+        buffer_size = min(65536, end-start)
         i = start
         chPrev = chr(get_char_at(i-1))
         ch = chr(get_char_at(i))
 
         next_buffer = get_text_range(i+1, min(i+1 + buffer_size, text_length))
+        if PY3:
+            next_buffer = list(map(chr, next_buffer))
         buffer_pos = 0
 
         char_count = 0
@@ -76,6 +84,8 @@ class ABCStyler:
                 buffer_pos += 1
             except IndexError:
                 next_buffer = get_text_range(i+1, min(i+1 + buffer_size, text_length))
+                if PY3:
+                    next_buffer = list(map(chr, next_buffer))
                 buffer_pos = 0
                 try:
                     chNext = next_buffer[buffer_pos]

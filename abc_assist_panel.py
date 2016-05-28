@@ -4,7 +4,16 @@ import logging
 import wx
 import wx.html
 import webbrowser
-import urlparse
+
+try:
+    from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
+    from urllib.request import urlopen, Request, urlretrieve
+    from urllib.error import HTTPError, URLError
+except ImportError:
+    from urlparse import urlparse, urlunparse, parse_qsl # py2
+    from urllib import urlencode, urlretrieve, quote
+    from urllib2 import urlopen, Request, HTTPError, URLError
+
 try:
     from html import escape  # py3
 except ImportError:
@@ -21,7 +30,7 @@ class AbcAssistControl(object):
         elif element.supported_values is not None:
             choices = element.supported_values
             if isinstance(choices, dict):
-                choices = choices.keys()
+                choices = list(choices)
             ctrl = wx.ComboBox(parent, -1, choices=choices, style=wx.CB_DROPDOWN | wx.CB_READONLY)
             if element.default is not None:
                 ctrl.SetSelection(element.default)
@@ -164,7 +173,7 @@ class AbcAssistPanel(wx.Panel):
             parts = href.split('?', 1)
             action_name = parts[0]
             if len(parts) > 1:
-                params = dict(urlparse.parse_qsl(parts[1], keep_blank_values=True))
+                params = dict(parse_qsl(parts[1], keep_blank_values=True))
             else:
                 params = None # {}
             action = action_handler.get_action(action_name)
@@ -172,7 +181,7 @@ class AbcAssistPanel(wx.Panel):
                 try:
                     action.execute(self.context, params)
                 except Exception as e:
-                    print e
+                    print(e)
 
                 self._editor.SetFocus()
         return wx.html.HTML_BLOCK

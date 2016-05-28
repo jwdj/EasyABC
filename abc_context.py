@@ -1,5 +1,9 @@
 from tune_elements import *
 import wx
+import sys
+PY3 = sys.version_info.major > 2
+if PY3:
+    xrange = range
 
 
 class AbcContext(object):
@@ -149,6 +153,10 @@ class AbcContext(object):
     @property
     def tune_body(self):
         return self.get_scope_info(TuneScope.TuneBody).text
+
+    @property
+    def contains_text(self):
+        return self._editor.GetTextLength() != 0
 
     def get_scope_info(self, tune_scope):
         result = self._tune_scope_info.get(tune_scope)
@@ -369,7 +377,7 @@ class AbcContext(object):
     def replace_in_editor(self, new_text, tune_scope):
         scope_info = self.get_scope_info(tune_scope)
         if scope_info == self.get_empty_scope_info():
-            print 'Failed to find scope'
+            print('Failed to find scope')
         else:
             self.replace_selection(new_text, scope_info.start, scope_info.stop)
             wx.CallAfter(self.invalidate)
@@ -391,3 +399,15 @@ class AbcContext(object):
         self._current_match = None
         if self.on_invalidate is not None:
             self.on_invalidate()
+
+    def get_last_tune_id(self):
+        tune_index_re = re.compile(r'(?m)^X:\s*(\d+)')
+        tune_match = tune_index_re.match
+        editor = self._editor
+        get_line = editor.GetLine
+        last_index = 0
+        for line_no in xrange(editor.GetLineCount()):
+            m = tune_match(get_line(line_no))
+            if m:
+                last_index = max(last_index, int(m.group(1)))
+        return last_index

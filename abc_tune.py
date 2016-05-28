@@ -1,5 +1,5 @@
 import uuid  # 1.3.6.3 [JWdJ] 2015-04-22
-from fraction import Fraction
+from fractions import Fraction
 import re
 
 

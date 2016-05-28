@@ -649,7 +649,7 @@ def line( loc, strg ):
         return strg[lastCR+1:]
 
 def _defaultStartDebugAction( instring, loc, expr ):
-    print (("Match " + _ustr(expr) + " at loc " + _ustr(loc) + "(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )))
+    print ("Match " + _ustr(expr) + " at loc " + _ustr(loc) + "(%d,%d)" % ( lineno(loc,instring), col(loc,instring) ))
 
 def _defaultSuccessDebugAction( instring, startloc, endloc, expr, toks ):
     print ("Matched " + _ustr(expr) + " -> " + str(toks.asList()))
