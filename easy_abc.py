@@ -170,13 +170,13 @@ program_name = 'EasyABC 1.3.7.4 2016-05-23'
 # ---------------------------------
 
 #Global:
-#   str2fractions(), calc_tune_id().read_text_if_file_exists,
-#   get_ghostscript_path(), upload_tune(),
+#   str2fractions(), calc_tune_id(), read_text_if_file_exists(),
+#   get_ghostscript_path(), upload_tune(), get_default_path_for_executable(),
 #   launch_file(), remove_non_note_fragments(), get_notes_from_abc(),
 #   copy_bar_symbols_from_first_voice(), process_MCM(), get_hash_code(),
 #   change_abc_tempo(), add_table_of_contents_to_postscript_file(),
 #   sort_abc_tunes(), process_abc_code(), AbcToPS, GetSvgFileList(),
-#   AbcToSvg(), AbcToAbc(), MidiToMftext(),  set_gs_path_for_platform(),
+#   AbcToSvg(), AbcToAbc(), MidiToMftext(),
 #   AbcToPDF(), test_for_guitar_chords(), list_voices_in(),
 #   grab_time_signature(), drum_intro(),  need_left_repeat(),
 #   make_abc_introduction(),  AbcToMidi(), process_abc_for_midi(),
@@ -614,6 +614,14 @@ def read_text_if_file_exists(filepath):
 def show_in_browser(url):
     handle = webbrowser.get()
     handle.open(url)
+
+
+def get_default_path_for_executable(name):
+    if wx.Platform == "__WXMSW__":
+        exe_name = '{0}.exe'.format(name)
+    else:
+        exe_name = name
+    return os.path.join(cwd, 'bin', exe_name)
 
 
 # p09 2014-10-14 [SS]
@@ -1180,23 +1188,6 @@ def MidiToMftext (midi2abc_path, midifile):
         midiframe.LoadMidiData(midi_lines)
     else:
         wx.MessageBox(_("Cannot find the executable midi2abc. Be sure it is in your bin folder and its path is defined in ABC Setup/File Settings."), _("Error") ,wx.ICON_ERROR | wx.OK)
-
-
-# p09 2014-10-14 [SS]
-def set_gs_path_for_platform(gs_path):
-    if gs_path:
-        return
-    if wx.Platform == "__WXMSW__":
-        gs_path = get_ghostscript_path()
-        if not gs_path:
-            wx.MessageBox(_("Ghostscript could not be found. You need to install Ghostscript and set the path to the Ghostscript executable in order to use this feature."), _("Error"), wx.ICON_ERROR | wx.OK)
-            return None
-    elif wx.Platform == "__WXMAC__":
-        #gs_path = osx_gs_binary [SS] 2015-04-08
-        gs_path  = '/usr/bin/pstopdf'
-    else:
-        gs_path = gs #default is linux [JWDJ: is gs an unresolved reference?]
-    return gs_path
 
 
 # p09 2014-10-14 2014-12-17 2015-01-28 [SS]
@@ -2527,9 +2518,10 @@ class AbcFileSettingsFrame(wx.Panel):
     def OnBrowse(self, evt):
         control = self.browsebutton_to_control[evt.EventObject]
         wildcard = self.exe_file_mask
-        default_dir = os.path.dirname(control.GetValue()) # 1.3.6.3 [JWDJ] uses current folder as default
+        path = control.GetValue()
+        default_dir, default_file = os.path.split(path) # 1.3.6.3 [JWDJ] uses current folder as default
         dlg = wx.FileDialog(
-                self, message=_("Choose a file"), defaultDir=default_dir, defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR )
+                self, message=_("Choose a file"), defaultDir=default_dir, defaultFile=default_file, wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
@@ -7711,25 +7703,10 @@ class MainFrame(wx.Frame):
     def restore_settings(self):
         settings = self.settings
 
-        # 1.3.6.4 [SS] 2015-07-16 ensure that EasyAbc links to the latest binaries
-        # when the user starts version 1.3.6.4 for the first time.
-        version = settings.get('version','0')
-        if version != '1.3.6.4':
-            abcm2ps_path  = None
-            abc2midi_path = None
-            abc2abc_path  = None 
-            midi2abc_path = None
-
- 
         abcm2ps_path = settings.get('abcm2ps_path')
 
-        if not abcm2ps_path:
-            if wx.Platform == "__WXMSW__":
-                abcm2ps_path = os.path.join(cwd, 'bin', 'abcm2ps.exe')
-            elif wx.Platform == "__WXMAC__":
-                abcm2ps_path = os.path.join(cwd, 'bin', 'abcm2ps')
-            else:
-                abcm2ps_path = os.path.join(cwd, 'bin', 'abcm2ps')
+        if not abcm2ps_path or not os.path.exists(abcm2ps_path):
+            abcm2ps_path = get_default_path_for_executable('abcm2ps')
 
         if os.path.exists(abcm2ps_path):
             settings['abcm2ps_path'] = abcm2ps_path # 1.3.6 [SS] 2014-11-12
@@ -7738,16 +7715,10 @@ class MainFrame(wx.Frame):
             dlg = wx.MessageDialog(self, _('abcm2ps was not found here. You need it to view the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
-
         abc2midi_path = settings.get('abc2midi_path')
 
-        if not abc2midi_path:
-            if wx.Platform == "__WXMSW__":
-                abc2midi_path = os.path.join(cwd, 'bin', 'abc2midi.exe')
-            elif wx.Platform == "__WXMAC__":
-                abc2midi_path = os.path.join(cwd, 'bin', 'abc2midi')
-            else:
-                abc2midi_path = os.path.join(cwd, 'bin', 'abc2midi')
+        if not abc2midi_path or not os.path.exists(abc2midi_path):
+            abc2midi_path = get_default_path_for_executable('abc2midi')
 
         if os.path.exists(abc2midi_path):
             settings['abc2midi_path'] = abc2midi_path # 1.3.6 [SS] 2014-11-12
@@ -7756,29 +7727,23 @@ class MainFrame(wx.Frame):
             dlg = wx.MessageDialog(self, _('abc2midi was not found here. You need it to play the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
-
-        abc2abc_path = settings.get('abc2abc_path')
-
-        if not abc2abc_path:
-            if wx.Platform == "__WXMSW__":
-                abc2abc_path = os.path.join(cwd, 'bin', 'abc2abc.exe')
-            elif wx.Platform == "__WXMAC__":
-                abc2abc_path = os.path.join(cwd, 'bin', 'abc2abc')
-            else:
-                abc2abc_path = os.path.join(cwd, 'bin', 'abc2abc')
-
         midi2abc_path = settings.get('midi2abc_path')
 
         #1.3.6.4 [SS] 2015-06-22
-        if not midi2abc_path:
-            if wx.Platform == "__WXMSW__":
-                midi2abc_path = os.path.join(cwd, 'bin', 'midi2abc.exe')
-            elif wx.Platform == "__WXMAC__":
-                midi2abc_path = os.path.join(cwd, 'bin', 'midi2abc')
-            else:
-                midi2abc_path = os.path.join(cwd, 'bin', 'midi2abc')
+        if not midi2abc_path or not os.path.exists(midi2abc_path):
+            midi2abc_path = get_default_path_for_executable('midi2abc')
 
-        settings['midi2abc_path'] = midi2abc_path
+        if os.path.exists(midi2abc_path):
+            settings['midi2abc_path'] = midi2abc_path
+        else:
+            print('%s ***  not found ***' % midi2abc_path)
+            dlg = wx.MessageDialog(self, _('midi2abc was not found here. You need it to play the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
+            dlg.ShowModal()
+
+        abc2abc_path = settings.get('abc2abc_path')
+
+        if not abc2abc_path or not os.path.exists(abc2abc_path):
+            abc2abc_path = get_default_path_for_executable('abc2abc')
 
         if os.path.exists(abc2abc_path):
             settings['abc2abc_path'] = abc2abc_path # 1.3.6 [SS] 2014-11-12
