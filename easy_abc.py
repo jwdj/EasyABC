@@ -407,8 +407,6 @@ import xml.etree.cElementTree as ET
 import zipfile
 from datetime import datetime
 from collections import deque, namedtuple
-if not PY3:
-    from UserString import MutableString
 from io import StringIO
 from wx.lib.scrolledpanel import ScrolledPanel
 import wx.html
@@ -4229,48 +4227,45 @@ class MainFrame(wx.Frame):
         tune = self.GetSelectedTune()
         if tune:
             position, end_position = tune.offset_start, tune.offset_end
-            if end_position > position:
-                if len(self.selected_note_descs) > 2: ## and False:
-                    text = self.editor.GetTextRange(position, end_position).encode('utf-8', 'ignore')
-                    notes = get_notes_from_abc(text)
-                    num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
+            if end_position > position and len(self.selected_note_descs) > 2: ## and False:
+                text = self.editor.GetTextRange(position, end_position).encode('utf-8', 'ignore')
+                notes = get_notes_from_abc(text)
+                num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
 
-                    # workaround for the fact the abcm2ps returns incorrect row numbers
-                    # check the row number of the first note and if it doesn't agree with the actual value
-                    # then pretend that we have more or less extra header lines
-                    if self.music_pane.current_page.notes: # 1.3.6.2 [JWdJ] 2015-02
-                        actual_first_row = self.music_pane.current_page.notes[0][2]-1
-                        correction = (actual_first_row - first_note_line_index)
-                        num_header_lines += correction
+                # workaround for the fact the abcm2ps returns incorrect row numbers
+                # check the row number of the first note and if it doesn't agree with the actual value
+                # then pretend that we have more or less extra header lines
+                if self.music_pane.current_page.notes: # 1.3.6.2 [JWdJ] 2015-02
+                    actual_first_row = self.music_pane.current_page.notes[0][2]-1
+                    correction = (actual_first_row - first_note_line_index)
+                    num_header_lines += correction
 
-                    temp = text.replace('\r\n', ' \n').replace('\r', '\n')  # re.sub(r'\r\n|\r', '\n', text)
-                    line_start_offset = [m.start(0) for m in re.finditer(r'(?m)^', temp)]
+                temp = text.replace('\r\n', ' \n').replace('\r', '\n')  # re.sub(r'\r\n|\r', '\n', text)
+                line_start_offset = [m.start(0) for m in re.finditer(r'(?m)^', temp)]
 
-                    selected_note_offsets = []
-                    for (x, y, abc_row, abc_col, desc) in self.selected_note_descs:
-                        abc_row -= num_header_lines
-                        selected_note_offsets.append(line_start_offset[abc_row-1]+abc_col)
+                selected_note_offsets = []
+                for (x, y, abc_row, abc_col, desc) in self.selected_note_descs:
+                    abc_row -= num_header_lines
+                    selected_note_offsets.append(line_start_offset[abc_row-1]+abc_col)
 
-                    if PY3:
-                        for i, (start_offset, end_offset, note_text) in enumerate(notes):
-                            is_selected = any(p for p in selected_note_offsets if start_offset <= p < end_offset)
-                            if not is_selected:
-                                text = '{0}{1}{2}'.format(text[:start_offset], ' ' * (end_offset - start_offset), text[end_offset+1:])
-                    else:
-                        text = MutableString(text)
-                        for i, (start_offset, end_offset, note_text) in enumerate(notes):
-                            is_selected = any(p for p in selected_note_offsets if start_offset <= p < end_offset)
-                            if not is_selected:
-                                for j in range(start_offset, end_offset):
-                                    text[j] = ' '
-                        text = str(text)
+                unselected_note_offsets = [(start_offset, end_offset) for (start_offset, end_offset, note_text) in notes if not any(p for p in selected_note_offsets if start_offset <= p < end_offset)]
+                unselected_note_offsets.sort()
+                pieces = []
+                pos = 0
+                for start_offset, end_offset in unselected_note_offsets:
+                    if start_offset > pos:
+                        pieces.append(text[pos:start_offset])
+                    pieces.append(' ' * (end_offset - start_offset))
+                    pos = end_offset
+                pieces.append(text[pos:])
+                text = ''.join(pieces)
 
-                    text = text.decode('utf-8')
-                    # for some strange reason the MIDI sequence seems to be cut-off in the end if the last note is short
-                    # adding a silent extra note seems to fix this
-                    text = text + os.linesep + '%%MIDI control 7 0' + os.linesep + 'A2'
+                text = text.decode('utf-8')
+                # for some strange reason the MIDI sequence seems to be cut-off in the end if the last note is short
+                # adding a silent extra note seems to fix this
+                text = text + os.linesep + '%%MIDI control 7 0' + os.linesep + 'A2'
 
-                    return (tune, text)
+                return (tune, text)
             return (tune, self.editor.GetTextRange(position, end_position))
         return (tune, '')
 
@@ -7017,7 +7012,7 @@ class MainFrame(wx.Frame):
             return
 
         execmessages = u''
-        if remove_repeats or (len(self.selected_note_indices) > 1):
+        if remove_repeats or (len(self.selected_note_indices) > 2):
             abc = abc.replace('|:', '').replace(':|', '').replace('::', '')
             execmessages += '\n*removing repeats*'
 
