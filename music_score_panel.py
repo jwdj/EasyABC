@@ -1,7 +1,7 @@
 import wx
 import traceback
 import sys
-from wxhelper import wx_cursor
+from wxhelper import wx_cursor, wx_colour
 import sys
 PY3 = sys.version_info.major > 2
 
@@ -44,6 +44,7 @@ class MusicScorePanel(wx.ScrolledWindow):
         # self.redraw_counter = 0
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.highlighted_notes = set()
 
     def reset_scrolling(self):
         self.SetVirtualSize((self.buffer_width, self.buffer_height))
@@ -251,8 +252,8 @@ class MusicScorePanel(wx.ScrolledWindow):
             z = self.renderer.zoom
             #dc.Scale(z, z)
             x, y, width, height = self.drag_rect
-            dc.SetPen( dc.CreatePen(wx.Pen(wx.NamedColour('black'), 1.0, style=wx.DOT )) )            
-            dc.SetBrush(dc.CreateBrush(wx.Brush(wx.NamedColour('#fffbc6'), wx.SOLID)))            
+            dc.SetPen( dc.CreatePen(wx.Pen(wx_colour('black'), 1.0, style=wx.DOT )) )
+            dc.SetBrush(dc.CreateBrush(wx.Brush(wx_colour('#fffbc6'), wx.SOLID)))
             path = dc.CreatePath()
             path.MoveToPoint(x, y)
             path.AddLineToPoint(x+width, y)
@@ -260,6 +261,16 @@ class MusicScorePanel(wx.ScrolledWindow):
             path.AddLineToPoint(x, y+height)
             path.AddLineToPoint(x, y)            
             dc.DrawPath(path)
+
+    def draw_notes(self, note_indices, highlighted):
+        self.highlighted_notes = note_indices
+        self.need_redraw = True
+        self.redrawing = True
+        try:
+            self.Refresh()
+            self.Update()
+        finally:
+            self.redrawing = False
 
     def Draw(self):
         dc = wx.BufferedDC(None, self.renderer.buffer)
@@ -272,6 +283,8 @@ class MusicScorePanel(wx.ScrolledWindow):
                 self.draw_drag_rect(dc)
                 if self.current_page != self.renderer.empty_page:
                     self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
+                    if self.highlighted_notes:
+                        self.renderer.draw_notes(page=self.current_page, note_indices=self.highlighted_notes, highlight=True, dc=dc)
             finally:
                 if not PY3:
                     dc.EndDrawing()

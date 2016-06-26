@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import re
 import os
 import sys
@@ -817,6 +818,7 @@ class BarChangeAction(ValueChangeAction):
         CodeDescription(':|', _('End of repeated section')),
         CodeDescription('|1', _('First ending')),
         CodeDescription(':|2', _('Second ending')),
+        CodeDescription('::', _('Both start and end of repetition'), common=False),
         CodeDescription('&',  _('Voice overlay'), common=False),
         CodeDescription('[|]', _('Invisible bar'), common=False)
     ]
@@ -1364,7 +1366,7 @@ class FixCharactersAction(AbcAction):
         scope_info = context.get_scope_info(TuneScope.MatchText)
         text = scope_info.text
         new_text = unicode_text_to_abc(text)
-        context.replace_selection(new_text, scope_info.start, scope_info.start + len(text.encode('utf-8')))
+        context.replace_selection(new_text, scope_info.start, scope_info.stop)
 
 
 class NewLineAction(AbcAction):

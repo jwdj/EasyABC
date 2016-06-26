@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import re
 import os
 import io
@@ -104,7 +105,10 @@ name_to_display_text = {
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
-    return type('Enum', (), enums)
+    if PY3:
+        return type('Enum', (), enums)
+    else:
+        return type(b'Enum', (), enums)
 
 TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'TuneUpToSelection', 'BodyUpToSelection', 'BodyAfterSelection', 'LineUpToSelection', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText', 'PreviousCharacter', 'NextCharacter')
 TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
@@ -270,22 +274,27 @@ chord_notes = {
 }
 
 unicode_char_to_abc = {
-    r'\u00c0': r'\`A', r'\u00e0': r'\`a', r'\u00c8': r'\`E', r'\u00e8': r'\`e', r'\u00cc': r'\`I', r'\u00ec': r'\`i',
-    r'\u00d2': r'\`O', r'\u00f2': r'\`o', r'\u00d9': r'\`U', r'\u00f9': r'\`u', r'\u00c1': r"\'A", r'\u00e1': r"\'a",
-    r'\u00c9': r"\'E", r'\u00e9': r"\'e", r'\u00cd': r"\'I", r'\u00ed': r"\'i", r'\u00d3': r"\'O", r'\u00f3': r"\'o",
-    r'\u00da': r"\'U", r'\u00fa': r"\'u", r'\u00dd': r"\'Y", r'\u00fd': r"\'y", r'\u00c2': r'\^A', r'\u00e2': r'\^a',
-    r'\u00ca': r'\^E', r'\u00ea': r'\^e', r'\u00ce': r'\^I', r'\u00ee': r'\^i', r'\u00d4': r'\^O', r'\u00f4': r'\^o',
-    r'\u00db': r'\^U', r'\u00fb': r'\^u', r'\u0176': r'\^Y', r'\u0177': r'\^y', r'\u00c3': r'\~A', r'\u00e3': r'\~a',
-    r'\u00d1': r'\~N', r'\u00f1': r'\~n', r'\u00d5': r'\~O', r'\u00f5': r'\~o', r'\u00c4': r'\"A', r'\u00e4': r'\"a',
-    r'\u00cb': r'\"E', r'\u00eb': r'\"e', r'\u00cf': r'\"I', r'\u00ef': r'\"i', r'\u00d6': r'\"O', r'\u00f6': r'\"o',
-    r'\u00dc': r'\"U', r'\u00fc': r'\"u', r'\u0178': r'\"Y', r'\u00ff': r'\"y', r'\u00c7': r'\cC', r'\u00e7': r'\cc',
-    r'\u00c5': r'\AA', r'\u00e5': r'\aa', r'\u00d8': r'\/O', r'\u00f8': r'\/o', r'\u0102': r'\uA', r'\u0103': r'\ua',
-    r'\u0114': r'\uE', r'\u0115': r'\ue', r'\u0160': r'\vS', r'\u0161': r'\vs', r'\u017d': r'\vZ', r'\u017e': r'\vz',
-    r'\u0150': r'\HO', r'\u0151': r'\Ho', r'\u0170': r'\HU', r'\u0171': r'\Hu', r'\u00c6': r'\AE', r'\u00e6': r'\ae',
-    r'\u0152': r'\OE', r'\u0153': r'\oe', r'\u00df': r'\ss', r'\u00d0': r'\DH', r'\u00f0': r'\dh', r'\u00de': r'\TH',
-    r'\u00fe': r'\th' }
+    u'\\u00c0': u'\\`A', u'\\u00e0': u'\\`a', u'\\u00c8': u'\\`E', u'\\u00e8': u'\\`e', u'\\u00cc': u'\\`I', u'\\u00ec': u'\\`i',
+    u'\\u00d2': u'\\`O', u'\\u00f2': u'\\`o', u'\\u00d9': u'\\`U', u'\\u00f9': u'\\`u', u'\\u00c1': u"\\'A", u'\\u00e1': u"\\'a",
+    u'\\u00c9': u"\\'E", u'\\u00e9': u"\\'e", u'\\u00cd': u"\\'I", u'\\u00ed': u"\\'i", u'\\u00d3': u"\\'O", u'\\u00f3': u"\\'o",
+    u'\\u00da': u"\\'U", u'\\u00fa': u"\\'u", u'\\u00dd': u"\\'Y", u'\\u00fd': u"\\'y", u'\\u00c2': u'\\^A', u'\\u00e2': u'\\^a',
+    u'\\u00ca': u'\\^E', u'\\u00ea': u'\\^e', u'\\u00ce': u'\\^I', u'\\u00ee': u'\\^i', u'\\u00d4': u'\\^O', u'\\u00f4': u'\\^o',
+    u'\\u00db': u'\\^U', u'\\u00fb': u'\\^u', u'\\u0176': u'\\^Y', u'\\u0177': u'\\^y', u'\\u00c3': u'\\~A', u'\\u00e3': u'\\~a',
+    u'\\u00d1': u'\\~N', u'\\u00f1': u'\\~n', u'\\u00d5': u'\\~O', u'\\u00f5': u'\\~o', u'\\u00c4': u'\\"A', u'\\u00e4': u'\\"a',
+    u'\\u00cb': u'\\"E', u'\\u00eb': u'\\"e', u'\\u00cf': u'\\"I', u'\\u00ef': u'\\"i', u'\\u00d6': u'\\"O', u'\\u00f6': u'\\"o',
+    u'\\u00dc': u'\\"U', u'\\u00fc': u'\\"u', u'\\u0178': u'\\"Y', u'\\u00ff': u'\\"y', u'\\u00c7': u'\\cC', u'\\u00e7': u'\\cc',
+    u'\\u00c5': u'\\AA', u'\\u00e5': u'\\aa', u'\\u00d8': u'\\/O', u'\\u00f8': u'\\/o', u'\\u0102': u'\\uA', u'\\u0103': u'\\ua',
+    u'\\u0114': u'\\uE', u'\\u0115': u'\\ue', u'\\u0160': u'\\vS', u'\\u0161': u'\\vs', u'\\u017d': u'\\vZ', u'\\u017e': u'\\vz',
+    u'\\u0150': u'\\HO', u'\\u0151': u'\\Ho', u'\\u0170': u'\\HU', u'\\u0171': u'\\Hu', u'\\u00c6': u'\\AE', u'\\u00e6': u'\\ae',
+    u'\\u0152': u'\\OE', u'\\u0153': u'\\oe', u'\\u00df': u'\\ss', u'\\u00d0': u'\\DH', u'\\u00f0': u'\\dh', u'\\u00de': u'\\TH',
+    u'\\u00fe': u'\\th' }
 
 unicode_re = re.compile(r'\\u[0-9a-fA-F]{4}')
+
+def ensure_unicode(text):
+    if not PY3 and not isinstance(text, unicode):
+        return text.decode('utf-8')
+    return text
 
 def unicode_escape_to_char(value):
     if PY3:
@@ -294,8 +303,8 @@ def unicode_escape_to_char(value):
         return unicode(str(value), 'unicode-escape')
 
 def unicode_text_to_abc(text):
-    result = text
-    if text:
+    result = ensure_unicode(text)
+    if result:
         for ustr in unicode_char_to_abc:
             ch = unicode_escape_to_char(ustr)
             result = result.replace(ch, unicode_char_to_abc[ustr])
@@ -312,12 +321,9 @@ def unicode_text_to_html_abc(text):
     return result
 
 def abc_text_to_unicode(text):
-    if PY3:
-        result = text
-    else:
-        result = unicode(text)
-    if text:
-        for m in unicode_re.finditer(text):
+    result = ensure_unicode(text)
+    if result:
+        for m in unicode_re.finditer(result):
             ustr = m.group()
             ch = unicode_escape_to_char(ustr)
             result = result.replace(ustr, ch)
@@ -890,7 +896,7 @@ class AbcInvalidCharacter(AbcBodyElement):
 class AbcChordSymbol(AbcBodyElement):
     basic_pattern = r'(?P<chordsymbol>"(?P<chordname>[^\^_<>@"\\](?:[^"\\]|\\.)*)")'
     #pattern = ur'(?P<chordsymbol>"(?P<chordnote>[A-G][b#\u266D\u266E\u266F]?)(?P<quality>[^/\d]*)(?P<th>2|4|5|6|7|9|11|13)?(?P<sus>sus[2|4|9]?)?(?P<additional>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?)")'
-    pattern = ur'"(?P<chordsymbol>(?P<chordnote>(?:[A-G][b#\u266D\u266E\u266F]?)?)(?P<chordname>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?))"'
+    pattern = r'"(?P<chordsymbol>(?P<chordnote>(?:[A-G][b#\u266D\u266E\u266F]?)?)(?P<chordname>.*?)(?P<bassnote>(?:/[A-Ga-g][b#\u266D\u266E\u266F]?)?))"'
     def __init__(self):
         super(AbcChordSymbol, self).__init__('Chord symbol', AbcChordSymbol.pattern, display_name=_('Chord symbol'))
 
@@ -1004,7 +1010,6 @@ class AbcStructure(object):
     valid_directive_re = None
     from_to_directive_re = None
     abc_field_re = None
-    _instance = None # singleton instance
 
     @staticmethod
     def get_sections(cwd):
@@ -1094,7 +1099,7 @@ class AbcStructure(object):
         ]
 
         elements_by_keyword = {}
-        lines = str.splitlines(abc_keywords)
+        lines = abc_keywords.splitlines()
         for line in lines:
             parts = line.split('|')
             keyword = parts[0].strip()

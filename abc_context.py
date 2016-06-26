@@ -103,7 +103,7 @@ class AbcContext(object):
         if match:
             start = match.start()
             stop = match.end()
-            scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+            scope_info = TuneScopeInfo(ensure_unicode(match.string[start:stop]), start+offset, stop+offset)
         else:
             scope_info = self.get_empty_scope_info()
         self._tune_scope_info[TuneScope.MatchText] = scope_info
@@ -115,13 +115,13 @@ class AbcContext(object):
             start = match.start()
             stop = match.end()
             offset += inner_match.offset
-            inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+            inner_scope_info = TuneScopeInfo(ensure_unicode(match.string[start:stop]), start+offset, stop+offset)
         elif match:
             try:
                 start = match.start('inner')
                 if start >= 0:
                     stop = match.end('inner')
-                    inner_scope_info = TuneScopeInfo(match.string[start:stop], start+offset, stop+offset)
+                    inner_scope_info = TuneScopeInfo(ensure_unicode(match.string[start:stop]), start+offset, stop+offset)
             except IndexError:
                 pass  # no group named inner present
         self._tune_scope_info[TuneScope.InnerText] = inner_scope_info
@@ -179,7 +179,7 @@ class AbcContext(object):
     def get_scope_selected_text(self):
         start, stop = self._editor.GetSelection()
         if start == stop:
-            return TuneScopeInfo('', start, stop)
+            return TuneScopeInfo(u'', start, stop)
         else:
             return self.create_scope(start, stop)
 
@@ -290,7 +290,8 @@ class AbcContext(object):
         return TuneScopeInfo(None, None, None)
 
     def create_scope(self, start_pos, end_pos):
-        return TuneScopeInfo(self._editor.GetTextRange(start_pos, end_pos), start_pos, end_pos)
+        text = ensure_unicode(self._editor.GetTextRange(start_pos, end_pos))
+        return TuneScopeInfo(text, start_pos, end_pos)
 
     def insert_text(self, text):
         self._editor.BeginUndoAction()

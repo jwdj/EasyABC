@@ -509,6 +509,7 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Last used format file folder will be remembered when clearing the format file folder and used when browsing
 - 'Export to ABC' added, but only available when multiple tunes have been selected. A new file is created with only the selected tunes
 - 'Export to single PDF' added, but only available when multiple tunes have been selected.
-
+- 'File -> Close' does not close EasyABC but only the current file (as suggested by John Burke)
+- 'File -> Close' shortcut is now Ctrl-W (was Alt-F4 but only on Windows)
 
 

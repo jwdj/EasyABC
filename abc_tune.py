@@ -2,49 +2,58 @@ import uuid  # 1.3.6.3 [JWdJ] 2015-04-22
 from fractions import Fraction
 import re
 
+field_pattern = r'[A-Za-z\+]:'
+meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
+unitlength_pattern = r'^L:\s*(\d+)/(\d+)'
+
+meter_re = re.compile(meter_pattern)
+unitlength_re = re.compile(unitlength_pattern)
+inline_meter_re = re.compile('\[{0}\]'.format(meter_pattern))
+inline_unitlength_re = re.compile('\[{0}\]'.format(unitlength_pattern))
+abc_field_re = re.compile(field_pattern)
+
+
+def match_to_meter(m, default):
+    metre = default
+    if m.group(1) is not None:
+        metre = Fraction(int(m.group(1)), int(m.group(2)))
+    elif m.group(3) == 'C':
+        metre = Fraction(4, 4)
+    elif m.group(3) == 'C|':
+        metre = Fraction(2, 2)
+    return metre
+
 
 # 1.3.6.3 [JWdJ] renamed BaseTune to AbcTune and added functions
 class AbcTune(object):
     """ Class for dissecting abc tune structure """
     def __init__(self, abc_code):
-        self.__abc_code = abc_code
-        self.__abc_lines = None
-        self.__tune_header_start_line_index = None
-        self.__first_note_line_index = None
+        self.abc_code = abc_code
+        self.determine_abc_structure(abc_code)
         self.__tune_id = None
 
-    @property
-    def abc_code(self):
-        return self.__abc_code
+    def determine_abc_structure(self, abc_code):
+        abc_lines = abc_code.splitlines()
+        while len(abc_lines) > 0 and abc_lines[-1].strip() == '':
+            abc_lines = abc_lines[:-1]  # remove empty lines at bottom
 
-    @property
-    def abc_lines(self):
-        if self.__abc_lines is None:
-            self.__abc_lines = self.abc_code.splitlines()
-        return self.__abc_lines
+        note_line_indices = []
+        match_abc_field = abc_field_re.match
+        key_found = False
+        for i, line in enumerate(abc_lines):
+            if line.startswith('K:'):
+                key_found = True
+            elif key_found and not line.startswith('%') and not match_abc_field(line):
+                note_line_indices.append(i)
 
-    @property
-    def first_note_line_index(self):
-        if self.__first_note_line_index is None:
-            line_no = 1  # start with 1 because body starts 1 line after K field
-            for line in iter(self.abc_lines):
-                if line.startswith('K:'):
-                    self.__first_note_line_index = line_no
-                    break
-                line_no += 1
+        if note_line_indices:
+            self.first_note_line_index = note_line_indices[0]
+        else:
+            self.first_note_line_index = len(abc_lines)
 
-        return self.__first_note_line_index
-
-    @property
-    def tune_header_start_line_index(self):
-        if self.__tune_header_start_line_index is None:
-            line_no = 0  # start with 0 because header starts with the X field
-            for line in iter(self.abc_lines):
-                if line.startswith('X:'):
-                    self.__tune_header_start_line_index = line_no
-                    break
-                line_no += 1
-        return self.__tune_header_start_line_index
+        self.abc_lines = abc_lines
+        self.note_line_indices = note_line_indices
+        self.tune_header_start_line_index = next(i for i, line in enumerate(abc_lines) if line.startswith('X:'))
 
     @property
     def tune_id(self):
@@ -57,28 +66,20 @@ class AbcTune(object):
         default_len = Fraction(1, 8)
         metre = Fraction(4, 4)
         # 1.3.7 [JWdJ] 2016-01-06
-        meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
         for line in lines:
-            m = re.match(r'^L:\s*(\d+)/(\d+)', line)
+            m = meter_re.match(line)
+            if m:
+                metre = match_to_meter(m, metre)
+
+            for m in inline_meter_re.finditer(line):
+                metre = match_to_meter(m, metre)
+
+            m = unitlength_re.match(line)
             if m:
                 default_len = Fraction(int(m.group(1)), int(m.group(2)))
-            m = re.search(r'^{0}'.format(meter_pattern), line)
-            if m:
-                # 1.3.7 [JWdJ] 2016-01-06
-                if m.group(1) is not None:
-                    metre = Fraction(int(m.group(1)), int(m.group(2)))
-                elif m.group(3) == 'C':
-                    metre = Fraction(4, 4)
-                elif m.group(3) == 'C|':
-                    metre = Fraction(2, 2)
-            for m in re.finditer(r'\[{0}\]'.format(meter_pattern), line):
-                if m.group(1) is not None:
-                    metre = Fraction(int(m.group(1)), int(m.group(2)))
-                elif m.group(3) == 'C':
-                    metre = Fraction(4, 4)
-                elif m.group(3) == 'C|':
-                    metre = Fraction(2, 2)
-            for m in re.finditer(r'\[L:\s*(\d+)/(\d+)\]', line):
+
+            for m in inline_unitlength_re.finditer(line):
                 default_len = Fraction(int(m.group(1)), int(m.group(2)))
+
         return metre, default_len
 

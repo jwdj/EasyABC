@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.4 2016-05-23'
+program_name = 'EasyABC 1.3.7.4 2016-06-26'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
@@ -435,6 +435,7 @@ from abc_search import abc_matches_iter
 from fractions import Fraction
 from music_score_panel import MusicScorePanel
 from svgrenderer import SvgRenderer
+import itertools
 from aligner import align_lines, extract_incipit, bar_sep, bar_sep_without_space, get_bar_length, bar_and_voice_overlay_sep
 ##from midi_processing import humanize_midi
 if PY3:
@@ -466,6 +467,7 @@ def str2fraction(s):
     return Fraction(parts[0], parts[1])
 
 Tune = namedtuple('Tune', 'xnum title rythm offset_start offset_end abc header num_header_lines')
+MidiNote = namedtuple('MidiNote', 'start stop indices')
 class AbortException(Exception): pass
 class Abcm2psException(Exception): pass
 class NWCConversionException(Exception): pass
@@ -565,7 +567,7 @@ class AbcTunes(object):
             self.cached_tune_ids.append(tune_id)
 
     def cleanup(self):
-        for tune_id in self.__tunes.keys():
+        for tune_id in list(self.__tunes):
             self.remove(tune_id)
         self.__tunes = {}
 
@@ -1187,6 +1189,14 @@ def MidiToMftext (midi2abc_path, midifile):
     else:
         wx.MessageBox(_("Cannot find the executable midi2abc. Be sure it is in your bin folder and its path is defined in ABC Setup/File Settings."), _("Error") ,wx.ICON_ERROR | wx.OK)
 
+def get_midi_structure_as_text(midi2abc_path, midi_file):
+    result = u''
+    if os.path.exists(midi2abc_path):
+        creationflags = 0
+        cmd = [midi2abc_path, midi_file, '-mftext']
+        process = subprocess.Popen(cmd, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
+        result, stderr_value = process.communicate()
+    return result
 
 # p09 2014-10-14 2014-12-17 2015-01-28 [SS]
 def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path=None, gs_path=None,  abcm2ps_format_path=None, generate_toc=False):
@@ -1725,6 +1735,9 @@ def add_abc2midi_options(cmd,settings):
     # 1.3.6.3 [SS] 2015-03-20
     if settings['tuning'] != '440':
         cmd.append('-TT %s' % settings['tuning'])
+    # 1.3.6.4 [JWDJ] 2016-06-22
+    if not settings['midiplayer_path']:
+        cmd.append('-EA')
     return cmd
 
 
@@ -3925,16 +3938,18 @@ class MainFrame(wx.Frame):
         self.settings_file = os.path.join(self.app_dir, 'settings1.3.dat')
         self._current_file = None
         self.untitled_number = 1
-        self.document_name = _('Untitled') + ' %d' % self.untitled_number
         self.author = ''
         self.record_thread = None
         self.zoom_factor = 1.0
         self.selected_note_indices = []
         self.selected_note_descs = []
+        self.midi_notes = None
+        self.current_time_slice = None
         self.keyboard_input_mode = False
         self.last_refresh_time = datetime.now()
         self.last_line_number_selected = -1
         self.queue_number_refresh_music = 0
+        self.queue_number_follow_music = 0
         self.queue_number_movement = 0
         self.field_reference_frame = None
         self.find_data = wx.FindReplaceData()
@@ -3986,6 +4001,8 @@ class MainFrame(wx.Frame):
         self.tune_list.SetAutoLayout(True)
         self.editor = stc.StyledTextCtrl(self, -1)
         self.editor.SetCodePage(stc.STC_CP_UTF8)
+
+        self.new_tune()
 
         # p09 include line numbering in the edit window. 2014-10-14 [SS]
         self.editor.SetMarginLeft(15)
@@ -4069,8 +4086,7 @@ class MainFrame(wx.Frame):
         self.load_settings(load_window_size_pos=True)
         self.restore_settings()
 
-        # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
-        self.update_play_button() # 1.3.6.3 [JWdJ] 2015-04-21 centralized playbutton enabling
+        self.update_controls_using_settings()
 
         #1.3.6 [SS] 2014-12-07 (self.statusbar)
         #1.3.6.2 [SS] 2015-03-03 self.statusbar removed
@@ -4092,7 +4108,7 @@ class MainFrame(wx.Frame):
 
         self.play_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnPlayTimer, self.play_timer)
-        self.play_timer.Start(150)
+        self.play_timer.Start(50)
         self.music_update_thread.start()
         self.update_multi_tunes_menu_items()
 
@@ -4109,10 +4125,22 @@ class MainFrame(wx.Frame):
         self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
         execmessages = _('You are running {0} on {1}\nYou can get the latest version on http://sourceforge.net/projects/easyabc/\n'.format(program_name, wx.Platform))
 
+    def update_controls_using_settings(self):
+        # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
+        self.update_play_button() # 1.3.6.3 [JWdJ] 2015-04-21 centralized playbutton enabling
+
+        self.follow_music_check.SetValue(self.settings.get('follow_music', False))
+        self.UpdateTimingSliderVisibility()
+
     def Destroy(self):
         self.renderer.destroy()
         self.renderer = None
         super(MainFrame, self).Destroy()
+
+    def new_tune(self):
+        self.document_name = _('Untitled') + ' %d' % self.untitled_number
+        self.SetTitle('%s - %s' % (program_name, self.document_name))
+        self.editor.ClearAll()
 
     # 1.3.6.2 [JWdJ] 2015-02
     @property
@@ -4461,6 +4489,28 @@ class MainFrame(wx.Frame):
         self.bpm_slider.SetValue(0)
         self.update_playback_rate() # 1.3.6.4 [JWDJ]
 
+    def OnChangeFollowMusic(self, event):
+        enabled = event.Selection != 0
+        self.settings['follow_music'] = enabled
+        self.UpdateTimingSliderVisibility()
+        if enabled and self.midi_notes is None and self.current_midi_tune and self.current_svg_tune:
+            self.midi_notes = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
+
+    def UpdateTimingSliderVisibility(self):
+        visible = self.follow_music_check.IsShown() and self.follow_music_check.GetValue()
+        if visible ^ self.timing_slider.IsShown():
+            self.timing_slider.Show(visible)
+
+    def OnChangeTiming(self, event):
+        self.settings['follow_music_timing_offset'] = event.Selection
+
+    def OnTimingSliderClick(self, evt):
+        if evt.ControlDown() or evt.ShiftDown():
+            self.timing_slider.SetValue(0)
+            self.settings['follow_music_timing_offset'] = 0
+        else:
+            evt.Skip()
+
     def start_midi_out(self, midifile):
         ''' Starts the Midi Player which runs as a separate thread in order not to
         hang up this program
@@ -4567,7 +4617,45 @@ class MainFrame(wx.Frame):
     def OnPlayTimer(self, evt):
         if not self.is_closed and self.media_slider.Parent.Shown and self.mc: # and self.is_playing():
             offset = self.mc.Tell()
+            if self.settings.get('follow_music', False):
+                self.queue_number_follow_music += 1
+                queue_number = self.queue_number_follow_music
+                wx.CallLater(0, self.FollowMusic, offset, queue_number)
+
             self.media_slider.SetValue(offset)
+
+    def FollowMusic(self, offset, queue_number):
+        if self.queue_number_follow_music != queue_number:
+            return
+
+        page = self.music_pane.current_page
+        if not page:
+            return
+
+        if not self.midi_notes:
+            return
+
+        # self.statusbar.SetStatusText('%d' % offset)
+        offset += self.settings.get('follow_music_timing_offset', 0)
+
+        current_time_slice = self.current_time_slice
+        if current_time_slice and current_time_slice.start <= offset < current_time_slice.stop:
+            return
+
+        if current_time_slice is None or offset < current_time_slice.start:  # first time or after rewind
+            self.midi_notes_iter = iter(self.midi_notes)
+
+        #current_time_slice = next(self.midi_notes_iter)
+        for slice in self.midi_notes_iter:
+            if slice.start <= offset < slice.stop:
+                current_time_slice = slice
+                break
+
+        #page.selected_indices = current_time_slice.indices
+        #self.music_pane.redraw()
+        self.music_pane.draw_notes(current_time_slice.indices, True)
+
+        self.current_time_slice = current_time_slice
 
     def OnRecordBpmSelected(self, evt):
         menu = evt.EventObject
@@ -4588,6 +4676,8 @@ class MainFrame(wx.Frame):
         # self.show_toolbar_panel(self.bpm_slider.Parent, state)
         self.show_toolbar_panel(self.media_slider.Parent, state)
         self.loop_check.Show(state)
+        self.follow_music_check.Show(state)
+        self.UpdateTimingSliderVisibility()
         self.toolbar.Realize()
         wx.Yield()
 
@@ -4676,6 +4766,13 @@ class MainFrame(wx.Frame):
 
         self.loop_check = self.add_checkbox_to_toolbar(_('Loop'))
 
+        self.follow_music_check = self.add_checkbox_to_toolbar(_('Follow music'))
+        self.follow_music_check.Bind(wx.EVT_CHECKBOX, self.OnChangeFollowMusic)
+
+        self.timing_slider = self.add_slider_to_toolbar('', False, 0, -500, 500, (-1, -1), (130, 22))
+        self.timing_slider.Bind(wx.EVT_SLIDER, self.OnChangeTiming)
+        self.timing_slider.Bind(wx.EVT_LEFT_DOWN, self.OnTimingSliderClick)
+
         self.Bind(wx.EVT_SLIDER, self.OnSeek, self.media_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
         self.bpm_slider.Bind(wx.EVT_LEFT_DOWN, self.OnBpmSliderClick)
@@ -4723,7 +4820,8 @@ class MainFrame(wx.Frame):
     @staticmethod
     def add_label_and_controls_to_panel(panel, label_text, controls):
         box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.StaticText(panel, -1, u'{0}: '.format(label_text)), flag=wx.ALIGN_CENTER_VERTICAL)
+        if label_text:
+            box.Add(wx.StaticText(panel, -1, u'{0}: '.format(label_text)), flag=wx.ALIGN_CENTER_VERTICAL)
         for control in controls:
             box.Add(control, flag=wx.ALIGN_CENTER_VERTICAL)
         box.AddSpacer(20)
@@ -5349,6 +5447,7 @@ class MainFrame(wx.Frame):
                 def play():
                     self.PlayMidi(False)
 
+            self.current_time_slice = None
             wx.CallAfter(play)
 
     @property
@@ -5462,6 +5561,7 @@ class MainFrame(wx.Frame):
     def OnToolDirections(self, evt):
         try: self.toolbar.PopupMenu(self.popup_directions)
         except wx._core.PyAssertionError: pass
+
     def CanClose(self, dont_ask = False):
         if self.editor.GetModify():
             if dont_ask:
@@ -5828,16 +5928,11 @@ class MainFrame(wx.Frame):
 
         self.recent_menu = wx.Menu()
 
-        if wx.Platform == "__WXMSW__":
-            close_shortcut = '\tAlt+F4'
-        else:
-            close_shortcut = '\tCtrl+W'
-
         menuBar = create_menu_bar([
             (_("&File")     , [
                 (_('&New\tCtrl+N'), _("Create a new file"), self.OnNew),
                 (_("&Open...\tCtrl+O"), _("Open an existing file"), self.OnOpen),
-                (_("&Close") + close_shortcut, _("Close the current file"), self.OnCloseFile),
+                (_("&Close") + '\tCtrl+W', _("Close the current file"), self.OnCloseFile),
                 (),
                 (_("&Import and add..."), _("Import a song in ABC, Midi or MusicXML format and add it to the current document."), self.OnImport),
                 (),
@@ -5982,9 +6077,12 @@ class MainFrame(wx.Frame):
         else:
             wx.MessageBox(_("You need to create the midi file by playing the tune"), _("Error") ,wx.ICON_ERROR | wx.OK)
 
-
     def OnCloseFile(self, evt):
-        self.Close()
+        if self.CanClose():
+            self.untitled_number += 1
+            self.new_tune()
+            self.OnTuneSelected(None)
+
     def OnSave(self, evt):
         self.save()
     def OnSaveAs(self, evt):
@@ -6350,7 +6448,6 @@ class MainFrame(wx.Frame):
         #print 'OnMovedToDifferentLine = ',queue_number_movement,' ',self.queue_number_movement
         if self.queue_number_movement != queue_number_movement:
             return
-        new_tune_selected = False
         line_no = self.editor.LineFromPosition(self.editor.GetCurrentPos())
         total_tunes = self.tune_list.GetItemCount()
         found_index = next((i for i, (index, title, startline) in enumerate(self.tunes) if startline > line_no), total_tunes) - 1
@@ -6465,8 +6562,8 @@ class MainFrame(wx.Frame):
                 elif c == ':':
                     if not (line.rstrip(), caret) == (u'X', 1) and self.add_bar_if_needed(':|'):
                         return
-                elif self.add_bar_if_needed():
-                    return
+                else:
+                    self.add_bar_if_needed()
 
         # when there is a selection and 's' is pressed it serves as a shortcut for slurring
         if p1 != p2 and c == 's':
@@ -7035,7 +7132,149 @@ class MainFrame(wx.Frame):
             else:
                 # 1.3.6.3 [JWDJ] 2015-3 DetermineMidiPlayRange not used anymore
                 # self.DetermineMidiPlayRange(tune, midi_file)
+                self.midi_notes = None
+                if self.settings.get('follow_music', False):
+                    self.midi_notes = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
                 self.do_load_media_file(midi_file)
+
+    def extract_note_timings(self, midi_tune, svg_tune):
+        midi2abc_path = self.settings['midi2abc_path']
+        if not svg_tune or not midi2abc_path:
+            return []
+
+        lines = get_midi_structure_as_text(midi2abc_path, midi_tune.midi_file).splitlines()
+        if not lines:
+            return []
+
+        page_index = 0
+        page = svg_tune.render_page(page_index, self.renderer)
+
+        svg_rows = svg_tune.abc_tune.note_line_indices
+        midi_rows = midi_tune.abc_tune.note_line_indices
+
+        if len(midi_rows) > len(svg_rows):
+            midi_lines = midi_tune.abc_tune.abc_lines
+            svg_lines = svg_tune.abc_tune.abc_lines
+            svg_rows = list(svg_rows)
+            for i in range(len(midi_rows)):
+                if midi_lines[midi_rows[i]].strip() != svg_lines[svg_rows[i]].strip():
+                    svg_rows.insert(i, -1)
+                if len(svg_rows) > len(midi_rows):
+                    return []  # out of sync
+
+        if len(midi_rows) != len(svg_rows):
+            return []  # out of sync
+
+        svg_rows = [i + 1 for i in svg_rows]
+        midi_rows = [i + 1 for i in midi_rows]
+
+        errors = 0
+        pos_re = re.compile(r'^\s*(\d+\.\d+)\s+CntlParm\s+1\s+unknown\s+=\s+(\d+)')
+        note_re = re.compile(r'^\s*(\d+\.\d+)\s+Note (on|off)\s+(\d+)\s+(\d+)')
+        tempo_re = re.compile(r'^\s*(\d+\.\d+)\s+Metatext\s+tempo\s+=\s+(\d+\.\d+)\s+bpm')
+
+        def time_value_to_milliseconds(value, tempos):
+            tempos = [t for t in tempos if t[0] <= value]
+            time_start, bpm, sec_until_time_start = tempos[-1]
+            sec = sec_until_time_start + ((value - time_start) * 60 / bpm)
+            return int(sec * 1000)
+
+        def append_tempo(tempos, time_start, tempo):
+            sec_until_time_start = 0.0
+            if tempos:
+                later_start = [t for t in tempos if t[0] > time_start]
+                if later_start:
+                    raise Exception('Cannot insert tempo at {0}'.format(time_start))
+                prev_start, prev_bpm, prev_sec_until_time_start = tempos[-1]
+                sec_until_time_start = prev_sec_until_time_start + ((time_start - prev_start) * 60 / prev_bpm)
+            tempos.append((time_start, tempo, sec_until_time_start))
+
+        tempos = []
+        notes = []
+        active_notes = {}
+        indices = set()
+        last_line_was_pos = False
+        for line in lines:
+            m = pos_re.match(line)
+            if m is not None:
+                value = int(m.group(2))
+                if last_line_was_pos:
+                    note_info.append(value)
+                    if len(note_info) == 5:
+                        row = (note_info[0] << 14) + (note_info[1] << 7) + note_info[2]
+                        col = (note_info[3] << 7) + note_info[4]
+                        svg_row = svg_rows[midi_rows.index(row)]
+                        svg_col = col - 1
+                        indices = page.get_indices_for_row_col(svg_row, svg_col)
+                        if not indices:
+                            # maybe a chord
+                            indices = page.get_indices_for_row_col(svg_row, svg_col-1)
+                            if not indices:
+                                errors += 1
+
+                else:
+                    note_info = [value]
+                    svg_row = None
+                    svg_col = None
+                    indices = set()
+                    last_line_was_pos = True
+            else:
+                last_line_was_pos = False
+                m = note_re.match(line)
+                if m is not None:
+                    time_in_ms = time_value_to_milliseconds(float(m.group(1)), tempos)
+                    on_off = m.group(2)
+                    channel = int(m.group(3))
+                    note_num = int(m.group(4))
+                    if on_off == 'on':
+                        note_start = time_in_ms
+                        active_notes[(channel, note_num)] = MidiNote(note_start, None, indices)
+                    elif on_off == 'off':
+                        note_stop = time_in_ms
+                        note_on = active_notes.pop((channel, note_num), None)
+                        notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices)))
+                else:
+                    m = tempo_re.match(line)
+                    if m is not None:
+                        tempo_start = float(m.group(1))
+                        tempo = float(m.group(2))
+                        append_tempo(tempos, tempo_start, tempo)
+
+        return self.group_notes_by_time(notes)
+
+    def fill_time_gaps(self, time_slices):
+        gaps = []
+        last_stop = 0
+        for slice in time_slices:
+            if slice.start > last_stop:
+                gaps.append(MidiNote(last_stop, slice.start, set()))
+            last_stop = slice.stop
+
+        if gaps:
+            time_slices += gaps
+            time_slices.sort(key=lambda n: n.start)
+
+        time_slices.insert(0, MidiNote(-sys.maxint, 0, set()))
+        time_slices.append(MidiNote(last_stop, sys.maxint, set()))
+        return time_slices
+
+    def group_notes_by_time(self, notes):
+        takewhile = itertools.takewhile
+        notes.sort(key=lambda n: n.start)
+        time_slices = []
+        active_notes = []
+        while notes:
+            time_start = notes[0].start
+            same_note_start = list(takewhile(lambda n: n.start == time_start, notes))
+            notes = notes[len(same_note_start):]
+            active_notes += same_note_start
+            active_notes.sort(key=lambda n: n.stop)
+            time_stop = active_notes[0].stop
+            all_indices_for_time_slice = set().union(*[n.indices for n in active_notes])
+            time_slices.append(MidiNote(time_start, time_stop, all_indices_for_time_slice))
+            same_note_stop = list(takewhile(lambda n: n.stop == time_stop, active_notes))
+            active_notes = active_notes[len(same_note_stop):]
+        return self.fill_time_gaps(time_slices)
 
     def GetTextPositionOfTune(self, tune_index):
         position = self.editor.FindText(0, self.editor.GetTextLength(), 'X:%s' % tune_index, 0)
@@ -7167,6 +7406,8 @@ class MainFrame(wx.Frame):
         selItem = self.tune_list.GetFirstSelected()
         if selItem >= 0:
             return self.GetTune(selItem, add_file_header)
+        elif self.tune_list.ItemCount > 0:
+            return self.GetTune(0, add_file_header)
         else:
             return None
 
@@ -8198,6 +8439,8 @@ app = MyApp(0)
 #wx.lib.inspection.InspectionTool().Show()
 
 app.MainLoop()
+current_locale = None
+app = None
 
 
 

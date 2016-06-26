@@ -125,10 +125,20 @@ class SvgPage(object):
             self.base_color = svg.attrib.get('color', self.base_color)
             self.id_to_element = {}
             self.class_attributes = {}
-            self.notes_in_row = {} # 1.3.6.3 [JWDJ] contains for each row of abctext note information
+            self.notes_in_row = defaultdict(list) # 1.3.6.3 [JWDJ] contains for each row of abctext note information
             children = [c for c in self.parse_elements(svg, {}) if c.name not in ['defs','style']]
 
         self.root_group = SvgElement('g', {}, children)
+
+    def clear_notes(self):
+        self.notes = []
+        self.indices_per_row_col = None
+
+    def group_note_indices(self):
+        indices_per_row_col = defaultdict(lambda: defaultdict(set))
+        for i, (xpos, ypos, abc_row, abc_col, desc) in enumerate(self.notes):
+            indices_per_row_col[abc_row][abc_col].add(i)
+        self.indices_per_row_col = indices_per_row_col
 
     def parse_attributes(self, element, parent_attributes):
         attributes = parent_attributes.copy()
@@ -194,11 +204,7 @@ class SvgPage(object):
                 x, y, width, height = [float(element.get(x)) for x in ('x', 'y', 'width', 'height')]
 
                 note_data = NoteData(note_type, row, col, x, y, width, height)
-                notes_in_row = self.notes_in_row.get(row, None)
-                if notes_in_row is None:
-                    self.notes_in_row[row] = [note_data]
-                else:
-                    notes_in_row.append(note_data)
+                self.notes_in_row[row].append(note_data)
                 # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
                 if note_type in ['N', 'R']: #, 'B']:  # if note/rest meta-data
                     desc = (note_type, row, col, x, y, width, height)
@@ -253,7 +259,8 @@ class SvgPage(object):
     def select_notes(self, selection_rect):
         in_selection = selection_rect.Contains
         selected_offsets = set((abc_row, abc_col) for (x, y, abc_row, abc_col, desc) in self.notes if in_selection((x, y)))
-        selected_indices = set(i for i, (x, y, abc_row, abc_col, desc) in enumerate(self.notes) if (abc_row, abc_col) in selected_offsets)
+        list_of_sets = [self.indices_per_row_col[row][col] for row, col in selected_offsets]
+        selected_indices = set().union(*list_of_sets)
         if selected_indices:
             selected_indices = set(range(min(selected_indices), max(selected_indices) + 1))
         self.selected_indices = selected_indices
@@ -264,10 +271,12 @@ class SvgPage(object):
 
     def add_note_to_selection(self, index):
         x, y, selected_abc_row, selected_abc_col, desc = self.notes[index]
-        selected_row_col = (selected_abc_row, selected_abc_col)
         # if one note in a chord has been selected, then select all of them (all notes with the identical ABC offset data)
-        selected = set(i for i, (x, y, abc_row, abc_col, desc) in enumerate(self.notes) if (abc_row, abc_col) == selected_row_col)
+        selected = self.indices_per_row_col[selected_abc_row][selected_abc_col]
         self.selected_indices = selected.union(self.selected_indices)
+
+    def get_indices_for_row_col(self, row, col):
+        return self.indices_per_row_col[row][col]
 
     def draw(self, clear_background=True, dc=None):
         self.renderer.draw(self, clear_background, dc)
@@ -372,6 +381,21 @@ class SvgRenderer(object):
             dc.SetBackground(wx.WHITE_BRUSH)
             dc.Clear()
 
+    def draw_notes(self, page, note_indices, highlight, dc=None):
+        if not page.note_draw_info or not note_indices:
+            return
+        dc = dc or wx.MemoryDC(self.buffer)
+        gc = wx.GraphicsContext.Create(dc)
+        gc.PushState()
+        gc.Scale(self.zoom, self.zoom)
+        for element_id, current_color, matrix in [page.note_draw_info[i] for i in note_indices]:
+            gc.PushState()
+            gc.SetTransform(gc.CreateMatrix(*matrix))
+            self.draw_svg_element(page, gc, page.id_to_element[element_id], highlight, current_color)
+            gc.PopState()
+
+        gc.PopState()
+
     def draw(self, page, clear_background=True, dc=None):
         dc = dc or wx.MemoryDC(self.buffer)
         ##print 'draw', self.buffer.GetWidth(), self.buffer.GetHeight()
@@ -379,29 +403,31 @@ class SvgRenderer(object):
             dc.SetBackground(wx.WHITE_BRUSH)
             dc.Clear()
         #h = dc.Size[1] # for simulating OSX
-        dc = wx.GraphicsContext.Create(dc)
-        #dc.Translate(0, h) # for simulating OSX
-        #dc.Scale(1, -1) # for simulating OSX
+        gc = wx.GraphicsContext.Create(dc)
+        #gc.Translate(0, h) # for simulating OSX
+        #gc.Scale(1, -1) # for simulating OSX
 
-        self.default_transform = dc.GetTransform()
-        page.notes = []
-        dc.PushState()
-        dc.Scale(self.zoom, self.zoom)
-        self.draw_svg_element(page, dc, page.root_group, False, page.base_color)
-        dc.PopState()
+        self.default_transform = gc.GetTransform()
+        page.clear_notes()
+        page.note_draw_info = []
+        gc.PushState()
+        gc.Scale(self.zoom, self.zoom)
+        self.draw_svg_element(page, gc, page.root_group, False, page.base_color)
+        gc.PopState()
+        page.group_note_indices()
 
         # in order to reveal all the sensitive areas in the music pane,
         # change False to True in the next line.
         if False:
-            dc.PushState()
-            dc.Scale(self.zoom, self.zoom)
+            gc.PushState()
+            gc.Scale(self.zoom, self.zoom)
             for x, y, abc_row, abc_col, desc in page.notes:
                 x /= self.zoom
                 y /= self.zoom
-                self.set_fill(dc, 'none')
-                self.set_stroke(dc, 'red')            
-                dc.DrawRoundedRectangle(x-6, y-6, 12, 12, 4)
-            dc.PopState()     
+                self.set_fill(gc, 'none')
+                self.set_stroke(gc, 'red')
+                gc.DrawRoundedRectangle(x-6, y-6, 12, 12, 4)
+            gc.PopState()
 
     def parse_path(self, svg_path_str):
         ''' Translates the path data in the svg file to instructions for drawing
@@ -656,6 +682,8 @@ class SvgRenderer(object):
             dc.PushState()
             dc.Translate(x, y)
             self.draw_svg_element(page, dc, page.id_to_element[element_id], highlight, current_color)
+            if desc:
+                page.note_draw_info.append((element_id, current_color, dc.GetTransform().Get()))
             dc.PopState()
         elif name == 'ellipse':
             cx, cy, rx, ry = attr.get('cx', 0), attr.get('cy', 0), attr['rx'], attr['ry']
