@@ -97,6 +97,7 @@ class SvgPage(object):
         self.id_to_element = {}
         self.base_color = 'black'
         self.notes = []
+        self.notes_row_col = []
         self.notes_in_row = None
         self.selected_indices = set()
         self.scale = 1.0
@@ -128,17 +129,17 @@ class SvgPage(object):
             self.notes_in_row = defaultdict(list) # 1.3.6.3 [JWDJ] contains for each row of abctext note information
             children = [c for c in self.parse_elements(svg, {}) if c.name not in ['defs','style']]
 
+        self.indices_per_row_col = self.group_note_indices(self.notes_row_col)
         self.root_group = SvgElement('g', {}, children)
 
     def clear_notes(self):
         self.notes = []
-        self.indices_per_row_col = None
 
-    def group_note_indices(self):
+    def group_note_indices(self, notes_row_col):
         indices_per_row_col = defaultdict(lambda: defaultdict(set))
-        for i, (xpos, ypos, abc_row, abc_col, desc) in enumerate(self.notes):
+        for i, (abc_row, abc_col) in enumerate(notes_row_col):
             indices_per_row_col[abc_row][abc_col].add(i)
-        self.indices_per_row_col = indices_per_row_col
+        return indices_per_row_col
 
     def parse_attributes(self, element, parent_attributes):
         attributes = parent_attributes.copy()
@@ -183,14 +184,17 @@ class SvgPage(object):
     def parse_elements(self, elements, parent_attributes):
         result = []
         last_e_use = []
+        elementnames_with_children = ['g', 'defs']
+        no_children = ()
+        notes_row_col_append = self.notes_row_col.append
         for element in elements:
             name = element.tag.replace(svg_ns, '')
             attributes = self.parse_attributes(element, parent_attributes)
-            if name in ['g', 'defs']:
+            if name in elementnames_with_children:
                 # 1.3.6.3 [JWDJ] 2015-3 use list(element) because getchildren is deprecated
                 children = self.parse_elements(list(element), attributes)
             else:
-                children = []
+                children = no_children
 
             if name == 'style' and attributes.get('type') == 'text/css':
                 self.parse_css(element.text)
@@ -207,9 +211,11 @@ class SvgPage(object):
                 self.notes_in_row[row].append(note_data)
                 # each time a <desc> element is seen, find its next sibling (which is not a defs element) and set the description text as a 'desc' attribute
                 if note_type in ['N', 'R']: #, 'B']:  # if note/rest meta-data
+                    last_row_col = (row, col)
                     desc = (note_type, row, col, x, y, width, height)
                     for e_use in last_e_use:
                         e_use.attributes['desc'] = desc
+                        notes_row_col_append(last_row_col)
                 last_e_use = []
             else:
                 svg_element = SvgElement(name, attributes, children)
@@ -393,7 +399,6 @@ class SvgRenderer(object):
             gc.SetTransform(gc.CreateMatrix(*matrix))
             self.draw_svg_element(page, gc, page.id_to_element[element_id], highlight, current_color)
             gc.PopState()
-
         gc.PopState()
 
     def draw(self, page, clear_background=True, dc=None):
@@ -414,7 +419,6 @@ class SvgRenderer(object):
         gc.Scale(self.zoom, self.zoom)
         self.draw_svg_element(page, gc, page.root_group, False, page.base_color)
         gc.PopState()
-        page.group_note_indices()
 
         # in order to reveal all the sensitive areas in the music pane,
         # change False to True in the next line.

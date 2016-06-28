@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.4 2016-06-26'
+program_name = 'EasyABC 1.3.7.4 2016-06-28'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
@@ -467,7 +467,7 @@ def str2fraction(s):
     return Fraction(parts[0], parts[1])
 
 Tune = namedtuple('Tune', 'xnum title rythm offset_start offset_end abc header num_header_lines')
-MidiNote = namedtuple('MidiNote', 'start stop indices')
+MidiNote = namedtuple('MidiNote', 'start stop indices page svg_row')
 class AbortException(Exception): pass
 class Abcm2psException(Exception): pass
 class NWCConversionException(Exception): pass
@@ -3945,6 +3945,8 @@ class MainFrame(wx.Frame):
         self.selected_note_descs = []
         self.midi_notes = None
         self.current_time_slice = None
+        self.future_time_slice = None
+        self.is_really_playing = False
         self.keyboard_input_mode = False
         self.last_refresh_time = datetime.now()
         self.last_line_number_selected = -1
@@ -4445,6 +4447,7 @@ class MainFrame(wx.Frame):
     def play(self):
         self.normalize_volume()
         self.mc.Play()
+        self.is_really_playing = True
 
     def play_again(self):
         if not self.is_playing():
@@ -4453,6 +4456,7 @@ class MainFrame(wx.Frame):
             self.mc.Play()
 
     def stop_playing(self):
+        self.is_really_playing = False
         if self.mc:
             self.mc.Stop()
             self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
@@ -4493,8 +4497,11 @@ class MainFrame(wx.Frame):
         enabled = event.Selection != 0
         self.settings['follow_music'] = enabled
         self.UpdateTimingSliderVisibility()
-        if enabled and self.midi_notes is None and self.current_midi_tune and self.current_svg_tune:
-            self.midi_notes = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
+        if enabled:
+            if self.midi_notes is None and self.current_midi_tune and self.current_svg_tune:
+                self.midi_notes = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
+        else:
+            self.music_pane.draw_notes_highlighted(None)
 
     def UpdateTimingSliderVisibility(self):
         visible = self.follow_music_check.IsShown() and self.follow_music_check.GetValue()
@@ -4615,7 +4622,7 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def OnPlayTimer(self, evt):
-        if not self.is_closed and self.media_slider.Parent.Shown and self.mc: # and self.is_playing():
+        if not self.is_closed and self.media_slider.Parent.Shown and self.is_really_playing:
             offset = self.mc.Tell()
             if self.settings.get('follow_music', False):
                 self.queue_number_follow_music += 1
@@ -4645,17 +4652,43 @@ class MainFrame(wx.Frame):
         if current_time_slice is None or offset < current_time_slice.start:  # first time or after rewind
             self.midi_notes_iter = iter(self.midi_notes)
 
-        #current_time_slice = next(self.midi_notes_iter)
         for slice in self.midi_notes_iter:
             if slice.start <= offset < slice.stop:
                 current_time_slice = slice
                 break
 
-        #page.selected_indices = current_time_slice.indices
-        #self.music_pane.redraw()
-        self.music_pane.draw_notes(current_time_slice.indices, True)
-
         self.current_time_slice = current_time_slice
+        if current_time_slice.page == self.current_page_index:
+            self.music_pane.draw_notes_highlighted(current_time_slice.indices)
+
+        # turning pages and going to next line has to be done slighty earlier
+        future_offset = offset + 500  # 0.5 seconds should do
+        future_time_slice = self.future_time_slice
+
+        if future_time_slice is None or not (future_time_slice.start <= future_offset < future_time_slice.stop):
+            if future_time_slice is None or future_offset < future_time_slice.start:
+                self.future_notes_iter = iter(self.midi_notes)
+
+            future_time_slice = None
+            for slice in self.future_notes_iter:
+                if slice.start <= future_offset < slice.stop:
+                    future_time_slice = slice
+                    break
+
+            self.future_time_slice = future_time_slice
+
+        if future_time_slice is not None:
+            if future_time_slice.page != self.current_page_index:
+                self.current_page_index = future_time_slice.page
+                self.UpdateMusicPane()
+            elif future_time_slice.svg_row != self.last_played_svg_row and future_time_slice.indices:
+                self.last_played_svg_row = future_time_slice.svg_row
+                x, y, abc_row, abc_col, desc = self.music_pane.current_page.notes[min(future_time_slice.indices)]
+                if len(future_time_slice.indices) > 1:
+                    x2, y2, abc_row, abc_col, desc = self.music_pane.current_page.notes[max(future_time_slice.indices)]
+                    x = (x + x2) // 2
+                    y = (y + y2) // 2
+                self.scroll_music_pane(x, y)
 
     def OnRecordBpmSelected(self, evt):
         menu = evt.EventObject
@@ -4769,7 +4802,7 @@ class MainFrame(wx.Frame):
         self.follow_music_check = self.add_checkbox_to_toolbar(_('Follow music'))
         self.follow_music_check.Bind(wx.EVT_CHECKBOX, self.OnChangeFollowMusic)
 
-        self.timing_slider = self.add_slider_to_toolbar('', False, 0, -500, 500, (-1, -1), (130, 22))
+        self.timing_slider = self.add_slider_to_toolbar('', False, 0, -1000, 1000, (-1, -1), (130, 22))
         self.timing_slider.Bind(wx.EVT_SLIDER, self.OnChangeTiming)
         self.timing_slider.Bind(wx.EVT_LEFT_DOWN, self.OnTimingSliderClick)
 
@@ -5440,15 +5473,10 @@ class MainFrame(wx.Frame):
             #self.play_panel.Show(not self.settings['midiplayer_path']) # 1.3.6.2 [JWdJ] 2015-02
             # self.toolbar.Realize() # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
 
-            if remove_repeats:
-                def play():
-                    self.PlayMidi(True)
-            else:
-                def play():
-                    self.PlayMidi(False)
-
             self.current_time_slice = None
-            wx.CallAfter(play)
+            self.future_time_slice = None
+            self.last_played_svg_row = None
+            wx.CallAfter(self.PlayMidi, remove_repeats)
 
     @property
     def loop_midi_playback(self):
@@ -6420,29 +6448,30 @@ class MainFrame(wx.Frame):
         if closest_xy:
             if select_closest_note:
                 wx.CallAfter(self.music_pane.redraw)
+            self.scroll_music_pane(*closest_xy)
 
-            x, y = closest_xy
-            #x, y = x*self.zoom_factor, y*self.zoom_factor
-            #sx, sy = self.music_pane.GetScrollPos(wx.HORIZONTAL), self.music_pane.GetScrollPos(wx.VERTICAL)
-            sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
-            vw, vh = self.music_pane.GetVirtualSizeTuple()
-            w, h = self.music_pane.GetClientSizeTuple()
-            margin = 20
-            #if y > sy+margin:
-            #    sy = y-h-margin*2
-            #elif y < h+sy-margin:
-            #    sy = y-margin*2
-            orig_scroll = (sx, sy)
-            if not sx+margin <= x <= w+sx-margin:
-                sx = x - w + w/5
-            if not (sy+margin <= y <= h+sy-margin):
-                sy = y-h/2
-            sx = max(0, min(sx, vw))
-            sy = max(0, min(sy, vh))
-            if (sx, sy) != orig_scroll:
-                #print 'scroll', sx, sy
-                ux, uy = self.music_pane.GetScrollPixelsPerUnit()
-                self.music_pane.Scroll(sx/ux, sy/uy)
+    def scroll_music_pane(self, x, y):
+        #x, y = x*self.zoom_factor, y*self.zoom_factor
+        #sx, sy = self.music_pane.GetScrollPos(wx.HORIZONTAL), self.music_pane.GetScrollPos(wx.VERTICAL)
+        sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
+        vw, vh = self.music_pane.GetVirtualSizeTuple()
+        w, h = self.music_pane.GetClientSizeTuple()
+        margin = 20
+        #if y > sy+margin:
+        #    sy = y-h-margin*2
+        #elif y < h+sy-margin:
+        #    sy = y-margin*2
+        orig_scroll = (sx, sy)
+        if not sx+margin <= x <= w+sx-margin:
+            sx = x - w + w/5
+        if not (sy+margin <= y <= h+sy-margin):
+            sy = y-h/2
+        sx = max(0, min(sx, vw))
+        sy = max(0, min(sy, vh))
+        if (sx, sy) != orig_scroll:
+            #print 'scroll', sx, sy
+            ux, uy = self.music_pane.GetScrollPixelsPerUnit()
+            self.music_pane.Scroll(sx/ux, sy/uy)
 
     def OnMovedToDifferentLine(self, queue_number_movement):
         #print 'OnMovedToDifferentLine = ',queue_number_movement,' ',self.queue_number_movement
@@ -7146,8 +7175,10 @@ class MainFrame(wx.Frame):
         if not lines:
             return []
 
+        page_count = svg_tune.page_count
+        pages = [svg_tune.render_page(p, self.renderer) for p in range(page_count)]
         page_index = 0
-        page = svg_tune.render_page(page_index, self.renderer)
+        page = pages[page_index]
 
         svg_rows = svg_tune.abc_tune.note_line_indices
         midi_rows = midi_tune.abc_tune.note_line_indices
@@ -7205,17 +7236,22 @@ class MainFrame(wx.Frame):
                         col = (note_info[3] << 7) + note_info[4]
                         svg_row = svg_rows[midi_rows.index(row)]
                         svg_col = col - 1
-                        indices = page.get_indices_for_row_col(svg_row, svg_col)
-                        if not indices:
-                            # maybe a chord
-                            indices = page.get_indices_for_row_col(svg_row, svg_col-1)
+                        for i in range(page_count):
+                            indices = page.get_indices_for_row_col(svg_row, svg_col)
                             if not indices:
-                                errors += 1
-
+                                # maybe a chord
+                                indices = page.get_indices_for_row_col(svg_row, svg_col-1)
+                            if indices:
+                                break
+                            else:
+                                # wrong page perhaps
+                                page_index += 1
+                                page_index %= page_count
+                                page = pages[page_index]
+                        if not indices:
+                            errors += 1
                 else:
                     note_info = [value]
-                    svg_row = None
-                    svg_col = None
                     indices = set()
                     last_line_was_pos = True
             else:
@@ -7228,11 +7264,11 @@ class MainFrame(wx.Frame):
                     note_num = int(m.group(4))
                     if on_off == 'on':
                         note_start = time_in_ms
-                        active_notes[(channel, note_num)] = MidiNote(note_start, None, indices)
+                        active_notes[(channel, note_num)] = MidiNote(note_start, None, indices, page_index, svg_row)
                     elif on_off == 'off':
                         note_stop = time_in_ms
                         note_on = active_notes.pop((channel, note_num), None)
-                        notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices)))
+                        notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
                 else:
                     m = tempo_re.match(line)
                     if m is not None:
@@ -7247,15 +7283,17 @@ class MainFrame(wx.Frame):
         last_stop = 0
         for slice in time_slices:
             if slice.start > last_stop:
-                gaps.append(MidiNote(last_stop, slice.start, set()))
+                gaps.append(MidiNote(last_stop, slice.start, set(), slice.page, slice.svg_row))
             last_stop = slice.stop
 
         if gaps:
             time_slices += gaps
             time_slices.sort(key=lambda n: n.start)
 
-        time_slices.insert(0, MidiNote(-sys.maxint, 0, set()))
-        time_slices.append(MidiNote(last_stop, sys.maxint, set()))
+        time_slices.insert(0, MidiNote(-sys.maxint, 0, set(), 0, 0))
+        last_page = time_slices[-1].page
+        svg_row = time_slices[-1].svg_row
+        time_slices.append(MidiNote(last_stop, sys.maxint, set(), last_page, svg_row))
         return time_slices
 
     def group_notes_by_time(self, notes):
@@ -7263,15 +7301,18 @@ class MainFrame(wx.Frame):
         notes.sort(key=lambda n: n.start)
         time_slices = []
         active_notes = []
+        page = 0
         while notes:
             time_start = notes[0].start
+            page = notes[0].page
             same_note_start = list(takewhile(lambda n: n.start == time_start, notes))
             notes = notes[len(same_note_start):]
             active_notes += same_note_start
             active_notes.sort(key=lambda n: n.stop)
             time_stop = active_notes[0].stop
             all_indices_for_time_slice = set().union(*[n.indices for n in active_notes])
-            time_slices.append(MidiNote(time_start, time_stop, all_indices_for_time_slice))
+            svg_row = min([n.svg_row for n in active_notes])
+            time_slices.append(MidiNote(time_start, time_stop, all_indices_for_time_slice, page, svg_row))
             same_note_stop = list(takewhile(lambda n: n.stop == time_stop, active_notes))
             active_notes = active_notes[len(same_note_stop):]
         return self.fill_time_gaps(time_slices)
