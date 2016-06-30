@@ -363,6 +363,9 @@ if PY3:
     xrange = range
     def unicode(s):
         return s
+    max_int = sys.maxsize
+else:
+    max_int = sys.maxint
 
 import os, os.path
 import sys
@@ -403,7 +406,7 @@ import platform
 import webbrowser
 import time
 import traceback
-import xml.etree.cElementTree as ET
+# import xml.etree.cElementTree as ET  # 1.3.7.4 [JWdJ] 2016-06-30
 import zipfile
 from datetime import datetime
 from collections import deque, namedtuple
@@ -601,6 +604,48 @@ def get_normal_fontsize():
     else:
         font_size = 14
     return font_size
+
+
+def frac_mod(fractional_number, modulo):
+    return fractional_number - modulo * int(fractional_number / modulo)
+
+
+def start_process(cmd):
+    """ Starts a process
+    :param cmd: tuple containing executable and command line parameter
+    :return: nothing
+    """
+    global execmessages # 1.3.6.4 [SS] 2015-05-27
+    # 1.3.6.4 [SS] 2015-05-01
+    if wx.Platform == "__WXMSW__":
+        creationflags = win32process.DETACHED_PROCESS
+    else:
+        creationflags = 0
+    # 1.3.6.4 [SS] 2015-05-27
+    #process = subprocess.Popen(cmd,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,close_fds=True,creationflags=creationflags)
+    process = subprocess.Popen(cmd,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=creationflags)
+    stdout_value, stderr_value = process.communicate()
+    execmessages += '\n'+stderr_value + stdout_value
+    return
+
+
+def get_output_from_process(cmd, input=None, creationflags=0, cwd=None, bufsize=0, encoding='utf-8', errors='strict', output_encoding=None):
+    stdin = None
+    if input is not None:
+        stdin = subprocess.PIPE
+        if PY3:
+            if isinstance(input, str):
+                input = input.encode(encoding, errors)
+        else:
+            input = input.encode(encoding, errors)
+
+    process = subprocess.Popen(cmd, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, cwd=cwd, bufsize=bufsize)
+    stdout_value, stderr_value = process.communicate(input)
+
+    if output_encoding is None:
+        output_encoding = encoding
+    stdout_value, stderr_value = stdout_value.decode(output_encoding, errors), stderr_value.decode(output_encoding, errors)
+    return stdout_value, stderr_value, process.returncode
 
 
 def read_text_if_file_exists(filepath):
@@ -1008,12 +1053,11 @@ def AbcToPS(abc_code, cache_dir, extra_params='', abcm2ps_path=None, abcm2ps_for
     if os.path.exists(ps_file):
         os.remove(ps_file)
 
-
-    process = subprocess.Popen(cmd1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags = creationflags, universal_newlines=True)
-    stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
+    input_abc = abc_code + os.linesep * 2
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, creationflags=creationflags, input=input_abc, encoding=abcm2ps_default_encoding)
     stderr_value = os.linesep.join([x for x in stderr_value.split('\n')
                                     if not x.startswith('abcm2ps-') and not x.startswith('File ') and not x.startswith('Output written on ')])
-    stderr_value = stderr_value.strip().decode(abcm2ps_default_encoding, 'replace')
+    stderr_value = stderr_value.strip()
     execmessages += '\nAbcToPs\n' + " ".join(cmd1) + '\n' + stdout_value + stderr_value
     #print execmessages
     if not os.path.exists(ps_file):
@@ -1109,16 +1153,13 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
 
     # clear execmessages any time the music panel is refreshed
     # execmessages += '\nAbcToSvg\n' + " ".join(cmd1) 1.3.6.4 [JWdJ]
-    execmessages = '\nAbcToSvg\n' + " ".join(cmd1)
-    process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, universal_newlines=True, cwd=os.path.dirname(svg_file))
-    input_abc = (abc_code+os.linesep*2).encode(abcm2ps_default_encoding)
-    if PY3:
-        input_abc = input_abc.decode()
-    stdout_value, stderr_value = process.communicate(input=input_abc)
+    execmessages = u'\nAbcToSvg\n' + " ".join(cmd1)
+    input_abc = abc_code + os.linesep * 2
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, input=input_abc, encoding=abcm2ps_default_encoding, bufsize=-1, creationflags=creationflags, cwd=os.path.dirname(svg_file))
     execmessages += '\n' + stdout_value + stderr_value
 
-    if process.returncode < 0:
-        execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Abcm2ps', 'error': process.returncode & 0xffffffff }
+    if returncode < 0:
+        execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Abcm2ps', 'error': returncode & 0xffffffff }
 
         raise Abcm2psException('Unknown error - abcm2ps may have crashed')
     #dt = datetime.now() - t
@@ -1126,9 +1167,7 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     ##    print 'abcm2ps time:\t', dt.seconds * 1000 + dt.microseconds/1000
     stderr_value = os.linesep.join([x for x in stderr_value.split('\n')
                                     if not x.startswith('abcm2ps-') and not x.startswith('File ') and not x.startswith('Output written on ')])
-    if PY3:
-        stderr_value = stderr_value.encode('latin-1')
-    stderr_value = stderr_value.strip().decode(abcm2ps_default_encoding, 'replace')
+    stderr_value = stderr_value.strip()
     if not os.path.exists(svg_file_first) or 'svg: ' in stderr_value:
         return ([], stderr_value)
     else:
@@ -1155,18 +1194,18 @@ def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):
 
     execmessages += '\nAbcToAbc\n' + " ".join(cmd1)
 
-    process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
-    stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode(abcm2ps_default_encoding))
+    input_abc = abc_code + os.linesep * 2
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, bufsize=-1, creationflags=creationflags, input=input_abc, encoding=abcm2ps_default_encoding)
     execmessages += '\n' + stderr_value
-    if process.returncode < 0:
-        execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Abc2abc', 'error': process.returncode & 0xffffffff }
+    if returncode < 0:
+        execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Abc2abc', 'error': returncode & 0xffffffff }
 
-    stderr_value = stderr_value.strip().decode(abcm2ps_default_encoding, 'replace')
-    stdout_value = stdout_value.decode(abcm2ps_default_encoding, 'replace')
-    if process.returncode == 0:
-        return (stdout_value, stderr_value)
+    stderr_value = stderr_value.strip()
+    stdout_value = stdout_value
+    if returncode == 0:
+        return stdout_value, stderr_value
     else:
-        return (None, stderr_value)
+        return None, stderr_value
 
 # 1.3.6.4 [SS] 2015-06-22
 def MidiToMftext (midi2abc_path, midifile):
@@ -1177,8 +1216,7 @@ def MidiToMftext (midi2abc_path, midifile):
     execmessages += '\nMidiToMftext\n' + " ".join(cmd1)
 
     if os.path.exists(midi2abc_path):
-        process = subprocess.Popen(cmd1, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
-        stdout_value, stderr_value = process.communicate()
+        stdout_value, stderr_value, returncode = get_output_from_process(cmd1, bufsize=-1, creationflags=creationflags)
         #print stdout_value
 
         midiframe = MyMidiTextTree(_('Disassembled Midi File'))
@@ -1194,8 +1232,7 @@ def get_midi_structure_as_text(midi2abc_path, midi_file):
     if os.path.exists(midi2abc_path):
         creationflags = 0
         cmd = [midi2abc_path, midi_file, '-mftext']
-        process = subprocess.Popen(cmd, bufsize=-1, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
-        result, stderr_value = process.communicate()
+        result, stderr_value, returncode = get_output_from_process(cmd, bufsize=-1, creationflags=creationflags)
     return result
 
 # p09 2014-10-14 2014-12-17 2015-01-28 [SS]
@@ -1227,8 +1264,7 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
 
     # 1.3.6.1 [SS] 2015-01-13
     execmessages += '\nAbcToPDF\n' + " ".join(cmd2)
-    process = subprocess.Popen(cmd2, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags = creationflags)
-    stdout_value, stderr_value = process.communicate()
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd2, creationflags=creationflags)
     # 1.3.6.1 [SS] 2015-01-13
     execmessages += '\n' + stderr_value
     if os.path.exists(pdf_file):
@@ -1705,16 +1741,14 @@ def abc_to_midi(abc_code, settings, midi_file_name):
         cmd = [abc2midi_path, '-', '-o', midi_file_name]
         cmd = add_abc2midi_options(cmd, settings)
         execmessages += '\nAbcToMidi\n' + " ".join(cmd)
-        process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags = creationflags)
-        stdout_value, stderr_value = process.communicate(input=(abc_code+os.linesep*2).encode('latin-1', 'ignore'))
-        if PY3:
-            stdout_value, stderr_value = stdout_value.decode(), stderr_value.decode()
+        input_abc = abc_code + os.linesep * 2
+        stdout_value, stderr_value, returncode = get_output_from_process(cmd, creationflags=creationflags, input=input_abc)
         execmessages += '\n' + stdout_value + stderr_value
         if stdout_value:
             stdout_value = re.sub(r'(?m)(writing MIDI file .*\r?\n?)', '', stdout_value)
-        if process.returncode != 0:
+        if returncode != 0:
             # 1.3.7.0 [SS] 2016-01-06
-            execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'AbcToMidi', 'error': process.returncode & 0xffffffff }
+            execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'AbcToMidi', 'error': returncode & 0xffffffff }
             return None
 
         #if humanize:
@@ -1800,12 +1834,11 @@ def NWCToXml(filepath, cache_dir, nwc2xml_path):
 
     #cmd = [nwc2xml_path, '--charset=ISO-8859-1', nwc_file_path]
     cmd = [nwc2xml_path, nwc_file_path]
-    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags = creationflags)
-    stdout_value, stderr_value = process.communicate()
-    if process.returncode < 0:
-        execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Nwc2xml', 'error': process.returncode & 0xffffffff }
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd, creationflags=creationflags)
+    if returncode < 0:
+        execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Nwc2xml', 'error': returncode & 0xffffffff }
 
-    if not os.path.exists(xml_file_path) or process.returncode != 0:
+    if not os.path.exists(xml_file_path) or returncode != 0:
         stderr_value = stderr_value.replace(os.path.dirname(nwc_file_path) + os.sep, '')  # simply any reference to the file path in the error message
         raise NWCConversionException(_('Error during conversion of %(filename)s: %(error)s' % {'filename': os.path.basename(filepath), 'error': stderr_value}))
     return xml_file_path
@@ -1976,26 +2009,6 @@ class MusicUpdateThread(threading.Thread):
     def abort(self):
         self.want_abort = True
 
-def frac_mod(fractional_number, modulo):
-    return fractional_number - modulo * int(fractional_number / modulo)
-
-def start_process(cmd):
-    """ Starts a process
-    :param cmd: tuple containing executable and command line parameter
-    :return: nothing
-    """
-    global execmessages # 1.3.6.4 [SS] 2015-05-27
-    # 1.3.6.4 [SS] 2015-05-01
-    if wx.Platform == "__WXMSW__":
-        creationflags = win32process.DETACHED_PROCESS
-    else:
-        creationflags = 0
-    # 1.3.6.4 [SS] 2015-05-27
-    #process = subprocess.Popen(cmd,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,close_fds=True,creationflags=creationflags)
-    process = subprocess.Popen(cmd,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=creationflags)
-    stdout_value, stderr_value = process.communicate()
-    execmessages += '\n'+stderr_value + stdout_value
-    return
 
 # p09 new class for playing midi files if self.mc is not working 2014-10-14
 # 1.3.6.3 [JWdJ] midithread extended so it works the same as the svg-thread
@@ -3951,7 +3964,7 @@ class MainFrame(wx.Frame):
         self.last_refresh_time = datetime.now()
         self.last_line_number_selected = -1
         self.queue_number_refresh_music = 0
-        self.queue_number_follow_music = 0
+        self.queue_number_follow_score = 0
         self.queue_number_movement = 0
         self.field_reference_frame = None
         self.find_data = wx.FindReplaceData()
@@ -4131,7 +4144,7 @@ class MainFrame(wx.Frame):
         # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
         self.update_play_button() # 1.3.6.3 [JWdJ] 2015-04-21 centralized playbutton enabling
 
-        self.follow_music_check.SetValue(self.settings.get('follow_music', False))
+        self.follow_score_check.SetValue(self.settings.get('follow_score', False))
         self.UpdateTimingSliderVisibility()
 
     def Destroy(self):
@@ -4450,10 +4463,13 @@ class MainFrame(wx.Frame):
         self.is_really_playing = True
 
     def play_again(self):
-        if not self.is_playing():
+        if self.is_playing():
+            self.mc.Seek(0)
+        else:
             self.mc.Seek(0)
             self.update_playback_rate()
             self.mc.Play()
+            self.is_really_playing = True
 
     def stop_playing(self):
         self.is_really_playing = False
@@ -4493,9 +4509,9 @@ class MainFrame(wx.Frame):
         self.bpm_slider.SetValue(0)
         self.update_playback_rate() # 1.3.6.4 [JWDJ]
 
-    def OnChangeFollowMusic(self, event):
+    def OnChangeFollowScore(self, event):
         enabled = event.Selection != 0
-        self.settings['follow_music'] = enabled
+        self.settings['follow_score'] = enabled
         self.UpdateTimingSliderVisibility()
         if enabled:
             if self.midi_notes is None and self.current_midi_tune and self.current_svg_tune:
@@ -4504,17 +4520,17 @@ class MainFrame(wx.Frame):
             self.music_pane.draw_notes_highlighted(None)
 
     def UpdateTimingSliderVisibility(self):
-        visible = self.follow_music_check.IsShown() and self.follow_music_check.GetValue()
+        visible = self.follow_score_check.IsShown() and self.follow_score_check.GetValue()
         if visible ^ self.timing_slider.IsShown():
             self.timing_slider.Show(visible)
 
     def OnChangeTiming(self, event):
-        self.settings['follow_music_timing_offset'] = event.Selection
+        self.settings['follow_score_timing_offset'] = event.Selection
 
     def OnTimingSliderClick(self, evt):
         if evt.ControlDown() or evt.ShiftDown():
             self.timing_slider.SetValue(0)
-            self.settings['follow_music_timing_offset'] = 0
+            self.settings['follow_score_timing_offset'] = 0
         else:
             evt.Skip()
 
@@ -4561,21 +4577,21 @@ class MainFrame(wx.Frame):
     def OnMediaStop(self, evt):
         # if media is finished but playback as a loop was used relaunch the playback immediatly
         # and prevent media of being stop (event is vetoed as explained in MediaCtrl documentation)
-        if self.mc and self.loop_midi_playback:
-            self.play_again()
-            evt.Veto()
+        if self.loop_midi_playback:
+            evt.Veto()  # does not work on Windows, music stops always
+            wx.CallAfter(self.play_again)
 
     def OnMediaFinished(self, evt):
         # if media is finished but playback as a loop was used relaunch the playback immediatly
         # (OnMediaStop should already have restarted it if required as event STOP arrive before FINISHED)
-        if self.mc:
-            if self.loop_midi_playback:
-                self.play_again()
-            else:
-            # 1.3.6.3 [SS] 2015-05-04
-                self.flip_tempobox(False)      
-                self.stop_playing()
-                self.reset_BpmSlider()
+        self.is_really_playing = False
+        if self.loop_midi_playback:
+            self.play_again()
+        else:
+        # 1.3.6.3 [SS] 2015-05-04
+            self.flip_tempobox(False)
+            self.stop_playing()
+            self.reset_BpmSlider()
 
     def OnToolRecord(self, evt):
         if self.record_thread and self.record_thread.is_running:
@@ -4624,15 +4640,15 @@ class MainFrame(wx.Frame):
     def OnPlayTimer(self, evt):
         if not self.is_closed and self.media_slider.Parent.Shown and self.is_really_playing:
             offset = self.mc.Tell()
-            if self.settings.get('follow_music', False):
-                self.queue_number_follow_music += 1
-                queue_number = self.queue_number_follow_music
-                wx.CallLater(0, self.FollowMusic, offset, queue_number)
+            if self.settings.get('follow_score', False):
+                self.queue_number_follow_score += 1
+                queue_number = self.queue_number_follow_score
+                wx.CallLater(0, self.FollowScore, offset, queue_number)
 
             self.media_slider.SetValue(offset)
 
-    def FollowMusic(self, offset, queue_number):
-        if self.queue_number_follow_music != queue_number:
+    def FollowScore(self, offset, queue_number):
+        if self.queue_number_follow_score != queue_number:
             return
 
         page = self.music_pane.current_page
@@ -4643,7 +4659,7 @@ class MainFrame(wx.Frame):
             return
 
         # self.statusbar.SetStatusText('%d' % offset)
-        offset += self.settings.get('follow_music_timing_offset', 0)
+        offset += self.settings.get('follow_score_timing_offset', 0)
 
         current_time_slice = self.current_time_slice
         if current_time_slice and current_time_slice.start <= offset < current_time_slice.stop:
@@ -4709,7 +4725,7 @@ class MainFrame(wx.Frame):
         # self.show_toolbar_panel(self.bpm_slider.Parent, state)
         self.show_toolbar_panel(self.media_slider.Parent, state)
         self.loop_check.Show(state)
-        self.follow_music_check.Show(state)
+        self.follow_score_check.Show(state)
         self.UpdateTimingSliderVisibility()
         self.toolbar.Realize()
         wx.Yield()
@@ -4799,8 +4815,8 @@ class MainFrame(wx.Frame):
 
         self.loop_check = self.add_checkbox_to_toolbar(_('Loop'))
 
-        self.follow_music_check = self.add_checkbox_to_toolbar(_('Follow music'))
-        self.follow_music_check.Bind(wx.EVT_CHECKBOX, self.OnChangeFollowMusic)
+        self.follow_score_check = self.add_checkbox_to_toolbar(_('Follow score'))
+        self.follow_score_check.Bind(wx.EVT_CHECKBOX, self.OnChangeFollowScore)
 
         self.timing_slider = self.add_slider_to_toolbar('', False, 0, -1000, 1000, (-1, -1), (130, 22))
         self.timing_slider.Bind(wx.EVT_SLIDER, self.OnChangeTiming)
@@ -5172,7 +5188,7 @@ class MainFrame(wx.Frame):
     def export_tunes_to_musicxml(self, only_selected):
         mxl = self.settings['xmlcompressed']
         global execmessages
-        execmessages = 'abc_to_mxl   compression = ' + str(mxl) + '\n'
+        execmessages = u'abc_to_mxl   compression = ' + str(mxl) + '\n'
         extension = '.xml'
         filetype = _('MusicXML')
         if mxl:
@@ -6455,7 +6471,7 @@ class MainFrame(wx.Frame):
         #sx, sy = self.music_pane.GetScrollPos(wx.HORIZONTAL), self.music_pane.GetScrollPos(wx.VERTICAL)
         sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
         vw, vh = self.music_pane.GetVirtualSizeTuple()
-        w, h = self.music_pane.GetClientSizeTuple()
+        w, h = self.music_pane.ClientSize
         margin = 20
         #if y > sy+margin:
         #    sy = y-h-margin*2
@@ -7162,7 +7178,7 @@ class MainFrame(wx.Frame):
                 # 1.3.6.3 [JWDJ] 2015-3 DetermineMidiPlayRange not used anymore
                 # self.DetermineMidiPlayRange(tune, midi_file)
                 self.midi_notes = None
-                if self.settings.get('follow_music', False):
+                if self.settings.get('follow_score', False):
                     self.midi_notes = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
                 self.do_load_media_file(midi_file)
 
@@ -7290,10 +7306,10 @@ class MainFrame(wx.Frame):
             time_slices += gaps
             time_slices.sort(key=lambda n: n.start)
 
-        time_slices.insert(0, MidiNote(-sys.maxint, 0, set(), 0, 0))
+        time_slices.insert(0, MidiNote(-max_int, 0, set(), 0, 0))
         last_page = time_slices[-1].page
         svg_row = time_slices[-1].svg_row
-        time_slices.append(MidiNote(last_stop, sys.maxint, set(), last_page, svg_row))
+        time_slices.append(MidiNote(last_stop, max_int, set(), last_page, svg_row))
         return time_slices
 
     def group_notes_by_time(self, notes):
@@ -7506,7 +7522,7 @@ class MainFrame(wx.Frame):
         dt = datetime.now() - self.execmessage_time # 1.3.6 [SS] 2014-12-11
         dtime = dt.seconds*1000 + dt.microseconds // 1000
         if evt is not None and dtime > 20000:
-            execmessages = ''
+            execmessages = u''
         self.selected_tune = None
         self.update_multi_tunes_menu_items()
 
@@ -7749,7 +7765,7 @@ class MainFrame(wx.Frame):
             if extension in ('.xml', '.mxl'):
                 # 1.3.6 [SS] 2014-12-18
                 self.AddTextWithUndo(u'\n%s\n' % xml_to_abc(filename,options,info_messages))
-                execmessages = 'abc_to_xml '+ filename
+                execmessages = u'abc_to_xml '+ filename
                 for infoline in info_messages:
                     execmessages += infoline
                 return True
@@ -7945,14 +7961,8 @@ class MainFrame(wx.Frame):
     def save_settings(self):
         settings = self.settings
         settings['zoom'] = self.editor.GetZoom()
-        if PY3:
-            position = self.GetPosition()
-            size = self.GetSize()
-        else:
-            position = self.GetPositionTuple()
-            size = self.GetSizeTuple()
-        settings['window_x'], settings['window_y']  = position
-        settings['window_width'], settings['window_height'] = size
+        settings['window_x'], settings['window_y'] = self.Position
+        settings['window_width'], settings['window_height'] = self.Size
         settings['perspective'] = self.manager.SavePerspective()
         settings['author'] = self.author
         settings['tempo'] = int(100.0 * self.get_tempo_multiplier()) # 1.3.6.4 [JWDJ] not really necessary since setting 'tempo' is not used anymore
@@ -8401,10 +8411,7 @@ class MyApp(wx.App):
         wx.App.__init__(self, *args, **kargs)
 
     def CheckCanDrawSharpFlat(self):
-        if PY3:
-            buffer = wx.Bitmap(200, 200, 32)
-        else:
-            buffer = wx.EmptyBitmap(200, 200, 32)
+        buffer = wx_bitmap(200, 200, 32)
         dc = wx.MemoryDC(buffer)
         dc.SetBackground(wx.WHITE_BRUSH)
         dc.Clear()

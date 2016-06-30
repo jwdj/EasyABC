@@ -29,7 +29,7 @@ import wx
 from math import hypot, radians
 import traceback
 from datetime import datetime
-from wxhelper import wx_colour
+from wxhelper import wx_colour, wx_bitmap
 import sys
 PY3 = sys.version_info.major > 2
 
@@ -351,10 +351,7 @@ class SvgRenderer(object):
         
         if self.buffer is None or width != self.buffer.GetWidth() or height != self.buffer.GetHeight():            
             #print 'create new buffer!!!!!!!!', (width, height)
-            if PY3:
-                self.buffer = wx.Bitmap(width, height, 32)
-            else:
-                self.buffer = wx.EmptyBitmap(width, height, 32)
+            self.buffer = wx_bitmap(width, height, 32)
 
     def svg_to_page(self, svg):
         try:

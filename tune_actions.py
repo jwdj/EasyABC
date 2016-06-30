@@ -135,6 +135,10 @@ class AbcAction(object):
         if params is None:
             return self.name
         else:
+            for param in list(params):
+                value = params[param]
+                if isinstance(value, basestring):
+                    params[param] = value.encode('unicode_escape')  # urlencode only accepts ascii
             return '{0}?{1}'.format(self.name, urlencode(params))
 
 
@@ -818,7 +822,7 @@ class BarChangeAction(ValueChangeAction):
         CodeDescription(':|', _('End of repeated section')),
         CodeDescription('|1', _('First ending')),
         CodeDescription(':|2', _('Second ending')),
-        CodeDescription('::', _('Both start and end of repetition'), common=False),
+        CodeDescription('::', _('Both end and start of repetition'), common=False),
         CodeDescription('&',  _('Voice overlay'), common=False),
         CodeDescription('[|]', _('Invisible bar'), common=False)
     ]

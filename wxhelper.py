@@ -86,3 +86,10 @@ def create_menu_bar(items):
             items = create_menu(items)
         menuBar.Append(items, label)
     return menuBar
+
+
+def wx_bitmap(width, height, depth=-1):
+    if PY3:
+        return wx.Bitmap(width, height, depth)
+    else:
+        return wx.EmptyBitmap(width, height, depth)
