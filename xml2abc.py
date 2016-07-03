@@ -1105,7 +1105,7 @@ class Parser:
             ds = [(nt, step, midi, head) for (vd, nt), (step, midi, head) in ks if v == vd] # map perc notes
             id = s.vceInst.get (v, '')  # get the instrument-id for part with multiple instruments
             if id in instr:             # id is defined as midi-instrument in part-list
-                   xs.append ((vabc, instr [id] + ds))  # get midi settings for id 
+                xs.append ((vabc, instr [id] + ds))  # get midi settings for id 
             else:  xs.append ((vabc, defInstr   + ds))  # only one instrument for this part
         xs.sort ()  # put abc voices in order
         s.midiMap.extend ([midi for v, midi in xs])

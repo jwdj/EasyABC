@@ -29,6 +29,8 @@ class AbcTune(object):
     """ Class for dissecting abc tune structure """
     def __init__(self, abc_code):
         self.abc_code = abc_code
+        self.x_number = None
+        self.tune_header_start_line_index = None
         self.determine_abc_structure(abc_code)
         self.__tune_id = None
 
@@ -37,14 +39,31 @@ class AbcTune(object):
         while len(abc_lines) > 0 and abc_lines[-1].strip() == '':
             abc_lines = abc_lines[:-1]  # remove empty lines at bottom
 
-        note_line_indices = []
-        match_abc_field = abc_field_re.match
+        abc_lines_enum = enumerate(abc_lines)
+
+        x_found = False
         key_found = False
-        for i, line in enumerate(abc_lines):
-            if line.startswith('K:'):
-                key_found = True
-            elif key_found and not line.startswith('%') and not match_abc_field(line):
-                note_line_indices.append(i)
+
+        for i, line in abc_lines_enum:
+            if line.startswith('X:'):
+                m = re.search(r'\d+', line)
+                if m:
+                    self.x_number = int(m.group(0))
+                self.tune_header_start_line_index = i
+                x_found = True
+                break
+
+        if x_found:
+            for i, line in abc_lines_enum:
+                if line.startswith('K:'):
+                    key_found = True
+                    break
+
+        if key_found:
+            match_abc_field = abc_field_re.match
+            note_line_indices = [i for i, line in abc_lines_enum if not line.startswith('%') and not match_abc_field(line)]
+        else:
+            note_line_indices = []
 
         if note_line_indices:
             self.first_note_line_index = note_line_indices[0]
@@ -53,7 +72,6 @@ class AbcTune(object):
 
         self.abc_lines = abc_lines
         self.note_line_indices = note_line_indices
-        self.tune_header_start_line_index = next(i for i, line in enumerate(abc_lines) if line.startswith('X:'))
 
     @property
     def tune_id(self):
@@ -82,4 +100,11 @@ class AbcTune(object):
                 default_len = Fraction(int(m.group(1)), int(m.group(2)))
 
         return metre, default_len
+
+    def is_equal(self, abc_tune):
+        if not isinstance(abc_tune, AbcTune):
+            return False
+        return self.x_number == abc_tune.x_number \
+               and self.tune_header_start_line_index == abc_tune.tune_header_start_line_index \
+               and self.first_note_line_index == abc_tune.first_note_line_index
 

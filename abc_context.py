@@ -308,6 +308,7 @@ class AbcContext(object):
             self._editor.SetSelection(selection_start, selection_end)
 
     def replace_selection(self, text, selection_start=None, selection_end=None):
+        text = text.encode('unicode-escape').decode('ascii')
         self._editor.BeginUndoAction()
         try:
             if selection_start is not None:

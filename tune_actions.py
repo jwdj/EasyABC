@@ -30,6 +30,8 @@ from abc_tune import AbcTune
 
 if PY3:
     basestring = str
+    def unicode(value):
+        return value
 
 UrlTuple = namedtuple('UrlTuple', 'url content')
 
@@ -138,7 +140,7 @@ class AbcAction(object):
             for param in list(params):
                 value = params[param]
                 if isinstance(value, basestring):
-                    params[param] = value.encode('unicode_escape')  # urlencode only accepts ascii
+                    params[param] = value.encode('utf-8')  # urlencode only accepts ascii
             return '{0}?{1}'.format(self.name, urlencode(params))
 
 
@@ -197,7 +199,7 @@ class ValueChangeAction(AbcAction):
     def is_action_allowed(self, context):
         valid_sections = self.valid_sections
         if valid_sections is None and context.current_element:
-           valid_sections = context.current_element.valid_sections
+            valid_sections = context.current_element.valid_sections
         if valid_sections is not None:
             if isinstance(valid_sections, list):
                 if not context.abc_section in valid_sections:
@@ -310,13 +312,14 @@ class ValueChangeAction(AbcAction):
     def get_values_html(self, context):
         rows = []
         show_value_column = False
-        for value in self.get_values(context):
+        values = self.get_values(context)
+        for value in values:
             if isinstance(value, ValueDescription):
                 if value.show_value:
                     show_value_column = True
                     break
 
-        for value in self.get_values(context):
+        for value in values:
             if isinstance(value, list):
                 values = value
                 row = []

@@ -829,7 +829,7 @@ class MusicXml:
             num, den  = simplify (max ([num, 1]), 64)   # smallest num == 1
             info ('duration too small: rounded to %d/%d' % (num, den))
         if n.name == 'rest' and ('Z' in n.t or 'X' in n.t):
-              num, den = s.mdur         # duration of one measure
+            num, den = s.mdur         # duration of one measure
         dvs = (4 * s.divisions * num) // den    # divisions is xml-duration of 1/4
         rdvs = dvs                      # real duration (will be 0 for chord/grace)
         num, den = simplify (num, den * 4)      # scale by 1/4 for s.typeMap

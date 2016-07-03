@@ -21,7 +21,7 @@
 # 1.3.6.3 [JWDJ] Fixed drawing problems with abcm2ps version 8.7.6
 
 
-import xml.etree.ElementTree
+#import xml.etree.ElementTree
 import xml.etree.cElementTree as ET
 from collections import defaultdict, deque, namedtuple
 import re

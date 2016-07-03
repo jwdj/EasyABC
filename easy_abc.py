@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.4 2016-06-28'
+program_name = 'EasyABC 1.3.7.4 2016-07-03'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
@@ -213,8 +213,6 @@ program_name = 'EasyABC 1.3.7.4 2016-06-28'
 #class IncipitsFrame()
 #  GrayUngray(), OnTwoColumns(), save_settings(), OnOk(), OnCancel()
 
-#class NewTuneFrame()
-
 #class MyNoteBook()
 
 #class AbcFileSettingsFrame()
@@ -364,11 +362,11 @@ if PY3:
     def unicode(s):
         return s
     max_int = sys.maxsize
+    basestring = str
 else:
     max_int = sys.maxint
 
 import os, os.path
-import sys
 import wx
 
 if os.getenv('EASYABCDIR'):
@@ -529,6 +527,11 @@ class SvgTune(object):
                 os.remove(f)
         self.svg_files = ()
 
+    def is_equal(self, svg_tune):
+        if not isinstance(svg_tune, SvgTune):
+            return False
+        return self.abc_tune.is_equal(svg_tune.abc_tune)
+
     @property
     def page_count(self):
         return len(self.svg_files)
@@ -543,6 +546,12 @@ class SvgTune(object):
     def tune_header_start_line_index(self):
         if self.abc_tune:
             return self.abc_tune.tune_header_start_line_index
+        return -1
+
+    @property
+    def x_number(self):
+        if self.abc_tune:
+            return self.abc_tune.x_number
         return -1
 
 
@@ -629,23 +638,27 @@ def start_process(cmd):
     return
 
 
-def get_output_from_process(cmd, input=None, creationflags=0, cwd=None, bufsize=0, encoding='utf-8', errors='strict', output_encoding=None):
-    stdin = None
+def get_output_from_process(cmd, input=None, creationflags=None, cwd=None, bufsize=0, encoding='utf-8', errors='strict', output_encoding=None):
+    stdin_pipe = None
     if input is not None:
-        stdin = subprocess.PIPE
-        if PY3:
-            if isinstance(input, str):
-                input = input.encode(encoding, errors)
-        else:
+        stdin_pipe = subprocess.PIPE
+        if isinstance(input, basestring):
             input = input.encode(encoding, errors)
 
-    process = subprocess.Popen(cmd, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, cwd=cwd, bufsize=bufsize)
+    if creationflags is None:
+        if wx.Platform == "__WXMSW__":
+            creationflags = win32process.CREATE_NO_WINDOW
+        else:
+            creationflags = 0
+
+    process = subprocess.Popen(cmd, stdin=stdin_pipe, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags, cwd=cwd, bufsize=bufsize)
     stdout_value, stderr_value = process.communicate(input)
+    returncode = process.returncode
 
     if output_encoding is None:
         output_encoding = encoding
     stdout_value, stderr_value = stdout_value.decode(output_encoding, errors), stderr_value.decode(output_encoding, errors)
-    return stdout_value, stderr_value, process.returncode
+    return stdout_value, stderr_value, returncode
 
 
 def read_text_if_file_exists(filepath):
@@ -1033,12 +1046,6 @@ def AbcToPS(abc_code, cache_dir, extra_params='', abcm2ps_path=None, abcm2ps_for
     hash_code = get_hash_code(abc_code, read_text_if_file_exists(abcm2ps_format_path))
     ps_file = os.path.abspath(os.path.join(cache_dir, 'temp.ps'))
 
-    # determine path
-    if wx.Platform == "__WXMSW__":
-        creationflags = win32process.CREATE_NO_WINDOW
-    else:
-        creationflags = 0
-
     # determine parameters
     cmd1 = [abcm2ps_path, '-', '-O', '%s' % ps_file]
     if extra_params:
@@ -1054,7 +1061,7 @@ def AbcToPS(abc_code, cache_dir, extra_params='', abcm2ps_path=None, abcm2ps_for
         os.remove(ps_file)
 
     input_abc = abc_code + os.linesep * 2
-    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, creationflags=creationflags, input=input_abc, encoding=abcm2ps_default_encoding)
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, input=input_abc, encoding=abcm2ps_default_encoding)
     stderr_value = os.linesep.join([x for x in stderr_value.split('\n')
                                     if not x.startswith('abcm2ps-') and not x.startswith('File ') and not x.startswith('Output written on ')])
     stderr_value = stderr_value.strip()
@@ -1117,13 +1124,6 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
         for f in files_to_be_deleted:
             os.remove(f)
 
-
-    # determine path
-    if wx.Platform == "__WXMSW__":
-        creationflags = win32process.CREATE_NO_WINDOW
-    else:
-        creationflags = 0
-
     # determine parameters
     cmd1 = [abcm2ps_path, '-', '-O', '%s' % os.path.basename(svg_file)]
     if one_file_per_page:
@@ -1155,17 +1155,16 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     # execmessages += '\nAbcToSvg\n' + " ".join(cmd1) 1.3.6.4 [JWdJ]
     execmessages = u'\nAbcToSvg\n' + " ".join(cmd1)
     input_abc = abc_code + os.linesep * 2
-    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, input=input_abc, encoding=abcm2ps_default_encoding, bufsize=-1, creationflags=creationflags, cwd=os.path.dirname(svg_file))
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, input=input_abc, encoding=abcm2ps_default_encoding, bufsize=-1, cwd=os.path.dirname(svg_file))
     execmessages += '\n' + stdout_value + stderr_value
 
     if returncode < 0:
         execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Abcm2ps', 'error': returncode & 0xffffffff }
-
         raise Abcm2psException('Unknown error - abcm2ps may have crashed')
     #dt = datetime.now() - t
     ##if wx.Platform != "__WXGTK__":
     ##    print 'abcm2ps time:\t', dt.seconds * 1000 + dt.microseconds/1000
-    stderr_value = os.linesep.join([x for x in stderr_value.split('\n')
+    stderr_value = os.linesep.join([x for x in stderr_value.splitlines()
                                     if not x.startswith('abcm2ps-') and not x.startswith('File ') and not x.startswith('Output written on ')])
     stderr_value = stderr_value.strip()
     if not os.path.exists(svg_file_first) or 'svg: ' in stderr_value:
@@ -1183,19 +1182,13 @@ def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):
 
     # hash = get_hash_code(abc_code) # 1.3.6.3 [JWDJ] 2015-04-21 not used anymore
 
-    # determine path
-    if wx.Platform == "__WXMSW__":
-        creationflags = win32process.CREATE_NO_WINDOW
-    else:
-        creationflags = 0
-
     # determine parameters
     cmd1 = [abc2abc_path, '-', '-r', '-b', '-e'] + params
 
     execmessages += '\nAbcToAbc\n' + " ".join(cmd1)
 
     input_abc = abc_code + os.linesep * 2
-    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, bufsize=-1, creationflags=creationflags, input=input_abc, encoding=abcm2ps_default_encoding)
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd1, bufsize=-1, input=input_abc, encoding=abcm2ps_default_encoding)
     execmessages += '\n' + stderr_value
     if returncode < 0:
         execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Abc2abc', 'error': returncode & 0xffffffff }
@@ -1211,12 +1204,11 @@ def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):
 def MidiToMftext (midi2abc_path, midifile):
     ' dissasemble midi file to text using midi2abc'
     global execmessages
-    creationflags = 0
     cmd1 = [midi2abc_path, midifile, '-mftext']
     execmessages += '\nMidiToMftext\n' + " ".join(cmd1)
 
     if os.path.exists(midi2abc_path):
-        stdout_value, stderr_value, returncode = get_output_from_process(cmd1, bufsize=-1, creationflags=creationflags)
+        stdout_value, stderr_value, returncode = get_output_from_process(cmd1, bufsize=-1)
         #print stdout_value
 
         midiframe = MyMidiTextTree(_('Disassembled Midi File'))
@@ -1230,9 +1222,8 @@ def MidiToMftext (midi2abc_path, midifile):
 def get_midi_structure_as_text(midi2abc_path, midi_file):
     result = u''
     if os.path.exists(midi2abc_path):
-        creationflags = 0
         cmd = [midi2abc_path, midi_file, '-mftext']
-        result, stderr_value, returncode = get_output_from_process(cmd, bufsize=-1, creationflags=creationflags)
+        result, stderr_value, returncode = get_output_from_process(cmd, bufsize=-1)
     return result
 
 # p09 2014-10-14 2014-12-17 2015-01-28 [SS]
@@ -1249,11 +1240,6 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
     #    add_table_of_contents_to_postscript_file(ps_file)
 
     # convert ps to pdf
-    creationflags = 0
-
-    #1.3.6.1 [SS] 2015-01-28
-    if wx.Platform == "__WXMSW__":
-        creationflags = win32process.CREATE_NO_WINDOW
     # p09 we already checked for gs_path in restore_settings() 2014-10-14
     cmd2 = [gs_path, '-sDEVICE=pdfwrite', '-sOutputFile=%s' % pdf_file, '-dBATCH', '-dNOPAUSE', ps_file]
     # [SS] 2015-04-08
@@ -1264,7 +1250,7 @@ def AbcToPDF(settings,abc_code, header, cache_dir, extra_params='', abcm2ps_path
 
     # 1.3.6.1 [SS] 2015-01-13
     execmessages += '\nAbcToPDF\n' + " ".join(cmd2)
-    stdout_value, stderr_value, returncode = get_output_from_process(cmd2, creationflags=creationflags)
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd2)
     # 1.3.6.1 [SS] 2015-01-13
     execmessages += '\n' + stderr_value
     if os.path.exists(pdf_file):
@@ -1593,7 +1579,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     # 1.3.6.3 [SS] 2015-03-19
     if settings.get('transposition', '0') != '0':
-         extra_lines.append('%%MIDI transpose {0}'.format(settings['transposition']))
+        extra_lines.append('%%MIDI transpose {0}'.format(settings['transposition']))
 
     # 1.3.6.3 [SS] 2015-05-04
     if default_tempo != 120:
@@ -1730,10 +1716,6 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 # 1.3.6.3 [JWDJ] 2015-04-21 split up AbcToMidi into 2 functions: preprocessing (process_abc_for_midi) and actual midi generation (abc_to_midi)
 def abc_to_midi(abc_code, settings, midi_file_name):
     global execmessages
-    if wx.Platform == "__WXMSW__":
-        creationflags = win32process.CREATE_NO_WINDOW
-    else:
-        creationflags = 0
 
     if True: # p09 disable cache memory
     #if not os.path.exists(midi_file): #p09 disable cache
@@ -1742,7 +1724,7 @@ def abc_to_midi(abc_code, settings, midi_file_name):
         cmd = add_abc2midi_options(cmd, settings)
         execmessages += '\nAbcToMidi\n' + " ".join(cmd)
         input_abc = abc_code + os.linesep * 2
-        stdout_value, stderr_value, returncode = get_output_from_process(cmd, creationflags=creationflags, input=input_abc)
+        stdout_value, stderr_value, returncode = get_output_from_process(cmd, input=input_abc)
         execmessages += '\n' + stdout_value + stderr_value
         if stdout_value:
             stdout_value = re.sub(r'(?m)(writing MIDI file .*\r?\n?)', '', stdout_value)
@@ -1820,10 +1802,6 @@ def NWCToXml(filepath, cache_dir, nwc2xml_path):
         os.remove(xml_file_path)
     shutil.copy(filepath, nwc_file_path)
 
-    if wx.Platform == "__WXMSW__":
-        creationflags = win32process.CREATE_NO_WINDOW
-    else:
-        creationflags = 0
     if not nwc2xml_path:
         if wx.Platform == "__WXMSW__":
             nwc2xml_path = os.path.join(cwd, 'bin', 'nwc2xml.exe')
@@ -1834,7 +1812,7 @@ def NWCToXml(filepath, cache_dir, nwc2xml_path):
 
     #cmd = [nwc2xml_path, '--charset=ISO-8859-1', nwc_file_path]
     cmd = [nwc2xml_path, nwc_file_path]
-    stdout_value, stderr_value, returncode = get_output_from_process(cmd, creationflags=creationflags)
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd)
     if returncode < 0:
         execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'Nwc2xml', 'error': returncode & 0xffffffff }
 
@@ -1965,7 +1943,6 @@ class MusicUpdateThread(threading.Thread):
             task = self.queue.get()
             self.queue.task_done()
             abc_tune = None
-            svg_files, error = [], u''
             try:
                 abc_code, abc_header = task
                 if not 'K:' in abc_code:
@@ -2195,7 +2172,7 @@ class RecordThread(threading.Thread):
 
     def quantize(self):
         quantized_notes = []
-        quantize_time = 0.25  # 1/16th
+        # quantize_time = 0.25  # 1/16th
 
         if self.notes:
             distance_from_beat = frac_mod(self.notes[0][1], 1.0)
@@ -2349,43 +2326,6 @@ class IncipitsFrame(wx.Dialog):
 
     def OnCancel(self, evt):
         self.EndModal(wx.ID_CANCEL)
-
-
-class NewTuneFrame(wx.Dialog):
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, _('Add new tune'), wx.DefaultPosition, wx.Size(230, 80))
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 4
-        sizer = wx.GridBagSizer(5, 5)
-        font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
-
-        #fields = ['K: Key signature',
-        #          'M: Metre',
-        #          'L: Default note length',
-        #          'T: Title',
-        #          ]
-        #fields = [('X:', _('Tune index number')),
-        #          ('T:', _('Title')),
-        #          ('K:', _('Key')),
-        #          ('M:', _('Metre')),
-        #          ('L:', _('Default note length')),
-        #          ('C:', _('Composer')),
-        #          ('O:', _('Origin')),
-        #          ]
-
-        sizer = rcs.RowColSizer()
-        for i, field in enumerate(fields):
-            sizer.Add(wx.StaticText(self, -1, field),  row=i, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-            sizer.Add(wx.TextCtrl(self, -1),           row=i, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-            #sizer.Add(wx.StaticText(self, -1, expl),   row=i, col=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-
-        box1 = wx.StaticBoxSizer(wx.StaticBox(self, -1, _("Additional command line parameters to abcm2ps")), wx.VERTICAL)
-        box1.Add(sizer, flag=wx.ALL | wx.EXPAND, border=border)
-        self.sizer = box1
-        self.SetSizer(self.sizer)
-        self.SetAutoLayout(True)
-        self.Centre()
-        self.sizer.Fit(self)
 
 
 #p09 Abcm2psSettingsFrame dialog box has been replaced with a
@@ -4037,12 +3977,12 @@ class MainFrame(wx.Frame):
         self.error_pane.Hide()
         self.error_msg.Hide() # 1.3.7 [JWdJ] 2016-01-06
 
-         # 1.3.6.3 [JWdJ] 2015-04-21 ABC Assist added
+        # 1.3.6.3 [JWdJ] 2015-04-21 ABC Assist added
         from abc_assist_panel import AbcAssistPanel  # 1.3.7.1 [JWDJ] 2016-1 because of translation this import has to be done as late as possible
         self.abc_assist_panel = AbcAssistPanel(self, self.editor, cwd, self.settings)
         self.assist_pane = aui.AuiPaneInfo().Name("abcassist").CaptionVisible(True).Caption(_("ABC assist")).\
             CloseButton(True).MinimizeButton(False).MaximizeButton(False).\
-            Left().BestSize(265, 300) # .PaneBorder(False) # Fixed()
+            Left().Layer(1).Position(1).BestSize(300, 600) # .PaneBorder(False) # Fixed()
 
         tune_list_pane = aui.AuiPaneInfo().Name("tune list").Caption(_("Tune list")).MinimizeButton(True).CloseButton(False).BestSize((265, 80)).Left().Row(0).Layer(1)
         editor_pane = aui.AuiPaneInfo().Name("abc editor").Caption(_("ABC code")).CloseButton(False).MinSize(40, 40).MaximizeButton(True).CaptionVisible(True).Center()
@@ -4287,11 +4227,11 @@ class MainFrame(wx.Frame):
                 line_start_offset = [m.start(0) for m in re.finditer(r'(?m)^', temp)]
 
                 selected_note_offsets = []
-                for (x, y, abc_row, abc_col, desc) in self.selected_note_descs:
+                for (_, _, abc_row, abc_col, desc) in self.selected_note_descs:
                     abc_row -= num_header_lines
                     selected_note_offsets.append(line_start_offset[abc_row-1]+abc_col)
 
-                unselected_note_offsets = [(start_offset, end_offset) for (start_offset, end_offset, note_text) in notes if not any(p for p in selected_note_offsets if start_offset <= p < end_offset)]
+                unselected_note_offsets = [(start_offset, end_offset) for (start_offset, end_offset, _) in notes if not any(p for p in selected_note_offsets if start_offset <= p < end_offset)]
                 unselected_note_offsets.sort()
                 pieces = []
                 pos = 0
@@ -4651,11 +4591,11 @@ class MainFrame(wx.Frame):
         if self.queue_number_follow_score != queue_number:
             return
 
-        page = self.music_pane.current_page
-        if not page:
+        if not self.midi_notes:
             return
 
-        if not self.midi_notes:
+        page = self.music_pane.current_page
+        if not page:
             return
 
         # self.statusbar.SetStatusText('%d' % offset)
@@ -4668,14 +4608,18 @@ class MainFrame(wx.Frame):
         if current_time_slice is None or offset < current_time_slice.start:  # first time or after rewind
             self.midi_notes_iter = iter(self.midi_notes)
 
-        for slice in self.midi_notes_iter:
-            if slice.start <= offset < slice.stop:
-                current_time_slice = slice
+        for time_slice in self.midi_notes_iter:
+            if time_slice.start <= offset < time_slice.stop:
+                current_time_slice = time_slice
                 break
 
         self.current_time_slice = current_time_slice
         if current_time_slice.page == self.current_page_index:
-            self.music_pane.draw_notes_highlighted(current_time_slice.indices)
+            try:
+                self.music_pane.draw_notes_highlighted(current_time_slice.indices)
+            except:
+                self.music_and_score_out_of_sync()
+                return
 
         # turning pages and going to next line has to be done slighty earlier
         future_offset = offset + 500  # 0.5 seconds should do
@@ -4686,25 +4630,39 @@ class MainFrame(wx.Frame):
                 self.future_notes_iter = iter(self.midi_notes)
 
             future_time_slice = None
-            for slice in self.future_notes_iter:
-                if slice.start <= future_offset < slice.stop:
-                    future_time_slice = slice
+            for time_slice in self.future_notes_iter:
+                if time_slice.start <= future_offset < time_slice.stop:
+                    future_time_slice = time_slice
                     break
 
             self.future_time_slice = future_time_slice
 
         if future_time_slice is not None:
-            if future_time_slice.page != self.current_page_index:
-                self.current_page_index = future_time_slice.page
-                self.UpdateMusicPane()
-            elif future_time_slice.svg_row != self.last_played_svg_row and future_time_slice.indices:
-                self.last_played_svg_row = future_time_slice.svg_row
-                x, y, abc_row, abc_col, desc = self.music_pane.current_page.notes[min(future_time_slice.indices)]
-                if len(future_time_slice.indices) > 1:
-                    x2, y2, abc_row, abc_col, desc = self.music_pane.current_page.notes[max(future_time_slice.indices)]
-                    x = (x + x2) // 2
-                    y = (y + y2) // 2
-                self.scroll_music_pane(x, y)
+            try:
+                if future_time_slice.page != self.current_page_index:
+                    self.current_page_index = future_time_slice.page
+                    self.UpdateMusicPane()
+                    self.scroll_to_notes(self.music_pane.current_page, future_time_slice.indices)
+                elif future_time_slice.svg_row != self.last_played_svg_row and future_time_slice.indices:
+                    self.last_played_svg_row = future_time_slice.svg_row
+                    self.scroll_to_notes(self.music_pane.current_page, future_time_slice.indices)
+            except:
+                self.music_and_score_out_of_sync()
+
+    def scroll_to_notes(self, page, indices):
+        if not indices:
+            return
+        x, y, _, _, _ = page.notes[min(indices)]
+        if len(indices) > 1:
+            x2, y2, _, _, _ = page.notes[max(indices)]
+            x = (x + x2) // 2
+            y = (y + y2) // 2
+        self.scroll_music_pane(x, y)
+
+    def music_and_score_out_of_sync(self):
+        self.midi_notes = None
+        self.current_time_slice = None
+        self.future_time_slice = None
 
     def OnRecordBpmSelected(self, evt):
         menu = evt.EventObject
@@ -5587,21 +5545,14 @@ class MainFrame(wx.Frame):
             self.settings['show_abc_assist'] = False
             # wx.CallAfter(self.UpdateAbcAssistSetting()) # seems to be too early, pane is still shown
 
-    def OnToolAddTune(self, evt):
-        dlg = NewTuneFrame(self)
-        try:
-            modal_result = dlg.ShowModal()
-        finally:
-            dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
-        if modal_result != wx.ID_OK:
-            return
-
     def OnToolDynamics(self, evt):
         try: self.toolbar.PopupMenu(self.popup_dynamics)
         except wx._core.PyAssertionError: pass
+
     def OnToolOrnamentation(self, evt):
         try: self.toolbar.PopupMenu(self.popup_ornaments)
         except wx._core.PyAssertionError: pass
+
     def OnToolDirections(self, evt):
         try: self.toolbar.PopupMenu(self.popup_directions)
         except wx._core.PyAssertionError: pass
@@ -6470,7 +6421,7 @@ class MainFrame(wx.Frame):
         #x, y = x*self.zoom_factor, y*self.zoom_factor
         #sx, sy = self.music_pane.GetScrollPos(wx.HORIZONTAL), self.music_pane.GetScrollPos(wx.VERTICAL)
         sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
-        vw, vh = self.music_pane.GetVirtualSizeTuple()
+        vw, vh = self.music_pane.VirtualSize
         w, h = self.music_pane.ClientSize
         margin = 20
         #if y > sy+margin:
@@ -6551,7 +6502,6 @@ class MainFrame(wx.Frame):
 
     def OnCharEvent(self, evt):
         style = self.editor.GetStyleAt(self.editor.GetCurrentPos())
-        is_string_style = self.styler.STYLE_STRING
         is_default_style = (style in [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE])
 
         # 1.3.7 [JWdJ] 2016-01-06
@@ -7184,7 +7134,7 @@ class MainFrame(wx.Frame):
 
     def extract_note_timings(self, midi_tune, svg_tune):
         midi2abc_path = self.settings['midi2abc_path']
-        if not svg_tune or not midi2abc_path:
+        if not svg_tune or not midi2abc_path or svg_tune.abc_tune.x_number != midi_tune.abc_tune.x_number:
             return []
 
         lines = get_midi_structure_as_text(midi2abc_path, midi_tune.midi_file).splitlines()
@@ -7245,7 +7195,11 @@ class MainFrame(wx.Frame):
             m = pos_re.match(line)
             if m is not None:
                 value = int(m.group(2))
-                if last_line_was_pos:
+                if not last_line_was_pos:
+                    note_info = [value]
+                    indices = set()
+                    last_line_was_pos = True
+                else:
                     note_info.append(value)
                     if len(note_info) == 5:
                         row = (note_info[0] << 14) + (note_info[1] << 7) + note_info[2]
@@ -7266,10 +7220,6 @@ class MainFrame(wx.Frame):
                                 page = pages[page_index]
                         if not indices:
                             errors += 1
-                else:
-                    note_info = [value]
-                    indices = set()
-                    last_line_was_pos = True
             else:
                 last_line_was_pos = False
                 m = note_re.match(line)
@@ -7297,10 +7247,10 @@ class MainFrame(wx.Frame):
     def fill_time_gaps(self, time_slices):
         gaps = []
         last_stop = 0
-        for slice in time_slices:
-            if slice.start > last_stop:
-                gaps.append(MidiNote(last_stop, slice.start, set(), slice.page, slice.svg_row))
-            last_stop = slice.stop
+        for time_slice in time_slices:
+            if time_slice.start > last_stop:
+                gaps.append(MidiNote(last_stop, time_slice.start, set(), time_slice.page, time_slice.svg_row))
+            last_stop = time_slice.stop
 
         if gaps:
             time_slices += gaps
@@ -7405,12 +7355,12 @@ class MainFrame(wx.Frame):
     def OnMusicUpdateDone(self, evt): # MusicUpdateDoneEvent
         # MusicUpdateThread.run posts an event MusicUpdateDoneEvent with the svg_files
         tune = evt.GetValue()
-        same_tune = False
-        if self.current_svg_tune:
-            same_tune = self.current_svg_tune.tune_header_start_line_index == tune.tune_header_start_line_index and self.current_svg_tune.first_note_line_index == tune.first_note_line_index
+        same_tune = tune.is_equal(self.current_svg_tune)
         self.current_svg_tune = tune
         if not same_tune:
+            self.music_and_score_out_of_sync()
             self.current_page_index = 0 # 1.3.7.2 [JWDJ] always go to first page after switching tunes
+
         self.svg_tunes.add(tune) # 1.3.6.3 [JWDJ] for proper disposable of svg files
         self.UpdateMusicPane()
         #self.SetErrorMessage(error) 1.3.6 [SS] 2014-12-07
@@ -7632,6 +7582,7 @@ class MainFrame(wx.Frame):
         search_tune_index = tune_index_re.search
         cur_index = None
         cur_startline = None
+        cur_title = u''
         tunes = []
         tunes_append = tunes.append
         for i in xrange(n):
@@ -7680,7 +7631,7 @@ class MainFrame(wx.Frame):
         if not font_face:
             fixedWidthFonts = ['Bitstream Vera Sans Mono', 'Courier New', 'Courier']
             #fixedWidthFonts = ['Lucida Grande', 'Monaco' 'Inconsolata', 'Consolas', 'Deja Vu Sans Mono', 'Droid Sans Mono', 'Courier', 'Andale Mono', 'Monaco', 'Courier New', 'Courier']
-            variableWidthFonts = ['Bitstream Vera Sans', 'Arial', 'Verdana']
+            #variableWidthFonts = ['Bitstream Vera Sans', 'Arial', 'Verdana']
             wantFonts = fixedWidthFonts[:]
             #wantFonts = variableWidthFonts[:]
             size = 16
@@ -8086,16 +8037,16 @@ class MainFrame(wx.Frame):
 
 
         #print 'ps2pdf_path = ',ps2pdf_path
-        nwc2xml_path = settings.get('nwc2xml_path')
+        #nwc2xml_path = settings.get('nwc2xml_path')
         #print 'nwc2xml_path = ',nwc2xml_path
-        if wx.Platform == "__WXMSW__":
-            pass
-        elif wx.Platform == "__WXMAC__":
-            pass
-        elif wx.Platform == "__WXGTK__":
-            pass
-        else:
-            pass
+        #if wx.Platform == "__WXMSW__":
+        #    pass
+        #elif wx.Platform == "__WXMAC__":
+        #    pass
+        #elif wx.Platform == "__WXGTK__":
+        #    pass
+        #else:
+        #    pass
 
 # Upgrade to 1.3.6
         #Fix midi_program_ch settings - 1.3.5 to 1.3.6 compatibility 2014-11-14
@@ -8411,8 +8362,7 @@ class MyApp(wx.App):
         wx.App.__init__(self, *args, **kargs)
 
     def CheckCanDrawSharpFlat(self):
-        buffer = wx_bitmap(200, 200, 32)
-        dc = wx.MemoryDC(buffer)
+        dc = wx.MemoryDC(wx_bitmap(200, 200, 32))
         dc.SetBackground(wx.WHITE_BRUSH)
         dc.Clear()
         dc = wx.GraphicsContext.Create(dc)
