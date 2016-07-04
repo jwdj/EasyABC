@@ -530,7 +530,7 @@ class SvgTune(object):
     def is_equal(self, svg_tune):
         if not isinstance(svg_tune, SvgTune):
             return False
-        return self.abc_tune.is_equal(svg_tune.abc_tune)
+        return self.abc_tune and self.abc_tune.is_equal(svg_tune.abc_tune)
 
     @property
     def page_count(self):
