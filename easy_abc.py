@@ -407,7 +407,7 @@ import traceback
 # import xml.etree.cElementTree as ET  # 1.3.7.4 [JWdJ] 2016-06-30
 import zipfile
 from datetime import datetime
-from collections import deque, namedtuple
+from collections import deque, namedtuple, defaultdict
 from io import StringIO
 from wx.lib.scrolledpanel import ScrolledPanel
 import wx.html
@@ -1883,7 +1883,7 @@ class MusicPrintout(wx.Printout):
             maxY += 2 * marginY
 
             # Get the size of the DC in pixels
-            (w, h) = dc.GetSizeTuple()
+            (w, h) = dc.GetSize()
 
             # Calculate a suitable scaling factor
             scaleX = float(w) / maxX
@@ -1945,7 +1945,9 @@ class MusicUpdateThread(threading.Thread):
             abc_tune = None
             try:
                 abc_code, abc_header = task
-                if not 'K:' in abc_code:
+                if not abc_code:
+                    svg_files, error = [], None
+                elif not 'K:' in abc_code:
                     raise Exception('K: field is missing')
                 else:
                     # 1.3.6.3 [JWDJ] splitted pre-processing abc and generating svg
@@ -5584,7 +5586,7 @@ class MainFrame(wx.Frame):
         frame.Show(True)
         # move new window slightly down to the right:
         width, height = tuple(wx.DisplaySize())
-        x, y = self.GetPositionTuple()
+        x, y = self.GetPosition()
         x, y = (x + 40) % (width - 200), (y + 40) % (height - 200)
         frame.Move((x, y))
         return frame
@@ -5712,10 +5714,13 @@ class MainFrame(wx.Frame):
         else:
             f = open(self.current_file, 'wb')
             s = self.editor.GetText()
-            if type(s) is unicode:
-                encoding = self.get_encoding(s)
+            if PY3 or type(s) is unicode:
+                if PY3:
+                    encoding = 'utf-8'
+                else:
+                    encoding = self.get_encoding(s)
                 try:
-                    s.encode(self.get_encoding(s), 'strict')
+                    s.encode(encoding, 'strict')
                 except UnicodeEncodeError as e: # 1.3.6.2 [JWdJ] 2015-02
                     sample_letters = s[e.start:e.end][:30]
                     modal_result = wx.MessageBox(_("This document contains characters (eg. %(ABC)s) that cannot be represented using the current character encoding (%(encoding)s). "
@@ -7149,9 +7154,13 @@ class MainFrame(wx.Frame):
         svg_rows = svg_tune.abc_tune.note_line_indices
         midi_rows = midi_tune.abc_tune.note_line_indices
 
+        midi_lines = midi_tune.abc_tune.abc_lines
+        svg_lines = svg_tune.abc_tune.abc_lines
+        
+        contains_unicode_chars = midi_tune.abc_tune.contains_unicode_chars
+        
         if len(midi_rows) > len(svg_rows):
-            midi_lines = midi_tune.abc_tune.abc_lines
-            svg_lines = svg_tune.abc_tune.abc_lines
+            # compensate for added lines for count-in
             svg_rows = list(svg_rows)
             for i in range(len(midi_rows)):
                 if midi_lines[midi_rows[i]].strip() != svg_lines[svg_rows[i]].strip():
@@ -7165,10 +7174,11 @@ class MainFrame(wx.Frame):
         svg_rows = [i + 1 for i in svg_rows]
         midi_rows = [i + 1 for i in midi_rows]
 
-        errors = 0
+        errors = defaultdict(lambda: defaultdict(int))
         pos_re = re.compile(r'^\s*(\d+\.\d+)\s+CntlParm\s+1\s+unknown\s+=\s+(\d+)')
         note_re = re.compile(r'^\s*(\d+\.\d+)\s+Note (on|off)\s+(\d+)\s+(\d+)')
         tempo_re = re.compile(r'^\s*(\d+\.\d+)\s+Metatext\s+tempo\s+=\s+(\d+\.\d+)\s+bpm')
+        new_track_re = re.compile('^Track \d+ contains')
 
         def time_value_to_milliseconds(value, tempos):
             tempos = [t for t in tempos if t[0] <= value]
@@ -7185,13 +7195,29 @@ class MainFrame(wx.Frame):
                 prev_start, prev_bpm, prev_sec_until_time_start = tempos[-1]
                 sec_until_time_start = prev_sec_until_time_start + ((time_start - prev_start) * 60 / prev_bpm)
             tempos.append((time_start, tempo, sec_until_time_start))
+            
+        def byte_to_unicode_index(text, index):
+            return len(bytes(text[:index], 'utf-8').decode('unicode-escape'))
+
+        #from tune_elements import unicode_re
+        def midi_col_to_svg_col(line, col):
+            return col - 1
+            #line = line[:col]
+            #svg_line = unicode_re.sub('----', line)
+            #return col - 1 + len(svg_line) - len(line)
 
         tempos = []
         notes = []
-        active_notes = {}
-        indices = set()
+        row_col_midi_notes = defaultdict(lambda: defaultdict(int))
         last_line_was_pos = False
         for line in lines:
+            m = new_track_re.match(line)
+            if m is not None:
+                page_index = 0
+                active_notes = {}
+                indices = set()
+                continue
+            
             m = pos_re.match(line)
             if m is not None:
                 value = int(m.group(2))
@@ -7204,27 +7230,46 @@ class MainFrame(wx.Frame):
                     if len(note_info) == 5:
                         row = (note_info[0] << 14) + (note_info[1] << 7) + note_info[2]
                         col = (note_info[3] << 7) + note_info[4]
+                        
+                        #if contains_unicode_chars(row):
+                        #    col = byte_to_unicode_index(midi_lines[row-1], col - 1) + 1
+                        
+                        is_gracenote = False
+                        row_col_midi_notes[row][col] += 1
                         svg_row = svg_rows[midi_rows.index(row)]
-                        svg_col = col - 1
+                        svg_col = midi_col_to_svg_col(midi_lines[row-1], col)
                         for i in range(page_count):
                             indices = page.get_indices_for_row_col(svg_row, svg_col)
-                            if not indices:
-                                # maybe a chord
-                                indices = page.get_indices_for_row_col(svg_row, svg_col-1)
+                            if not indices and midi_lines[row-1][col-1] == '.': 
+                                # in case of staccato (a dot): abc2midi marks the dot, abcm2ps marks the after note after the dot
+                                indices = page.get_indices_for_row_col(svg_row, svg_col+1)
                             if indices:
                                 break
-                            else:
-                                # wrong page perhaps
-                                page_index += 1
-                                page_index %= page_count
-                                page = pages[page_index]
+                            start_of_chord = midi_tune.abc_tune.get_start_of_chord(row, col) 
+                            if start_of_chord:
+                                svg_col = start_of_chord - 1 # svg_col is 1-based
+                                # in case of chord: abc2midi marks the first note within the brackets, abcm2ps marks the first bracket
+                                indices = page.get_indices_for_row_col(svg_row, svg_col)
+                            if indices:
+                                break
+                            if midi_tune.abc_tune.is_gracenote_at(row, col):
+                                is_gracenote = True
+                                break
+                            # wrong page perhaps
+                            page_index += 1
+                            page_index %= page_count
+                            page = pages[page_index]
+                            
                         if not indices:
-                            errors += 1
+                            # abcm2ps does not mark notes within braces so that is one reason
+                            if not is_gracenote:
+                                errors[row][col] += 1
             else:
                 last_line_was_pos = False
                 m = note_re.match(line)
                 if m is not None:
-                    time_in_ms = time_value_to_milliseconds(float(m.group(1)), tempos)
+                    time_value = float(m.group(1))
+                    time_in_ms = time_value_to_milliseconds(time_value, tempos)
                     on_off = m.group(2)
                     channel = int(m.group(3))
                     note_num = int(m.group(4))
@@ -7242,6 +7287,76 @@ class MainFrame(wx.Frame):
                         tempo = float(m.group(2))
                         append_tempo(tempos, tempo_start, tempo)
 
+        row_col_svg_notes = defaultdict(lambda: defaultdict(int))
+        for page in pages:
+            for row, col in page.notes_row_col:
+                row_col_svg_notes[row][col+1] += 1  # svg column is zero based so add one to make it 1-based
+
+        lines = []
+        # rows = list(row_col_midi_notes)
+        rows = list(errors)
+        rows.sort()
+        for row in rows:
+            if errors[row]:
+                lines.append('Error in row %d:' % row)
+                cols = list(errors[row])
+                cols.sort()
+                prev_col = 0
+                line_parts = []
+                for col in cols:
+                    line_parts.append(' ' * (col - prev_col - 1))
+                    n = errors[row][col]
+                    if n > 0:
+                        line_parts.append('!')
+                    prev_col = col
+                lines.append(''.join(line_parts))
+
+            # mark the svg-notes
+            svg_row = svg_rows[midi_rows.index(row)]
+            cols = list(row_col_svg_notes[svg_row])
+            cols.sort()
+            prev_col = 0
+            line_parts = []
+            for col in cols:
+                line_parts.append(' ' * (col - prev_col - 1))
+                n = row_col_svg_notes[svg_row][col]
+                if n == 1:
+                    line_parts.append('_')
+                elif 0 <= n <= 9:
+                    line_parts.append('%d' % n)
+                else:
+                    line_parts.append('*')
+                prev_col = col
+            lines.append(''.join(line_parts))
+            
+            # output abc line
+            if svg_lines[svg_row-1].strip() != midi_lines[row-1].strip(): 
+                lines.append(svg_lines[svg_row-1])
+            
+            # output abc line
+            line = midi_lines[row-1] # bytes(midi_lines[row-1], 'utf-8').decode('unicode-escape')
+            lines.append(line)
+
+            # mark the midi-notes
+            cols = list(row_col_midi_notes[row])
+            cols.sort()
+            prev_col = 0
+            line_parts = []
+            for col in cols:
+                line_parts.append(' ' * (col - prev_col - 1))
+                n = row_col_midi_notes[row][col]
+                if n == 1:
+                    line_parts.append('^')
+                elif 0 <= n <= 9:
+                    line_parts.append('%d' % n)
+                else:
+                    line_parts.append('*')
+                prev_col = col
+            lines.append(''.join(line_parts))
+            
+        for line in lines:
+            print(line)
+        
         return self.group_notes_by_time(notes)
 
     def fill_time_gaps(self, time_slices):
@@ -7267,20 +7382,32 @@ class MainFrame(wx.Frame):
         notes.sort(key=lambda n: n.start)
         time_slices = []
         active_notes = []
+        time_stop = max_int
         page = 0
-        while notes:
-            time_start = notes[0].start
-            page = notes[0].page
-            same_note_start = list(takewhile(lambda n: n.start == time_start, notes))
-            notes = notes[len(same_note_start):]
-            active_notes += same_note_start
-            active_notes.sort(key=lambda n: n.stop)
-            time_stop = active_notes[0].stop
-            all_indices_for_time_slice = set().union(*[n.indices for n in active_notes])
-            svg_row = min([n.svg_row for n in active_notes])
+        while notes or active_notes:
+            time_start = notes[0].start if notes else max_int 
+            if time_start <= time_stop:
+                page = notes[0].page
+                same_note_start = list(takewhile(lambda n: n.start == time_start, notes))
+                notes = notes[len(same_note_start):]
+                active_notes += same_note_start
+                active_notes.sort(key=lambda n: n.stop)
+                time_stop = min(active_notes[0].stop if active_notes else max_int, notes[0].start if notes else max_int) 
+            else:
+                # a note stops before the next note starts
+                time_start, time_stop = time_stop, time_start
+                time_stop = min(time_stop, active_notes[0].stop if active_notes else max_int)
+
+            # adding a new slice
+            active_notes_same_page = [n for n in active_notes if n.page == page]
+            all_indices_for_time_slice = set().union(*[n.indices for n in active_notes_same_page])
+            svg_row = min([n.svg_row for n in active_notes_same_page]) if active_notes_same_page else 0
             time_slices.append(MidiNote(time_start, time_stop, all_indices_for_time_slice, page, svg_row))
-            same_note_stop = list(takewhile(lambda n: n.stop == time_stop, active_notes))
-            active_notes = active_notes[len(same_note_stop):]
+
+            # removing stopped notes
+            stopped_notes = list(takewhile(lambda n: n.stop <= time_stop, active_notes))
+            active_notes = active_notes[len(stopped_notes):]
+            
         return self.fill_time_gaps(time_slices)
 
     def GetTextPositionOfTune(self, tune_index):

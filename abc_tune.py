@@ -107,4 +107,25 @@ class AbcTune(object):
         return self.x_number == abc_tune.x_number \
                and self.tune_header_start_line_index == abc_tune.tune_header_start_line_index \
                and self.first_note_line_index == abc_tune.first_note_line_index
+    
+    def is_gracenote_at(self, row, col):
+        line = self.abc_lines[row-1]
+        i = col - 1
+        while i >= 0 and line[i] != '}':
+            if line[i] == '{':
+                return True
+            i -= 1
+        return False
 
+    def get_start_of_chord(self, row, col):
+        line = self.abc_lines[row-1]
+        i = col - 1
+        while i >= 0 and line[i] != ']':
+            if line[i] == '[':
+                return i + 1
+            i -= 1
+        return None
+    
+    def contains_unicode_chars(self, row):
+        line = self.abc_lines[row-1]
+        return len(bytes(line, 'utf-8').decode('unicode-escape')) != len(line)
