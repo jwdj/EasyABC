@@ -1,6 +1,8 @@
 import uuid  # 1.3.6.3 [JWdJ] 2015-04-22
 from fractions import Fraction
 import re
+import sys
+PY3 = sys.version_info.major > 2
 
 field_pattern = r'[A-Za-z\+]:'
 meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
@@ -128,4 +130,29 @@ class AbcTune(object):
     
     def contains_unicode_chars(self, row):
         line = self.abc_lines[row-1]
-        return len(bytes(line, 'utf-8').decode('unicode-escape')) != len(line)
+        if PY3:
+            return len(bytes(line, 'utf-8').decode('unicode-escape')) != len(line)
+        else:
+            return len(line.encode('utf-8')) != len(line)
+    
+    @staticmethod
+    def byte_to_unicode_index(text, index):
+        return len(bytes(text[:index], 'utf-8').decode('unicode-escape').encode('utf-8'))
+    
+    def midi_col_to_svg_col(self, row, col):
+        line = self.abc_lines[row-1]
+        if self.contains_unicode_chars(row):
+            col = self.byte_to_unicode_index(line, col-1) + 1 # compensate for encoding differences
+        
+        if self.is_gracenote_at(row, col):
+            return None # abcm2ps does not mark notes within braces 
+
+        start_of_chord = self.get_start_of_chord(row, col) 
+        if start_of_chord:
+            return start_of_chord - 1 # svg_col is 1-based
+        
+        if line[col-1] in '~.HIJKLMNOPQRSTUVWhijklmnopqrstuvw':
+            return col # in case of one letter symbol: abc2midi marks the symbol, abcm2ps marks the after note after the dot
+            
+        return col-1
+            

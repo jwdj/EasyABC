@@ -134,7 +134,7 @@ class ValueImageDescription(ValueDescription):
 
 class CodeImageDescription(ValueImageDescription):
     def __init__(self, value, image_name, description, common=True):
-        super(CodeImageDescription, self).__init__(value, description, image_name, common=common, show_value=True)
+        super(CodeImageDescription, self).__init__(value, image_name, description, common=common, show_value=True)
 
 decoration_aliases = {
     '!>!'       : '!accent!',
@@ -156,8 +156,8 @@ decoration_to_description = {
     'P'                : _('uppermordent'),
     'S'                : _('segno'),
     'T'                : _('trill'),
-    'u'                : _('up-bow'),
-    'v'                : _('down-bow'),
+    'u'                : _('down-bow'),
+    'v'                : _('up-bow'),
     '!trill!'          : _('trill'),
     '!trill(!'         : _('start of an extended trill'),
     '!trill)!'         : _('end of an extended trill'),

@@ -4,7 +4,7 @@
 program_name = 'EasyABC 1.3.7.4 2016-07-03'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca)
+# Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -6551,7 +6551,7 @@ class MainFrame(wx.Frame):
                 except Exception:
                     evt.Skip()
                     raise
-            elif self.mni_TA_add_bar_auto.IsChecked() and c not in "-/<,'1234567890":
+            elif self.mni_TA_add_bar_auto.IsChecked() and c not in "-/<,'1234567890\"!":
                 if c in '|]&':
                     if c == ']':
                         bar_text = '|]'
@@ -7157,7 +7157,7 @@ class MainFrame(wx.Frame):
         midi_lines = midi_tune.abc_tune.abc_lines
         svg_lines = svg_tune.abc_tune.abc_lines
         
-        contains_unicode_chars = midi_tune.abc_tune.contains_unicode_chars
+        midi_col_to_svg_col = midi_tune.abc_tune.midi_col_to_svg_col
         
         if len(midi_rows) > len(svg_rows):
             # compensate for added lines for count-in
@@ -7196,16 +7196,6 @@ class MainFrame(wx.Frame):
                 sec_until_time_start = prev_sec_until_time_start + ((time_start - prev_start) * 60 / prev_bpm)
             tempos.append((time_start, tempo, sec_until_time_start))
             
-        def byte_to_unicode_index(text, index):
-            return len(bytes(text[:index], 'utf-8').decode('unicode-escape'))
-
-        #from tune_elements import unicode_re
-        def midi_col_to_svg_col(line, col):
-            return col - 1
-            #line = line[:col]
-            #svg_line = unicode_re.sub('----', line)
-            #return col - 1 + len(svg_line) - len(line)
-
         tempos = []
         notes = []
         row_col_midi_notes = defaultdict(lambda: defaultdict(int))
@@ -7214,6 +7204,7 @@ class MainFrame(wx.Frame):
             m = new_track_re.match(line)
             if m is not None:
                 page_index = 0
+                page = pages[page_index]
                 active_notes = {}
                 indices = set()
                 continue
@@ -7231,38 +7222,20 @@ class MainFrame(wx.Frame):
                         row = (note_info[0] << 14) + (note_info[1] << 7) + note_info[2]
                         col = (note_info[3] << 7) + note_info[4]
                         
-                        #if contains_unicode_chars(row):
-                        #    col = byte_to_unicode_index(midi_lines[row-1], col - 1) + 1
-                        
-                        is_gracenote = False
                         row_col_midi_notes[row][col] += 1
                         svg_row = svg_rows[midi_rows.index(row)]
-                        svg_col = midi_col_to_svg_col(midi_lines[row-1], col)
-                        for i in range(page_count):
-                            indices = page.get_indices_for_row_col(svg_row, svg_col)
-                            if not indices and midi_lines[row-1][col-1] == '.': 
-                                # in case of staccato (a dot): abc2midi marks the dot, abcm2ps marks the after note after the dot
-                                indices = page.get_indices_for_row_col(svg_row, svg_col+1)
-                            if indices:
-                                break
-                            start_of_chord = midi_tune.abc_tune.get_start_of_chord(row, col) 
-                            if start_of_chord:
-                                svg_col = start_of_chord - 1 # svg_col is 1-based
-                                # in case of chord: abc2midi marks the first note within the brackets, abcm2ps marks the first bracket
+                        svg_col = midi_col_to_svg_col(row, col)
+                        if svg_col is not None:
+                            for i in range(page_count):
                                 indices = page.get_indices_for_row_col(svg_row, svg_col)
-                            if indices:
-                                break
-                            if midi_tune.abc_tune.is_gracenote_at(row, col):
-                                is_gracenote = True
-                                break
-                            # wrong page perhaps
-                            page_index += 1
-                            page_index %= page_count
-                            page = pages[page_index]
+                                if indices:
+                                    break
+                                # wrong page perhaps
+                                page_index += 1
+                                page_index %= page_count
+                                page = pages[page_index]
                             
-                        if not indices:
-                            # abcm2ps does not mark notes within braces so that is one reason
-                            if not is_gracenote:
+                            if not indices:
                                 errors[row][col] += 1
             else:
                 last_line_was_pos = False
@@ -7309,10 +7282,18 @@ class MainFrame(wx.Frame):
                     if n > 0:
                         line_parts.append('!')
                     prev_col = col
-                lines.append(''.join(line_parts))
+                lines.append(u'Errors:{0}'.format(''.join(line_parts)))
+
+            svg_row = svg_rows[midi_rows.index(row)]
+
+            # output previous abc line from svg
+            if svg_row > 1:
+                lines.append(u'SVG{0:03d}:{1}'.format(svg_row-1, svg_lines[svg_row-2]))
+
+            # output abc line from svg
+            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, svg_lines[svg_row-1]))
 
             # mark the svg-notes
-            svg_row = svg_rows[midi_rows.index(row)]
             cols = list(row_col_svg_notes[svg_row])
             cols.sort()
             prev_col = 0
@@ -7321,21 +7302,17 @@ class MainFrame(wx.Frame):
                 line_parts.append(' ' * (col - prev_col - 1))
                 n = row_col_svg_notes[svg_row][col]
                 if n == 1:
-                    line_parts.append('_')
+                    line_parts.append('^')
                 elif 0 <= n <= 9:
                     line_parts.append('%d' % n)
                 else:
                     line_parts.append('*')
                 prev_col = col
-            lines.append(''.join(line_parts))
+            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, ''.join(line_parts)))
             
-            # output abc line
-            if svg_lines[svg_row-1].strip() != midi_lines[row-1].strip(): 
-                lines.append(svg_lines[svg_row-1])
-            
-            # output abc line
-            line = midi_lines[row-1] # bytes(midi_lines[row-1], 'utf-8').decode('unicode-escape')
-            lines.append(line)
+            # output abc line from midi
+            line = midi_lines[row-1]
+            lines.append(u'MID{0:03d}:{1}'.format(row, line))
 
             # mark the midi-notes
             cols = list(row_col_midi_notes[row])
@@ -7352,7 +7329,8 @@ class MainFrame(wx.Frame):
                 else:
                     line_parts.append('*')
                 prev_col = col
-            lines.append(''.join(line_parts))
+            lines.append(u'MID{0:03d}:{1}'.format(row, ''.join(line_parts)))
+            lines.append('')
             
         for line in lines:
             print(line)
@@ -7781,6 +7759,7 @@ class MainFrame(wx.Frame):
 
         self.editor.SetProperty("fold", "0")
         self.editor.StyleSetSpec(self.styler.STYLE_DEFAULT, "fore:#000000,face:%s,size:%d" % (font, size))
+        self.editor.StyleSetSpec(self.styler.STYLE_CHORD, "fore:#000000,face:%s,size:%d" % (font, size))
         # Comments
         self.editor.StyleSetSpec(self.styler.STYLE_COMMENT_NORMAL,  "fore:#AAAAAA,face:%s,italic,size:%d" % (font, size))
         self.editor.StyleSetSpec(self.styler.STYLE_COMMENT_SPECIAL, "fore:#888888,face:%s,italic,size:%d" % (font, size))

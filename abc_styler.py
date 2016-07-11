@@ -32,6 +32,7 @@ class ABCStyler:
         self.STYLE_EMBEDDED_FIELD = 7
         self.STYLE_EMBEDDED_FIELD_VALUE = 8
         self.STYLE_BAR = 9
+        self.STYLE_CHORD = 10
         self.STYLE_STRING = 11
         self.STYLE_ORNAMENT_EXCL = 12
         self.STYLE_ORNAMENT_PLUS = 13
@@ -49,6 +50,7 @@ class ABCStyler:
         STYLE_EMBEDDED_FIELD = self.STYLE_EMBEDDED_FIELD
         STYLE_EMBEDDED_FIELD_VALUE = self.STYLE_EMBEDDED_FIELD_VALUE
         STYLE_BAR = self.STYLE_BAR
+        STYLE_CHORD = self.STYLE_CHORD
         STYLE_STRING = self.STYLE_STRING
         STYLE_ORNAMENT_EXCL = self.STYLE_ORNAMENT_EXCL
         STYLE_ORNAMENT_PLUS = self.STYLE_ORNAMENT_PLUS
@@ -127,6 +129,8 @@ class ABCStyler:
                     state = STYLE_GRACE
                 elif ch in 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~':
                     state = STYLE_ORNAMENT
+                elif chPrev == '[':
+                    state = STYLE_CHORD
             elif state == STYLE_ORNAMENT:
                 state = STYLE_DEFAULT
             elif state == STYLE_FIELD_VALUE:
@@ -146,6 +150,9 @@ class ABCStyler:
                     next_state = STYLE_DEFAULT
             elif state == STYLE_GRACE:
                 if ch == '}':
+                    next_state = STYLE_DEFAULT
+            elif state == STYLE_CHORD:
+                if ch == ']':
                     next_state = STYLE_DEFAULT
             elif state == STYLE_ORNAMENT_EXCL:
                 if ch == '!':

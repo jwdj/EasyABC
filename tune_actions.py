@@ -1096,8 +1096,8 @@ class BaseDecorationChangeAction(ValueChangeAction):
     def get_image_name(mark):
         name_lookup = {
             '.': 'staccato',
-            '!upbow!': 'v',
-            '!downbow!': 'u',
+            '!upbow!': 'u',
+            '!downbow!': 'v',
             '!lowermordent!': 'mordent',
             '!uppermordent!': 'pralltriller'
         }

@@ -2,7 +2,6 @@ import wx
 import traceback
 import sys
 from wxhelper import wx_cursor, wx_colour
-import sys
 PY3 = sys.version_info.major > 2
 
 class MusicScorePanel(wx.ScrolledWindow):
@@ -217,7 +216,7 @@ class MusicScorePanel(wx.ScrolledWindow):
             dc.Clear()
 
     def set_page(self, page):
-        is_other_page = self.current_page != page
+        is_other_page = self.current_page and page and self.current_page.index != page.index
         self.current_page = page
         self.redraw()
         if is_other_page:
@@ -254,7 +253,7 @@ class MusicScorePanel(wx.ScrolledWindow):
     def draw_drag_rect(self, dc):
         if self.drag_rect:
             dc = wx.GraphicsContext.Create(dc)
-            z = self.renderer.zoom
+            #z = self.renderer.zoom
             #dc.Scale(z, z)
             x, y, width, height = self.drag_rect
             dc.SetPen( dc.CreatePen(wx.Pen(wx_colour('black'), 1.0, style=wx.DOT )) )
