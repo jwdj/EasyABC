@@ -22,6 +22,8 @@ try:
 except ImportError:
     from cgi import escape  # py2
 
+from abc_character_encoding import abc_text_to_unicode
+
 if PY3:
     unichr = chr
 
@@ -65,6 +67,7 @@ clef_name_pattern = 'treble|bass3|bass|tenor|auto|baritone|soprano|mezzosoprano|
 simple_note_pattern = "[a-gA-G][',]*"
 clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>{1})(?P<stafftranspose>(?:[+^_-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?) *?(?P<score>(?: score={0}{0})?) *?(?P<sound>(?: sound={0}{0})?) *?(?P<shift>(?: shift={0}{0})?) *?(?P<instrument>(?: instrument={0}(?:/{0})?)?)'.format(simple_note_pattern, clef_name_pattern)
 key_ladder = 'Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B#'.split(' ')
+whitespace_chars = u' \r\n\t'
 
 abc_inner_pattern = {
     'K:': r' ?(?:(?P<tonic>(?:[A-G][b#]?|none)) ??(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)(?P<accidentals>(?: +(?P<accidental>_{1,2}|=|\^{1,2})(?P<note>[a-g]))*)'+clef_pattern+')?',
@@ -111,7 +114,7 @@ def enum(*sequential, **named):
         return type(b'Enum', (), enums)
 
 TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'TuneUpToSelection', 'BodyUpToSelection', 'BodyAfterSelection', 'LineUpToSelection', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText', 'PreviousCharacter', 'NextCharacter')
-TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop')
+TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop encoded_text')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
 class ValueDescription(object):
@@ -273,67 +276,6 @@ chord_notes = {
     '11'      : ( 0, 4, 7, 10, 14, 17 ),       # 'Dominant 11th'
 }
 
-unicode_char_to_abc = {
-    u'\\u00c0': u'\\`A', u'\\u00e0': u'\\`a', u'\\u00c8': u'\\`E', u'\\u00e8': u'\\`e', u'\\u00cc': u'\\`I', u'\\u00ec': u'\\`i',
-    u'\\u00d2': u'\\`O', u'\\u00f2': u'\\`o', u'\\u00d9': u'\\`U', u'\\u00f9': u'\\`u', u'\\u00c1': u"\\'A", u'\\u00e1': u"\\'a",
-    u'\\u00c9': u"\\'E", u'\\u00e9': u"\\'e", u'\\u00cd': u"\\'I", u'\\u00ed': u"\\'i", u'\\u00d3': u"\\'O", u'\\u00f3': u"\\'o",
-    u'\\u00da': u"\\'U", u'\\u00fa': u"\\'u", u'\\u00dd': u"\\'Y", u'\\u00fd': u"\\'y", u'\\u00c2': u'\\^A', u'\\u00e2': u'\\^a',
-    u'\\u00ca': u'\\^E', u'\\u00ea': u'\\^e', u'\\u00ce': u'\\^I', u'\\u00ee': u'\\^i', u'\\u00d4': u'\\^O', u'\\u00f4': u'\\^o',
-    u'\\u00db': u'\\^U', u'\\u00fb': u'\\^u', u'\\u0176': u'\\^Y', u'\\u0177': u'\\^y', u'\\u00c3': u'\\~A', u'\\u00e3': u'\\~a',
-    u'\\u00d1': u'\\~N', u'\\u00f1': u'\\~n', u'\\u00d5': u'\\~O', u'\\u00f5': u'\\~o', u'\\u00c4': u'\\"A', u'\\u00e4': u'\\"a',
-    u'\\u00cb': u'\\"E', u'\\u00eb': u'\\"e', u'\\u00cf': u'\\"I', u'\\u00ef': u'\\"i', u'\\u00d6': u'\\"O', u'\\u00f6': u'\\"o',
-    u'\\u00dc': u'\\"U', u'\\u00fc': u'\\"u', u'\\u0178': u'\\"Y', u'\\u00ff': u'\\"y', u'\\u00c7': u'\\cC', u'\\u00e7': u'\\cc',
-    u'\\u00c5': u'\\AA', u'\\u00e5': u'\\aa', u'\\u00d8': u'\\/O', u'\\u00f8': u'\\/o', u'\\u0102': u'\\uA', u'\\u0103': u'\\ua',
-    u'\\u0114': u'\\uE', u'\\u0115': u'\\ue', u'\\u0160': u'\\vS', u'\\u0161': u'\\vs', u'\\u017d': u'\\vZ', u'\\u017e': u'\\vz',
-    u'\\u0150': u'\\HO', u'\\u0151': u'\\Ho', u'\\u0170': u'\\HU', u'\\u0171': u'\\Hu', u'\\u00c6': u'\\AE', u'\\u00e6': u'\\ae',
-    u'\\u0152': u'\\OE', u'\\u0153': u'\\oe', u'\\u00df': u'\\ss', u'\\u00d0': u'\\DH', u'\\u00f0': u'\\dh', u'\\u00de': u'\\TH',
-    u'\\u00fe': u'\\th' }
-
-unicode_re = re.compile(r'\\u[0-9a-fA-F]{4}')
-
-def ensure_unicode(text):
-    if not PY3 and not isinstance(text, unicode):
-        return text.decode('utf-8')
-    return text
-
-def unicode_escape_to_char(value):
-    if PY3:
-        return bytes(value, 'utf-8').decode('unicode-escape')
-    else:
-        return unicode(str(value), 'unicode-escape')
-
-def unicode_text_to_abc(text):
-    result = ensure_unicode(text)
-    if result:
-        for ustr in unicode_char_to_abc:
-            ch = unicode_escape_to_char(ustr)
-            result = result.replace(ch, unicode_char_to_abc[ustr])
-    return result
-
-def unicode_text_to_html_abc(text):
-    result = text
-    if text:
-        for ustr in unicode_char_to_abc:
-            ch = unicode_escape_to_char(ustr)
-            html = escape(ch)
-            result = result.replace(ch, html)
-            result = result.replace(ch, unicode_char_to_abc[ustr])
-    return result
-
-def abc_text_to_unicode(text):
-    result = ensure_unicode(text)
-    if result:
-        for m in unicode_re.finditer(result):
-            ustr = m.group()
-            ch = unicode_escape_to_char(ustr)
-            result = result.replace(ustr, ch)
-        for ustr in unicode_char_to_abc:
-            ch = unicode_escape_to_char(ustr)
-            html = escape(ch)
-            result = result.replace(html, ch)
-            result = result.replace(unicode_char_to_abc[ustr], ch)
-    return result
-
 def replace_text(text, replacements):
     """
     :param text: text that requires replacements
@@ -423,10 +365,15 @@ class AbcElement(object):
             return None
 
         result = None
-        text = context.get_scope_info(self.tune_scope).text
+        scope_info = context.get_scope_info(self.tune_scope) 
+        encoded_text = scope_info.encoded_text
+        text = scope_info.text
         p1, p2 = context.get_selection_within_scope(self.tune_scope)
+        if len(text) != len(encoded_text):
+            p1 = len(encoded_text[:p1].decode('utf-8')) 
+            p2 = len(encoded_text[:p2].decode('utf-8')) 
 
-        if p1 == p2 and 0 < p1 <= len(text) and text[p1 - 1] not in ' \r\n\t':
+        if p1 == p2 and 0 < p1 <= len(text) and text[p1 - 1] not in whitespace_chars:
             p1 -= 1
             for m in regex.finditer(text):
                 if m.start() <= p1 < m.end():

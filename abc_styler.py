@@ -101,7 +101,7 @@ class ABCStyler:
                 if ch not in '|[]:1234':
                     state = STYLE_DEFAULT
 
-            if ch in '\r\n':  # go back to default style if next character is \r\n (to avoid some strange syntax highlighting whith lyrics at least on mac version)
+            if ch in '\r\n':  # go back to default style if next character is \r\n (to avoid some strange syntax highlighting with lyrics at least on mac version)
                 state = STYLE_DEFAULT
             elif state == STYLE_DEFAULT:
                 if chPrev in '\r\n[\x00' and ch in 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ' and chNext == ':':
@@ -146,7 +146,7 @@ class ABCStyler:
                 if ch == ':':
                     next_state = STYLE_EMBEDDED_FIELD_VALUE
             elif state == STYLE_STRING:
-                if ch == '"' and chPrev != '\\':
+                if ch == '"' and chPrev != '\\' and chPrev != '"' and chNext != '"':
                     next_state = STYLE_DEFAULT
             elif state == STYLE_GRACE:
                 if ch == '}':

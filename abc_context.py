@@ -1,4 +1,5 @@
 from tune_elements import *
+from abc_character_encoding import ensure_unicode
 import wx
 import sys
 PY3 = sys.version_info.major > 2
@@ -91,6 +92,15 @@ class AbcContext(object):
     def current_match(self):
         return self._current_match
 
+    def create_scope_info_from_match(self, match, offset, match_group=0):
+        start = match.start(match_group)
+        stop = match.end(match_group)
+        text = match.string[start:stop]
+        encoded_text = text.encode('utf-8')
+        start = len(match.string[:start].encode('utf-8'))
+        stop = start + len(encoded_text)
+        return TuneScopeInfo(ensure_unicode(text), start+offset, stop+offset, encoded_text)
+
     def set_current_match(self, match, tune_scope):
         offset = self.get_scope_info(tune_scope).start
         inner_match = None
@@ -101,9 +111,7 @@ class AbcContext(object):
 
         self._current_match = match
         if match:
-            start = match.start()
-            stop = match.end()
-            scope_info = TuneScopeInfo(ensure_unicode(match.string[start:stop]), start+offset, stop+offset)
+            scope_info = self.create_scope_info_from_match(match, offset)
         else:
             scope_info = self.get_empty_scope_info()
         self._tune_scope_info[TuneScope.MatchText] = scope_info
@@ -112,16 +120,12 @@ class AbcContext(object):
         if inner_match:
             match = inner_match.match
             self.inner_match = match
-            start = match.start()
-            stop = match.end()
             offset += inner_match.offset
-            inner_scope_info = TuneScopeInfo(ensure_unicode(match.string[start:stop]), start+offset, stop+offset)
+            inner_scope_info = self.create_scope_info_from_match(match, offset)
         elif match:
             try:
-                start = match.start('inner')
-                if start >= 0:
-                    stop = match.end('inner')
-                    inner_scope_info = TuneScopeInfo(ensure_unicode(match.string[start:stop]), start+offset, stop+offset)
+                if match.start('inner') >= 0:
+                    inner_scope_info = self.create_scope_info_from_match(match, offset, 'inner')
             except IndexError:
                 pass  # no group named inner present
         self._tune_scope_info[TuneScope.InnerText] = inner_scope_info
@@ -174,14 +178,11 @@ class AbcContext(object):
         return f.start-t.start, f.stop-t.start
 
     def get_scope_full_text(self):
-        return TuneScopeInfo(self._editor.GetText(), 0, self._editor.GetTextLength())
+        return self.create_scope(0, self._editor.GetTextLength())
 
     def get_scope_selected_text(self):
         start, stop = self._editor.GetSelection()
-        if start == stop:
-            return TuneScopeInfo(u'', start, stop)
-        else:
-            return self.create_scope(start, stop)
+        return self.create_scope(start, stop)
 
     def get_scope_selected_lines(self):
         sel_start, sel_stop = self._editor.GetSelection()
@@ -287,11 +288,11 @@ class AbcContext(object):
 
     @staticmethod
     def get_empty_scope_info():
-        return TuneScopeInfo(None, None, None)
+        return TuneScopeInfo(None, None, None, None)
 
     def create_scope(self, start_pos, end_pos):
-        text = ensure_unicode(self._editor.GetTextRange(start_pos, end_pos))
-        return TuneScopeInfo(text, start_pos, end_pos)
+        text = self._editor.GetTextRange(start_pos, end_pos)
+        return TuneScopeInfo(text, start_pos, end_pos, text.encode('utf-8'))
 
     def insert_text(self, text):
         self._editor.BeginUndoAction()
@@ -308,7 +309,6 @@ class AbcContext(object):
             self._editor.SetSelection(selection_start, selection_end)
 
     def replace_selection(self, text, selection_start=None, selection_end=None):
-        text = text.encode('unicode-escape').decode('ascii')
         self._editor.BeginUndoAction()
         try:
             if selection_start is not None:

@@ -1,5 +1,6 @@
 import uuid  # 1.3.6.3 [JWdJ] 2015-04-22
 from fractions import Fraction
+from abc_character_encoding import abc_text_to_unicode
 import re
 import sys
 PY3 = sys.version_info.major > 2
@@ -128,21 +129,16 @@ class AbcTune(object):
             i -= 1
         return None
     
-    def contains_unicode_chars(self, row):
-        line = self.abc_lines[row-1]
-        if PY3:
-            return len(bytes(line, 'utf-8').decode('unicode-escape')) != len(line)
-        else:
-            return len(line.encode('utf-8')) != len(line)
-    
     @staticmethod
     def byte_to_unicode_index(text, index):
-        return len(bytes(text[:index], 'utf-8').decode('unicode-escape').encode('utf-8'))
+        if PY3:
+            return len(bytes(abc_text_to_unicode(text[:index]), 'utf-8'))
+        else:
+            return len(abc_text_to_unicode(text[:index]).encode('utf-8'))
     
     def midi_col_to_svg_col(self, row, col):
         line = self.abc_lines[row-1]
-        if self.contains_unicode_chars(row):
-            col = self.byte_to_unicode_index(line, col-1) + 1 # compensate for encoding differences
+        col = self.byte_to_unicode_index(line, col-1) + 1 # compensate for encoding differences
         
         if self.is_gracenote_at(row, col):
             return None # abcm2ps does not mark notes within braces 

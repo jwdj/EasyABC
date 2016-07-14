@@ -27,6 +27,7 @@ from fractions import Fraction
 from aligner import get_bar_length
 from generalmidi import general_midi_instruments
 from abc_tune import AbcTune
+from abc_character_encoding import unicode_text_to_abc
 
 if PY3:
     basestring = str
