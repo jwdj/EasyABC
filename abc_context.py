@@ -1,5 +1,5 @@
 from tune_elements import *
-from abc_character_encoding import ensure_unicode
+from abc_character_encoding import ensure_unicode, unicode_text_to_abc
 import wx
 import sys
 PY3 = sys.version_info.major > 2
@@ -309,6 +309,7 @@ class AbcContext(object):
             self._editor.SetSelection(selection_start, selection_end)
 
     def replace_selection(self, text, selection_start=None, selection_end=None):
+        text = unicode_text_to_abc(text)
         self._editor.BeginUndoAction()
         try:
             if selection_start is not None:

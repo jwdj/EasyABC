@@ -193,6 +193,7 @@ class ValueChangeAction(AbcAction):
             context.invalidate()
         else:
             value = params.get('value', '')
+            value = value.encode('latin-1').decode('utf-8')
             context.replace_match_text(value, self.matchgroup, tune_scope=self.get_tune_scope())
             if self.relative_selection is not None:
                 context.set_relative_selection(self.relative_selection)
@@ -393,10 +394,11 @@ class InsertValueAction(ValueChangeAction):
 class ConvertToAnnotationAction(AbcAction):
     def __init__(self):
         super(ConvertToAnnotationAction, self).__init__('convert_to_annotation', display_name=_('Convert to annotation'))
+        self.matchgroup = 'text'
 
     def can_execute(self, context, params=None):
         chord = context.get_matchgroup('chordnote')
-        return chord is None # and chord[0].lower() not in 'abcdefg'
+        return chord is None or chord[0].lower() not in 'abcdefg'
 
     def execute(self, context, params=None):
         annotation = '^' + context.get_matchgroup(self.matchgroup)
@@ -1376,6 +1378,12 @@ class FixCharactersAction(AbcAction):
         new_text = unicode_text_to_abc(text)
         context.replace_selection(new_text, scope_info.start, scope_info.stop)
 
+    def get_action_html(self, context):
+        if self.can_execute(context):
+            return ActionSeparator().get_action_html(context) + super(FixCharactersAction, self).get_action_html(context)
+        else:
+            return super(FixCharactersAction, self).get_action_html(context)
+
 
 class NewLineAction(AbcAction):
     def __init__(self):
@@ -1845,9 +1853,9 @@ class AbcActionHandlers(object):
             'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
-            'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'remove']),
+            'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'fix_characters', 'remove']),
             'Chord'                  : self.create_handler(['new_note', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
-            'Chord symbol'           : self.create_handler(['change_chord_note', 'change_chord_name', 'change_chord_bass_note', 'remove']),
+            'Chord symbol'           : self.create_handler(['change_chord_note', 'change_chord_name', 'change_chord_bass_note', 'fix_characters', 'remove']),
             'Grace notes'            : self.create_handler(['change_appoggiatura_acciaccatura', 'remove']),
             'Multiple notes'         : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'combine_to_chord', 'remove']),
             'Multiple notes/chords'  : self.create_handler(['add_slur', 'make_triplets', 'beam_notes', 'remove']),
