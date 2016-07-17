@@ -3898,7 +3898,7 @@ class MainFrame(wx.Frame):
         self.zoom_factor = 1.0
         self.selected_note_indices = []
         self.selected_note_descs = []
-        self.midi_notes = None
+        self.played_notes_timeline = None
         self.current_time_slice = None
         self.future_time_slice = None
         self.is_really_playing = False
@@ -4456,8 +4456,8 @@ class MainFrame(wx.Frame):
         self.settings['follow_score'] = enabled
         self.UpdateTimingSliderVisibility()
         if enabled:
-            if self.midi_notes is None and self.current_midi_tune and self.current_svg_tune:
-                self.midi_notes = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
+            if self.played_notes_timeline is None and self.current_midi_tune and self.current_svg_tune:
+                self.played_notes_timeline = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
         else:
             self.music_pane.draw_notes_highlighted(None)
 
@@ -4593,7 +4593,7 @@ class MainFrame(wx.Frame):
         if self.queue_number_follow_score != queue_number:
             return
 
-        if not self.midi_notes:
+        if not self.played_notes_timeline:
             return
 
         page = self.music_pane.current_page
@@ -4608,9 +4608,9 @@ class MainFrame(wx.Frame):
             return
 
         if current_time_slice is None or offset < current_time_slice.start:  # first time or after rewind
-            self.midi_notes_iter = iter(self.midi_notes)
+            self.played_notes_iter = iter(self.played_notes_timeline)
 
-        for time_slice in self.midi_notes_iter:
+        for time_slice in self.played_notes_iter:
             if time_slice.start <= offset < time_slice.stop:
                 current_time_slice = time_slice
                 break
@@ -4629,7 +4629,7 @@ class MainFrame(wx.Frame):
 
         if future_time_slice is None or not (future_time_slice.start <= future_offset < future_time_slice.stop):
             if future_time_slice is None or future_offset < future_time_slice.start:
-                self.future_notes_iter = iter(self.midi_notes)
+                self.future_notes_iter = iter(self.played_notes_timeline)
 
             future_time_slice = None
             for time_slice in self.future_notes_iter:
@@ -4662,7 +4662,7 @@ class MainFrame(wx.Frame):
         self.scroll_music_pane(x, y)
 
     def music_and_score_out_of_sync(self):
-        self.midi_notes = None
+        self.played_notes_timeline = None
         self.current_time_slice = None
         self.future_time_slice = None
 
@@ -7132,9 +7132,9 @@ class MainFrame(wx.Frame):
             else:
                 # 1.3.6.3 [JWDJ] 2015-3 DetermineMidiPlayRange not used anymore
                 # self.DetermineMidiPlayRange(tune, midi_file)
-                self.midi_notes = None
+                self.played_notes_timeline = None
                 if self.settings.get('follow_score', False):
-                    self.midi_notes = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
+                    self.played_notes_timeline = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
                 self.do_load_media_file(midi_file)
 
     def extract_note_timings(self, midi_tune, svg_tune):
@@ -7270,8 +7270,9 @@ class MainFrame(wx.Frame):
         rows = list(errors)
         rows.sort()
         for row in rows:
+            svg_row = svg_rows[midi_rows.index(row)]
             if errors[row]:
-                lines.append('Error in row %d:' % row)
+                lines.append('Syncronisation error in row {0} (SVG row {1}):'.format(row, svg_row))
                 cols = list(errors[row])
                 cols.sort()
                 prev_col = 0
@@ -7284,14 +7285,15 @@ class MainFrame(wx.Frame):
                     prev_col = col
                 lines.append(u'Errors:{0}'.format(''.join(line_parts)))
 
-            svg_row = svg_rows[midi_rows.index(row)]
-
             # output previous abc line from svg
             if svg_row > 1:
                 lines.append(u'SVG{0:03d}:{1}'.format(svg_row-1, svg_lines[svg_row-2]))
 
             # output abc line from svg
-            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, svg_lines[svg_row-1]))
+            svg_line = svg_lines[svg_row-1]
+            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, svg_line))
+            from abc_character_encoding import abc_text_to_unicode
+            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, abc_text_to_unicode(svg_line).encode('utf-8').decode('ascii', 'replace').replace('\uFFFD', '?')))
 
             # mark the svg-notes
             cols = list(row_col_svg_notes[svg_row])

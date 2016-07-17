@@ -1,20 +1,24 @@
 import uuid  # 1.3.6.3 [JWdJ] 2015-04-22
 from fractions import Fraction
 from abc_character_encoding import abc_text_to_unicode
+from collections import defaultdict
 import re
 import sys
 PY3 = sys.version_info.major > 2
+if PY3:
+    unicode = str
 
 field_pattern = r'[A-Za-z\+]:'
 meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
 unitlength_pattern = r'^L:\s*(\d+)/(\d+)'
+voice_pattern = r'(?m)(?:^V:\s*(?P<name>\w+).*$\n|\[V:\s*(?P<inlinename>\w+)[^\]]*\])'
 
 meter_re = re.compile(meter_pattern)
 unitlength_re = re.compile(unitlength_pattern)
 inline_meter_re = re.compile('\[{0}\]'.format(meter_pattern))
 inline_unitlength_re = re.compile('\[{0}\]'.format(unitlength_pattern))
 abc_field_re = re.compile(field_pattern)
-
+voice_re = re.compile(voice_pattern)
 
 def match_to_meter(m, default):
     metre = default
@@ -34,8 +38,10 @@ class AbcTune(object):
         self.abc_code = abc_code
         self.x_number = None
         self.tune_header_start_line_index = None
+        self.tune_body_start_line_index = None
         self.determine_abc_structure(abc_code)
         self.__tune_id = None
+        self.__abc_per_voice = None
 
     def determine_abc_structure(self, abc_code):
         abc_lines = abc_code.splitlines()
@@ -45,7 +51,7 @@ class AbcTune(object):
         abc_lines_enum = enumerate(abc_lines)
 
         x_found = False
-        key_found = False
+        body_start_line_index = None
 
         for i, line in abc_lines_enum:
             if line.startswith('X:'):
@@ -59,10 +65,10 @@ class AbcTune(object):
         if x_found:
             for i, line in abc_lines_enum:
                 if line.startswith('K:'):
-                    key_found = True
+                    body_start_line_index = i + 1 # K-field is the last line of the header
                     break
 
-        if key_found:
+        if body_start_line_index is not None:
             match_abc_field = abc_field_re.match
             note_line_indices = [i for i, line in abc_lines_enum if not line.startswith('%') and not match_abc_field(line)]
         else:
@@ -73,8 +79,31 @@ class AbcTune(object):
         else:
             self.first_note_line_index = len(abc_lines)
 
+        self.tune_body_start_line_index = body_start_line_index
         self.abc_lines = abc_lines
         self.note_line_indices = note_line_indices
+        
+    def get_abc_per_voice(self):
+        if self.__abc_per_voice is None:
+            if self.tune_body_start_line_index:
+                abc_body = '\n'.join(self.abc_lines[self.tune_body_start_line_index:])
+                voices = defaultdict(unicode)
+                last_voice_name = ''
+                start_index = 0
+                for m in voice_re.finditer(abc_body):
+                    name = m.group('name') or m.group('inlinename')
+                    abc = abc_body[start_index:m.start()]
+                    voices[last_voice_name] += abc
+                    start_index = m.end()
+                    last_voice_name = name
+
+                abc = abc_body[start_index:]
+                voices[last_voice_name] += abc
+                self.__abc_per_voice = voices
+            else:
+                self.__abc_per_voice = {}
+
+        return self.__abc_per_voice
 
     @property
     def tune_id(self):
@@ -114,8 +143,11 @@ class AbcTune(object):
     def is_gracenote_at(self, row, col):
         line = self.abc_lines[row-1]
         i = col - 1
-        while i >= 0 and line[i] != '}':
-            if line[i] == '{':
+        while i >= 0:
+            ch = line[i]
+            if ch == '}' or ch == '|':
+                return False
+            if ch == '{':
                 return True
             i -= 1
         return False
@@ -123,18 +155,18 @@ class AbcTune(object):
     def get_start_of_chord(self, row, col):
         line = self.abc_lines[row-1]
         i = col - 1
-        while i >= 0 and line[i] != ']':
-            if line[i] == '[':
+        while i >= 0:
+            ch = line[i]
+            if ch == ']' or ch == '|':
+                return None
+            elif ch == '[':
                 return i + 1
             i -= 1
         return None
     
     @staticmethod
     def byte_to_unicode_index(text, index):
-        if PY3:
-            return len(bytes(abc_text_to_unicode(text[:index]), 'utf-8'))
-        else:
-            return len(abc_text_to_unicode(text[:index]).encode('utf-8'))
+        return len(abc_text_to_unicode(text[:index]).encode('utf-8'))
     
     def midi_col_to_svg_col(self, row, col):
         line = self.abc_lines[row-1]
