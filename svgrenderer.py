@@ -26,7 +26,7 @@ import xml.etree.cElementTree as ET
 from collections import defaultdict, deque, namedtuple
 import re
 import wx
-from math import hypot, radians
+from math import hypot, radians, sqrt, pi
 import traceback
 from datetime import datetime
 from wxhelper import wx_colour, wx_bitmap
@@ -226,7 +226,6 @@ class SvgPage(object):
                     # 1.3.6.3 [JWDJ] 2015-3 fixes !sfz! (z in sfz was missing)
                     text = u''.join(element.itertext())
                     text = text.replace('\n', '')
-                    ##text = text.replace('(= )show ', ' = ')  # Temporary work-around for abcm2ps6.3.3 bug
                     svg_element.attributes['text'] = text
                 elif name == 'use': # 1.3.7.0 [JWDJ] 2016-01-05 all use-elements without id attribute belong to abc-note
                     href = element.get(href_tag)
@@ -480,13 +479,39 @@ class SvgRenderer(object):
                     cx1, cy1, cx2, cy2, x, y = pop_many(svg_path, 6)
                     path.AddCurveToPoint(cx1, cy1, cx2, cy2, x, y)
                 elif cmd == 'a':
-                    rx, ry, xrot, large_arg_flac, sweep_flag, x, y = pop_many(svg_path, 7)
-                    x += curx
-                    y += cury
-                    # if sweep_flag and rx == ry:
-                    #    path.AddArc(x, y, rx, startAngle, endAngle, clockwise)
-                    # else:
-                    path.AddEllipse(x-(rx+rx), y-(ry+ry), rx+rx, ry+ry)
+                    rx, ry, xrot, large_arg_flag, sweep_flag, x, y = pop_many(svg_path, 7)
+                    next_cmd = svg_path[0] if svg_path else None
+                    if next_cmd == 'a' and (rx, ry, xrot, large_arg_flag, sweep_flag) == tuple([svg_path[i] for i in range(1, 6)]) and tuple([svg_path[i] for i in range(6, 8)]) in [(x, -y), (-x, y)]:
+                        # two arcs make an ellipse
+                        x += curx
+                        y += cury
+                        xcenter = (x + curx) / 2
+                        ycenter = (y + cury) / 2 
+                        path.AddEllipse(xcenter-rx, ycenter-ry, rx+rx, ry+ry)
+                        path.AddLineToPoint(x, y)
+                        pop_many(svg_path, 8)
+                    elif rx == ry and xrot == 0 and (x == curx or y == cury):
+                        x += curx
+                        y += cury
+                        xcenter = (x + curx) / 2
+                        ycenter = (y + cury) / 2 
+                        if x == curx:
+                            startAngle = pi * 3/2
+                            endAngle = pi / 2
+                        else: # if y == cury:
+                            startAngle = 0
+                            endAngle = pi
+                        if large_arg_flag:
+                            startAngle += pi
+                            endAngle += pi
+                        clockwise = sweep_flag
+                        
+                        path.AddArc(xcenter, ycenter, rx, startAngle, endAngle, clockwise)
+                    else:
+                        # https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
+                        x += curx
+                        y += cury
+                        path.AddLineToPoint(x, y)
                 elif cmd == 'z':
                     path.CloseSubpath()
                 else:
@@ -784,12 +809,9 @@ class SvgRenderer(object):
 
     def transform_point_osx(self, dc, x, y):
         a, b, c, d, tx, ty = dc.GetTransform().Get()
-        def_a, def_b, def_c, def_d, def_tx, def_ty = self.default_transform.Get()
+        _, _, _, def_d, _, def_ty = self.default_transform.Get()
         matrix = self.renderer.CreateMatrix(a, b, c, d * def_d, tx, def_ty - ty) # last param could also be: def_ty + ty * def_d
-        #print 'default transform:', self.default_transform.Get()
-        #print 'matrix:', matrix.Get()
         new_xy = matrix.TransformPoint(x, y)
-        #print (x,y), new_xy
         return new_xy
 
 class MyApp(wx.App):
