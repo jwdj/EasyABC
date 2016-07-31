@@ -483,12 +483,10 @@ class SvgRenderer(object):
                     next_cmd = svg_path[0] if svg_path else None
                     if next_cmd == 'a' and (rx, ry, xrot, large_arg_flag, sweep_flag) == tuple([svg_path[i] for i in range(1, 6)]) and tuple([svg_path[i] for i in range(6, 8)]) in [(x, -y), (-x, y)]:
                         # two arcs make an ellipse
-                        x += curx
-                        y += cury
-                        xcenter = (x + curx) / 2
-                        ycenter = (y + cury) / 2 
+                        xcenter = curx + x / 2
+                        ycenter = cury + y / 2 
                         path.AddEllipse(xcenter-rx, ycenter-ry, rx+rx, ry+ry)
-                        path.AddLineToPoint(x, y)
+                        path.AddLineToPoint(curx, cury)
                         pop_many(svg_path, 8)
                     elif rx == ry and xrot == 0 and (x == curx or y == cury):
                         x += curx

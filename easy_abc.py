@@ -1,10 +1,10 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.4 2016-07-03'
+program_name = 'EasyABC 1.3.7.5 2016-07-31'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo.com)
+# Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -474,6 +474,20 @@ class Abcm2psException(Exception): pass
 class NWCConversionException(Exception): pass
 
 from abc_tune import AbcTune
+
+def ensure_file_name_does_not_exist(file_path):
+    if not os.path.exists(file_path):
+        return file_path
+    
+    i = 0
+    file_exists = True
+    path, file_name = os.path.split(file_path)
+    name, extension = os.path.splitext(file_name)
+    while file_exists:
+        i += 1
+        file_path = os.path.abspath(os.path.join(path, "{0}({1}){2}".format(name, i, extension)))
+        file_exists = os.path.exists(file_path)
+    return file_path
 
 def generate_temp_file_name(path, ending, replace_ending=None):
     i = 0
@@ -5291,13 +5305,13 @@ class MainFrame(wx.Frame):
         self.export_tunes(_('ABC file'), '.abc', self.export_abc, only_selected=True, single_file=True)
 
     def export_abc(self, tune, filepath):
-        f = codecs.open(filepath, 'wb', 'UTF-8')
+        f = codecs.open(filepath, 'wb', 'latin-1')
         f.write(tune.header)
         f.write(os.linesep)
         f.write(tune.abc)
         f.close()
         frame = self.OnNew()
-        frame.load(filepath)
+        frame.load(filepath.decode('utf-8'))
         return True
 
     def export_tune(self, tune, file_type, extension, convert_func, path, show_save_dialog=True):
@@ -5305,6 +5319,7 @@ class MainFrame(wx.Frame):
         global execmessages
         filename = self.GetFileNameForTune(tune, extension)
         filepath = os.path.join(path or '', filename)
+        filepath = ensure_file_name_does_not_exist(filepath)
 
         if show_save_dialog:
             wildcard = u'{0} (*{1})|*{1}'.format(file_type, extension)
@@ -5327,7 +5342,10 @@ class MainFrame(wx.Frame):
         return False
 
     def create_tune_from_multi_abc(self, abc, header, num_header_lines):
-        title = os.path.splitext(os.path.basename(self.current_file))[0]
+        if self.current_file:
+            title = os.path.splitext(os.path.basename(self.current_file))[0]
+        else:
+            title = _('Untitled')
         return Tune('', title, '', 0, 0, abc, header, num_header_lines)
 
     def export_tunes(self, file_type, extension, convert_func, only_selected=False, single_file=False):
@@ -5336,7 +5354,7 @@ class MainFrame(wx.Frame):
                 selected_tunes = self.GetSelectedTunes(add_file_header=False)
                 if selected_tunes:
                     if len(selected_tunes) == 1:
-                        tunes = selected_tunes
+                        tunes = self.GetSelectedTunes(add_file_header=True)
                     else:
                         abc = os.linesep.join(tune.abc for tune in selected_tunes)
                         header, num_header_lines = self.GetFileHeaderBlock()
@@ -5357,7 +5375,11 @@ class MainFrame(wx.Frame):
 
         individual_save_dialog = only_selected or single_file
 
-        path = ''
+        if self.current_file:
+            path = os.path.dirname(self.current_file)
+        else:
+            path = ''
+                    
         if not individual_save_dialog:
             dlg = wx.DirDialog(self, message=_("Choose a directory..."), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
             try:
@@ -5388,7 +5410,9 @@ class MainFrame(wx.Frame):
 
                 try:
                     success = self.export_tune(tune, file_type, extension, convert_func, path, show_save_dialog=individual_save_dialog)
-                except Exception:
+                except Exception as e:
+                    error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                    print(error_msg)
                     success = False
 
                 if not success:
@@ -5848,7 +5872,7 @@ class MainFrame(wx.Frame):
             (_('Export to &SVG...'), '', self.OnExportSVG),
             (_('Export to &HTML...'), '', self.OnExportHTML),
             (_('Export to Music&XML...'), '', self.OnExportMusicXML),
-            (_('Export to &ABC...'), '', self.OnExportToABC, self.add_to_multi_list)
+            (_('Export to &ABC...'), '', self.OnExportToABC)
         ])
 
         global current_locale
@@ -5943,7 +5967,7 @@ class MainFrame(wx.Frame):
                     (_('as &SVG...'), '', self.OnExportSVG),
                     (_('as &HTML...'), '', self.OnExportHTML),
                     (_('as Music&XML...'), '', self.OnExportMusicXML),
-                    (_('as A&BC...'), '', self.OnExportToABC, self.add_to_multi_list)]),
+                    (_('as A&BC...'), '', self.OnExportToABC)]),
                 (_("Export &all"), [
                     (_('as a &PDF Book...'), '', self.OnExportAllPDF),
                     (_('as PDF &Files...'), '', self.OnExportAllPDFFiles),
@@ -6079,6 +6103,7 @@ class MainFrame(wx.Frame):
 
     def OnCloseFile(self, evt):
         if self.CanClose():
+            self.current_file = None            
             self.untitled_number += 1
             self.new_tune()
             self.OnTuneSelected(None)
@@ -7266,73 +7291,77 @@ class MainFrame(wx.Frame):
                 row_col_svg_notes[row][col+1] += 1  # svg column is zero based so add one to make it 1-based
 
         lines = []
-        # rows = list(row_col_midi_notes)
+
         rows = list(errors)
         rows.sort()
         for row in rows:
             svg_row = svg_rows[midi_rows.index(row)]
+            svg_cols = list(row_col_svg_notes[svg_row])
             if errors[row]:
-                lines.append('Syncronisation error in row {0} (SVG row {1}):'.format(row, svg_row))
-                cols = list(errors[row])
+                if svg_cols:
+                    lines.append('Syncronisation error in row {0} (SVG row {1}):'.format(row, svg_row))
+                    cols = list(errors[row])
+                    cols.sort()
+                    prev_col = 0
+                    line_parts = []
+                    for col in cols:
+                        line_parts.append(' ' * (col - prev_col - 1))
+                        n = errors[row][col]
+                        if n > 0:
+                            line_parts.append('!')
+                        prev_col = col
+                    lines.append(u'Errors:{0}'.format(''.join(line_parts)))
+                else:
+                    lines.append('Syncronisation error in row {0} (SVG row {1} does not contain displayed notes):'.format(row, svg_row))
+
+            if svg_cols:
+                # output previous abc line from svg
+                if svg_row > 1:
+                    lines.append(u'SVG{0:03d}:{1}'.format(svg_row-1, svg_lines[svg_row-2]))
+    
+                # output abc line from svg
+                svg_line = svg_lines[svg_row-1]
+                lines.append(u'SVG{0:03d}:{1}'.format(svg_row, svg_line))
+                from abc_character_encoding import abc_text_to_unicode
+                lines.append(u'SVG{0:03d}:{1}'.format(svg_row, abc_text_to_unicode(svg_line).encode('utf-8').decode('ascii', 'replace').replace('\uFFFD', '?')))
+    
+                # mark the svg-notes
+                svg_cols.sort()
+                prev_col = 0
+                line_parts = []
+                for col in svg_cols:
+                    line_parts.append(' ' * (col - prev_col - 1))
+                    n = row_col_svg_notes[svg_row][col]
+                    if n == 1:
+                        line_parts.append('^')
+                    elif 0 <= n <= 9:
+                        line_parts.append('%d' % n)
+                    else:
+                        line_parts.append('*')
+                    prev_col = col
+                lines.append(u'SVG{0:03d}:{1}'.format(svg_row, ''.join(line_parts)))
+                
+                # output abc line from midi
+                line = midi_lines[row-1]
+                lines.append(u'MID{0:03d}:{1}'.format(row, line))
+    
+                # mark the midi-notes
+                cols = list(row_col_midi_notes[row])
                 cols.sort()
                 prev_col = 0
                 line_parts = []
                 for col in cols:
                     line_parts.append(' ' * (col - prev_col - 1))
-                    n = errors[row][col]
-                    if n > 0:
-                        line_parts.append('!')
+                    n = row_col_midi_notes[row][col]
+                    if n == 1:
+                        line_parts.append('^')
+                    elif 0 <= n <= 9:
+                        line_parts.append('%d' % n)
+                    else:
+                        line_parts.append('*')
                     prev_col = col
-                lines.append(u'Errors:{0}'.format(''.join(line_parts)))
-
-            # output previous abc line from svg
-            if svg_row > 1:
-                lines.append(u'SVG{0:03d}:{1}'.format(svg_row-1, svg_lines[svg_row-2]))
-
-            # output abc line from svg
-            svg_line = svg_lines[svg_row-1]
-            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, svg_line))
-            from abc_character_encoding import abc_text_to_unicode
-            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, abc_text_to_unicode(svg_line).encode('utf-8').decode('ascii', 'replace').replace('\uFFFD', '?')))
-
-            # mark the svg-notes
-            cols = list(row_col_svg_notes[svg_row])
-            cols.sort()
-            prev_col = 0
-            line_parts = []
-            for col in cols:
-                line_parts.append(' ' * (col - prev_col - 1))
-                n = row_col_svg_notes[svg_row][col]
-                if n == 1:
-                    line_parts.append('^')
-                elif 0 <= n <= 9:
-                    line_parts.append('%d' % n)
-                else:
-                    line_parts.append('*')
-                prev_col = col
-            lines.append(u'SVG{0:03d}:{1}'.format(svg_row, ''.join(line_parts)))
-            
-            # output abc line from midi
-            line = midi_lines[row-1]
-            lines.append(u'MID{0:03d}:{1}'.format(row, line))
-
-            # mark the midi-notes
-            cols = list(row_col_midi_notes[row])
-            cols.sort()
-            prev_col = 0
-            line_parts = []
-            for col in cols:
-                line_parts.append(' ' * (col - prev_col - 1))
-                n = row_col_midi_notes[row][col]
-                if n == 1:
-                    line_parts.append('^')
-                elif 0 <= n <= 9:
-                    line_parts.append('%d' % n)
-                else:
-                    line_parts.append('*')
-                prev_col = col
-            lines.append(u'MID{0:03d}:{1}'.format(row, ''.join(line_parts)))
-            lines.append('')
+                lines.append(u'MID{0:03d}:{1}'.format(row, ''.join(line_parts)))
+                lines.append('')
             
         for line in lines:
             print(line)

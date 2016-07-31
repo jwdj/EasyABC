@@ -9,7 +9,7 @@
 ; Seymour Shlien
 
 #define MyAppName "EasyABC"
-#define MyAppVersion "1.3.7.4"
+#define MyAppVersion "1.3.7.5"
 #define MyAppPublisher "seymour shlien"
 #define MyAppURL "ifdo.ca/~seymour/easy/"
 #define MyAppExeName "easy_abc.exe"
