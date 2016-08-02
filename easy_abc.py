@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.5 2016-07-31'
+program_name = 'EasyABC 1.3.7.5 2016-08-02'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -430,7 +430,7 @@ from midi2abc import midi_to_abc, Note, duration2abc
 from generalmidi import general_midi_instruments
 # from ps_parser import Abcm2psOutputParser # 1.3.6.3 [JWdJ] 2015-04-22
 from abc_styler import ABCStyler
-from abc_character_encoding import decode_abc
+from abc_character_encoding import decode_abc, abc_text_to_unicode
 # from abc_character_encoding import encode_abc # 1.3.7.3 [JWdJ] 2016-04-09
 from abc_search import abc_matches_iter
 from fractions import Fraction
@@ -1682,7 +1682,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                             new_abc_lines.append(removedline)
                         voice += 1
 
-        abc_code = os.linesep.join([l.strip() for l in new_abc_lines])
+        abc_code = os.linesep.join(new_abc_lines)
 
 
 
@@ -1712,7 +1712,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             del abclines[i]
             abclines.insert(0, line)
             break
-    abc_code = os.linesep.join([l.strip() for l in abclines]) # put it back together
+    abc_code = os.linesep.join(abclines) # put it back together
 
 
     #### for debugging
@@ -7317,20 +7317,21 @@ class MainFrame(wx.Frame):
                         if n > 0:
                             line_parts.append('!')
                         prev_col = col
+                    if svg_row > 1:
+                        # output previous abc line from svg
+                        lines.append(u'SVG{0:03d}:{1}'.format(svg_row-1, svg_lines[svg_row-2]))
+                        
                     lines.append(u'Errors:{0}'.format(''.join(line_parts)))
                 else:
                     lines.append('Synchronization error in row {0} (SVG row {1} does not contain displayed notes)'.format(row, svg_row))
 
             if svg_cols:
-                # output previous abc line from svg
-                if svg_row > 1:
-                    lines.append(u'SVG{0:03d}:{1}'.format(svg_row-1, svg_lines[svg_row-2]))
-    
                 # output abc line from svg
                 svg_line = svg_lines[svg_row-1]
                 lines.append(u'SVG{0:03d}:{1}'.format(svg_row, svg_line))
-                from abc_character_encoding import abc_text_to_unicode
-                lines.append(u'SVG{0:03d}:{1}'.format(svg_row, abc_text_to_unicode(svg_line).encode('utf-8').decode('ascii', 'replace').replace('\uFFFD', '?')))
+                decoded_svg_line = abc_text_to_unicode(svg_line).encode('utf-8').decode('ascii', 'replace').replace('\uFFFD', '?')
+                if decoded_svg_line != svg_line:
+                    lines.append(u'SVG{0:03d}:{1}'.format(svg_row, decoded_svg_line))
     
                 # mark the svg-notes
                 svg_cols.sort()
