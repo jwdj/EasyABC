@@ -181,7 +181,7 @@ class AbcAssistPanel(wx.Panel):
                 try:
                     action.execute(self.context, params)
                 except Exception as e:
-                    print(e)
+                    pass # print(e)
 
                 self._editor.SetFocus()
         return wx.html.HTML_BLOCK

@@ -379,11 +379,11 @@ class AbcContext(object):
 
     def replace_in_editor(self, new_text, tune_scope):
         scope_info = self.get_scope_info(tune_scope)
-        if scope_info == self.get_empty_scope_info():
-            print('Failed to find scope')
-        else:
+        if scope_info != self.get_empty_scope_info():
             self.replace_selection(new_text, scope_info.start, scope_info.stop)
             wx.CallAfter(self.invalidate)
+        # else:
+        #     print('Failed to find scope')
 
     def get_matchgroup(self, matchgroup, default=None):
         match = self.inner_match or self.current_match

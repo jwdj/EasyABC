@@ -380,8 +380,8 @@ class AbcElement(object):
                     result = m
                     break
         else:
-            if p1 > len(text):
-                print(u'Selection ({0}) past length ({1})'.format(p1, len(text)))
+            # if p1 > len(text):
+            #     print(u'Selection ({0}) past length ({1})'.format(p1, len(text)))
             for m in regex.finditer(text):
                 if m.start() <= p1 <= p2 <= m.end():
                     result = m

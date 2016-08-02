@@ -358,7 +358,7 @@ class SvgRenderer(object):
             page = SvgPage(self, svg_xml)
             return page
         except:
-            print('warning: %s' % traceback.print_exc())
+            # print('warning: %s' % traceback.print_exc())
             self.clear()
             raise
 
@@ -373,7 +373,7 @@ class SvgRenderer(object):
             ##if wx.Platform != "__WXGTK__":
             ##    print 'draw_time    \t', t.seconds*1000 + t.microseconds/1000
         except:
-            print('warning: %s' % traceback.print_exc())
+            # print('warning: %s' % traceback.print_exc())
             self.clear()
             raise
 

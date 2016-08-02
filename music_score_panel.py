@@ -292,6 +292,6 @@ class MusicScorePanel(wx.ScrolledWindow):
                     dc.EndDrawing()
         except Exception as e:
             error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-            print('Warning: %s' % error_msg)
+            # print('Warning: %s' % error_msg)
 
 

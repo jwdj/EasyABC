@@ -752,12 +752,12 @@ def upload_tune(tune, author):
         captcha_url = m.group(1).encode('utf-8')
         f = tempfile.NamedTemporaryFile(delete=False)
         img_path = f.name
-        print(captcha_url)
-        print(img_path)
+        # print(captcha_url)
+        # print(img_path)
         img_data = urlopen(captcha_url).read()
 
         urlretrieve(urlunparse(parsed), outpath)
-        print(img_data)
+        # print(img_data)
         f.write(img_data)
         f.close()
         return ''
@@ -1977,12 +1977,12 @@ class MusicUpdateThread(threading.Thread):
                 # time.sleep(10.0)
                 # continue
                 error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-                print(error_msg)
+                # print(error_msg)
                 pass
             except Exception as e:
                 svg_files, error = [], unicode(e)
                 error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-                print(error_msg)
+                # print(error_msg)
                 pass
             svg_tune = SvgTune(abc_tune, svg_files, error)
             wx.PostEvent(self.notify_window, MusicUpdateDoneEvent(-1, svg_tune))
@@ -2035,7 +2035,8 @@ class MidiThread(threading.Thread):
             try:
                 start_process(c)
             except Exception as e:
-                print(e)
+                pass
+                # print(e)
             self.queue.task_done()
 
     #p09 new function for playing midi files as a last resort 2014-10-14 [SS]
@@ -5102,7 +5103,8 @@ class MainFrame(wx.Frame):
                 shutil.copy(midi_tune.midi_file, filepath)
                 return True
             except:
-                print('failed to create %s' % filepath)
+                pass
+                # print('failed to create %s' % filepath)
             finally:
                 midi_tune.cleanup()
         return False
@@ -5298,7 +5300,8 @@ class MainFrame(wx.Frame):
             shutil.copy(file_name, destination_path)
             return launch_file(destination_path)
         except IOError as ex:
-            print(u'Failed to create %s: %s' % (destination_path.encode('utf-8'), os.strerror(ex.errno)))
+            pass
+            # print(u'Failed to create %s: %s' % (destination_path.encode('utf-8'), os.strerror(ex.errno)))
         return False
 
     def OnExportToABC(self, evt):
@@ -5412,7 +5415,7 @@ class MainFrame(wx.Frame):
                     success = self.export_tune(tune, file_type, extension, convert_func, path, show_save_dialog=individual_save_dialog)
                 except Exception as e:
                     error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-                    print(error_msg)
+                    # print(error_msg)
                     success = False
 
                 if not success:
@@ -7159,7 +7162,11 @@ class MainFrame(wx.Frame):
                 # self.DetermineMidiPlayRange(tune, midi_file)
                 self.played_notes_timeline = None
                 if self.settings.get('follow_score', False):
-                    self.played_notes_timeline = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
+                    try:
+                        self.played_notes_timeline = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
+                    except Exception as e:
+                        error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                        execmessages += error_msg 
                 self.do_load_media_file(midi_file)
 
     def extract_note_timings(self, midi_tune, svg_tune):
@@ -7299,7 +7306,7 @@ class MainFrame(wx.Frame):
             svg_cols = list(row_col_svg_notes[svg_row])
             if errors[row]:
                 if svg_cols:
-                    lines.append('Syncronisation error in row {0} (SVG row {1}):'.format(row, svg_row))
+                    lines.append('Synchronization error in row {0} (SVG row {1}):'.format(row, svg_row))
                     cols = list(errors[row])
                     cols.sort()
                     prev_col = 0
@@ -7312,7 +7319,7 @@ class MainFrame(wx.Frame):
                         prev_col = col
                     lines.append(u'Errors:{0}'.format(''.join(line_parts)))
                 else:
-                    lines.append('Syncronisation error in row {0} (SVG row {1} does not contain displayed notes):'.format(row, svg_row))
+                    lines.append('Synchronization error in row {0} (SVG row {1} does not contain displayed notes)'.format(row, svg_row))
 
             if svg_cols:
                 # output previous abc line from svg
@@ -7363,8 +7370,10 @@ class MainFrame(wx.Frame):
                 lines.append(u'MID{0:03d}:{1}'.format(row, ''.join(line_parts)))
                 lines.append('')
             
-        for line in lines:
-            print(line)
+        if lines:
+            global execmessages
+            execmessages += '\n\n=== follow score ===\n\n'
+            execmessages += os.linesep.join(lines) 
         
         return self.group_notes_by_time(notes)
 
@@ -7844,7 +7853,7 @@ class MainFrame(wx.Frame):
             p = self.settings['xml_p'].split(',')
             for elem in p:
                 options.p.append(float(elem))
-            print(options.p)
+            # print(options.p)
 
         try:
             extension = os.path.splitext(filename)[1].lower()
@@ -8086,7 +8095,7 @@ class MainFrame(wx.Frame):
         if os.path.exists(abcm2ps_path):
             settings['abcm2ps_path'] = abcm2ps_path # 1.3.6 [SS] 2014-11-12
         else:
-            print('%s ***  not found ***' % abcm2ps_path)
+            # print('%s ***  not found ***' % abcm2ps_path)
             dlg = wx.MessageDialog(self, _('abcm2ps was not found here. You need it to view the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
@@ -8098,7 +8107,7 @@ class MainFrame(wx.Frame):
         if os.path.exists(abc2midi_path):
             settings['abc2midi_path'] = abc2midi_path # 1.3.6 [SS] 2014-11-12
         else:
-            print('%s ***  not found ***' % abc2midi_path)
+            # print('%s ***  not found ***' % abc2midi_path)
             dlg = wx.MessageDialog(self, _('abc2midi was not found here. You need it to play the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
@@ -8111,7 +8120,7 @@ class MainFrame(wx.Frame):
         if os.path.exists(midi2abc_path):
             settings['midi2abc_path'] = midi2abc_path
         else:
-            print('%s ***  not found ***' % midi2abc_path)
+            # print('%s ***  not found ***' % midi2abc_path)
             dlg = wx.MessageDialog(self, _('midi2abc was not found here. You need it to play the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
@@ -8123,7 +8132,7 @@ class MainFrame(wx.Frame):
         if os.path.exists(abc2abc_path):
             settings['abc2abc_path'] = abc2abc_path # 1.3.6 [SS] 2014-11-12
         else:
-            print('%s ***  not found ***' % abc2abc_path)
+            # print('%s ***  not found ***' % abc2abc_path)
             dlg = wx.MessageDialog(self,_('abc2abc was not found here. You need it to transpose the music. Go to settings and indicate the path.'),_('Warning'),wx.OK)
             dlg.ShowModal()
 
