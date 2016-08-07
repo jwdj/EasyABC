@@ -95,10 +95,10 @@ class AbcAssistPanel(wx.Panel):
         #current_element_sizer.Add(self.current_description, 1, wx.ALL | wx.EXPAND)
         #self.current_description.Hide()
 
-        if wx.Platform == "__WXMSW__":
-            font_size = 10
-        else:
+        if wx.Platform == "__WXMAC__":
             font_size = 14
+        else:
+            font_size = 10
 
         h1_size = font_size * 5 // 3
         h2_size = font_size * 3 // 2

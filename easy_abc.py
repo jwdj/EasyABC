@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.5 2016-08-02'
+program_name = 'EasyABC 1.3.7.5 2016-08-07'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -693,7 +693,12 @@ def get_default_path_for_executable(name):
         exe_name = '{0}.exe'.format(name)
     else:
         exe_name = name
-    return os.path.join(cwd, 'bin', exe_name)
+
+    path = os.path.join(cwd, 'bin', exe_name)
+    if wx.Platform == "__WXGTK__" and not os.path.exists(path):
+        path = '/usr/bin/{0}'.format(name) 
+        
+    return path
 
 
 # p09 2014-10-14 [SS]
@@ -4102,6 +4107,7 @@ class MainFrame(wx.Frame):
         self.update_play_button() # 1.3.6.3 [JWdJ] 2015-04-21 centralized playbutton enabling
 
         self.follow_score_check.SetValue(self.settings.get('follow_score', False))
+        self.timing_slider.SetValue(self.settings.get('follow_score_timing_offset', 0))
         self.UpdateTimingSliderVisibility()
 
     def Destroy(self):
@@ -7174,11 +7180,14 @@ class MainFrame(wx.Frame):
         if not svg_tune or not midi2abc_path or svg_tune.abc_tune.x_number != midi_tune.abc_tune.x_number:
             return []
 
+        page_count = svg_tune.page_count
+        if page_count == 0:
+            return []
+             
         lines = get_midi_structure_as_text(midi2abc_path, midi_tune.midi_file).splitlines()
         if not lines:
             return []
 
-        page_count = svg_tune.page_count
         pages = [svg_tune.render_page(p, self.renderer) for p in range(page_count)]
         page_index = 0
         page = pages[page_index]
@@ -8096,7 +8105,6 @@ class MainFrame(wx.Frame):
         if os.path.exists(abcm2ps_path):
             settings['abcm2ps_path'] = abcm2ps_path # 1.3.6 [SS] 2014-11-12
         else:
-            # print('%s ***  not found ***' % abcm2ps_path)
             dlg = wx.MessageDialog(self, _('abcm2ps was not found here. You need it to view the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
@@ -8108,7 +8116,6 @@ class MainFrame(wx.Frame):
         if os.path.exists(abc2midi_path):
             settings['abc2midi_path'] = abc2midi_path # 1.3.6 [SS] 2014-11-12
         else:
-            # print('%s ***  not found ***' % abc2midi_path)
             dlg = wx.MessageDialog(self, _('abc2midi was not found here. You need it to play the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
@@ -8121,7 +8128,6 @@ class MainFrame(wx.Frame):
         if os.path.exists(midi2abc_path):
             settings['midi2abc_path'] = midi2abc_path
         else:
-            # print('%s ***  not found ***' % midi2abc_path)
             dlg = wx.MessageDialog(self, _('midi2abc was not found here. You need it to play the music. Go to settings and indicate the path.'), _('Warning'),wx.OK)
             dlg.ShowModal()
 
