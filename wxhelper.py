@@ -42,7 +42,10 @@ def append_menu_item(menu, label, description, handler, kind=wx.ITEM_NORMAL, id=
         menu.AppendItem(menu_item)
 
     if handler is not None:
-        menu.Bind(wx.EVT_MENU, handler, menu_item)
+        if menu.InvokingWindow is not None:
+            menu.InvokingWindow.Bind(wx.EVT_MENU, handler, menu_item)
+        else:
+            menu.Bind(wx.EVT_MENU, handler, menu_item)
     return menu_item
 
 
@@ -54,7 +57,7 @@ def append_to_menu(menu, items):
             label = item[0]
             sub_menu = item[1]
             if not isinstance(sub_menu, wx.Menu):
-                sub_menu = create_menu(sub_menu)
+                sub_menu = create_menu(sub_menu, menu.InvokingWindow)
             append_submenu(menu, label, sub_menu)
         else:
             id = None
@@ -71,19 +74,23 @@ def append_to_menu(menu, items):
                 after_add(menu_item)
 
 
-def create_menu(items):
+def create_menu(items, parent=None):
     menu = wx.Menu()
+    if parent is not None:
+        menu.InvokingWindow = parent
     append_to_menu(menu, items)
     return menu
 
 
-def create_menu_bar(items):
+def create_menu_bar(items, parent=None):
     menuBar = wx.MenuBar()
+    if parent is not None:
+        menuBar.InvokingWindow = parent
     for item in items:
         label = item[0]
         items = item[1]
         if not isinstance(items, wx.Menu):
-            items = create_menu(items)
+            items = create_menu(items, parent=parent)
         menuBar.Append(items, label)
     return menuBar
 

@@ -695,8 +695,11 @@ def get_default_path_for_executable(name):
         exe_name = name
 
     path = os.path.join(cwd, 'bin', exe_name)
-    if wx.Platform == "__WXGTK__" and not os.path.exists(path):
-        path = '/usr/bin/{0}'.format(name) 
+    if wx.Platform == "__WXGTK__":
+        if not os.path.exists(path):
+            path = '/usr/local/bin/{0}'.format(name)
+        if not os.path.exists(path):
+            path = '/usr/bin/{0}'.format(name) 
         
     return path
 
@@ -4733,15 +4736,15 @@ class MainFrame(wx.Frame):
         self.id_add_tune = 3007
         self.id_abc_assist = 3008
 
-        self.bpm_menu = bpm_menu = wx.Menu()
+        self.bpm_menu = bpm_menu = create_menu([], parent=self)
         for i, bpm in enumerate([30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140]):
             append_menu_item(bpm_menu, str(bpm), '', self.OnRecordBpmSelected, kind=wx.ITEM_RADIO)
 
-        self.metre_menu = metre_menu = wx.Menu()
+        self.metre_menu = metre_menu = create_menu([], parent=self)
         for i, metre in enumerate(['2/4', '3/4', '4/4', '5/4']):
             append_menu_item(metre_menu, metre, '', self.OnRecordMetreSelected, kind=wx.ITEM_RADIO)
 
-        self.record_popup = record_popup = wx.Menu()
+        self.record_popup = record_popup = create_menu([], parent=self)
         append_submenu(record_popup, _('Beats per minute'), bpm_menu)
         append_submenu(record_popup, _('Metre'), metre_menu)
 
@@ -5861,7 +5864,7 @@ class MainFrame(wx.Frame):
                                      self.editor.GetLineEndPosition(line_numbers[-1]))
 
     def create_symbols_popup_menu(self, symbols):
-        menu = wx.Menu()
+        menu = create_menu([], parent=self)
         for symbol in symbols:
             if symbol == '-':
                 menu.AppendSeparator()
@@ -5873,8 +5876,7 @@ class MainFrame(wx.Frame):
         return menu
 
     def create_upload_context_menu(self):
-        menu = wx.Menu()
-        append_to_menu(menu, [
+        menu = create_menu([
             (_('Export to &MIDI...'), '', self.OnExportMidi),
             (_('Export to &PDF...'), '', self.OnExportPDF),
             (_('Export to &one PDF...'), '', self.OnExportSelectedToSinglePDF, self.add_to_multi_list),
@@ -5882,7 +5884,7 @@ class MainFrame(wx.Frame):
             (_('Export to &HTML...'), '', self.OnExportHTML),
             (_('Export to Music&XML...'), '', self.OnExportMusicXML),
             (_('Export to &ABC...'), '', self.OnExportToABC)
-        ])
+        ], parent=self)        
 
         global current_locale
         if current_locale.GetLanguageName(wx.LANGUAGE_DEFAULT) == 'Swedish':
@@ -5939,7 +5941,7 @@ class MainFrame(wx.Frame):
         self.popup_dynamics = self.create_symbols_popup_menu(dynamics)
         self.popup_directions = self.create_symbols_popup_menu(directions)
 
-        transpose_menu = wx.Menu()
+        transpose_menu = create_menu([], parent=self)
         for i in reversed(range(-12, 12+1)):
             if i < 0:
                 append_menu_item(transpose_menu, _('Down %d semitones') % abs(i), '', lambda e, i=i: self.OnTranspose(i))
@@ -5948,7 +5950,7 @@ class MainFrame(wx.Frame):
             elif i > 0:
                 append_menu_item(transpose_menu, _('Up %d semitones') % i, '', lambda e, i=i: self.OnTranspose(i))
 
-        view_menu = wx.Menu()
+        view_menu = create_menu([], parent=self)
         append_menu_item(view_menu, _("&Refresh music")+"\tF5", "", self.OnToolRefresh)
         self.mni_auto_refresh = append_menu_item(view_menu, _("&Automatically refresh music as I type"), "", None, kind=wx.ITEM_CHECK)
         view_menu.AppendSeparator()
@@ -5959,7 +5961,7 @@ class MainFrame(wx.Frame):
         append_menu_item(view_menu, _("&Reset window layout to default"), "", self.OnResetView)
         #self.append_menu_item(view_menu, _("&Maximize/restore musical score pane\tCtrl+M"), "", self.OnToggleMusicPaneMaximize)
 
-        self.recent_menu = wx.Menu()
+        self.recent_menu = create_menu([], parent=self)
 
         menuBar = create_menu_bar([
             (_("&File")     , [
@@ -6053,7 +6055,7 @@ class MainFrame(wx.Frame):
                 (),
                 (wx.ID_ABOUT, _("About EasyABC") + "...", '', self.OnAbout)
             ]),
-        ])
+        ], parent=self)
 
         self.SetMenuBar(menuBar)
 
