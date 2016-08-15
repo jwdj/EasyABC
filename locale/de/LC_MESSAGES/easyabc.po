@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: EasyABC 1.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-08-14 20:22+0200\n"
-"PO-Revision-Date: 2016-08-15 13:16+0200\n"
+"PO-Revision-Date: 2016-08-15 13:57+0200\n"
 "Last-Translator: Bernhard Weichel <poedit@nospam.weichel21.de>\n"
 "Language-Team: EasyABC <info@nilsliberg.se>\n"
 "Language: de_DE\n"
@@ -1130,7 +1130,7 @@ msgstr "&Musik neu darstellen"
 
 #: easy_abc.py:5955
 msgid "&Automatically refresh music as I type"
-msgstr "&Musik automatische beim Eineben aktualisieren"
+msgstr "&Musik automatisch beim Eingeben aktualisieren"
 
 #: easy_abc.py:5957
 msgid "&Use reduced margins when displaying tunes on screen"
