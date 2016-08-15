@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.5 2016-08-07'
+program_name = 'EasyABC 1.3.7.5 2016-08-14'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -8335,7 +8335,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
   <li> An abcm2ps format file can easily be specified in the settings.
   <li> ABC fields in the file header are applied to every single tune in a tune book.
   <li> Automatic alignment of bars on different lines
-  <li> Available in <img src="img/new.gif"/>Dutch, Italian, French, Danish, Swedish and English</li>
+  <li> Available in <img src="img/new.gif"/>German, Dutch, Italian, French, Danish, Swedish, German and English</li>
   <li> Functions to generate incipits, sort tunes and renumber X: fields.</li>
   <li> Musical search function - search for note sequences irrespectively of key, etc. <img src="img/new.gif"/></li>
 </ul>
@@ -8352,7 +8352,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="http://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
 <li><a href="http://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="http://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
 <li>Thanks to Guido Gonzato for providing the fields and command reference.
-<li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french) and Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch).</li>
+<li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german) and Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch).</li>
 <li>Universal binaries of abcm2ps and abc2midi for OSX are available thanks to Chuck&nbsp;Boody.</li>
 </ul>
 
