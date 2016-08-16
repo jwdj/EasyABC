@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.5 2016-08-14'
+program_name = 'EasyABC 1.3.7.5 2016-08-16'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -3192,7 +3192,7 @@ class MyAbcm2psPage(wx.Panel):
         #fval = self.settings.get('abcm2ps_scale',0.9)
         self.scaleval = wx.TextCtrl(self,-1,size=(50,22))
         self.scaleval.SetValue(self.settings.get('abcm2ps_scale',0.9))
-        self.scaleval.SetToolTip(wx.ToolTip('Scales the separation between staff lines. Recommended value 0.80.'))
+        self.scaleval.SetToolTip(wx.ToolTip(_('Scales the separation between staff lines. Recommended value 0.80.')))
 
         # 1.3.6.2 [SS] 2015-04-21
         self.scaleval.Bind(wx.EVT_TEXT,self.OnPSScale,self.scaleval)
@@ -3418,17 +3418,17 @@ class MyXmlPage(wx.Panel):
         headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\nYou find these functions under Files/export and import. Hovering the mouse over\none of the checkboxes will provide more explanation. Further documentation can be found\nin the Readme.txt files which come with the abc2xml.py-??.zip and xml2abc.py-??.zip\ndistributions available from the Wim Vree's web site.\n\n")
 
         heading    = wx.StaticText(self,-1,headingtxt)
-        abc2xml    = wx.StaticText(self,-1,"abc2xml options")
-        compressed = wx.StaticText(self,-1,'Compressed xml')
-        xmlpage    = wx.StaticText(self,-1,'Page settings')
-        unfold     = wx.StaticText(self,-1,'Unfold Repeats')
-        mididata   = wx.StaticText(self,-1,'Midi Data')
-        volta      = wx.StaticText(self,-1,'Volta type setting')
-        xml2abc    = wx.StaticText(self,-1,'xml2abc option')
-        numchar    = wx.StaticText(self,-1,'characters/line')
-        numbars    = wx.StaticText(self,-1,'bars per line')
-        credit     = wx.StaticText(self,-1,'credit filter')
-        ulength    = wx.StaticText(self,-1,'unit length')
+        abc2xml    = wx.StaticText(self,-1,_("abc2xml options"))
+        compressed = wx.StaticText(self,-1,_('Compressed xml'))
+        xmlpage    = wx.StaticText(self,-1,_('Page settings'))
+        unfold     = wx.StaticText(self,-1,_('Unfold Repeats'))
+        mididata   = wx.StaticText(self,-1,_('Midi Data'))
+        volta      = wx.StaticText(self,-1,_('Volta type setting'))
+        xml2abc    = wx.StaticText(self,-1,_('xml2abc option'))
+        numchar    = wx.StaticText(self,-1,_('characters/line'))
+        numbars    = wx.StaticText(self,-1,_('bars per line'))
+        credit     = wx.StaticText(self,-1,_('credit filter'))
+        ulength    = wx.StaticText(self,-1,_('unit length'))
 
         self.XmlPage = wx.TextCtrl(self, -1, size=(300,20))
         self.maxchars = wx.TextCtrl(self,-1, size=(40,20))
@@ -3467,7 +3467,7 @@ class MyXmlPage(wx.Panel):
         self.creditval.SetToolTip(wx.ToolTip(creditval_toolTip))
         unitval_toolTip = _('Unless D is 0, it sets the unit length for the output to abc field command L: 1/D. This overrides the computation of the optimal unit length.')
         self.unitval.SetToolTip(wx.ToolTip(unitval_toolTip))
-        voltaval_toolTip = _("The default (V=0) translates volta backets in all voices. V=1 prevents abcm2ps to write volta brackets on all but the first voice. (A %%repbra 0 command is added to each voice that hides its volta's.) When V=2 abcm2ps only typesets volta brackets on the first voice of each xml-part. When V=3 the volta brackets are only translated for the first abc voice, which has the same effect on the output of abcm2ps as V=1, but the abc code is not suited for abc2midi.")
+        voltaval_toolTip = _("The default (V=0) translates volta brackets in all voices. V=1 prevents abcm2ps to write volta brackets on all but the first voice. (A %%repbra 0 command is added to each voice that hides its volta's.) When V=2 abcm2ps only typesets volta brackets on the first voice of each xml-part. When V=3 the volta brackets are only translated for the first abc voice, which has the same effect on the output of abcm2ps as V=1, but the abc code is not suited for abc2midi.")
         self.voltaval.SetToolTip(wx.ToolTip(voltaval_toolTip))
 
         # 1.3.6 [SS] 2014-12-20
