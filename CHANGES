@@ -514,9 +514,10 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - 'File -> Close' shortcut is now Ctrl-W (was Alt-F4 but only on Windows)
 
 1.3.7.5
-- 'Follow score' improved
+- 'Follow score' improved (Windows version)
 - better unicode support
 - repeat symbol (looks like percent sign) better drawn
 - exporting a file generates a non-existing filename to prevent accidental overwrite
 - more Python 3 issues fixed
 - several minor bugfixes
+- Linux only: looks for needed executables in /usr/bin and /usr/local/bin

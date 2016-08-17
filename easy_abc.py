@@ -3192,7 +3192,7 @@ class MyAbcm2psPage(wx.Panel):
         #fval = self.settings.get('abcm2ps_scale',0.9)
         self.scaleval = wx.TextCtrl(self,-1,size=(50,22))
         self.scaleval.SetValue(self.settings.get('abcm2ps_scale',0.9))
-        self.scaleval.SetToolTip(wx.ToolTip(_('Scales the separation between staff lines. Recommended value 0.80.')))
+        self.scaleval.SetToolTip(wx.ToolTip(_('Scales the separation between staff lines. Recommended value is {0}.'.format('0.80'))))
 
         # 1.3.6.2 [SS] 2015-04-21
         self.scaleval.Bind(wx.EVT_TEXT,self.OnPSScale,self.scaleval)
