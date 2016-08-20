@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EasyABC 1.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-14 20:22+0200\n"
-"PO-Revision-Date: 2016-08-16 08:48+0200\n"
+"POT-Creation-Date: 2016-08-20 09:28+0200\n"
+"PO-Revision-Date: 2016-08-20 09:52+0200\n"
 "Last-Translator: Bernhard Weichel <poedit@nospam.weichel21.de>\n"
 "Language-Team: EasyABC <info@nilsliberg.se>\n"
 "Language: de_DE\n"
@@ -394,7 +394,7 @@ msgid "Output device"
 msgstr "Midi Ausgabegerät"
 
 #: easy_abc.py:3019 easy_abc.py:3021 tune_actions.py:902 tune_actions.py:1022
-#: tune_actions.py:1682
+#: tune_actions.py:1590
 msgid "None"
 msgstr "nichts"
 
@@ -492,6 +492,11 @@ msgstr "Verwende die Seiteneinstellungen von EasyABC"
 msgid "Do not add page settings"
 msgstr "Keine Seiten Einstellungen hinzufügen"
 
+#: easy_abc.py:3195
+#, python-brace-format
+msgid "Scales the separation between staff lines. Recommended value is {0}."
+msgstr "Skaliert den Abstand zwischen den Notenzeilen. Empfohlener Wert: {0}"
+
 #: easy_abc.py:3369
 msgid "This will remove the selections in the combobox."
 msgstr "Dies entfernt alle Markierungen in der Combobox."
@@ -522,6 +527,50 @@ msgstr ""
 "in den abc2xml.py-??.zip bzw. xml2abc.py-??.zip Distributionen von Wim "
 "Vree's web site.\n"
 
+#: easy_abc.py:3421
+msgid "abc2xml options"
+msgstr "abc2xml Einstellungen"
+
+#: easy_abc.py:3422
+msgid "Compressed xml"
+msgstr "Komprimiertes XML"
+
+#: easy_abc.py:3423
+msgid "Page settings"
+msgstr "Seiteneinstellungen"
+
+#: easy_abc.py:3424
+msgid "Unfold Repeats"
+msgstr "Wiederholungen ausklappen"
+
+#: easy_abc.py:3425
+msgid "Midi Data"
+msgstr "Midi Daten"
+
+#: easy_abc.py:3426
+msgid "Volta type setting"
+msgstr "Einstellungen für Volta typen"
+
+#: easy_abc.py:3427
+msgid "xml2abc option"
+msgstr "xml2ab Einstellung"
+
+#: easy_abc.py:3428
+msgid "characters/line"
+msgstr "Zeichen/Zeile"
+
+#: easy_abc.py:3429
+msgid "bars per line"
+msgstr "Taktstriche pro Zeile"
+
+#: easy_abc.py:3430
+msgid "credit filter"
+msgstr "Autorenfilter"
+
+#: easy_abc.py:3431
+msgid "unit length"
+msgstr "Notenwert"
+
 #: easy_abc.py:3454
 msgid "When checked, abc2xml produces compressed xml files with extension mxl."
 msgstr ""
@@ -533,6 +582,8 @@ msgid ""
 "When checked, xml2abc turns off repeat translation and instead unfolds "
 "simple repeats."
 msgstr ""
+"Wenn aktiviert, übersetzt  xml2abc die Wiederholungen nicht sondern faltet "
+"sie aus."
 
 #: easy_abc.py:3458
 msgid ""
@@ -594,7 +645,7 @@ msgstr ""
 #: easy_abc.py:3470
 #, python-format
 msgid ""
-"The default (V=0) translates volta backets in all voices. V=1 prevents "
+"The default (V=0) translates volta brackets in all voices. V=1 prevents "
 "abcm2ps to write volta brackets on all but the first voice. (A %%repbra 0 "
 "command is added to each voice that hides its volta's.) When V=2 abcm2ps "
 "only typesets volta brackets on the first voice of each xml-part. When V=3 "
@@ -603,14 +654,18 @@ msgid ""
 "suited for abc2midi."
 msgstr ""
 "Die Voreinstllung (V=0) bestimmt die Darstellung der Voltenklammern "
-"(Klammern für variante Enden) in allen Stimmen. Bei V=1 werden die "
-"Voltenklammern bei allen bis auf die erste Stimme dargestellt. (Eine "
-"%%repbra 0 Anweisung wird bei allen Stimmen hinzugefügt, die ihrer Volten "
-"nicht darstellen.). Bei V=2 wird abcm2ps die Voltenklammern nur in der "
-"ersten Stimme eines jeden XML-Parts darstellen. Bei V=3 werden die "
-"Voltenklammern nur in der ersten ABC-Stimme dargestellt. Dies hat die "
-"gleiche Wirkung auf die Ausgabe von abcm2ps wie V=1, aber der ABC-Code ist "
-"nicht geeignet für abc2midi."
+"(Klammern für variante Enden) in allen Stimmen. \n"
+"\n"
+"Bei V=1 werden die Voltenklammern bei allen bis auf die erste Stimme "
+"dargestellt. (Eine %%repbra 0 Anweisung wird bei allen Stimmen hinzugefügt, "
+"die ihrer Volten nicht darstellen.). \n"
+"\n"
+"Bei V=2 wird abcm2ps die Voltenklammern nur in der ersten Stimme eines jeden "
+"XML-Parts darstellen. \n"
+"\n"
+"Bei V=3 werden die Voltenklammern nur in der ersten ABC-Stimme dargestellt. "
+"Dies hat die gleiche Wirkung auf die Ausgabe von abcm2ps wie V=1, aber der "
+"ABC-Code ist nicht geeignet für abc2midi."
 
 #: easy_abc.py:3566
 msgid "ABC Options"
@@ -706,7 +761,7 @@ msgstr "Suche Verzeichnis"
 msgid "Remaining time"
 msgstr "Verbleibende Zeit"
 
-#: easy_abc.py:3896 easy_abc.py:4122 easy_abc.py:5360 tune_actions.py:1359
+#: easy_abc.py:3896 easy_abc.py:4122 easy_abc.py:5360 tune_actions.py:1336
 msgid "Untitled"
 msgstr "Unbenannt"
 
@@ -1344,7 +1399,7 @@ msgstr "Noten Ornamente"
 msgid "Directions"
 msgstr "Anweisungen"
 
-#: easy_abc.py:6012 tune_actions.py:1491 tune_elements.py:737
+#: easy_abc.py:6012 tune_actions.py:1468 tune_elements.py:737
 msgid "Dynamics"
 msgstr "Dynamik"
 
@@ -1430,7 +1485,7 @@ msgstr "&Stücke sortieren"
 
 #: easy_abc.py:6038
 msgid "Search directories..."
-msgstr ""
+msgstr "Verzeichnisse durchsuchen ..."
 
 #: easy_abc.py:6039
 msgid "&View"
@@ -1918,15 +1973,15 @@ msgstr "Binde / Bindung lösen"
 msgid "Whole measure"
 msgstr "Ganzer Takt"
 
-#: tune_actions.py:798 tune_actions.py:1475
+#: tune_actions.py:798 tune_actions.py:1452
 msgid "Optional sharp"
 msgstr "Optionales Kreuz"
 
-#: tune_actions.py:799 tune_actions.py:1476
+#: tune_actions.py:799 tune_actions.py:1453
 msgid "Optional natural"
 msgstr "Optional natürlich"
 
-#: tune_actions.py:800 tune_actions.py:1477
+#: tune_actions.py:800 tune_actions.py:1454
 msgid "Optional flat"
 msgstr "Optional B"
 
@@ -2311,7 +2366,7 @@ msgstr "Zweite Umkehrung"
 msgid "Change bass note"
 msgstr "Ändere die Bassnote"
 
-#: tune_actions.py:1217 tune_actions.py:1697
+#: tune_actions.py:1217 tune_actions.py:1605
 msgid "Normal"
 msgstr "Normal"
 
@@ -2327,348 +2382,316 @@ msgstr "Ändere den Bindebogen"
 msgid "Change redefinable symbol"
 msgstr "Ändere das umdefinierbare Symbol"
 
-#: tune_actions.py:1252
-msgid "Change channel"
-msgstr "Ändere den Kanal"
-
-#: tune_actions.py:1263
-msgid "Change instrument"
-msgstr "Ändere das Instrument"
-
-#: tune_actions.py:1294
+#: tune_actions.py:1271
 #, python-brace-format
 msgid "Learn {0}..."
 msgstr "Lernen {0}..."
 
-#: tune_actions.py:1297
+#: tune_actions.py:1274
 msgid "more"
 msgstr "mehr"
 
-#: tune_actions.py:1338
+#: tune_actions.py:1315
 msgid "Full ABC specification"
 msgstr "Voll ABC Spezifikation"
 
-#: tune_actions.py:1350
+#: tune_actions.py:1327
 msgid "New tune"
 msgstr "Neus Stück"
 
-#: tune_actions.py:1360
+#: tune_actions.py:1337
 msgid "Unknown composer"
 msgstr "Unbekannter Komponist"
 
-#: tune_actions.py:1375
+#: tune_actions.py:1352
 msgid "Add voice"
 msgstr "Stimme hinzufügen"
 
-#: tune_actions.py:1391
+#: tune_actions.py:1368
 msgid "Replace invalid characters"
 msgstr "Fehlerhafte Zeichen ersetzen"
 
-#: tune_actions.py:1413
+#: tune_actions.py:1390
 msgid "New line"
 msgstr "Neue Zeile"
 
-#: tune_actions.py:1428
+#: tune_actions.py:1405
 msgid "Space"
 msgstr "Leerraum"
 
-#: tune_actions.py:1444
+#: tune_actions.py:1421
 msgid "New note/rest"
 msgstr "Neue Note/Pause"
 
-#: tune_actions.py:1473 tune_elements.py:848 tune_elements.py:914
+#: tune_actions.py:1450 tune_elements.py:848 tune_elements.py:914
 msgid "Chord symbol"
 msgstr "Akkordsymbol"
 
-#: tune_actions.py:1474
+#: tune_actions.py:1451
 msgid "Between parenthesis"
 msgstr "In Klammern"
 
-#: tune_actions.py:1480
+#: tune_actions.py:1457
 msgid "Insert annotation or chord"
 msgstr "Füge Anmerkung oder Akkord ein"
 
-#: tune_actions.py:1492 tune_elements.py:761
+#: tune_actions.py:1469 tune_elements.py:761
 msgid "Ornament"
 msgstr "Verzierung"
 
-#: tune_actions.py:1493 tune_elements.py:796
+#: tune_actions.py:1470 tune_elements.py:796
 msgid "Articulation"
 msgstr "Ausdruck"
 
-#: tune_actions.py:1494 tune_elements.py:775
+#: tune_actions.py:1471 tune_elements.py:775
 msgid "Direction"
 msgstr "Anweisung"
 
-#: tune_actions.py:1495 tune_elements.py:743
+#: tune_actions.py:1472 tune_elements.py:743
 msgid "Fingering"
 msgstr "Fingersatz"
 
-#: tune_actions.py:1498
+#: tune_actions.py:1475
 msgid "Insert decoration"
 msgstr "Füge Verzierung ein"
 
-#: tune_actions.py:1509
+#: tune_actions.py:1486
 msgid "Add slur"
 msgstr "Füge Bindebogen ein"
 
-#: tune_actions.py:1520
+#: tune_actions.py:1497
 msgid "Add bar"
 msgstr "Füge Taktstrich ein"
 
-#: tune_actions.py:1562
+#: tune_actions.py:1539
 msgid "Combine using beam"
 msgstr "Kombiniere mit Notenhälsen"
 
-#: tune_actions.py:1574
+#: tune_actions.py:1551
 msgid "Combine to chord"
 msgstr "Kombiniere zu Akkord"
 
-#: tune_actions.py:1586
+#: tune_actions.py:1563
 msgid "Make triplets"
 msgstr "Erzeuge Triolen"
 
-#: tune_actions.py:1662
-msgid "Change font"
-msgstr "Ändere Schriftart"
-
-#: tune_actions.py:1667 tune_actions.py:1671 tune_actions.py:1672
+#: tune_actions.py:1575 tune_actions.py:1579 tune_actions.py:1580
 msgid "Page width"
 msgstr "Seitenbreite"
 
-#: tune_actions.py:1668
+#: tune_actions.py:1576
 msgid "Page height"
 msgstr "Seitenhöhe"
 
-#: tune_actions.py:1669
+#: tune_actions.py:1577
 msgid "Top margin"
 msgstr "Oberer Rand"
 
-#: tune_actions.py:1670
+#: tune_actions.py:1578
 msgid "Bottom margin"
 msgstr "Unterer Rand"
 
-#: tune_actions.py:1673
+#: tune_actions.py:1581
 msgid "Staff width"
 msgstr "Bereite des Notensystems"
 
-#: tune_actions.py:1674
+#: tune_actions.py:1582
 msgid "Page orientation"
 msgstr "Seitenausrichtung"
 
-#: tune_actions.py:1677
+#: tune_actions.py:1585
 msgid "Change page format"
 msgstr "Ändere Seitenformat"
 
-#: tune_actions.py:1683
+#: tune_actions.py:1591
 msgid "Start of every line"
 msgstr "Start jeder Zeile"
 
-#: tune_actions.py:1684
+#: tune_actions.py:1592
 msgid "Every measure"
 msgstr "Jeden Takt"
 
-#: tune_actions.py:1685
+#: tune_actions.py:1593
 msgid "Every 2 measures"
 msgstr "Alle zwei Takte"
 
-#: tune_actions.py:1686
+#: tune_actions.py:1594
 msgid "Every 4 measures"
 msgstr "Alle vier Takte"
 
-#: tune_actions.py:1687
+#: tune_actions.py:1595
 msgid "Every 5 measures"
 msgstr "Alle fünf Takte"
 
-#: tune_actions.py:1688
+#: tune_actions.py:1596
 msgid "Every 8 measures"
 msgstr "Alle acht Takte"
 
-#: tune_actions.py:1689
+#: tune_actions.py:1597
 msgid "Every 10 measures"
 msgstr "Alle 10 Takte"
 
-#: tune_actions.py:1692
+#: tune_actions.py:1600
 msgid "Show measure numbers"
 msgstr "Zeige Taktnummern"
 
-#: tune_actions.py:1698
+#: tune_actions.py:1606
 msgid "Boxed"
 msgstr "Umrahmt"
 
-#: tune_actions.py:1701
+#: tune_actions.py:1609
 msgid "Show measure box"
 msgstr "Zeige Taktrahmen"
 
-#: tune_actions.py:1706
+#: tune_actions.py:1614
 msgid "Zero"
 msgstr "Null"
 
-#: tune_actions.py:1707
+#: tune_actions.py:1615
 msgid "One"
 msgstr "Eins"
 
-#: tune_actions.py:1710
+#: tune_actions.py:1618
 msgid "First measure number"
 msgstr "Erste Taktnummer"
 
-#: tune_actions.py:1715
+#: tune_actions.py:1623
 msgid "Title font"
 msgstr "Schriftart für Titel"
 
-#: tune_actions.py:1716
+#: tune_actions.py:1624
 msgid "Subtitle font"
 msgstr "Schriftart für Untertitel"
 
-#: tune_actions.py:1717
+#: tune_actions.py:1625
 msgid "Composer font"
 msgstr "Schriftart für Komponist"
 
-#: tune_actions.py:1718
+#: tune_actions.py:1626
 msgid "Parts font"
 msgstr "Schriftart für Abschnitte"
 
-#: tune_actions.py:1719
+#: tune_actions.py:1627
 msgid "Tempo font"
 msgstr "Schriftart für Tempo"
 
-#: tune_actions.py:1720
+#: tune_actions.py:1628
 msgid "Guitar chord font"
 msgstr "Scriftart für Gitarrenakkorde"
 
-#: tune_actions.py:1721
+#: tune_actions.py:1629
 msgid "Annotation font"
 msgstr "Schriftart für Anmerkungen"
 
-#: tune_actions.py:1722
+#: tune_actions.py:1630
 msgid "Info font"
 msgstr "Schriftart für Informationen"
 
-#: tune_actions.py:1723
+#: tune_actions.py:1631
 msgid "Text font"
 msgstr "Schriftart für Text"
 
-#: tune_actions.py:1724
+#: tune_actions.py:1632
 msgid "Vocal font"
 msgstr "Schriftart für Singstimme"
 
-#: tune_actions.py:1725
+#: tune_actions.py:1633
 msgid "Words font"
 msgstr "Schriftart für Liedtexte"
 
-#: tune_actions.py:1726
+#: tune_actions.py:1634
 msgid "Custom font 1"
 msgstr "Benutzerdefinierte Schriftart 1"
 
-#: tune_actions.py:1727
+#: tune_actions.py:1635
 msgid "Custom font 2"
 msgstr "Benutzerdefinierte Schriftart 2"
 
-#: tune_actions.py:1728
+#: tune_actions.py:1636
 msgid "Custom font 3"
 msgstr "Benutzerdefinierte Schriftart 3"
 
-#: tune_actions.py:1729
+#: tune_actions.py:1637
 msgid "Custom font 4"
 msgstr "Benutzerdefinierte Schriftart 4"
 
-#: tune_actions.py:1732
+#: tune_actions.py:1640
 msgid "Change font directive"
 msgstr "Ändere die Anweisung für Schriftart"
 
-#: tune_actions.py:1737
+#: tune_actions.py:1645
 msgid "Page scale factor"
 msgstr "Skalierung der Seite"
 
-#: tune_actions.py:1738
+#: tune_actions.py:1646
 msgid "Staff scale factor"
 msgstr "Skalierung der Notensysteme"
 
-#: tune_actions.py:1741
+#: tune_actions.py:1649
 msgid "Change scale directive"
 msgstr "Ändere die Skalierungsanweisung"
 
-#: tune_actions.py:1746
+#: tune_actions.py:1654
 msgid "MIDI"
 msgstr "MIDI"
 
-#: tune_actions.py:1747
+#: tune_actions.py:1655
 msgid "Page layout"
 msgstr "Seitenlayout"
 
-#: tune_actions.py:1748
+#: tune_actions.py:1656
 msgid "Scale"
 msgstr "Skalierung"
 
-#: tune_actions.py:1749
+#: tune_actions.py:1657
 msgid "Font"
 msgstr "Schriftart"
 
-#: tune_actions.py:1752
+#: tune_actions.py:1660
 msgid "Insert directive"
 msgstr "Füge Anweisung ein"
 
-#: tune_actions.py:1757
+#: tune_actions.py:1665
 msgid "break between syllables within a word"
 msgstr "Umbruch zwischen Silben innerhalb eines Wortes"
 
-#: tune_actions.py:1758
+#: tune_actions.py:1666
 msgid "previous syllable is to be held for an extra note"
 msgstr "vorherige Silbe halten für eine weitere Note"
 
-#: tune_actions.py:1759
+#: tune_actions.py:1667
 msgid "one note is skipped (* is equivalent to a blank syllable)"
 msgstr "eine Note ist ausgelassen ('*' ist äquivalent zu einer leeren Silbe)"
 
-#: tune_actions.py:1760
+#: tune_actions.py:1668
 msgid "appears as a space; aligns multiple words under one note"
 msgstr "erscheint als Leerraum; richtet mehrere Worte unter einer Note aus"
 
-#: tune_actions.py:1761
+#: tune_actions.py:1669
 msgid "appears as hyphen; aligns multiple syllables under one note"
 msgstr "erscheint als Bindestrich; richtet mehrere Silben unter einer Note aus"
 
-#: tune_actions.py:1762 tune_actions.py:1771
+#: tune_actions.py:1670 tune_actions.py:1679
 msgid "advances to the next bar"
 msgstr "geht zum nächsten takt"
 
-#: tune_actions.py:1765 tune_actions.py:1774
+#: tune_actions.py:1673 tune_actions.py:1682
 msgid "Insert align symbol"
 msgstr "Füge Ausrichtungssymbol ein"
 
-#: tune_actions.py:1770
+#: tune_actions.py:1678
 msgid "one note is skipped"
 msgstr "eine Note ist augelassen"
 
-#: tune_actions.py:1779 tune_actions.py:1799
+#: tune_actions.py:1687 tune_actions.py:1707
 msgid "Key / clef"
 msgstr "Tonart / Schlüssel"
 
-#: tune_actions.py:1784 tune_actions.py:1808
+#: tune_actions.py:1692 tune_actions.py:1716
 msgid "Change..."
 msgstr "Ändern ..."
 
-#: tune_actions.py:1816
-msgid "Single voice"
-msgstr "Einzelne Stimme"
-
-#: tune_actions.py:1817
-msgid "Piano"
-msgstr "Klavier"
-
-#: tune_actions.py:1818
-msgid "Choir"
-msgstr "Chor"
-
-#: tune_actions.py:1819
-msgid "Solo with piano"
-msgstr "Solo mit Klavier"
-
-#: tune_actions.py:1824
-msgid "Multiple voices"
-msgstr "Mehrere Stimmen"
-
-#: tune_actions.py:1854
+#: tune_actions.py:1737
 msgid "Remove"
 msgstr "Entfernen"
 
@@ -2790,7 +2813,7 @@ msgstr "Stakkatozeichen"
 
 #: tune_elements.py:153
 msgid "staccato mark"
-msgstr ""
+msgstr "Stakkatoeichen"
 
 #: tune_elements.py:154 tune_elements.py:171
 msgid "Irish roll"
@@ -3278,6 +3301,49 @@ msgstr ""
 "In ABC-Code erzeugen Zeilenumbrüche in der Eingabe standardmässig auch "
 "Zeilenumbrüche in der Ausgabe. Diese können aber durch einen rückwärtigen "
 "Schrägstrich \"\\\" unterdrückt werden."
+
+#~ msgid ""
+#~ "The default (V=0) translates volta backets in all voices. V=1 prevents "
+#~ "abcm2ps to write volta brackets on all but the first voice. (A %%repbra 0 "
+#~ "command is added to each voice that hides its volta's.) When V=2 abcm2ps "
+#~ "only typesets volta brackets on the first voice of each xml-part. When "
+#~ "V=3 the volta brackets are only translated for the first abc voice, which "
+#~ "has the same effect on the output of abcm2ps as V=1, but the abc code is "
+#~ "not suited for abc2midi."
+#~ msgstr ""
+#~ "Die Voreinstllung (V=0) bestimmt die Darstellung der Voltenklammern "
+#~ "(Klammern für variante Enden) in allen Stimmen. Bei V=1 werden die "
+#~ "Voltenklammern bei allen bis auf die erste Stimme dargestellt. (Eine %"
+#~ "%repbra 0 Anweisung wird bei allen Stimmen hinzugefügt, die ihrer Volten "
+#~ "nicht darstellen.). Bei V=2 wird abcm2ps die Voltenklammern nur in der "
+#~ "ersten Stimme eines jeden XML-Parts darstellen. Bei V=3 werden die "
+#~ "Voltenklammern nur in der ersten ABC-Stimme dargestellt. Dies hat die "
+#~ "gleiche Wirkung auf die Ausgabe von abcm2ps wie V=1, aber der ABC-Code "
+#~ "ist nicht geeignet für abc2midi."
+
+#~ msgid "Change channel"
+#~ msgstr "Ändere den Kanal"
+
+#~ msgid "Change instrument"
+#~ msgstr "Ändere das Instrument"
+
+#~ msgid "Change font"
+#~ msgstr "Ändere Schriftart"
+
+#~ msgid "Single voice"
+#~ msgstr "Einzelne Stimme"
+
+#~ msgid "Piano"
+#~ msgstr "Klavier"
+
+#~ msgid "Choir"
+#~ msgstr "Chor"
+
+#~ msgid "Solo with piano"
+#~ msgstr "Solo mit Klavier"
+
+#~ msgid "Multiple voices"
+#~ msgstr "Mehrere Stimmen"
 
 #~ msgid ""
 #~ "Ghostscript could not be found. You need to install Ghostscript in order "
