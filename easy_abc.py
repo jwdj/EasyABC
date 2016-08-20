@@ -7295,7 +7295,8 @@ class MainFrame(wx.Frame):
                     elif on_off == 'off':
                         note_stop = time_in_ms
                         note_on = active_notes.pop((channel, note_num), None)
-                        notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
+                        if note_on is not None:
+                            notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
                 else:
                     m = tempo_re.match(line)
                     if m is not None:
