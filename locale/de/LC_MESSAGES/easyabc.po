@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: EasyABC 1.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-08-14 20:22+0200\n"
-"PO-Revision-Date: 2016-08-15 13:57+0200\n"
+"PO-Revision-Date: 2016-08-16 08:48+0200\n"
 "Last-Translator: Bernhard Weichel <poedit@nospam.weichel21.de>\n"
 "Language-Team: EasyABC <info@nilsliberg.se>\n"
 "Language: de_DE\n"
@@ -126,7 +126,7 @@ msgstr "Xml"
 
 #: easy_abc.py:2377
 msgid "File Settings"
-msgstr "Datei Einstellungen"
+msgstr "Dateieinstellungen"
 
 #: easy_abc.py:2399
 msgid "abcm2ps executable:"
@@ -263,7 +263,7 @@ msgstr "Einzählen"
 
 #: easy_abc.py:2645
 msgid "gchord pattern"
-msgstr "gchord muste"
+msgstr "gchord Muster"
 
 #: easy_abc.py:2651
 msgid "Instrument for playback: "
@@ -719,7 +719,7 @@ msgid "ABC errors"
 msgstr "ABC-fehler"
 
 # Need to know where it is used to make a precise Translation:
-# Does it mean 
+# Does it mean
 # ABC assistent - ABC Helfer
 # assist ABC - ABC Hilfe
 #: easy_abc.py:4008 easy_abc.py:4771 easy_abc.py:4772 easy_abc.py:4773
@@ -1222,7 +1222,7 @@ msgstr "als A&BC"
 
 #: easy_abc.py:5982
 msgid "Export &all"
-msgstr "&alles exportieren"
+msgstr "&Alles exportieren"
 
 #: easy_abc.py:5983
 msgid "as a &PDF Book..."
@@ -1258,7 +1258,7 @@ msgstr "das ausgewählte Stück drucken"
 
 #: easy_abc.py:5994
 msgid "&Print preview\tCtrl+Shift+P"
-msgstr "&Druckvorschaut\tCtrl+Shift+P"
+msgstr "&Druckvorschau\tCtrl+Shift+P"
 
 #: easy_abc.py:5995
 msgid "P&age Setup..."
@@ -1270,7 +1270,7 @@ msgstr "Drucker ändern und einrichten"
 
 #: easy_abc.py:5997
 msgid "&Recent files"
-msgstr "&neulich verwendete Dateien"
+msgstr "&Zuletzt verwendete Dateien"
 
 #: easy_abc.py:5999
 msgid "&Quit\tCtrl+Q"
@@ -1374,7 +1374,7 @@ msgstr "&Suchen...\tCtrl+F"
 
 #: easy_abc.py:6021
 msgid "&Find Next\tF3"
-msgstr "&Nächstes suchenæste\tF3"
+msgstr "&Nächstes suchen\tF3"
 
 #: easy_abc.py:6022
 msgid "&Replace...\tCtrl+H"
