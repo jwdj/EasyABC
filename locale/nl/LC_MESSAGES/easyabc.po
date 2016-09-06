@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-08-20 12:39+0200\n"
-"PO-Revision-Date: 2016-08-20 19:40+0200\n"
+"POT-Creation-Date: 2016-08-16 22:12+0200\n"
+"PO-Revision-Date: 2016-08-16 22:15+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -33,16 +33,16 @@ msgstr ""
 "Midi2abc kon niet gevonden worden. In te stellen via Instellingen -> ABC "
 "instellingen -> Bestandspaden."
 
-#: easy_abc.py:1242 easy_abc.py:4524 easy_abc.py:6113 easy_abc.py:7916
+#: easy_abc.py:1242 easy_abc.py:4524 easy_abc.py:6113 easy_abc.py:7915
 msgid "Error"
 msgstr "Fout"
 
-#: easy_abc.py:1468 easy_abc.py:7938
+#: easy_abc.py:1468 easy_abc.py:7937
 #, python-brace-format
 msgid "{0} reported some errors"
 msgstr "{0} rapporteerde enige fouten"
 
-#: easy_abc.py:1470 easy_abc.py:7940
+#: easy_abc.py:1470 easy_abc.py:7939
 #, python-brace-format
 msgid "{0} reported some warnings"
 msgstr "{0} rapporteerde enige waarschuwingen"
@@ -93,7 +93,7 @@ msgid "&Two column output"
 msgstr "&Twee kolommen"
 
 #: easy_abc.py:2310 easy_abc.py:3047 easy_abc.py:3589 easy_abc.py:3648
-#: easy_abc.py:8378
+#: easy_abc.py:8377
 msgid "&Ok"
 msgstr "&Doorgaan"
 
@@ -391,7 +391,7 @@ msgid "Output device"
 msgstr "Uitvoerapparaat"
 
 #: easy_abc.py:3019 easy_abc.py:3021 tune_actions.py:902 tune_actions.py:1022
-#: tune_actions.py:1590
+#: tune_actions.py:1682
 msgid "None"
 msgstr "Geen"
 
@@ -727,7 +727,7 @@ msgstr "Bezig met doorzoeken van mappen"
 msgid "Remaining time"
 msgstr "Resterende tijd"
 
-#: easy_abc.py:3896 easy_abc.py:4122 easy_abc.py:5360 tune_actions.py:1336
+#: easy_abc.py:3896 easy_abc.py:4122 easy_abc.py:5360 tune_actions.py:1359
 msgid "Untitled"
 msgstr "Naamloos"
 
@@ -735,24 +735,24 @@ msgstr "Naamloos"
 msgid "No."
 msgstr "Nummer"
 
-#: easy_abc.py:4001 easy_abc.py:8057
+#: easy_abc.py:4001 easy_abc.py:8056
 msgid "ABC errors"
 msgstr "ABC fouten"
 
 #: easy_abc.py:4008 easy_abc.py:4771 easy_abc.py:4772 easy_abc.py:4773
-#: easy_abc.py:8058
+#: easy_abc.py:8057
 msgid "ABC assist"
 msgstr "ABC assistent"
 
-#: easy_abc.py:4012 easy_abc.py:8055
+#: easy_abc.py:4012 easy_abc.py:8054
 msgid "Tune list"
 msgstr "Compositielijst"
 
-#: easy_abc.py:4013 easy_abc.py:8054
+#: easy_abc.py:4013 easy_abc.py:8053
 msgid "ABC code"
 msgstr "ABC-code"
 
-#: easy_abc.py:4014 easy_abc.py:8056
+#: easy_abc.py:4014 easy_abc.py:8055
 msgid "Musical score"
 msgstr "Bladmuziek"
 
@@ -872,8 +872,8 @@ msgstr ""
 "Ghostscript kon niet gevonden worden. Ga naar de instellingen om het pad aan "
 "te geven."
 
-#: easy_abc.py:5147 easy_abc.py:8111 easy_abc.py:8122 easy_abc.py:8134
-#: easy_abc.py:8146 easy_abc.py:8155 easy_abc.py:8184
+#: easy_abc.py:5147 easy_abc.py:8110 easy_abc.py:8121 easy_abc.py:8133
+#: easy_abc.py:8145 easy_abc.py:8154 easy_abc.py:8183
 msgid "Warning"
 msgstr "Waarschuwing"
 
@@ -1351,7 +1351,7 @@ msgstr "Versieringen"
 msgid "Directions"
 msgstr "Aanwijzingen"
 
-#: easy_abc.py:6012 tune_actions.py:1468 tune_elements.py:737
+#: easy_abc.py:6012 tune_actions.py:1491 tune_elements.py:737
 msgid "Dynamics"
 msgstr "Dynamiek"
 
@@ -1447,7 +1447,7 @@ msgstr "&Bekijken"
 msgid "&Internals"
 msgstr "&Intern"
 
-#: easy_abc.py:6041 easy_abc.py:8414
+#: easy_abc.py:6041 easy_abc.py:8413
 msgid "Messages"
 msgstr "Meldingen"
 
@@ -1523,7 +1523,7 @@ msgstr "&Op updates controleren..."
 msgid "Link to EasyABC download page"
 msgstr "EasyABC downloadpagina"
 
-#: easy_abc.py:6056 easy_abc.py:8374
+#: easy_abc.py:6056 easy_abc.py:8373
 msgid "About EasyABC"
 msgstr "Over EasyABC"
 
@@ -1583,15 +1583,15 @@ msgstr "Selecteer een lettertype voor het ABC-gedeelte"
 msgid "ABC fields and commands reference"
 msgstr "ABC naslagwerk"
 
-#: easy_abc.py:7894
+#: easy_abc.py:7893
 msgid "nwc2xml error"
 msgstr "nwc2xml fout"
 
-#: easy_abc.py:7955
+#: easy_abc.py:7954
 msgid "Name of tune"
 msgstr "Naam van de compositie"
 
-#: easy_abc.py:8111
+#: easy_abc.py:8110
 msgid ""
 "abcm2ps was not found here. You need it to view the music. Go to settings "
 "and indicate the path."
@@ -1599,7 +1599,7 @@ msgstr ""
 "Abcm2ps kon niet gevonden worden. Het is nodig om de bladmuziek te tonen. In "
 "te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
-#: easy_abc.py:8122
+#: easy_abc.py:8121
 msgid ""
 "abc2midi was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
@@ -1607,13 +1607,13 @@ msgstr ""
 "Abc2midi kon niet gevonden worden. Het is nodig om de muziek af te spelen. "
 "In te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
-#: easy_abc.py:8134
+#: easy_abc.py:8133
 msgid ""
 "midi2abc was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr "midi2abc kon niet gevonden worden."
 
-#: easy_abc.py:8146
+#: easy_abc.py:8145
 msgid ""
 "abc2abc was not found here. You need it to transpose the music. Go to "
 "settings and indicate the path."
@@ -1621,17 +1621,17 @@ msgstr ""
 "Abc2abc kon niet gevonden worden. Het is nodig om de muziek te transponeren. "
 "In te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
-#: easy_abc.py:8155
+#: easy_abc.py:8154
 msgid ""
 "The midiplayer was not found. You will not be able to play the MIDI file."
 msgstr "De MIDI-speler kon niet gevonden worden."
 
-#: easy_abc.py:8183
+#: easy_abc.py:8182
 #, python-format
 msgid "The executable %s could not be found"
 msgstr "De toepassing %s kon niet gevonden worden"
 
-#: easy_abc.py:8442
+#: easy_abc.py:8441
 msgid "Processed Abc Tune"
 msgstr "Uiteindelijke ABC-bestand"
 
@@ -1919,15 +1919,15 @@ msgstr "Overbinding"
 msgid "Whole measure"
 msgstr "Hele maat"
 
-#: tune_actions.py:798 tune_actions.py:1452
+#: tune_actions.py:798 tune_actions.py:1475
 msgid "Optional sharp"
 msgstr "Optionele kruis"
 
-#: tune_actions.py:799 tune_actions.py:1453
+#: tune_actions.py:799 tune_actions.py:1476
 msgid "Optional natural"
 msgstr "Optioneel herstellingsteken"
 
-#: tune_actions.py:800 tune_actions.py:1454
+#: tune_actions.py:800 tune_actions.py:1477
 msgid "Optional flat"
 msgstr "Optionele mol"
 
@@ -2312,7 +2312,7 @@ msgstr "Tweede omkering"
 msgid "Change bass note"
 msgstr "Verander basnoot"
 
-#: tune_actions.py:1217 tune_actions.py:1605
+#: tune_actions.py:1217 tune_actions.py:1697
 msgid "Normal"
 msgstr "Normaal"
 
@@ -2328,316 +2328,348 @@ msgstr "Verander legatoboog"
 msgid "Change redefinable symbol"
 msgstr "Ander herdefinieerbaar symbool"
 
-#: tune_actions.py:1271
+#: tune_actions.py:1252
+msgid "Change channel"
+msgstr "Ander kanaal"
+
+#: tune_actions.py:1263
+msgid "Change instrument"
+msgstr "Ander instrument"
+
+#: tune_actions.py:1294
 #, python-brace-format
 msgid "Learn {0}..."
 msgstr "Leer {0}"
 
-#: tune_actions.py:1274
+#: tune_actions.py:1297
 msgid "more"
 msgstr "meer"
 
-#: tune_actions.py:1315
+#: tune_actions.py:1338
 msgid "Full ABC specification"
 msgstr "Volledige ABC-beschrijving (engels)"
 
-#: tune_actions.py:1327
+#: tune_actions.py:1350
 msgid "New tune"
 msgstr "Nieuwe compositie"
 
-#: tune_actions.py:1337
+#: tune_actions.py:1360
 msgid "Unknown composer"
 msgstr "Onbekende componist"
 
-#: tune_actions.py:1352
+#: tune_actions.py:1375
 msgid "Add voice"
 msgstr "Stem/partij toevoegen"
 
-#: tune_actions.py:1368
+#: tune_actions.py:1391
 msgid "Replace invalid characters"
 msgstr "Herstel ongeldige tekens"
 
-#: tune_actions.py:1390
+#: tune_actions.py:1413
 msgid "New line"
 msgstr "Nieuwe regel"
 
-#: tune_actions.py:1405
+#: tune_actions.py:1428
 msgid "Space"
 msgstr "Ruimte"
 
-#: tune_actions.py:1421
+#: tune_actions.py:1444
 msgid "New note/rest"
 msgstr "Noot/rust toevoegen"
 
-#: tune_actions.py:1450 tune_elements.py:848 tune_elements.py:914
+#: tune_actions.py:1473 tune_elements.py:848 tune_elements.py:914
 msgid "Chord symbol"
 msgstr "Akkoordaanduiding"
 
-#: tune_actions.py:1451
+#: tune_actions.py:1474
 msgid "Between parenthesis"
 msgstr "Tussen haakjes"
 
-#: tune_actions.py:1457
+#: tune_actions.py:1480
 msgid "Insert annotation or chord"
 msgstr "Annotatie of akkoord"
 
-#: tune_actions.py:1469 tune_elements.py:761
+#: tune_actions.py:1492 tune_elements.py:761
 msgid "Ornament"
 msgstr "Versiering"
 
-#: tune_actions.py:1470 tune_elements.py:796
+#: tune_actions.py:1493 tune_elements.py:796
 msgid "Articulation"
 msgstr "Articulatie"
 
-#: tune_actions.py:1471 tune_elements.py:775
+#: tune_actions.py:1494 tune_elements.py:775
 msgid "Direction"
 msgstr "Aanwijzing"
 
-#: tune_actions.py:1472 tune_elements.py:743
+#: tune_actions.py:1495 tune_elements.py:743
 msgid "Fingering"
 msgstr "Vingerzetting"
 
-#: tune_actions.py:1475
+#: tune_actions.py:1498
 msgid "Insert decoration"
 msgstr "Versiering invoegen"
 
-#: tune_actions.py:1486
+#: tune_actions.py:1509
 msgid "Add slur"
 msgstr "Legatoboog toevoegen"
 
-#: tune_actions.py:1497
+#: tune_actions.py:1520
 msgid "Add bar"
 msgstr "Maatstreep toevoegen"
 
-#: tune_actions.py:1539
+#: tune_actions.py:1562
 msgid "Combine using beam"
 msgstr "Verbinden met waarderingsstreep"
 
-#: tune_actions.py:1551
+#: tune_actions.py:1574
 msgid "Combine to chord"
 msgstr "Combineren tot een akkoord"
 
-#: tune_actions.py:1563
+#: tune_actions.py:1586
 msgid "Make triplets"
 msgstr "Maak triolen"
 
-#: tune_actions.py:1575 tune_actions.py:1579 tune_actions.py:1580
+#: tune_actions.py:1662
+msgid "Change font"
+msgstr "Wijzig lettertype"
+
+#: tune_actions.py:1667 tune_actions.py:1671 tune_actions.py:1672
 msgid "Page width"
 msgstr "Paginabreedte"
 
-#: tune_actions.py:1576
+#: tune_actions.py:1668
 msgid "Page height"
 msgstr "Paginahoogte"
 
-#: tune_actions.py:1577
+#: tune_actions.py:1669
 msgid "Top margin"
 msgstr "Bovenmarge"
 
-#: tune_actions.py:1578
+#: tune_actions.py:1670
 msgid "Bottom margin"
 msgstr "Ondermarge"
 
-#: tune_actions.py:1581
+#: tune_actions.py:1673
 msgid "Staff width"
 msgstr "Breedte notenbalk"
 
-#: tune_actions.py:1582
+#: tune_actions.py:1674
 msgid "Page orientation"
 msgstr "Afdrukstand"
 
-#: tune_actions.py:1585
+#: tune_actions.py:1677
 msgid "Change page format"
 msgstr "Andere paginaindeling"
 
-#: tune_actions.py:1591
+#: tune_actions.py:1683
 msgid "Start of every line"
 msgstr "Begin van de regel"
 
-#: tune_actions.py:1592
+#: tune_actions.py:1684
 msgid "Every measure"
 msgstr "Elke maat"
 
-#: tune_actions.py:1593
+#: tune_actions.py:1685
 msgid "Every 2 measures"
 msgstr "Elke 2 maten"
 
-#: tune_actions.py:1594
+#: tune_actions.py:1686
 msgid "Every 4 measures"
 msgstr "Elke 4 maten"
 
-#: tune_actions.py:1595
+#: tune_actions.py:1687
 msgid "Every 5 measures"
 msgstr "Elke 5 maten"
 
-#: tune_actions.py:1596
+#: tune_actions.py:1688
 msgid "Every 8 measures"
 msgstr "Elke 8 maten"
 
-#: tune_actions.py:1597
+#: tune_actions.py:1689
 msgid "Every 10 measures"
 msgstr "Elke 10 maten"
 
-#: tune_actions.py:1600
+#: tune_actions.py:1692
 msgid "Show measure numbers"
 msgstr "Toon maatnummers"
 
-#: tune_actions.py:1606
+#: tune_actions.py:1698
 msgid "Boxed"
 msgstr "Omkaderd"
 
-#: tune_actions.py:1609
+#: tune_actions.py:1701
 msgid "Show measure box"
 msgstr "Toon maatnummer omkaderd"
 
-#: tune_actions.py:1614
+#: tune_actions.py:1706
 msgid "Zero"
 msgstr "Nul"
 
-#: tune_actions.py:1615
+#: tune_actions.py:1707
 msgid "One"
 msgstr "Eén"
 
-#: tune_actions.py:1618
+#: tune_actions.py:1710
 msgid "First measure number"
 msgstr "Eerste maatnummer"
 
-#: tune_actions.py:1623
+#: tune_actions.py:1715
 msgid "Title font"
 msgstr "Lettertype titel"
 
-#: tune_actions.py:1624
+#: tune_actions.py:1716
 msgid "Subtitle font"
 msgstr "Lettertype subtitel"
 
-#: tune_actions.py:1625
+#: tune_actions.py:1717
 msgid "Composer font"
 msgstr "Lettertype componist"
 
-#: tune_actions.py:1626
+#: tune_actions.py:1718
 msgid "Parts font"
 msgstr "Lettertype onderdelen"
 
-#: tune_actions.py:1627
+#: tune_actions.py:1719
 msgid "Tempo font"
 msgstr "Lettertype tempo-aanduiding"
 
-#: tune_actions.py:1628
+#: tune_actions.py:1720
 msgid "Guitar chord font"
 msgstr "Lettertype gitaarakkoorden"
 
-#: tune_actions.py:1629
+#: tune_actions.py:1721
 msgid "Annotation font"
 msgstr "Lettertype annotatie"
 
-#: tune_actions.py:1630
+#: tune_actions.py:1722
 msgid "Info font"
 msgstr "Lettertype voor informatie"
 
-#: tune_actions.py:1631
+#: tune_actions.py:1723
 msgid "Text font"
 msgstr "Lettertype voor tekst"
 
-#: tune_actions.py:1632
+#: tune_actions.py:1724
 msgid "Vocal font"
 msgstr "Lettertype voor zangstem"
 
-#: tune_actions.py:1633
+#: tune_actions.py:1725
 msgid "Words font"
 msgstr "Lettertype voor woorden"
 
-#: tune_actions.py:1634
+#: tune_actions.py:1726
 msgid "Custom font 1"
 msgstr ""
 
-#: tune_actions.py:1635
+#: tune_actions.py:1727
 msgid "Custom font 2"
 msgstr ""
 
-#: tune_actions.py:1636
+#: tune_actions.py:1728
 msgid "Custom font 3"
 msgstr ""
 
-#: tune_actions.py:1637
+#: tune_actions.py:1729
 msgid "Custom font 4"
 msgstr ""
 
-#: tune_actions.py:1640
+#: tune_actions.py:1732
 msgid "Change font directive"
 msgstr "Ander lettertype"
 
-#: tune_actions.py:1645
+#: tune_actions.py:1737
 msgid "Page scale factor"
 msgstr "Schaal"
 
-#: tune_actions.py:1646
+#: tune_actions.py:1738
 msgid "Staff scale factor"
 msgstr "Notenbalkschaal"
 
-#: tune_actions.py:1649
+#: tune_actions.py:1741
 msgid "Change scale directive"
 msgstr "Andere schaal"
 
-#: tune_actions.py:1654
+#: tune_actions.py:1746
 msgid "MIDI"
 msgstr "MIDI"
 
-#: tune_actions.py:1655
+#: tune_actions.py:1747
 msgid "Page layout"
 msgstr "Paginaopmaak"
 
-#: tune_actions.py:1656
+#: tune_actions.py:1748
 msgid "Scale"
 msgstr "Schaal"
 
-#: tune_actions.py:1657
+#: tune_actions.py:1749
 msgid "Font"
 msgstr "Lettertype"
 
-#: tune_actions.py:1660
+#: tune_actions.py:1752
 msgid "Insert directive"
 msgstr "Aanwijziging invoegen"
 
-#: tune_actions.py:1665
+#: tune_actions.py:1757
 msgid "break between syllables within a word"
 msgstr "Scheiding tussen lettergrepen"
 
-#: tune_actions.py:1666
+#: tune_actions.py:1758
 msgid "previous syllable is to be held for an extra note"
 msgstr "Vorige lettergreep aanhouden"
 
-#: tune_actions.py:1667
+#: tune_actions.py:1759
 msgid "one note is skipped (* is equivalent to a blank syllable)"
 msgstr "Noot overslaan"
 
-#: tune_actions.py:1668
+#: tune_actions.py:1760
 msgid "appears as a space; aligns multiple words under one note"
 msgstr "Getoond als spatie; meerdere woorden per noot"
 
-#: tune_actions.py:1669
+#: tune_actions.py:1761
 msgid "appears as hyphen; aligns multiple syllables under one note"
 msgstr "Verbindingstreepje; meerdere lettergrepen per noot"
 
-#: tune_actions.py:1670 tune_actions.py:1679
+#: tune_actions.py:1762 tune_actions.py:1771
 msgid "advances to the next bar"
 msgstr "Naar volgende maat"
 
-#: tune_actions.py:1673 tune_actions.py:1682
+#: tune_actions.py:1765 tune_actions.py:1774
 msgid "Insert align symbol"
 msgstr "Uitlijnsymbool invoegen"
 
-#: tune_actions.py:1678
+#: tune_actions.py:1770
 msgid "one note is skipped"
 msgstr "een noot wordt overgeslagen"
 
-#: tune_actions.py:1687 tune_actions.py:1707
+#: tune_actions.py:1779 tune_actions.py:1799
 msgid "Key / clef"
 msgstr "Toonsoort / sleutel"
 
-#: tune_actions.py:1692 tune_actions.py:1716
+#: tune_actions.py:1784 tune_actions.py:1808
 msgid "Change..."
 msgstr "Verander..."
 
-#: tune_actions.py:1737
+#: tune_actions.py:1816
+msgid "Single voice"
+msgstr "Enkele balk"
+
+#: tune_actions.py:1817
+msgid "Piano"
+msgstr "Piano"
+
+#: tune_actions.py:1818
+msgid "Choir"
+msgstr "Koor (SATB)"
+
+#: tune_actions.py:1819
+msgid "Solo with piano"
+msgstr "Solo met piano"
+
+#: tune_actions.py:1824
+msgid "Multiple voices"
+msgstr "Meerdere stemmen"
+
+#: tune_actions.py:1854
 msgid "Remove"
 msgstr "Weghalen"
 
@@ -3218,30 +3250,6 @@ msgid ""
 msgstr ""
 "In abc-code een nieuwe regel in de code is ook een nieuwe regel in de "
 "bladmuziek. Een backslash voorkomt een nieuwe regel."
-
-#~ msgid "Change channel"
-#~ msgstr "Ander kanaal"
-
-#~ msgid "Change instrument"
-#~ msgstr "Ander instrument"
-
-#~ msgid "Change font"
-#~ msgstr "Wijzig lettertype"
-
-#~ msgid "Single voice"
-#~ msgstr "Enkele balk"
-
-#~ msgid "Piano"
-#~ msgstr "Piano"
-
-#~ msgid "Choir"
-#~ msgstr "Koor (SATB)"
-
-#~ msgid "Solo with piano"
-#~ msgstr "Solo met piano"
-
-#~ msgid "Multiple voices"
-#~ msgstr "Meerdere stemmen"
 
 #~ msgid "Scales the separation between staff lines. Recommended value 0.80."
 #~ msgstr "Schaalt de scheiding tussen notenbalken. Recommended value 0.80."

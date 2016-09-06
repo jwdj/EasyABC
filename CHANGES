@@ -521,9 +521,3 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - more Python 3 issues fixed
 - several minor bugfixes
 - Linux only: looks for needed executables in /usr/bin and /usr/local/bin
-
-1.3.7.6
-- German translation added (thanks to Bernhard Weichel)
-- Small tweaks for 'Follow score'
-- Music score window can now be docked elsewhere (for example next to the editor window)
-
