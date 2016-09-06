@@ -4034,6 +4034,7 @@ class MainFrame(wx.Frame):
         self.editor.SetDropTarget(MyFileDropTarget(self))
         self.tune_list.SetDropTarget(MyFileDropTarget(self))
         self.music_pane.SetDropTarget(MyFileDropTarget(self))
+        self.abc_assist_panel.SetDropTarget(MyFileDropTarget(self))
         self.GetMenuBar().SetDropTarget(MyFileDropTarget(self))
 
         self.tune_list_last_width = self.tune_list.GetSize().width
@@ -4098,6 +4099,7 @@ class MainFrame(wx.Frame):
 
         self.OnClearCache(None) # P09 2014-10-26
 
+        self.manager.GetPane(self.music_pane).Dockable(True) # 1.3.7.6 score pane movable
         # 1.3.7 [JWdJ] 2016-01-06
         self.ShowAbcAssist(self.settings.get('show_abc_assist', True))
 
@@ -4644,8 +4646,8 @@ class MainFrame(wx.Frame):
             try:
                 self.music_pane.draw_notes_highlighted(current_time_slice.indices)
             except:
-                self.music_and_score_out_of_sync()
-                return
+                pass
+                # self.music_and_score_out_of_sync()
 
         # turning pages and going to next line has to be done slighty earlier
         future_offset = offset + 500  # 0.5 seconds should do
@@ -4673,7 +4675,8 @@ class MainFrame(wx.Frame):
                     self.last_played_svg_row = future_time_slice.svg_row
                     self.scroll_to_notes(self.music_pane.current_page, future_time_slice.indices)
             except:
-                self.music_and_score_out_of_sync()
+                pass
+                # self.music_and_score_out_of_sync()
 
     def scroll_to_notes(self, page, indices):
         if not indices:
@@ -7418,7 +7421,6 @@ class MainFrame(wx.Frame):
         while notes or active_notes:
             time_start = notes[0].start if notes else max_int 
             if time_start <= time_stop:
-                page = notes[0].page
                 same_note_start = list(takewhile(lambda n: n.start == time_start, notes))
                 notes = notes[len(same_note_start):]
                 active_notes += same_note_start
@@ -7430,9 +7432,10 @@ class MainFrame(wx.Frame):
                 time_stop = min(time_stop, active_notes[0].stop if active_notes else max_int)
 
             # adding a new slice
-            active_notes_same_page = [n for n in active_notes if n.page == page]
-            all_indices_for_time_slice = set().union(*[n.indices for n in active_notes_same_page])
-            svg_row = min([n.svg_row for n in active_notes_same_page]) if active_notes_same_page else 0
+            if active_notes:
+                page = max([n.page for n in active_notes])
+            all_indices_for_time_slice = set().union(*[n.indices for n in active_notes])
+            svg_row = min([n.svg_row for n in active_notes]) if active_notes else 0
             time_slices.append(MidiNote(time_start, time_stop, all_indices_for_time_slice, page, svg_row))
 
             # removing stopped notes
