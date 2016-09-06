@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EasyABC 1.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-14 20:22+0200\n"
-"PO-Revision-Date: 2016-08-14 20:23+0200\n"
+"POT-Creation-Date: 2016-08-20 09:28+0200\n"
+"PO-Revision-Date: 2016-09-06 09:49+0200\n"
 "Last-Translator: Bernhard Weichel <poedit@nospam.weichel21.de>\n"
 "Language-Team: EasyABC <info@nilsliberg.se>\n"
 "Language: de_DE\n"
@@ -21,40 +21,43 @@ msgstr ""
 #: easy_abc.py:1184 easy_abc.py:1216 easy_abc.py:1755 easy_abc.py:1839
 #, python-format
 msgid "%(program)s exited abnormally (errorcode %(error)#8x)"
-msgstr ""
+msgstr "%(program)s wurde nicht normal beendet (fehlercode %(error)#8x)"
 
 #: easy_abc.py:1236
 msgid "Disassembled Midi File"
-msgstr ""
+msgstr "Midi File umgewandelt"
 
 #: easy_abc.py:1242
 msgid ""
 "Cannot find the executable midi2abc. Be sure it is in your bin folder and "
 "its path is defined in ABC Setup/File Settings."
 msgstr ""
+"Kann das ausführbare Programm midi2abc nicht finden. Bitte stellen Sie "
+"sicher, dass es in Ihrem ‚bin‘ ordernder liegt und der Pfad in den ABC "
+"Einstellungen/Datei definiert ist."
 
 #: easy_abc.py:1242 easy_abc.py:4524 easy_abc.py:6113 easy_abc.py:7915
 msgid "Error"
-msgstr "Feiler"
+msgstr "Fehler"
 
 #: easy_abc.py:1468 easy_abc.py:7937
 #, python-brace-format
 msgid "{0} reported some errors"
-msgstr ""
+msgstr "{0} berichtete Fehler"
 
 #: easy_abc.py:1470 easy_abc.py:7939
 #, python-brace-format
 msgid "{0} reported some warnings"
-msgstr ""
+msgstr "{0} berichtete Warnungen"
 
 #: easy_abc.py:1843
 #, python-format
 msgid "Error during conversion of %(filename)s: %(error)s"
-msgstr "Fehler beim Konvertiten von  %(filename)s: %(error)s"
+msgstr "Fehler beim Konvertieren von  %(filename)s: %(error)s"
 
 #: easy_abc.py:1864
 msgid "EasyABC music"
-msgstr ""
+msgstr "EasyABC Musik"
 
 #: easy_abc.py:2252
 msgid "Field"
@@ -103,67 +106,67 @@ msgstr "&Abbrechen"
 
 #: easy_abc.py:2362
 msgid "Abc settings"
-msgstr ""
+msgstr "Abc Einstellungen"
 
 #: easy_abc.py:2373
 msgid "Abcm2ps"
-msgstr ""
+msgstr "Abcm2ps"
 
 #: easy_abc.py:2374
 msgid "Abc2midi"
-msgstr ""
+msgstr "Abc2midi"
 
 #: easy_abc.py:2375
 msgid "Voices"
-msgstr ""
+msgstr "Stimmen"
 
 #: easy_abc.py:2376
 msgid "Xml"
-msgstr ""
+msgstr "Xml"
 
 #: easy_abc.py:2377
 msgid "File Settings"
-msgstr ""
+msgstr "Dateieinstellungen"
 
 #: easy_abc.py:2399
 msgid "abcm2ps executable:"
-msgstr "abcm2ps executable:"
+msgstr "ausführbares abcm2ps:"
 
 #: easy_abc.py:2399
 msgid "This executable is used to display the music"
-msgstr ""
+msgstr "Dieses Programm wird verwendet um die Musik anzuzeigen:"
 
 #: easy_abc.py:2400
 msgid "abc2midi executable:"
-msgstr "abc2midi executable:"
+msgstr "ausführbares abc2midi:"
 
 #: easy_abc.py:2400
 msgid "This executable is used to make the midi file"
-msgstr ""
+msgstr "Dieses Programm wird verwendet um die Musik wiederzugeben:"
 
 #: easy_abc.py:2401
 msgid "abc2abc executable:"
-msgstr "abc2abc executable:"
+msgstr "ausführbares Programm abc2abc"
 
 #: easy_abc.py:2401
 msgid "This executable is used to transpose the music"
-msgstr ""
+msgstr "Dieses Programm wird verwendet um die Musik zu transponieren:"
 
 #: easy_abc.py:2403
 msgid "midi2abc executable:"
-msgstr ""
+msgstr "ausführbares Programm midi2abc"
 
 #: easy_abc.py:2403
 msgid "This executable is used to disassemble the output midi file"
-msgstr ""
+msgstr "Dieses Programm wird verwendet um die Mdii Datei umzuwandeln"
 
 #: easy_abc.py:2404
 msgid "ghostscript executable:"
-msgstr ""
+msgstr "ausführbares ghostscript"
 
 #: easy_abc.py:2404
 msgid "This executable is used to create PDF files"
-msgstr ""
+msgstr "Dieses Programm wird verwendet um die PDF Dateien zu erzeugen"
 
 #: easy_abc.py:2405
 msgid "nwc2xml executable:"
@@ -171,46 +174,49 @@ msgstr "nwc2xml executable:"
 
 #: easy_abc.py:2405
 msgid "For NoteWorthy Composer - Windows only"
-msgstr ""
+msgstr "Für NoteWorthy Composer - nur Windows"
 
 #: easy_abc.py:2406
 msgid "midiplayer:"
-msgstr ""
+msgstr "midiplayer:"
 
 #: easy_abc.py:2406
 msgid "Your preferred MIDI player"
-msgstr ""
+msgstr "Ihr bevorzugter MIDI player"
 
 #: easy_abc.py:2414
 msgid "Restore settings"
-msgstr ""
+msgstr "Einstellungen wiederherstellen"
 
 #: easy_abc.py:2415
 msgid ""
 "Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when "
 "blank"
 msgstr ""
+"Einstellungen für Dateipfade zu abcm2ps, abc2midi, abc2abc, ghostscript "
+"wieder herstellen wenn leer gelassen"
 
 #: easy_abc.py:2419
 msgid "Extra MIDI player parameters"
-msgstr ""
+msgstr "Extra MIDI player parameter"
 
 #: easy_abc.py:2424 easy_abc.py:2468
 msgid "File paths to required executables"
-msgstr ""
+msgstr "Dateipfade zu den notwendigen ausführbaren Programmen"
 
 #: easy_abc.py:2453 easy_abc.py:3115
 msgid "Browse..."
-msgstr "Browse..."
+msgstr "Stöbern..."
 
 #: easy_abc.py:2479
 msgid "Include file header when rendering tunes"
-msgstr "Dateileader einbeziehen zum Rendern der Melodieen"
+msgstr "Datei-Header einbeziehen zum Rendern der Stücke"
 
 #: easy_abc.py:2513
 msgid "Choose a file"
 msgstr "Wählen Sie eine Datei"
 
+# Here we have a typo in the Source text : abcmp2s -> abcm2ps
 #: easy_abc.py:2554
 msgid ""
 "This button will restore some of the paths to the executables (abcmp2s, "
@@ -219,10 +225,17 @@ msgid ""
 "You can do this by selecting the entry box, cntr-A to select all and cntr-X "
 "to delete. If this was not done, click Cancel first and then try again."
 msgstr ""
+"Diese Schaltfläche stellt für einige der Pfade zu ausführbaren Programmen "
+"die Voreinstellung wieder her (abcm2ps, abc2midi, etc.). Damit das Programm "
+"weiß, welche Pfade es wieder herstellen soll, müssen sie diese Pfade löschen "
+"bevor Sie weiter machen. Sie können das tun in dem Sie in das Eingabefeld "
+"gehen, mit Strg-A den kompletten Inhalt auswählen und mit Strg-X löschen. "
+"Wenn Sie das noch nicht getan haben, klicken Sie \"Abbrechen\" und versuchen "
+"Sie es erneut."
 
 #: easy_abc.py:2558 easy_abc.py:3369 easy_abc.py:6316
 msgid "Proceed?"
-msgstr ""
+msgstr "Weitermachen?"
 
 #: easy_abc.py:2607
 msgid "Play chords"
@@ -230,97 +243,100 @@ msgstr "Akkorde wiedergeben"
 
 #: easy_abc.py:2638
 msgid "Ignore Dynamics"
-msgstr ""
+msgstr "Dynamics ignorieren"
 
 #: easy_abc.py:2639
 msgid "Ignore Fermatas"
-msgstr ""
+msgstr "Fermaten ignorieren"
 
 #: easy_abc.py:2640
 msgid "No Grace Notes"
-msgstr ""
+msgstr "keine Grace Notes (Verzierungen)"
 
 #: easy_abc.py:2641
 msgid "Barfly Mode"
-msgstr ""
+msgstr "Barfly Modus"
 
 #: easy_abc.py:2642
 msgid "Count in"
-msgstr ""
+msgstr "Einzählen"
 
 #: easy_abc.py:2645
 msgid "gchord pattern"
-msgstr ""
+msgstr "gchord Muster"
 
 #: easy_abc.py:2651
 msgid "Instrument for playback: "
-msgstr ""
+msgstr "Instrument für Wiedergabe"
 
 #: easy_abc.py:2655
 msgid "Instrument for chord's playback: "
-msgstr ""
+msgstr "Instrument für Wiedergabe der Akkorde"
 
 #: easy_abc.py:2659
 msgid "Instrument for bass chord's playback: "
-msgstr ""
+msgstr "Instrument für Wiedergabe der Bass-Akkorde"
 
 #: easy_abc.py:2665
 msgid "Default Tempo: "
-msgstr ""
+msgstr "Standardtempo:"
 
 #: easy_abc.py:2668
 msgid "Transposition: "
-msgstr ""
+msgstr "Transponierung:"
 
 #: easy_abc.py:2671
 msgid "Tuning: "
-msgstr ""
+msgstr "Stimmung:"
 
 #: easy_abc.py:2705
 msgid "Quarter notes per minute"
-msgstr ""
+msgstr "Viertelnoten pro Minute"
 
 #: easy_abc.py:2706
 msgid "Volume level for chordal accompaniment"
-msgstr ""
+msgstr "Lautstärke für Akkordbegleitung"
 
 #: easy_abc.py:2707
 msgid "Volume level for bass accompaniment"
-msgstr ""
+msgstr "Lautstärke für Bassbegleitung"
 
+# Don’t know what „Barfly“ is. So I left it untranslated
 #: easy_abc.py:2708
 msgid ""
 "The Barfly stress model is enabled provided the rhythm designator (R:) is "
 "recognized"
 msgstr ""
+"Das Barfly Stressmodell ist eingeschaltet, vorausgesetzt die Rhymusangabe "
+"(R:) wurde erkannt"
 
 #: easy_abc.py:2709
 msgid "Dynamic markings like ff mp pp etc. are ignored if enabled"
-msgstr ""
+msgstr "Dynamik marken wie ff, mp, pp etc. werden ignoriert wenn ausgewählt"
 
 #: easy_abc.py:2710
 msgid "Fermata markings are ignored if enabled"
-msgstr ""
+msgstr "Fermaten werden ignoriert wenn ausgewählt"
 
 #: easy_abc.py:2711
 msgid "Grace notes are ignored if enabled"
-msgstr ""
+msgstr "Verzierungen werden ignoriert wenn ausgewählt"
 
 #: easy_abc.py:2712
 msgid "Transpose by the number of semitones"
-msgstr ""
+msgstr "Transponiere um die Anzahl an Halbtonschritten"
 
 #: easy_abc.py:2713
 msgid "Frequency of A in Hz"
-msgstr ""
+msgstr "Frequenz von A in Hz"
 
 #: easy_abc.py:2714
 msgid "Two rest bars before music starts"
-msgstr ""
+msgstr "Zwei Pausentakte vor der Musik"
 
 #: easy_abc.py:2715
 msgid "Volume of melody line if the tune does not have any voices"
-msgstr ""
+msgstr "Lautstärke der Melodie wenn das Stück keine Stimmen enthält"
 
 #: easy_abc.py:2764
 msgid ""
@@ -330,33 +346,40 @@ msgid ""
 "G --> C,, H --> E,, I --> G,,\n"
 "J --> B,"
 msgstr ""
+"for Akkord C:\n"
+"f --> C,,  c -> [C,E,G] z --> rest\n"
+"g --> C, h --> E, i --> G, j--> B,\n"
+"G --> C,, H --> E,, I --> G,,\n"
+"J --> B,"
 
 #: easy_abc.py:2877
 msgid "Default instrument:"
-msgstr ""
+msgstr "Standardinstrument:"
 
 #: easy_abc.py:2878
 msgid "Main Volume:"
-msgstr ""
+msgstr "Gesamtlautstärke:"
 
 #: easy_abc.py:2879
 msgid "L/R Balance:"
-msgstr ""
+msgstr "L/R Balance:"
 
 #: easy_abc.py:2895
 #, python-format
 msgid "Voice n.%d: "
-msgstr ""
+msgstr "Stimme n.%d:"
 
 #: easy_abc.py:2922
 msgid "&Reset"
-msgstr ""
+msgstr "&Zurücksetzen"
 
 #: easy_abc.py:2925
 msgid ""
 "The instrument for all voices is set to the default midi program. The volume "
 "and pan are set to 96/64."
 msgstr ""
+"Das Instrument für alle Stimmen wir auf das MIDI Programm zurückgesetzt. Die "
+"Lautstärke und Balance wird auf 96/64 gestellt."
 
 #: easy_abc.py:3011
 msgid "Midi device settings"
@@ -371,7 +394,7 @@ msgid "Output device"
 msgstr "Midi Ausgabegerät"
 
 #: easy_abc.py:3019 easy_abc.py:3021 tune_actions.py:902 tune_actions.py:1022
-#: tune_actions.py:1682
+#: tune_actions.py:1590
 msgid "None"
 msgstr "nichts"
 
@@ -380,96 +403,107 @@ msgid ""
 "The options in this page controls how the music score is displayed.\n"
 "\n"
 msgstr ""
+"Die Optionen auf dieser Seite bestimmen die Darstellung der Notensysteme.\n"
+"\n"
 
 #: easy_abc.py:3090
 msgid "No page settings"
-msgstr ""
+msgstr "Keine Seiteneinstellungen"
 
 #: easy_abc.py:3091
 msgid "EasyABC defaults"
-msgstr ""
+msgstr "EasyABC Standardeinstellungen"
 
+# Don’t now if it means:
+# * use bar numbers (einbeziehen)
+# * show bar numbers (anzeigen)
 #: easy_abc.py:3092
 msgid "Include bar numbers"
-msgstr ""
+msgstr "Taktnummern anzeigen"
 
 #: easy_abc.py:3093
 msgid "Add X reference number"
-msgstr ""
+msgstr "X: Referenznummer hinzufügen"
 
 #: easy_abc.py:3094
 msgid "Suppress lyrics"
-msgstr ""
+msgstr "Liedtexte unterdrücken"
 
 #: easy_abc.py:3095
 msgid "Ignore line ends"
-msgstr ""
+msgstr "Zeilenenden ignorieren"
 
 #: easy_abc.py:3096
 msgid "Left margin (cm)"
-msgstr ""
+msgstr "Linker Rand (cm)"
 
 #: easy_abc.py:3097
 msgid "Right margin (cm)"
-msgstr ""
+msgstr "Rechter Rand (cm)"
 
 #: easy_abc.py:3098
 msgid "Top margin (cm)"
-msgstr ""
+msgstr "Oberer Rand (cm)"
 
 #: easy_abc.py:3099
 msgid "Bottom margin (cm)"
-msgstr ""
+msgstr "Unterer Rand (cm)"
 
 #: easy_abc.py:3101
 msgid "Page width (cm)"
-msgstr ""
+msgstr "Seitenbreite (cm)"
 
 #: easy_abc.py:3102
 msgid "Page height (cm)"
-msgstr ""
+msgstr "Seitenhöhe (cm)"
 
 #: easy_abc.py:3104
 msgid "Extra parameters"
-msgstr ""
+msgstr "Extra Parameter"
 
 #: easy_abc.py:3106
 msgid "Format file"
-msgstr ""
+msgstr "Formatdatei"
 
 #: easy_abc.py:3117
 msgid "Scale factor (eg. 0.8)"
-msgstr ""
+msgstr "Skalierungsfaktor (z.B. 0.8)"
 
 #: easy_abc.py:3132 easy_abc.py:3133 easy_abc.py:3134 easy_abc.py:3135
 #: easy_abc.py:3136 easy_abc.py:3137
 #, python-brace-format
 msgid "The default is {0}"
-msgstr ""
+msgstr "Die Voreinstellung ist {0}"
 
 #: easy_abc.py:3138
 msgid "Additional command line parameters to abcm2ps"
-msgstr "Yderligere kommando linie parametre til abcm2ps"
+msgstr "Zusätzliche Kommandozeilenparameter für abcm2ps"
 
 #: easy_abc.py:3139
 msgid "Right click the mouse to remove all choices"
 msgstr ""
+"Klicken Sie mit der rechten Maustaste um alle Markierungen zu entfernen"
 
 #: easy_abc.py:3149
 msgid "Use the factory page settings of EasyABC"
-msgstr ""
+msgstr "Verwende die Seiteneinstellungen von EasyABC"
 
 #: easy_abc.py:3151
 msgid "Do not add page settings"
-msgstr ""
+msgstr "Keine Seiten Einstellungen hinzufügen"
+
+#: easy_abc.py:3195
+#, python-brace-format
+msgid "Scales the separation between staff lines. Recommended value is {0}."
+msgstr "Skaliert den Abstand zwischen den Notenzeilen. Empfohlener Wert: {0}"
 
 #: easy_abc.py:3369
 msgid "This will remove the selections in the combobox."
-msgstr ""
+msgstr "Dies entfernt alle Markierungen in der Combobox."
 
 #: easy_abc.py:3386
 msgid "Find PostScript format file"
-msgstr ""
+msgstr "Suche die Postscript Formatdatei"
 
 #: easy_abc.py:3418
 msgid ""
@@ -484,16 +518,72 @@ msgid ""
 "distributions available from the Wim Vree's web site.\n"
 "\n"
 msgstr ""
+"Die Einstellungen auf dieser Seite bestimmen das Verhalten der Funktionen "
+"abc2xml und xml2abc.\n"
+"Sie finden diese Funktionen unter Datei/export und Import. Wenn Sie die Maus "
+"über eine der Auswahlboxen bewegen\n"
+"erhalten Sie weitere Erklärungen. Weiterführende Dokumentation finden Sie in "
+"den Readme.txt Dateien,\n"
+"in den abc2xml.py-??.zip bzw. xml2abc.py-??.zip Distributionen von Wim "
+"Vree's web site.\n"
+
+#: easy_abc.py:3421
+msgid "abc2xml options"
+msgstr "abc2xml Einstellungen"
+
+#: easy_abc.py:3422
+msgid "Compressed xml"
+msgstr "Komprimiertes XML"
+
+#: easy_abc.py:3423
+msgid "Page settings"
+msgstr "Seiteneinstellungen"
+
+#: easy_abc.py:3424
+msgid "Unfold Repeats"
+msgstr "Wiederholungen ausklappen"
+
+#: easy_abc.py:3425
+msgid "Midi Data"
+msgstr "Midi Daten"
+
+#: easy_abc.py:3426
+msgid "Volta type setting"
+msgstr "Einstellungen für Volta typen"
+
+#: easy_abc.py:3427
+msgid "xml2abc option"
+msgstr "xml2ab Einstellung"
+
+#: easy_abc.py:3428
+msgid "characters/line"
+msgstr "Zeichen/Zeile"
+
+#: easy_abc.py:3429
+msgid "bars per line"
+msgstr "Taktstriche pro Zeile"
+
+#: easy_abc.py:3430
+msgid "credit filter"
+msgstr "Autorenfilter"
+
+#: easy_abc.py:3431
+msgid "unit length"
+msgstr "Notenwert"
 
 #: easy_abc.py:3454
 msgid "When checked, abc2xml produces compressed xml files with extension mxl."
 msgstr ""
+"Wenn ausgewählt, produziert abc2xml komprimierte xml Dateien mit der "
+"Erweiterung mxl."
 
 #: easy_abc.py:3456
 msgid ""
 "When checked, xml2abc turns off repeat translation and instead unfolds "
 "simple repeats."
 msgstr ""
+"Wenn aktiviert, übersetzt  xml2abc die Wiederholungen nicht sondern faltet "
+"sie aus."
 
 #: easy_abc.py:3458
 msgid ""
@@ -501,6 +591,9 @@ msgid ""
 "channel number. These commands are output in addition to the midi program "
 "number when it is present in the xml file."
 msgstr ""
+"Wenn ausgewählt, erzeugt xml2abc Kommandos für Midi Lautstärke und Balacne "
+"und die Kanalnummer. Diese Kommandoes werden zusätzlich zur Midi "
+"Programmnummer erzeugt, wenn diese im xml file enthalten ist."
 
 #: easy_abc.py:3460
 msgid ""
@@ -509,6 +602,10 @@ msgid ""
 "left, right, top and bottom margins to 1.2 cm. If the page format is blank, "
 "default values are assumed."
 msgstr ""
+"Das Seitenformat enthält 6 nummern, z.B. 0.7,25,15,1.2,1.2,1.2,1.2  die die "
+"Skaliung einstellen: 0.7: Seitenhöhe auf 25cm, Seitenbreite auf 15cm, Ränder "
+"(links, rechts, oben, unten) auf 1.2 cm. Wenn das Seitenformat leer ist "
+"werden Voreinstellungen angeonmmen."
 
 #: easy_abc.py:3462
 msgid ""
@@ -516,29 +613,39 @@ msgid ""
 "characters. The default is 100 characters. An integer number of bars, at "
 "least one, is always output."
 msgstr ""
+"Wenn CPL (Zeichen pro Zeile) nicht 0 ist, wird die maximale Zeilenlänge der "
+"ABC - Ausgabe eingestellt. Die Voreinstellung ist 100 Zeichen. Eine Anzahl "
+"von ganzen Takten, mindestens einer, wird immer ausgegeben."
 
 #: easy_abc.py:3464
 msgid ""
 "When not zero, BPL sets the number of bars per line. If both CPL and BPL is "
 "given, only CPL is used."
 msgstr ""
+"Wenn nicht null, dann setzt BPL die Anzahl von Takten pro Zeile. Wenn beide "
+"CPL und BPL angegeben ist, wird nur CPL verwednet."
 
 #: easy_abc.py:3466
 msgid ""
 "This filter tries to eliminate redundant T: fields. A higher level (up to 6) "
 "does less filtering. The default is 0 which filters as much as possible."
 msgstr ""
+"Dieses Filter versucht, redundante T:-Felder zu bereinigen. Eine höhere zahl "
+"(bis zu 6) reduziert das Filter. Die Voreinstellung ist 0 und filtert so "
+"viel wie möglich."
 
 #: easy_abc.py:3468
 msgid ""
 "Unless D is 0, it sets the unit length for the output to abc field command "
 "L: 1/D. This overrides the computation of the optimal unit length."
 msgstr ""
+"Wenn D nicht 0 ist, stellt es den Standardnotenwert für die ABC-Kopfzeile L: "
+"1/D ein. Diese überschreibt die Berechnung des optimalen Standardnotenwertes."
 
 #: easy_abc.py:3470
 #, python-format
 msgid ""
-"The default (V=0) translates volta backets in all voices. V=1 prevents "
+"The default (V=0) translates volta brackets in all voices. V=1 prevents "
 "abcm2ps to write volta brackets on all but the first voice. (A %%repbra 0 "
 "command is added to each voice that hides its volta's.) When V=2 abcm2ps "
 "only typesets volta brackets on the first voice of each xml-part. When V=3 "
@@ -546,6 +653,19 @@ msgid ""
 "the same effect on the output of abcm2ps as V=1, but the abc code is not "
 "suited for abc2midi."
 msgstr ""
+"Die Voreinstllung (V=0) bestimmt die Darstellung der Voltenklammern "
+"(Klammern für variante Enden) in allen Stimmen. \n"
+"\n"
+"Bei V=1 werden die Voltenklammern bei allen bis auf die erste Stimme "
+"dargestellt. (Eine %%repbra 0 Anweisung wird bei allen Stimmen hinzugefügt, "
+"die ihrer Volten nicht darstellen.). \n"
+"\n"
+"Bei V=2 wird abcm2ps die Voltenklammern nur in der ersten Stimme eines jeden "
+"XML-Parts darstellen. \n"
+"\n"
+"Bei V=3 werden die Voltenklammern nur in der ersten ABC-Stimme dargestellt. "
+"Dies hat die gleiche Wirkung auf die Ausgabe von abcm2ps wie V=1, aber der "
+"ABC-Code ist nicht geeignet für abc2midi."
 
 #: easy_abc.py:3566
 msgid "ABC Options"
@@ -553,7 +673,7 @@ msgstr "ABC-Einstellungen"
 
 #: easy_abc.py:3571 tune_actions.py:905
 msgid "Key signature"
-msgstr ""
+msgstr "Tonart"
 
 #: easy_abc.py:3572 easy_abc.py:4749
 msgid "Metre"
@@ -561,7 +681,7 @@ msgstr "Taktart"
 
 #: easy_abc.py:3573
 msgid "Default note length"
-msgstr ""
+msgstr "Standardnotenwert"
 
 #: easy_abc.py:3574 easy_abc.py:3760 easy_abc.py:3979
 msgid "Title"
@@ -599,7 +719,7 @@ msgstr ""
 
 #: easy_abc.py:3638
 msgid "Errors"
-msgstr ""
+msgstr "Fehler"
 
 #: easy_abc.py:3681
 msgid "Converting..."
@@ -607,41 +727,41 @@ msgstr "Konvertiere …"
 
 #: easy_abc.py:3748
 msgid "Search files"
-msgstr ""
+msgstr "Suche Dateien"
 
 #: easy_abc.py:3752
 msgid "Folder"
-msgstr ""
+msgstr "Ordner"
 
 #: easy_abc.py:3755
 msgid "Browse"
-msgstr ""
+msgstr "Stöbern"
 
 #: easy_abc.py:3756
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 #: easy_abc.py:3758
 msgid "Search"
-msgstr ""
+msgstr "Suche"
 
 #: easy_abc.py:3790
 msgid "Open"
-msgstr ""
+msgstr "Öffnen"
 
 #: easy_abc.py:3790
 msgid "Choose a folder"
-msgstr ""
+msgstr "Ordner auswählen"
 
 #: easy_abc.py:3827
 msgid "Searching directory"
-msgstr ""
+msgstr "Suche Verzeichnis"
 
 #: easy_abc.py:3827 easy_abc.py:5414
 msgid "Remaining time"
-msgstr ""
+msgstr "Verbleibende Zeit"
 
-#: easy_abc.py:3896 easy_abc.py:4122 easy_abc.py:5360 tune_actions.py:1359
+#: easy_abc.py:3896 easy_abc.py:4122 easy_abc.py:5360 tune_actions.py:1336
 msgid "Untitled"
 msgstr "Unbenannt"
 
@@ -653,10 +773,14 @@ msgstr "Nr."
 msgid "ABC errors"
 msgstr "ABC-fehler"
 
+# Need to know where it is used to make a precise Translation:
+# Does it mean
+# ABC assistent - ABC Helfer
+# assist ABC - ABC Hilfe
 #: easy_abc.py:4008 easy_abc.py:4771 easy_abc.py:4772 easy_abc.py:4773
 #: easy_abc.py:8057
 msgid "ABC assist"
-msgstr ""
+msgstr "ABC  Hilfe"
 
 #: easy_abc.py:4012 easy_abc.py:8054
 msgid "Tune list"
@@ -668,11 +792,11 @@ msgstr "ABC-code"
 
 #: easy_abc.py:4014 easy_abc.py:8055
 msgid "Musical score"
-msgstr "Noten"
+msgstr "Partitur"
 
 #: easy_abc.py:4105
 msgid "This is the status bar. Check it occasionally."
-msgstr ""
+msgstr "Dies ist die Statuszeile. Bitte prüfen Sie diese von Zeit zu Zeit."
 
 #: easy_abc.py:4106
 #, python-brace-format
@@ -680,6 +804,9 @@ msgid ""
 "You are running {0} on {1}\n"
 "You can get the latest version on http://sourceforge.net/projects/easyabc/\n"
 msgstr ""
+"Sie verwenden {0} mit {1}\n"
+"Sie können die neueste Version von http://sourceforge.net/projects/easyabc/ "
+"beziehen\n"
 
 #: easy_abc.py:4220
 msgid "EasyABC - print preview"
@@ -690,10 +817,12 @@ msgid ""
 "There was a problem printing.\n"
 "Perhaps your current printer is not set correctly?"
 msgstr ""
+"Es gab ein Problem beim Ddrucken.\n"
+"Ist Ihre Druckereinstellung nicht korrekt?"
 
 #: easy_abc.py:4232
 msgid "Printing"
-msgstr ""
+msgstr "Drucke"
 
 #: easy_abc.py:4523
 #, python-format
@@ -706,7 +835,7 @@ msgstr "Schläge pro Minute (bpm)"
 
 #: easy_abc.py:4781
 msgid "Zoom"
-msgstr ""
+msgstr "Zoom"
 
 #: easy_abc.py:4790
 msgid "Page"
@@ -714,23 +843,27 @@ msgstr "Seite"
 
 #: easy_abc.py:4795 tune_elements.py:95
 msgid "Tempo"
-msgstr ""
+msgstr "Tempo"
 
 #: easy_abc.py:4798
 msgid "Play position"
-msgstr ""
+msgstr "Wiedergabeposition"
 
 #: easy_abc.py:4800
 msgid "Loop"
-msgstr ""
+msgstr "Schleife"
 
+# Dont’ know what it means
+# play along the score? -> Folge der Partitur
+# next Score -> nächste Partitur?
 #: easy_abc.py:4802
+#, fuzzy
 msgid "Follow score"
-msgstr ""
+msgstr "Folge der Partitur"
 
 #: easy_abc.py:4876 easy_abc.py:5918
 msgid "&Do-re-mi mode"
-msgstr ""
+msgstr "&Do-re-mi Modus"
 
 #: easy_abc.py:5007
 msgid "incipits"
@@ -780,19 +913,21 @@ msgstr "Midi-Datei"
 #: easy_abc.py:5147
 msgid "ghostscript was not found here. Go to settings and indicate the path"
 msgstr ""
+"Ghostscript wurde hier nicht gefunden. Gehen Sie zu Einstellungen und setzte "
+"Sie den Pfad."
 
 #: easy_abc.py:5147 easy_abc.py:8110 easy_abc.py:8121 easy_abc.py:8133
 #: easy_abc.py:8145 easy_abc.py:8154 easy_abc.py:8183
 msgid "Warning"
-msgstr ""
+msgstr "Warnung"
 
 #: easy_abc.py:5150
 msgid "PDF file"
-msgstr ""
+msgstr "PDF-Datei"
 
 #: easy_abc.py:5153
 msgid "SVG file"
-msgstr ""
+msgstr "SVG-Datei"
 
 #: easy_abc.py:5178 easy_abc.py:5650
 msgid "MusicXML"
@@ -800,16 +935,16 @@ msgstr "MusicXML"
 
 #: easy_abc.py:5181
 msgid "Compressed MusicXML"
-msgstr ""
+msgstr "Komprimiertes MusicXML"
 
 #: easy_abc.py:5196
 #, python-brace-format
 msgid "Error during conversion of X:{0} (\"{1}\"): {2}"
-msgstr ""
+msgstr "Fehler bei der Umsetzung von  X:{0} (\"{1}\"): {2}"
 
 #: easy_abc.py:5207 easy_abc.py:5231
 msgid "HTML file"
-msgstr ""
+msgstr "HTML-Datei"
 
 #: easy_abc.py:5256
 msgid "Export all tunes as ..."
@@ -817,7 +952,7 @@ msgstr "Alle Stücke exportieren als ..."
 
 #: easy_abc.py:5256
 msgid "Epub file"
-msgstr ""
+msgstr "Epub-Datei"
 
 #: easy_abc.py:5317 easy_abc.py:5631 easy_abc.py:5648 easy_abc.py:5782
 msgid "ABC file"
@@ -830,28 +965,28 @@ msgstr "Stück exportieren als ..."
 #: easy_abc.py:5352
 #, python-brace-format
 msgid "{0} was written"
-msgstr ""
+msgstr "{0} wurde geschrieben"
 
 #: easy_abc.py:5396
 msgid "Choose a directory..."
-msgstr ""
+msgstr "Wählen Sie ein Verzeichnis ..."
 
 #: easy_abc.py:5408
 #, python-brace-format
 msgid "{0} files to create"
-msgstr ""
+msgstr "{0} Dateien zu erstellen"
 
 #: easy_abc.py:5414
 msgid "Exporting"
-msgstr ""
+msgstr "Exportiere"
 
 #: easy_abc.py:5438
 msgid "Export completed"
-msgstr ""
+msgstr "Export abgeschlossen"
 
 #: easy_abc.py:5440
 msgid "Export failed"
-msgstr ""
+msgstr "Export fehlgeschlagen"
 
 #: easy_abc.py:5503
 msgid ""
@@ -859,10 +994,15 @@ msgid ""
 "midiplayer path in Settings -> ABC Settings -> File Settings to regain the "
 "looping ability when you double click the play button"
 msgstr ""
+"Wiederholte Wiedergabe ist nicht möglich wenn auf einem externen MIDI-Gerät "
+"wiedergegeben wird. Bitte löschen Sie den Pfad zum MIDI-Wiedergabeprogramm "
+"in Einstellungen -> ABC Einstellungen -> Dateieinstellungen um die "
+"wiederholten Wiedergabe bei Doppelklick auf die Wiedergabe-Schaltfläche zu "
+"ermöglichen."
 
 #: easy_abc.py:5503
 msgid "Looping unavailable"
-msgstr ""
+msgstr "Wiederholte Wiedergabe nicht verfügbar"
 
 #: easy_abc.py:5632 easy_abc.py:5652
 msgid "Any file"
@@ -882,7 +1022,7 @@ msgstr "Noteworthy Composer-Datei"
 
 #: easy_abc.py:5654
 msgid "Import and add tune"
-msgstr "Stück importiern und hinzufügen"
+msgstr "Stück importieren und hinzufügen"
 
 #: easy_abc.py:5706
 msgid ""
@@ -971,7 +1111,7 @@ msgstr "Export als PDF..."
 
 #: easy_abc.py:5882
 msgid "Export to &one PDF..."
-msgstr ""
+msgstr "Export als &ein PDF ..."
 
 #: easy_abc.py:5883
 msgid "Export to &SVG..."
@@ -979,23 +1119,23 @@ msgstr "Export als SVG..."
 
 #: easy_abc.py:5884
 msgid "Export to &HTML..."
-msgstr ""
+msgstr "Esport als &HTML"
 
 #: easy_abc.py:5885
 msgid "Export to Music&XML..."
-msgstr ""
+msgstr "Export als Music&XML"
 
 #: easy_abc.py:5886
 msgid "Export to &ABC..."
-msgstr ""
+msgstr "Export als &ABC"
 
 #: easy_abc.py:5892
 msgid "Upload tune to FolkWiki"
-msgstr "Hochladen nach FolkWiki"
+msgstr "Lade das Stück nach FolkWiki hoch"
 
 #: easy_abc.py:5899
 msgid "Upload tune to Spillemandsportalen"
-msgstr "Hochladen zu Spillemandsportalen"
+msgstr "Lade das Stück zu Spillemandsportalen hoch"
 
 #: easy_abc.py:5913
 msgid "&Active"
@@ -1003,23 +1143,23 @@ msgstr "&Aktiv"
 
 #: easy_abc.py:5915
 msgid "Automatic uppercase/lowercase"
-msgstr ""
+msgstr "Automatische Groß/Kleinschreibung"
 
 #: easy_abc.py:5920
 msgid "Add note &durations"
-msgstr "Notenl&ängen hinzufügen"
+msgstr "Notenl&werte hinzufügen"
 
 #: easy_abc.py:5923
 msgid "Disabled"
-msgstr ""
+msgstr "Ausgeschaltet"
 
 #: easy_abc.py:5924
 msgid "Using spacebar"
-msgstr ""
+msgstr "Verwende die Leertaste"
 
 #: easy_abc.py:5925
 msgid "Automatic"
-msgstr ""
+msgstr "Automatisch"
 
 #: easy_abc.py:5926
 msgid "Add &bar"
@@ -1045,7 +1185,7 @@ msgstr "&Musik neu darstellen"
 
 #: easy_abc.py:5955
 msgid "&Automatically refresh music as I type"
-msgstr "&Musik automatische beim Eineben aktualisieren"
+msgstr "&Musik automatisch beim Eingeben aktualisieren"
 
 #: easy_abc.py:5957
 msgid "&Use reduced margins when displaying tunes on screen"
@@ -1113,7 +1253,7 @@ msgstr "als &PDF..."
 
 #: easy_abc.py:5976
 msgid "as one &PDF..."
-msgstr ""
+msgstr "als &ein PDF"
 
 #: easy_abc.py:5977 easy_abc.py:5985
 msgid "as &MIDI..."
@@ -1129,23 +1269,23 @@ msgstr "als &HTML..."
 
 #: easy_abc.py:5980 easy_abc.py:5988
 msgid "as Music&XML..."
-msgstr ""
+msgstr "als Music&XML"
 
 #: easy_abc.py:5981
 msgid "as A&BC..."
-msgstr ""
+msgstr "als A&BC"
 
 #: easy_abc.py:5982
 msgid "Export &all"
-msgstr "&alles exportieren"
+msgstr "&Alles exportieren"
 
 #: easy_abc.py:5983
 msgid "as a &PDF Book..."
-msgstr ""
+msgstr "als &PDF Buch..."
 
 #: easy_abc.py:5984
 msgid "as PDF &Files..."
-msgstr ""
+msgstr "als PDF &Dateien"
 
 #: easy_abc.py:5990
 msgid "&Save\tCtrl+S"
@@ -1173,7 +1313,7 @@ msgstr "das ausgewählte Stück drucken"
 
 #: easy_abc.py:5994
 msgid "&Print preview\tCtrl+Shift+P"
-msgstr "&Druckvorschaut\tCtrl+Shift+P"
+msgstr "&Druckvorschau\tCtrl+Shift+P"
 
 #: easy_abc.py:5995
 msgid "P&age Setup..."
@@ -1185,7 +1325,7 @@ msgstr "Drucker ändern und einrichten"
 
 #: easy_abc.py:5997
 msgid "&Recent files"
-msgstr ""
+msgstr "&Zuletzt verwendete Dateien"
 
 #: easy_abc.py:5999
 msgid "&Quit\tCtrl+Q"
@@ -1259,7 +1399,7 @@ msgstr "Noten Ornamente"
 msgid "Directions"
 msgstr "Anweisungen"
 
-#: easy_abc.py:6012 tune_actions.py:1491 tune_elements.py:737
+#: easy_abc.py:6012 tune_actions.py:1468 tune_elements.py:737
 msgid "Dynamics"
 msgstr "Dynamik"
 
@@ -1289,7 +1429,7 @@ msgstr "&Suchen...\tCtrl+F"
 
 #: easy_abc.py:6021
 msgid "&Find Next\tF3"
-msgstr "&Nächstes suchenæste\tF3"
+msgstr "&Nächstes suchen\tF3"
 
 #: easy_abc.py:6022
 msgid "&Replace...\tCtrl+H"
@@ -1317,11 +1457,11 @@ msgstr "ABC &Eingabeassistent"
 
 #: easy_abc.py:6030
 msgid "&Clear cache"
-msgstr ""
+msgstr "&Zwischenspeicher löschen"
 
 #: easy_abc.py:6031
 msgid "Cold &restart"
-msgstr ""
+msgstr "&Kalter Neustart"
 
 #: easy_abc.py:6032
 msgid "&Tools"
@@ -1345,7 +1485,7 @@ msgstr "&Stücke sortieren"
 
 #: easy_abc.py:6038
 msgid "Search directories..."
-msgstr ""
+msgstr "Verzeichnisse durchsuchen ..."
 
 #: easy_abc.py:6039
 msgid "&View"
@@ -1353,31 +1493,33 @@ msgstr "&Ansicht"
 
 #: easy_abc.py:6040
 msgid "&Internals"
-msgstr ""
+msgstr "&Internals"
 
 #: easy_abc.py:6041 easy_abc.py:8413
 msgid "Messages"
-msgstr ""
+msgstr "Meldungen"
 
 #: easy_abc.py:6041
 msgid "Show warnings and errors"
-msgstr ""
+msgstr "Zeige Warnungen und Felher"
 
+# Don’t really know what it means. Does it specife the processed tune which was used as Input?
 #: easy_abc.py:6042
+#, fuzzy
 msgid "Input processed tune"
-msgstr ""
+msgstr "Eingabe verarbeitetes Stück"
 
 #: easy_abc.py:6043
 msgid "Output midi file"
-msgstr ""
+msgstr "Ausgegebene Midi-Datei"
 
 #: easy_abc.py:6044
 msgid "Show settings status"
-msgstr ""
+msgstr "Zeige den den Status der Einstellungen"
 
 #: easy_abc.py:6045
 msgid "&Help"
-msgstr ""
+msgstr "&Hilfe"
 
 #: easy_abc.py:6046
 msgid "&Show fields and commands reference"
@@ -1385,59 +1527,59 @@ msgstr "&Feld- und Befehlsreferenz anzeigen"
 
 #: easy_abc.py:6048
 msgid "&EasyABC Help"
-msgstr ""
+msgstr "&EasyABC Hilfe"
 
 #: easy_abc.py:6048
 msgid "Link to EasyABC Website"
-msgstr ""
+msgstr "Link zur EasyABC Website"
 
 #: easy_abc.py:6049
 msgid "&ABC Standard Version 2.1"
-msgstr ""
+msgstr "&ABC Standard Version 2.1"
 
 #: easy_abc.py:6049
 msgid "Link to the ABC Standard version 2.1"
-msgstr ""
+msgstr "Link zum ABC Standard version 2.1"
 
 #: easy_abc.py:6050
 msgid "&Learn ABC"
-msgstr ""
+msgstr "&Lerne ABC"
 
 #: easy_abc.py:6050
 msgid "Link to the ABC notation website"
-msgstr ""
+msgstr "Link zur ABC notation website"
 
 #: easy_abc.py:6051
 msgid "&Abcm2ps help"
-msgstr ""
+msgstr "&Abcm2ps Hilfe"
 
 #: easy_abc.py:6051
 msgid "Link to the Abcm2ps website"
-msgstr ""
+msgstr "Link zur Abcm2ps website"
 
 #: easy_abc.py:6052
 msgid "&Abc2midi help"
-msgstr ""
+msgstr "&Abc2midi HIlfe"
 
 #: easy_abc.py:6052
 msgid "Link to the Abc2midi website"
-msgstr ""
+msgstr "Link zur Abc2midi website"
 
 #: easy_abc.py:6054
 msgid "&Check for update..."
-msgstr ""
+msgstr "&Prüfe ob Updted verfügbar sind ..."
 
 #: easy_abc.py:6054
 msgid "Link to EasyABC download page"
-msgstr ""
+msgstr "Link zur EasyABC downloadseite"
 
 #: easy_abc.py:6056 easy_abc.py:8373
 msgid "About EasyABC"
-msgstr ""
+msgstr "Über EasyABC"
 
 #: easy_abc.py:6113
 msgid "You need to create the midi file by playing the tune"
-msgstr ""
+msgstr "Sie müssen die MIDI-Datei erstellen durch Wiedergabe des Stückes"
 
 #: easy_abc.py:6147 easy_abc.py:6221 easy_abc.py:6248
 msgid "Find"
@@ -1450,7 +1592,7 @@ msgstr "Suchen & Ersetzen"
 #: easy_abc.py:6195
 #, python-format
 msgid "%d occurrences successfully replaced."
-msgstr ""
+msgstr "Auftreten an %d Stellen erfolgreich ersetzt."
 
 #: easy_abc.py:6197 easy_abc.py:6221 easy_abc.py:6248
 #, python-format
@@ -1479,6 +1621,9 @@ msgid ""
 "This will close EasyAbc and put it in a state so that it starts with default "
 "settings.i.e. the file settings1.3 will be deleted."
 msgstr ""
+"Dies wird EasyAbc schließen und so einstellen dass es mit den "
+"Standardeinstellungen startet. Beispielsweise werden die Datei-Einstellugnen "
+"gelöscht."
 
 #: easy_abc.py:6350
 msgid "Select a font for the ABC editor"
@@ -1501,1440 +1646,1437 @@ msgid ""
 "abcm2ps was not found here. You need it to view the music. Go to settings "
 "and indicate the path."
 msgstr ""
+"abcm2ps wurde hier nicht gefunden. Sie benötigen es um die Musik "
+"darzustellen. Gehen Sie zu Einstellungen und geben Sie den korrekten Pfad an."
 
 #: easy_abc.py:8121
 msgid ""
 "abc2midi was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr ""
+"abc2midi wurde hier nicht gefunden. Sie benötigen es um die Musik "
+"darzustellen. Gehen Sie zu Einstellungen und geben Sie den korrekten Pfad an."
 
 #: easy_abc.py:8133
 msgid ""
 "midi2abc was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr ""
+"midi2abc wurde hier nicht gefunden. Sie benötigen es um die Musik "
+"darzustellen. Gehen Sie zu Einstellungen und geben Sie den korrekten Pfad an."
 
 #: easy_abc.py:8145
 msgid ""
 "abc2abc was not found here. You need it to transpose the music. Go to "
 "settings and indicate the path."
 msgstr ""
+"abc2abc wurde hier nicht gefunden. Sie benötigen es um die Musik "
+"darzustellen. Gehen Sie zu Einstellungen und geben Sie den korrekten Pfad an."
 
 #: easy_abc.py:8154
 msgid ""
 "The midiplayer was not found. You will not be able to play the MIDI file."
 msgstr ""
+"Der MIDI-Player wurde nicht gefunden. Sie können die MIDI-Datei nicht "
+"wiedergeben"
 
 #: easy_abc.py:8182
 #, python-format
 msgid "The executable %s could not be found"
-msgstr ""
+msgstr "Das ausführbare Programm %s konnte nicht gefunden werden"
 
 #: easy_abc.py:8441
 msgid "Processed Abc Tune"
-msgstr ""
+msgstr "Verarbeitetes ABC-Stück"
 
 #: tune_actions.py:259
 msgid "Less options"
-msgstr ""
+msgstr "Weniger Optionen"
 
 #: tune_actions.py:261
 msgid "More options"
-msgstr ""
+msgstr "Mehr Optionen"
 
 #: tune_actions.py:396
 msgid "Convert to annotation"
-msgstr ""
+msgstr "In Anmerkung umwandeln"
 
 #: tune_actions.py:430
 msgid "No accidental"
-msgstr ""
+msgstr "Kein Vorzeichen"
 
 #: tune_actions.py:431
 msgid "Natural"
-msgstr ""
+msgstr "Natürlich"
 
 #: tune_actions.py:432
 msgid "Sharp"
-msgstr ""
+msgstr "Kreuz"
 
 #: tune_actions.py:433
 msgid "Flat"
-msgstr ""
+msgstr "B"
 
 #: tune_actions.py:434
 msgid "Double sharp"
-msgstr ""
+msgstr "Doppel-Kreuz"
 
 #: tune_actions.py:435
 msgid "Double flat"
-msgstr ""
+msgstr "Doppel-B"
 
 #: tune_actions.py:436
 msgid "Half sharp"
-msgstr ""
+msgstr "Halbes Kreuz"
 
 #: tune_actions.py:437
 msgid "Half flat"
-msgstr ""
+msgstr "Halbes B"
 
 #: tune_actions.py:438
 msgid "Sharp and a half"
-msgstr ""
+msgstr "Kreuz und ein Halb"
 
 #: tune_actions.py:439
 msgid "Flat and a half"
-msgstr ""
+msgstr "B und ein Halb"
 
 #: tune_actions.py:442
 msgid "Change accidental"
-msgstr ""
+msgstr "Vorzeichen ändern"
 
 #: tune_actions.py:447
 msgid "Common time (4/4)"
-msgstr ""
+msgstr "Gemeinsame Zeit (4/4)"
 
 #: tune_actions.py:448
 msgid "Cut time (2/2)"
-msgstr ""
+msgstr "Geteilte Zeit (2/2)"
 
 #: tune_actions.py:449
 msgid "2/4"
-msgstr ""
+msgstr "2/4"
 
 #: tune_actions.py:450
 msgid "3/4"
-msgstr ""
+msgstr "3/4"
 
 #: tune_actions.py:451
 msgid "4/4"
-msgstr ""
+msgstr "4/4"
 
 #: tune_actions.py:452
 msgid "6/4"
-msgstr ""
+msgstr "6/4"
 
 #: tune_actions.py:453
 msgid "6/8"
-msgstr ""
+msgstr "6/8"
 
 #: tune_actions.py:454
 msgid "9/8"
-msgstr ""
+msgstr "9/8"
 
 #: tune_actions.py:455
 msgid "12/8"
-msgstr ""
+msgstr "12/8"
 
 #: tune_actions.py:458
 msgid "Change meter"
-msgstr ""
+msgstr "Takt ändern"
 
 #: tune_actions.py:463 tune_actions.py:475
 msgid "half note"
-msgstr ""
+msgstr "halbe Note"
 
 #: tune_actions.py:464 tune_actions.py:477
 msgid "quarter note"
-msgstr ""
+msgstr "viertel Note"
 
 #: tune_actions.py:465 tune_actions.py:478
 msgid "eighth note"
-msgstr ""
+msgstr "achtel Note"
 
 #: tune_actions.py:466 tune_actions.py:479
 msgid "sixteenth note"
-msgstr ""
+msgstr "sechzehntel Note"
 
 #: tune_actions.py:469 tune_actions.py:482
 msgid "Change note length"
-msgstr ""
+msgstr "Ändere den Notenwert"
 
 #: tune_actions.py:474
 msgid "three quarter note"
-msgstr ""
+msgstr "drei viertel Note"
 
 #: tune_actions.py:476
 msgid "three eighth note"
-msgstr ""
+msgstr "drei achtel Note"
 
 #: tune_actions.py:487
 msgid "Change second note length"
-msgstr ""
+msgstr "Ändere den zweiten Notenwert"
 
 #: tune_actions.py:492
 msgid "Only name"
-msgstr ""
+msgstr "Nur Name"
 
 #: tune_actions.py:493
 msgid "Only speed"
-msgstr ""
+msgstr "Nur Geschwindigkeit"
 
 #: tune_actions.py:494
 msgid "Name & speed"
-msgstr ""
+msgstr "Name und Geschwindigkeit"
 
 #: tune_actions.py:497
 msgid "Change tempo notation"
-msgstr ""
+msgstr "Ändere die Tempo Notation"
 
 #: tune_actions.py:535
 msgid "Larghissimo"
-msgstr ""
+msgstr "Larghissimo"
 
 #: tune_actions.py:536
 msgid "Grave"
-msgstr ""
+msgstr "Grave"
 
 #: tune_actions.py:537
 msgid "Lento"
-msgstr ""
+msgstr "Lento"
 
 #: tune_actions.py:538
 msgid "Largo"
-msgstr ""
+msgstr "Largo"
 
 #: tune_actions.py:539
 msgid "Adagio"
-msgstr ""
+msgstr "Adagio"
 
 #: tune_actions.py:540
 msgid "Adagietto"
-msgstr ""
+msgstr "Adagietto"
 
 #: tune_actions.py:541
 msgid "Andante"
-msgstr ""
+msgstr "Andante"
 
 #: tune_actions.py:542
 msgid "Andantino"
-msgstr ""
+msgstr "Andantino"
 
 #: tune_actions.py:543
 msgid "Moderato"
-msgstr ""
+msgstr "Moderato"
 
 #: tune_actions.py:544
 msgid "Allegretto"
-msgstr ""
+msgstr "Allegretto"
 
 #: tune_actions.py:545
 msgid "Allegro"
-msgstr ""
+msgstr "Allegro"
 
 #: tune_actions.py:546
 msgid "Vivace"
-msgstr ""
+msgstr "Vivace"
 
 #: tune_actions.py:547
 msgid "Presto"
-msgstr ""
+msgstr "Presto"
 
 #: tune_actions.py:548
 msgid "Prestissimo"
-msgstr ""
+msgstr "Prestissimo"
 
 #: tune_actions.py:551
 msgid "Change tempo name"
-msgstr ""
+msgstr "Ändere den Temponamen"
 
 #: tune_actions.py:556
 msgid "Note up"
-msgstr ""
+msgstr "Note nach oben"
 
 #: tune_actions.py:557
 msgid "Note down"
-msgstr ""
+msgstr "Note nach unten"
 
 #: tune_actions.py:558 tune_actions.py:1062 tune_actions.py:1072
 msgid "Octave up"
-msgstr ""
+msgstr "Oktave nach oben"
 
 #: tune_actions.py:559 tune_actions.py:1063 tune_actions.py:1073
 msgid "Octave down"
-msgstr ""
+msgstr "Oktave nach unten"
 
 #: tune_actions.py:563
 msgid "Change pitch"
-msgstr ""
+msgstr "Ändere die Tonhöhe"
 
 #: tune_actions.py:627
 msgid "Change duration"
-msgstr ""
+msgstr "Ändere die Dauer"
 
 #: tune_actions.py:754
 msgid "One measure"
-msgstr ""
+msgstr "Ein Takt"
 
 #: tune_actions.py:755
 msgid "Double measures"
-msgstr ""
+msgstr "Verdopple die Takte"
 
 #: tune_actions.py:756
 msgid "Half measures"
-msgstr ""
+msgstr "Halbiere die Takte"
 
 #: tune_actions.py:757
 msgid "Increase measures"
-msgstr ""
+msgstr "Vergrößere die Takte"
 
 #: tune_actions.py:758
 msgid "Decrease measures"
-msgstr ""
+msgstr "Verkleinere die Takte"
 
 #: tune_actions.py:759
 msgid "Normal rest"
-msgstr ""
+msgstr "Normale Pause"
 
 #: tune_actions.py:770 tune_actions.py:784
 msgid "Default length"
-msgstr ""
+msgstr "Standardwert"
 
 #: tune_actions.py:771 tune_actions.py:785
 msgid "Halve note length"
-msgstr ""
+msgstr "Halber Notenwert"
 
 #: tune_actions.py:772 tune_actions.py:786
 msgid "Double note length"
-msgstr ""
+msgstr "Doppelter Notenwert"
 
 #: tune_actions.py:773 tune_actions.py:787
 msgid "Dotted note"
-msgstr ""
+msgstr "Punktierte Note"
 
 #: tune_actions.py:774 tune_actions.py:788
 msgid "This note dotted, next note halved"
-msgstr ""
+msgstr "Diese Note punktiert, die nächste halbiert"
 
 #: tune_actions.py:775 tune_actions.py:789
 msgid "This note halved, next note dotted"
-msgstr ""
+msgstr "Diese Note halbiert, die nächste note punktiert"
 
 #: tune_actions.py:776
 msgid "Tie / untie"
-msgstr ""
+msgstr "Binde / Bindung lösen"
 
 #: tune_actions.py:790
 msgid "Whole measure"
-msgstr ""
+msgstr "Ganzer Takt"
 
-#: tune_actions.py:798 tune_actions.py:1475
+#: tune_actions.py:798 tune_actions.py:1452
 msgid "Optional sharp"
-msgstr ""
+msgstr "Optionales Kreuz"
 
-#: tune_actions.py:799 tune_actions.py:1476
+#: tune_actions.py:799 tune_actions.py:1453
 msgid "Optional natural"
-msgstr ""
+msgstr "Optional natürlich"
 
-#: tune_actions.py:800 tune_actions.py:1477
+#: tune_actions.py:800 tune_actions.py:1454
 msgid "Optional flat"
-msgstr ""
+msgstr "Optional B"
 
 #: tune_actions.py:801
 msgid "Ritenuto"
-msgstr ""
+msgstr "Ritenuto (zurückgehalten)"
 
 #: tune_actions.py:804
 msgid "Change annotation"
-msgstr ""
+msgstr "Andere Beschriftung"
 
 #: tune_actions.py:810
 msgid "Above"
-msgstr ""
+msgstr "Oberhalb"
 
 #: tune_actions.py:811
 msgid "Below"
-msgstr ""
+msgstr "Unerhalb"
 
 #: tune_actions.py:812
 msgid "Left"
-msgstr ""
+msgstr "Links"
 
 #: tune_actions.py:813
 msgid "Right"
-msgstr ""
+msgstr "Rechts"
 
 #: tune_actions.py:814
 msgid "Auto"
-msgstr ""
+msgstr "Automatisch"
 
 #: tune_actions.py:817
 msgid "Position"
-msgstr ""
+msgstr "Position"
 
 #: tune_actions.py:822
 msgid "Bar line"
-msgstr ""
+msgstr "Taktstrich"
 
 #: tune_actions.py:823
 msgid "Double bar line"
-msgstr ""
+msgstr "Doppelter Taktstrich"
 
 #: tune_actions.py:824
 msgid "Thin-thick double bar line"
-msgstr ""
+msgstr "Dünn/dick doppelter Taktstrich"
 
 #: tune_actions.py:825
 msgid "Dotted bar"
-msgstr ""
+msgstr "gepunkteter Taktstrich"
 
 #: tune_actions.py:826
 msgid "Thick-thin double bar line"
-msgstr ""
+msgstr "Dick/dünn doppelter Taktstrich"
 
 #: tune_actions.py:827
 msgid "Start of repeated section"
-msgstr ""
+msgstr "Beginn der Wiederholung"
 
 #: tune_actions.py:828
 msgid "End of repeated section"
-msgstr ""
+msgstr "Ende der Wiederholung"
 
 #: tune_actions.py:829
 msgid "First ending"
-msgstr ""
+msgstr "Erste Ende"
 
 #: tune_actions.py:830
 msgid "Second ending"
-msgstr ""
+msgstr "Zweites Ende"
 
 #: tune_actions.py:831
 msgid "Both end and start of repetition"
-msgstr ""
+msgstr "Beide Enden und Start der Wiederholung"
 
 #: tune_actions.py:832 tune_elements.py:834
 msgid "Voice overlay"
-msgstr ""
+msgstr "Stimm-Überlagerung"
 
 #: tune_actions.py:833
 msgid "Invisible bar"
-msgstr ""
+msgstr "Unsichtbarer Taktstrich"
 
 #: tune_actions.py:836
 msgid "Change bar"
-msgstr ""
+msgstr "Ändere den Taktstrich"
 
 #: tune_actions.py:841 tune_actions.py:850
 msgid "Visible"
-msgstr ""
+msgstr "Sichtbar"
 
 #: tune_actions.py:842 tune_actions.py:851
 msgid "Hidden"
-msgstr ""
+msgstr "Unsichtbar"
 
 #: tune_actions.py:845 tune_actions.py:854
 msgid "Visibility"
-msgstr ""
+msgstr "Sichtbarkeit"
 
 #: tune_actions.py:859
 msgid "Appoggiatura"
-msgstr ""
+msgstr "Appoggiatura"
 
 #: tune_actions.py:860
 msgid "Acciaccatura"
-msgstr ""
+msgstr "Acciaccatura"
 
 #: tune_actions.py:863
 msgid "Appoggiatura/acciaccatura"
-msgstr ""
+msgstr "Appoggiatura/acciaccatura"
 
 #: tune_actions.py:889
 msgid "6 sharps"
-msgstr ""
+msgstr "6 Kreuze"
 
 #: tune_actions.py:890
 msgid "5 sharps"
-msgstr ""
+msgstr "5 Kreuze"
 
 #: tune_actions.py:891
 msgid "4 sharps"
-msgstr ""
+msgstr "4 Kreuze"
 
 #: tune_actions.py:892
 msgid "3 sharps"
-msgstr ""
+msgstr "3 Kreuze"
 
 #: tune_actions.py:893
 msgid "2 sharps"
-msgstr ""
+msgstr "2 Kreuze"
 
 #: tune_actions.py:894
 msgid "1 sharp"
-msgstr ""
+msgstr "1 Kreuz"
 
 #: tune_actions.py:895
 msgid "0 sharps/flats"
-msgstr ""
+msgstr "keine Vorzeichen"
 
 #: tune_actions.py:896
 msgid "1 flat"
-msgstr ""
+msgstr "1 b"
 
 #: tune_actions.py:897
 msgid "2 flats"
-msgstr ""
+msgstr "2 b"
 
 #: tune_actions.py:898
 msgid "3 flats"
-msgstr ""
+msgstr "2 b"
 
 #: tune_actions.py:899
 msgid "4 flats"
-msgstr ""
+msgstr "4 b"
 
 #: tune_actions.py:900
 msgid "5 flats"
-msgstr ""
+msgstr "5 b"
 
 #: tune_actions.py:901
 msgid "6 flats"
-msgstr ""
+msgstr "6 b"
 
 #: tune_actions.py:966
 msgid "Major (Ionian)"
-msgstr ""
+msgstr "Dur (Ionisch)"
 
 #: tune_actions.py:967
 msgid "Minor (Aeolian)"
-msgstr ""
+msgstr "Moll (Aeolish)"
 
 #: tune_actions.py:968
 msgid "Dorian"
-msgstr ""
+msgstr "Dorisch"
 
 #: tune_actions.py:969
 msgid "Mixolydian"
-msgstr ""
+msgstr "Mixolydisch"
 
 #: tune_actions.py:970
 msgid "Phrygian"
-msgstr ""
+msgstr "Phrygisch"
 
 #: tune_actions.py:971
 msgid "Lydian"
-msgstr ""
+msgstr "Lydisch"
 
 #: tune_actions.py:972
 msgid "Locrian"
-msgstr ""
+msgstr "Leorisch"
 
 #: tune_actions.py:975
 msgid "Mode"
-msgstr ""
+msgstr "Modus"
 
 #: tune_actions.py:1013 tune_actions.py:1051 tune_actions.py:1061
 #: tune_actions.py:1071
 msgid "Default"
-msgstr ""
+msgstr "Vorgabe"
 
 #: tune_actions.py:1014
 msgid "Treble clef"
-msgstr ""
+msgstr "Violinschlüssel"
 
 #: tune_actions.py:1015
 msgid "Bass clef"
-msgstr ""
+msgstr "Bassschlüssel"
 
 #: tune_actions.py:1016
 msgid "Tenor clef"
-msgstr ""
+msgstr "Tenorschlüssel"
 
 #: tune_actions.py:1017
 msgid "Alto clef"
-msgstr ""
+msgstr "Altschlüssel"
 
 #: tune_actions.py:1018
 msgid "Soprano clef"
-msgstr ""
+msgstr "Sopranschlüssel"
 
 #: tune_actions.py:1019
 msgid "Mezzo-soprano clef"
-msgstr ""
+msgstr "Mezzosoparanschlüssel"
 
 #: tune_actions.py:1020
 msgid "Baritone clef"
-msgstr ""
+msgstr "Baritonschlüssel"
 
 #: tune_actions.py:1021
 msgid "Percussion clef"
-msgstr ""
+msgstr "Perkussionsschlüssel"
 
 #: tune_actions.py:1025
 msgid "Clef"
-msgstr ""
+msgstr "Notenschlüssel"
 
 #: tune_actions.py:1052
 msgid "Octave higher (8va)"
-msgstr ""
+msgstr "Oktave höher (8va)"
 
 #: tune_actions.py:1053
 msgid "Octave lower (8va bassa)"
-msgstr ""
+msgstr "Oktave tiefer (8va bass)"
 
 #: tune_actions.py:1056
 msgid "Staff transpose"
-msgstr ""
+msgstr "Zeilentransponierung"
 
 #: tune_actions.py:1066
 msgid "Playback transpose"
-msgstr ""
+msgstr "Wiedegabetransponierung"
 
 #: tune_actions.py:1076
 msgid "Octave shift"
-msgstr ""
+msgstr "Oktavverschiebung"
 
 #: tune_actions.py:1115
 msgid "Change dynamics mark"
-msgstr ""
+msgstr "Ändere die Dynamikzeichen"
 
 #: tune_actions.py:1120
 msgid "Change fingering"
-msgstr ""
+msgstr "Ändere den Fingersatz"
 
 #: tune_actions.py:1125
 msgid "Change ornament"
-msgstr ""
+msgstr "Ändere Verzeierung"
 
 #: tune_actions.py:1130
 msgid "Change direction marker"
-msgstr ""
+msgstr "Ändere Anweisungszeichen"
 
 #: tune_actions.py:1135
 msgid "Change articulation marker"
-msgstr ""
+msgstr "Ändere Ausdruckszeichen"
 
 #: tune_actions.py:1140
 msgid "Change chord"
-msgstr ""
+msgstr "Ändere Akkord"
 
 #: tune_actions.py:1163
 msgid "Major"
-msgstr ""
+msgstr "Dur"
 
 #: tune_actions.py:1164
 msgid "Minor"
-msgstr ""
+msgstr "Moll"
 
 #: tune_actions.py:1165
 msgid "Diminished"
-msgstr ""
+msgstr "Vermindert"
 
 #: tune_actions.py:1166
 msgid "Augmented"
-msgstr ""
+msgstr "Übermäßig"
 
 #: tune_actions.py:1167
 msgid "Suspended"
-msgstr ""
+msgstr "Vorgehalten"
 
 #: tune_actions.py:1168
 msgid "Suspended (2nd)"
-msgstr ""
+msgstr "Vorghalten (zweite\\)"
 
 #: tune_actions.py:1169
 msgid "Seventh"
-msgstr ""
+msgstr "Sieben"
 
 #: tune_actions.py:1170
 msgid "Major seventh"
-msgstr ""
+msgstr "Dur sieben"
 
 #: tune_actions.py:1172
 msgid "Minor seventh"
-msgstr ""
+msgstr "Moll sieben"
 
 #: tune_actions.py:1174
 msgid "Augmented seventh"
-msgstr ""
+msgstr "Übermäßig sieben"
 
 #: tune_actions.py:1175
 msgid "Diminished seventh"
-msgstr ""
+msgstr "Vermindert sieben"
 
 #: tune_actions.py:1176
 msgid "Major sixth"
-msgstr ""
+msgstr "Dur sechs"
 
 #: tune_actions.py:1177
 msgid "Minor sixth"
-msgstr ""
+msgstr "Moll sechs"
 
 #: tune_actions.py:1178
 msgid "Half-diminished seventh"
-msgstr ""
+msgstr "halbvermindert sieben"
 
 #: tune_actions.py:1180
 msgid "Power-chord (no third)"
-msgstr ""
+msgstr "Power-Chord (keine dritte)"
 
 #: tune_actions.py:1181
 msgid "Seventh suspended"
-msgstr ""
+msgstr "Sieben vorgehalten"
 
 #: tune_actions.py:1182
 msgid "Seventh suspended (2nd)"
-msgstr ""
+msgstr "Sieben vorgehalten (zweite)"
 
 #: tune_actions.py:1183
 msgid "Dominant 9th"
-msgstr ""
+msgstr "Dominant neun"
 
 #: tune_actions.py:1185
 msgid "Major 9th"
-msgstr ""
+msgstr "Dur neun"
 
 #: tune_actions.py:1186
 msgid "Minor Dominant 9th"
-msgstr ""
+msgstr "Moll dominant 9"
 
 #: tune_actions.py:1193
 msgid "Dominant 11th"
-msgstr ""
+msgstr "Dominant 11"
 
 #: tune_actions.py:1196
 msgid "Change chord name"
-msgstr ""
+msgstr "Ändere Akkordname"
 
 #: tune_actions.py:1204
 msgid "Root position"
-msgstr ""
+msgstr "Startposition"
 
 #: tune_actions.py:1205
 msgid "First inversion"
-msgstr ""
+msgstr "Erste Umkehrung"
 
 #: tune_actions.py:1206
 msgid "Second inversion"
-msgstr ""
+msgstr "Zweite Umkehrung"
 
 #: tune_actions.py:1209
 msgid "Change bass note"
-msgstr ""
+msgstr "Ändere die Bassnote"
 
-#: tune_actions.py:1217 tune_actions.py:1697
+#: tune_actions.py:1217 tune_actions.py:1605
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: tune_actions.py:1218
 msgid "Dashed"
-msgstr ""
+msgstr "Gestrichtelt"
 
 #: tune_actions.py:1221
 msgid "Change slur"
-msgstr ""
+msgstr "Ändere den Bindebogen"
 
 #: tune_actions.py:1226
 msgid "Change redefinable symbol"
-msgstr ""
+msgstr "Ändere das umdefinierbare Symbol"
 
-#: tune_actions.py:1252
-msgid "Change channel"
-msgstr ""
-
-#: tune_actions.py:1263
-msgid "Change instrument"
-msgstr ""
-
-#: tune_actions.py:1294
+#: tune_actions.py:1271
 #, python-brace-format
 msgid "Learn {0}..."
-msgstr ""
+msgstr "Lernen {0}..."
 
-#: tune_actions.py:1297
+#: tune_actions.py:1274
 msgid "more"
-msgstr ""
+msgstr "mehr"
 
-#: tune_actions.py:1338
+#: tune_actions.py:1315
 msgid "Full ABC specification"
-msgstr ""
+msgstr "Voll ABC Spezifikation"
 
-#: tune_actions.py:1350
+#: tune_actions.py:1327
 msgid "New tune"
-msgstr ""
+msgstr "Neus Stück"
 
-#: tune_actions.py:1360
+#: tune_actions.py:1337
 msgid "Unknown composer"
-msgstr ""
+msgstr "Unbekannter Komponist"
 
-#: tune_actions.py:1375
+#: tune_actions.py:1352
 msgid "Add voice"
-msgstr ""
+msgstr "Stimme hinzufügen"
 
-#: tune_actions.py:1391
+#: tune_actions.py:1368
 msgid "Replace invalid characters"
-msgstr ""
+msgstr "Fehlerhafte Zeichen ersetzen"
 
-#: tune_actions.py:1413
+#: tune_actions.py:1390
 msgid "New line"
-msgstr ""
+msgstr "Neue Zeile"
 
-#: tune_actions.py:1428
+#: tune_actions.py:1405
 msgid "Space"
-msgstr ""
+msgstr "Leerraum"
 
-#: tune_actions.py:1444
+#: tune_actions.py:1421
 msgid "New note/rest"
-msgstr ""
+msgstr "Neue Note/Pause"
 
-#: tune_actions.py:1473 tune_elements.py:848 tune_elements.py:914
+#: tune_actions.py:1450 tune_elements.py:848 tune_elements.py:914
 msgid "Chord symbol"
-msgstr ""
+msgstr "Akkordsymbol"
 
-#: tune_actions.py:1474
+#: tune_actions.py:1451
 msgid "Between parenthesis"
-msgstr ""
+msgstr "In Klammern"
 
-#: tune_actions.py:1480
+#: tune_actions.py:1457
 msgid "Insert annotation or chord"
-msgstr ""
+msgstr "Füge Anmerkung oder Akkord ein"
 
-#: tune_actions.py:1492 tune_elements.py:761
+#: tune_actions.py:1469 tune_elements.py:761
 msgid "Ornament"
-msgstr ""
+msgstr "Verzierung"
 
-#: tune_actions.py:1493 tune_elements.py:796
+#: tune_actions.py:1470 tune_elements.py:796
 msgid "Articulation"
-msgstr ""
+msgstr "Ausdruck"
 
-#: tune_actions.py:1494 tune_elements.py:775
+#: tune_actions.py:1471 tune_elements.py:775
 msgid "Direction"
-msgstr ""
+msgstr "Anweisung"
 
-#: tune_actions.py:1495 tune_elements.py:743
+#: tune_actions.py:1472 tune_elements.py:743
 msgid "Fingering"
-msgstr ""
+msgstr "Fingersatz"
 
-#: tune_actions.py:1498
+#: tune_actions.py:1475
 msgid "Insert decoration"
-msgstr ""
+msgstr "Füge Verzierung ein"
 
-#: tune_actions.py:1509
+#: tune_actions.py:1486
 msgid "Add slur"
-msgstr ""
+msgstr "Füge Bindebogen ein"
 
-#: tune_actions.py:1520
+#: tune_actions.py:1497
 msgid "Add bar"
-msgstr ""
+msgstr "Füge Taktstrich ein"
 
-#: tune_actions.py:1562
+#: tune_actions.py:1539
 msgid "Combine using beam"
-msgstr ""
+msgstr "Kombiniere mit Notenhälsen"
 
-#: tune_actions.py:1574
+#: tune_actions.py:1551
 msgid "Combine to chord"
-msgstr ""
+msgstr "Kombiniere zu Akkord"
 
-#: tune_actions.py:1586
+#: tune_actions.py:1563
 msgid "Make triplets"
-msgstr ""
+msgstr "Erzeuge Triolen"
 
-#: tune_actions.py:1662
-msgid "Change font"
-msgstr ""
-
-#: tune_actions.py:1667 tune_actions.py:1671 tune_actions.py:1672
+#: tune_actions.py:1575 tune_actions.py:1579 tune_actions.py:1580
 msgid "Page width"
-msgstr ""
+msgstr "Seitenbreite"
+
+#: tune_actions.py:1576
+msgid "Page height"
+msgstr "Seitenhöhe"
+
+#: tune_actions.py:1577
+msgid "Top margin"
+msgstr "Oberer Rand"
+
+#: tune_actions.py:1578
+msgid "Bottom margin"
+msgstr "Unterer Rand"
+
+#: tune_actions.py:1581
+msgid "Staff width"
+msgstr "Bereite des Notensystems"
+
+#: tune_actions.py:1582
+msgid "Page orientation"
+msgstr "Seitenausrichtung"
+
+#: tune_actions.py:1585
+msgid "Change page format"
+msgstr "Ändere Seitenformat"
+
+#: tune_actions.py:1591
+msgid "Start of every line"
+msgstr "Start jeder Zeile"
+
+#: tune_actions.py:1592
+msgid "Every measure"
+msgstr "Jeden Takt"
+
+#: tune_actions.py:1593
+msgid "Every 2 measures"
+msgstr "Alle zwei Takte"
+
+#: tune_actions.py:1594
+msgid "Every 4 measures"
+msgstr "Alle vier Takte"
+
+#: tune_actions.py:1595
+msgid "Every 5 measures"
+msgstr "Alle fünf Takte"
+
+#: tune_actions.py:1596
+msgid "Every 8 measures"
+msgstr "Alle acht Takte"
+
+#: tune_actions.py:1597
+msgid "Every 10 measures"
+msgstr "Alle 10 Takte"
+
+#: tune_actions.py:1600
+msgid "Show measure numbers"
+msgstr "Zeige Taktnummern"
+
+#: tune_actions.py:1606
+msgid "Boxed"
+msgstr "Umrahmt"
+
+#: tune_actions.py:1609
+msgid "Show measure box"
+msgstr "Zeige Taktrahmen"
+
+#: tune_actions.py:1614
+msgid "Zero"
+msgstr "Null"
+
+#: tune_actions.py:1615
+msgid "One"
+msgstr "Eins"
+
+#: tune_actions.py:1618
+msgid "First measure number"
+msgstr "Erste Taktnummer"
+
+#: tune_actions.py:1623
+msgid "Title font"
+msgstr "Schriftart für Titel"
+
+#: tune_actions.py:1624
+msgid "Subtitle font"
+msgstr "Schriftart für Untertitel"
+
+#: tune_actions.py:1625
+msgid "Composer font"
+msgstr "Schriftart für Komponist"
+
+#: tune_actions.py:1626
+msgid "Parts font"
+msgstr "Schriftart für Abschnitte"
+
+#: tune_actions.py:1627
+msgid "Tempo font"
+msgstr "Schriftart für Tempo"
+
+#: tune_actions.py:1628
+msgid "Guitar chord font"
+msgstr "Scriftart für Gitarrenakkorde"
+
+#: tune_actions.py:1629
+msgid "Annotation font"
+msgstr "Schriftart für Anmerkungen"
+
+#: tune_actions.py:1630
+msgid "Info font"
+msgstr "Schriftart für Informationen"
+
+#: tune_actions.py:1631
+msgid "Text font"
+msgstr "Schriftart für Text"
+
+#: tune_actions.py:1632
+msgid "Vocal font"
+msgstr "Schriftart für Singstimme"
+
+#: tune_actions.py:1633
+msgid "Words font"
+msgstr "Schriftart für Liedtexte"
+
+#: tune_actions.py:1634
+msgid "Custom font 1"
+msgstr "Benutzerdefinierte Schriftart 1"
+
+#: tune_actions.py:1635
+msgid "Custom font 2"
+msgstr "Benutzerdefinierte Schriftart 2"
+
+#: tune_actions.py:1636
+msgid "Custom font 3"
+msgstr "Benutzerdefinierte Schriftart 3"
+
+#: tune_actions.py:1637
+msgid "Custom font 4"
+msgstr "Benutzerdefinierte Schriftart 4"
+
+#: tune_actions.py:1640
+msgid "Change font directive"
+msgstr "Ändere die Anweisung für Schriftart"
+
+#: tune_actions.py:1645
+msgid "Page scale factor"
+msgstr "Skalierung der Seite"
+
+#: tune_actions.py:1646
+msgid "Staff scale factor"
+msgstr "Skalierung der Notensysteme"
+
+#: tune_actions.py:1649
+msgid "Change scale directive"
+msgstr "Ändere die Skalierungsanweisung"
+
+#: tune_actions.py:1654
+msgid "MIDI"
+msgstr "MIDI"
+
+#: tune_actions.py:1655
+msgid "Page layout"
+msgstr "Seitenlayout"
+
+#: tune_actions.py:1656
+msgid "Scale"
+msgstr "Skalierung"
+
+#: tune_actions.py:1657
+msgid "Font"
+msgstr "Schriftart"
+
+#: tune_actions.py:1660
+msgid "Insert directive"
+msgstr "Füge Anweisung ein"
+
+#: tune_actions.py:1665
+msgid "break between syllables within a word"
+msgstr "Umbruch zwischen Silben innerhalb eines Wortes"
+
+#: tune_actions.py:1666
+msgid "previous syllable is to be held for an extra note"
+msgstr "vorherige Silbe halten für eine weitere Note"
+
+#: tune_actions.py:1667
+msgid "one note is skipped (* is equivalent to a blank syllable)"
+msgstr "eine Note ist ausgelassen ('*' ist äquivalent zu einer leeren Silbe)"
 
 #: tune_actions.py:1668
-msgid "Page height"
-msgstr ""
+msgid "appears as a space; aligns multiple words under one note"
+msgstr "erscheint als Leerraum; richtet mehrere Worte unter einer Note aus"
 
 #: tune_actions.py:1669
-msgid "Top margin"
-msgstr ""
+msgid "appears as hyphen; aligns multiple syllables under one note"
+msgstr "erscheint als Bindestrich; richtet mehrere Silben unter einer Note aus"
 
-#: tune_actions.py:1670
-msgid "Bottom margin"
-msgstr ""
+#: tune_actions.py:1670 tune_actions.py:1679
+msgid "advances to the next bar"
+msgstr "geht zum nächsten takt"
 
-#: tune_actions.py:1673
-msgid "Staff width"
-msgstr ""
+#: tune_actions.py:1673 tune_actions.py:1682
+msgid "Insert align symbol"
+msgstr "Füge Ausrichtungssymbol ein"
 
-#: tune_actions.py:1674
-msgid "Page orientation"
-msgstr ""
+#: tune_actions.py:1678
+msgid "one note is skipped"
+msgstr "eine Note ist augelassen"
 
-#: tune_actions.py:1677
-msgid "Change page format"
-msgstr ""
+#: tune_actions.py:1687 tune_actions.py:1707
+msgid "Key / clef"
+msgstr "Tonart / Schlüssel"
 
-#: tune_actions.py:1683
-msgid "Start of every line"
-msgstr ""
-
-#: tune_actions.py:1684
-msgid "Every measure"
-msgstr ""
-
-#: tune_actions.py:1685
-msgid "Every 2 measures"
-msgstr ""
-
-#: tune_actions.py:1686
-msgid "Every 4 measures"
-msgstr ""
-
-#: tune_actions.py:1687
-msgid "Every 5 measures"
-msgstr ""
-
-#: tune_actions.py:1688
-msgid "Every 8 measures"
-msgstr ""
-
-#: tune_actions.py:1689
-msgid "Every 10 measures"
-msgstr ""
-
-#: tune_actions.py:1692
-msgid "Show measure numbers"
-msgstr ""
-
-#: tune_actions.py:1698
-msgid "Boxed"
-msgstr ""
-
-#: tune_actions.py:1701
-msgid "Show measure box"
-msgstr ""
-
-#: tune_actions.py:1706
-msgid "Zero"
-msgstr ""
-
-#: tune_actions.py:1707
-msgid "One"
-msgstr ""
-
-#: tune_actions.py:1710
-msgid "First measure number"
-msgstr ""
-
-#: tune_actions.py:1715
-msgid "Title font"
-msgstr ""
-
-#: tune_actions.py:1716
-msgid "Subtitle font"
-msgstr ""
-
-#: tune_actions.py:1717
-msgid "Composer font"
-msgstr ""
-
-#: tune_actions.py:1718
-msgid "Parts font"
-msgstr ""
-
-#: tune_actions.py:1719
-msgid "Tempo font"
-msgstr ""
-
-#: tune_actions.py:1720
-msgid "Guitar chord font"
-msgstr ""
-
-#: tune_actions.py:1721
-msgid "Annotation font"
-msgstr ""
-
-#: tune_actions.py:1722
-msgid "Info font"
-msgstr ""
-
-#: tune_actions.py:1723
-msgid "Text font"
-msgstr ""
-
-#: tune_actions.py:1724
-msgid "Vocal font"
-msgstr ""
-
-#: tune_actions.py:1725
-msgid "Words font"
-msgstr ""
-
-#: tune_actions.py:1726
-msgid "Custom font 1"
-msgstr ""
-
-#: tune_actions.py:1727
-msgid "Custom font 2"
-msgstr ""
-
-#: tune_actions.py:1728
-msgid "Custom font 3"
-msgstr ""
-
-#: tune_actions.py:1729
-msgid "Custom font 4"
-msgstr ""
-
-#: tune_actions.py:1732
-msgid "Change font directive"
-msgstr ""
+#: tune_actions.py:1692 tune_actions.py:1716
+msgid "Change..."
+msgstr "Ändern ..."
 
 #: tune_actions.py:1737
-msgid "Page scale factor"
-msgstr ""
-
-#: tune_actions.py:1738
-msgid "Staff scale factor"
-msgstr ""
-
-#: tune_actions.py:1741
-msgid "Change scale directive"
-msgstr ""
-
-#: tune_actions.py:1746
-msgid "MIDI"
-msgstr ""
-
-#: tune_actions.py:1747
-msgid "Page layout"
-msgstr ""
-
-#: tune_actions.py:1748
-msgid "Scale"
-msgstr ""
-
-#: tune_actions.py:1749
-msgid "Font"
-msgstr ""
-
-#: tune_actions.py:1752
-msgid "Insert directive"
-msgstr ""
-
-#: tune_actions.py:1757
-msgid "break between syllables within a word"
-msgstr ""
-
-#: tune_actions.py:1758
-msgid "previous syllable is to be held for an extra note"
-msgstr ""
-
-#: tune_actions.py:1759
-msgid "one note is skipped (* is equivalent to a blank syllable)"
-msgstr ""
-
-#: tune_actions.py:1760
-msgid "appears as a space; aligns multiple words under one note"
-msgstr ""
-
-#: tune_actions.py:1761
-msgid "appears as hyphen; aligns multiple syllables under one note"
-msgstr ""
-
-#: tune_actions.py:1762 tune_actions.py:1771
-msgid "advances to the next bar"
-msgstr ""
-
-#: tune_actions.py:1765 tune_actions.py:1774
-msgid "Insert align symbol"
-msgstr ""
-
-#: tune_actions.py:1770
-msgid "one note is skipped"
-msgstr ""
-
-#: tune_actions.py:1779 tune_actions.py:1799
-msgid "Key / clef"
-msgstr ""
-
-#: tune_actions.py:1784 tune_actions.py:1808
-msgid "Change..."
-msgstr ""
-
-#: tune_actions.py:1816
-msgid "Single voice"
-msgstr ""
-
-#: tune_actions.py:1817
-msgid "Piano"
-msgstr ""
-
-#: tune_actions.py:1818
-msgid "Choir"
-msgstr ""
-
-#: tune_actions.py:1819
-msgid "Solo with piano"
-msgstr ""
-
-#: tune_actions.py:1824
-msgid "Multiple voices"
-msgstr ""
-
-#: tune_actions.py:1854
 msgid "Remove"
-msgstr ""
+msgstr "Entfernen"
 
 #: tune_elements.py:79
 msgid "Staff layout"
-msgstr ""
+msgstr "Notenslinienlayout"
 
 #: tune_elements.py:80
 msgid "Area"
-msgstr ""
+msgstr "Bereich"
 
 #: tune_elements.py:81
 msgid "Book"
-msgstr ""
+msgstr "Buch"
 
 #: tune_elements.py:82
 msgid "Composer"
-msgstr ""
+msgstr "Komponist"
 
 #: tune_elements.py:83
 msgid "Discography"
-msgstr ""
+msgstr "Diskografie"
 
 #: tune_elements.py:84
 msgid "File url"
-msgstr ""
+msgstr "Datei URI"
 
 #: tune_elements.py:85
 msgid "Group"
-msgstr ""
+msgstr "Gruppe"
 
 #: tune_elements.py:86
 msgid "History"
-msgstr ""
+msgstr "Geschichte"
 
 #: tune_elements.py:87
 msgid "Instruction"
-msgstr ""
+msgstr "Anweisung"
 
+# Don’t know it this is limtied to the Equivalent to the K:Filed. In this case it is „Tonart“.
+# Otherwise it is „Schlüssel“
 #: tune_elements.py:88
+#, fuzzy
 msgid "Key"
-msgstr ""
+msgstr "Tonart"
 
+# Does this denote the value of L: Heder
 #: tune_elements.py:89
+#, fuzzy
 msgid "Unit note length"
-msgstr ""
+msgstr "Notenwerteinheit"
 
 #: tune_elements.py:90
 msgid "Meter"
-msgstr ""
+msgstr "Takt"
 
 #: tune_elements.py:91
 msgid "Macro"
-msgstr ""
+msgstr "Makro"
 
 #: tune_elements.py:92
 msgid "Notes"
-msgstr ""
+msgstr "Noten"
 
 #: tune_elements.py:93
 msgid "Origin"
-msgstr ""
+msgstr "Herkunft"
 
 #: tune_elements.py:94
 msgid "Parts"
-msgstr ""
+msgstr "Abschnitte"
 
 #: tune_elements.py:96
 msgid "Rhythm"
-msgstr ""
+msgstr "Rhythmus"
 
 #: tune_elements.py:97
 msgid "Remark"
-msgstr ""
+msgstr "Kommentar"
 
 #: tune_elements.py:98
 msgid "Source"
-msgstr ""
+msgstr "Quelle"
 
 #: tune_elements.py:99
 msgid "Symbol line"
-msgstr ""
+msgstr "Symbollinie"
 
+# Dont know how it is used.
+# Alternatives:
+# Melodielinie
 #: tune_elements.py:100
 msgid "Tune title"
-msgstr ""
+msgstr "Titel des Stückes"
 
 #: tune_elements.py:101
 msgid "User defined"
-msgstr ""
+msgstr "Benutzerdefiniert"
 
 #: tune_elements.py:102
 msgid "Voice"
-msgstr ""
+msgstr "Stimme"
 
 #: tune_elements.py:103
 msgid "Words (note aligned)"
-msgstr ""
+msgstr "Worte (ausgerichtet an Note)"
 
 #: tune_elements.py:104
 msgid "Words (at the end)"
-msgstr ""
+msgstr "Worte (am Ende)"
 
 #: tune_elements.py:105
 msgid "Reference number"
-msgstr ""
+msgstr "Referenznummer"
 
 #: tune_elements.py:106
 msgid "Transcription"
-msgstr ""
+msgstr "Stakkatozeichen"
 
 #: tune_elements.py:153
 msgid "staccato mark"
-msgstr ""
+msgstr "Stakkatoeichen"
 
 #: tune_elements.py:154 tune_elements.py:171
 msgid "Irish roll"
-msgstr ""
+msgstr "Irish roll (Dekoration)"
 
 #: tune_elements.py:155
 msgid "fermata"
-msgstr ""
+msgstr "Fermate"
 
 #: tune_elements.py:156 tune_elements.py:177 tune_elements.py:178
 #: tune_elements.py:179
 msgid "accent or emphasis"
-msgstr ""
+msgstr "Akzent oder Verstärkung"
 
+# There is also a „lower mrodent“
 #: tune_elements.py:157
 msgid "lowermordent"
-msgstr ""
+msgstr "Mordent (unten)"
 
 #: tune_elements.py:158 tune_elements.py:219
 msgid "coda"
-msgstr ""
+msgstr "Coda"
 
 #: tune_elements.py:159
 msgid "uppermordent"
-msgstr ""
+msgstr "Mordent (oben)"
 
 #: tune_elements.py:160 tune_elements.py:218
 msgid "segno"
-msgstr ""
+msgstr "Segno (<D.S.>)"
 
 #: tune_elements.py:161 tune_elements.py:164
 msgid "trill"
-msgstr ""
+msgstr "Triller"
 
 #: tune_elements.py:162 tune_elements.py:195
 msgid "down-bow"
-msgstr ""
+msgstr "Abstrich"
 
 #: tune_elements.py:163 tune_elements.py:194
 msgid "up-bow"
-msgstr ""
+msgstr "Aufstrich"
 
 #: tune_elements.py:165
 msgid "start of an extended trill"
-msgstr ""
+msgstr "Anfang erweiterter Trillers"
 
 #: tune_elements.py:166
 msgid "end of an extended trill"
-msgstr ""
+msgstr "ende erweiterter Triller"
 
+# there is also a lowermordent …
 #: tune_elements.py:167
 msgid "lower mordent"
-msgstr ""
+msgstr "Mordent (unten)"
 
+# There is also an uppermordent
 #: tune_elements.py:168
 msgid "upper mordent"
-msgstr ""
+msgstr "Mordent (oben)"
 
 #: tune_elements.py:169
 msgid "mordent"
-msgstr ""
+msgstr "Mordent"
 
 #: tune_elements.py:170
 msgid "pralltriller"
-msgstr ""
+msgstr "Pralltriller"
 
 #: tune_elements.py:172
 msgid "turn or gruppetto"
-msgstr ""
+msgstr "Umblättern (Gruppetto)"
 
+# Don’t know what this is
 #: tune_elements.py:173
+#, fuzzy
 msgid "a turn mark with a line through it"
-msgstr ""
+msgstr "ein Umblätterzeichen mit einer Linie"
 
 #: tune_elements.py:174
 msgid "an inverted turn mark"
-msgstr ""
+msgstr "ein invertiertes Umbelätterzeichen"
 
 #: tune_elements.py:175
+#, fuzzy
 msgid "an inverted turn mark with a line through it"
-msgstr ""
+msgstr "ein invertiertes Umblätterzeichen mit einer Linie"
 
 #: tune_elements.py:176
 msgid "arpeggio"
-msgstr ""
+msgstr "Arpeggio"
 
 #: tune_elements.py:180
 msgid "fermata or hold"
-msgstr ""
+msgstr "Fermate (halten)"
 
 #: tune_elements.py:181
 msgid "upside down fermata"
-msgstr ""
+msgstr "umgekehrte Fermate"
 
 #: tune_elements.py:182
 msgid "tenuto"
-msgstr ""
+msgstr "Tenuto"
 
 #: tune_elements.py:183
 msgid "no finger"
-msgstr ""
+msgstr "kein Fingersat"
 
 #: tune_elements.py:184
 msgid "thumb"
-msgstr ""
+msgstr "Daumen"
 
 #: tune_elements.py:185
 msgid "index finger"
-msgstr ""
+msgstr "Zeigefinger"
 
 #: tune_elements.py:186
 msgid "middle finger"
-msgstr ""
+msgstr "Mittelfinger"
 
 #: tune_elements.py:187
 msgid "ring finger"
-msgstr ""
+msgstr "Ringfinger"
 
 #: tune_elements.py:188
 msgid "little finger"
-msgstr ""
+msgstr "Kleiner Finger"
 
 #: tune_elements.py:189 tune_elements.py:190
 msgid "left-hand pizzicato"
-msgstr ""
+msgstr "Pizzicato (Zupfen) mit linker Hand"
 
 #: tune_elements.py:191
 msgid "snap-pizzicato"
-msgstr ""
+msgstr "Schnapp-Pizzicato"
 
 #: tune_elements.py:192
 msgid "slide up to a note"
-msgstr ""
+msgstr "\"Slide\" hoch zu einer Note"
 
 #: tune_elements.py:193
 msgid "staccatissimo or spiccato"
-msgstr ""
+msgstr "staccatissimo oder spiccato"
 
 #: tune_elements.py:196
+#, fuzzy
 msgid "open string or harmonic"
-msgstr ""
+msgstr "offene Stimung"
 
 #: tune_elements.py:197
 msgid "cello thumb symbol"
-msgstr ""
+msgstr "Celle Daumen symbol"
 
 #: tune_elements.py:198
 msgid "breath mark"
-msgstr ""
+msgstr "Atmen"
 
 #: tune_elements.py:199
 msgid "pianissimo possibile"
-msgstr ""
+msgstr "pianissimo möglich"
 
+# is pianisisimo a typo?
 #: tune_elements.py:200
 msgid "pianississimo"
-msgstr ""
+msgstr "pianississimo"
 
 #: tune_elements.py:201
 msgid "pianissimo"
-msgstr ""
+msgstr "pianissimo"
 
 #: tune_elements.py:202
 msgid "piano"
-msgstr ""
+msgstr "piano"
 
 #: tune_elements.py:203
 msgid "mezzopiano"
-msgstr ""
+msgstr "mezzopiano"
 
 #: tune_elements.py:204
 msgid "mezzoforte"
-msgstr ""
+msgstr "mezzoforte"
 
 #: tune_elements.py:205
 msgid "forte"
-msgstr ""
+msgstr "forte"
 
 #: tune_elements.py:206
 msgid "fortissimo"
-msgstr ""
+msgstr "fortissimo"
 
 #: tune_elements.py:207
 msgid "fortississimo"
-msgstr ""
+msgstr "fortississimo"
 
 #: tune_elements.py:208
 msgid "fortissimo possibile"
-msgstr ""
+msgstr "fortissimo möglich"
 
 #: tune_elements.py:209
 msgid "sforzando"
-msgstr ""
+msgstr "sforzando"
 
 #: tune_elements.py:210 tune_elements.py:211
 msgid "start of a < crescendo mark"
-msgstr ""
+msgstr "Anfang einer < crescendo Markierung"
 
 #: tune_elements.py:212 tune_elements.py:213
 msgid "end of a < crescendo mark"
-msgstr ""
+msgstr "Ende einer > cresscende Markierung"
 
 #: tune_elements.py:214 tune_elements.py:215
 msgid "start of a > diminuendo mark"
-msgstr ""
+msgstr "Anfang einer > diminduendo Markierung"
 
 #: tune_elements.py:216 tune_elements.py:217
 msgid "end of a > diminuendo mark"
-msgstr ""
+msgstr "Ende einer > diminuendo Markierung"
 
 #: tune_elements.py:220
 msgid "the letters D.S. (=Da Segno)"
-msgstr ""
+msgstr "die Zeichen D.C (=Da Segno)"
 
 #: tune_elements.py:221
 msgid "the letters D.C. (=either Da Coda or Da Capo)"
-msgstr ""
+msgstr "Die Zeichen D.C. (= Da Coda oder Da Capo)"
 
 #: tune_elements.py:222
 msgid "the word \"Da\" followed by a Coda sign"
-msgstr ""
+msgstr "Das Wort \"Da\" gefolgt von einem Coda Zeichen"
 
 #: tune_elements.py:223
 msgid "the words \"Da Capo\""
-msgstr ""
+msgstr "die Worte \"Da Capo\""
 
 #: tune_elements.py:224
 msgid "the word \"fine\""
-msgstr ""
+msgstr "das Wort \"fine\""
 
 #: tune_elements.py:225
 msgid "vertical line on the upper part of the staff"
-msgstr ""
+msgstr "Senkrechte Linie im oberen Teil des Notensystems"
 
 #: tune_elements.py:226
 msgid ""
 "vertical line on the upper part of the staff, extending down to the centre "
 "line"
 msgstr ""
+"Senkrechte Linie im oberen Teil des Notensystems, erweitert nach unter zur "
+"zentralen Zeile"
 
 #: tune_elements.py:227
 msgid ""
 "vertical line on the upper part of the staff, extending 3/4 of the way down"
 msgstr ""
+"Senkrechte Linie im oberen Teil des Notensystems, erweitert 3/4 nach untern"
 
 #: tune_elements.py:481
 msgid "Unknown"
-msgstr ""
+msgstr "Unbekannt"
 
 #: tune_elements.py:533 tune_elements.py:606
 msgid "Stylesheet directive"
-msgstr ""
+msgstr "Stylesheetanweisung"
 
 #: tune_elements.py:533 tune_elements.py:612
 #, python-format
@@ -2942,31 +3084,35 @@ msgid ""
 "A stylesheet directive is a line that starts with %%, followed by a "
 "directive that gives instructions to typesetting or player programs."
 msgstr ""
+"Eine Stylesheetanweisung ist eine Zeile, die mit %% beginnt, gefolgt von "
+"einer Anweisung an Satz- oder Wiedergabeprogramme."
 
 #: tune_elements.py:551
 msgid "MIDI directive"
-msgstr ""
+msgstr "MIDI-Anweisung"
 
 #: tune_elements.py:551
 msgid "A directive that gives instructions to player programs."
-msgstr ""
+msgstr "Eine Anweisung für Wiedergabeprogramme."
 
 #: tune_elements.py:590
 msgid "ABC version"
-msgstr ""
+msgstr "ABC Version"
 
 #: tune_elements.py:590
 msgid ""
 "It starts with the version of the ABC specification this file conforms to."
 msgstr ""
+"Es beginnt mit der Version der ABC Spezifikation welcher diese Datei "
+"entspricht."
 
 #: tune_elements.py:598
 msgid "Comment"
-msgstr ""
+msgstr "Kommentar"
 
 #: tune_elements.py:623
 msgid "Welcome to EasyABC"
-msgstr ""
+msgstr "Willkommen bei EasyABC"
 
 #: tune_elements.py:624
 msgid ""
@@ -2974,54 +3120,61 @@ msgid ""
 "to help by providing hints and actions. But remember, typing is usually "
 "faster."
 msgstr ""
+"Es ist schwierig, eine ABC-Datei vollständig neu zu erstellen. Dieser "
+"Assistent versucht, Ihnen dabei durch Hinweise und Aktionen zu helfen. Aber "
+"beachten Sie, das direktes Tippen üblicherweise schneller geht."
 
 #: tune_elements.py:640 tune_elements.py:647
 msgid "Empty line"
-msgstr ""
+msgstr "Leerzeile"
 
 #: tune_elements.py:640
 msgid "An empty line separates tunes."
-msgstr ""
+msgstr "Eine Leerzeile trennt die Stücke"
 
 #: tune_elements.py:647
 msgid "Notes, rests, or directives can be added."
-msgstr ""
+msgstr "Noten, Pause oder Anweisungen können hinzugefügt weden."
 
 #: tune_elements.py:653
 msgid "File header"
-msgstr ""
+msgstr "Datei-Einleitung"
 
 #: tune_elements.py:653
 msgid ""
 "Everything above the first X: is the file header. The directives here apply "
 "to all the tunes that follow."
 msgstr ""
+"Alles oberhalb des ersten \"X:\" ist die Einleitung.  Diese Anweisungen "
+"werden auf alle folgenden Stücke angewandt."
 
 #: tune_elements.py:667
 msgid "Whitespace"
-msgstr ""
+msgstr "Leerraum"
 
 #: tune_elements.py:667
 msgid ""
 "Space is used to improve legibility and to prevent notes from sharing the "
 "same beam."
 msgstr ""
+"Leerraum verbessert die Lesbarkeit und verhindert, dass Noten einen "
+"Notenhals teilen."
 
 #: tune_elements.py:673 tune_elements.py:915
 msgid "Annotation"
-msgstr ""
+msgstr "Beschriftung"
 
 #: tune_elements.py:680
 msgid "Chord symbol or annotation"
-msgstr ""
+msgstr "Akkordsymbol oder Beschriftung"
 
 #: tune_elements.py:686
 msgid "Slur"
-msgstr ""
+msgstr "Bindebogen"
 
 #: tune_elements.py:692
 msgid "Typesetting extra space"
-msgstr ""
+msgstr "Setze extra Leerraum"
 
 #: tune_elements.py:692
 msgid ""
@@ -3029,10 +3182,13 @@ msgid ""
 "chord symbols and decorations can be attached to it, to separate them from "
 "notes."
 msgstr ""
+" y kann verwendet werden um extra Leerraum zwischen den umgebenden Noten zu "
+"setzen. Darüber hinaus können Akkordsymbole und Dekorationen a ein \"y\" "
+"gebunden werden, um sie von Noten abzusetzen."
 
 #: tune_elements.py:698
 msgid "Redefinable symbol"
-msgstr ""
+msgstr "Definierbares Symbol"
 
 #: tune_elements.py:698
 msgid ""
@@ -3040,34 +3196,40 @@ msgid ""
 "to provide a shortcut for the !symbol! syntax. For example, to assign the "
 "letter T to represent the trill, you can write: U: T = !trill!"
 msgstr ""
+"Die Bedeutiung der Zeichen H-W und h-w und das Symbol ~ kann über das U: -"
+"Feld definiert werden. Damit kann man Abkürzugnen für die !symbol! - Syntax "
+"erstellen. Um beispielsweise dem T die Bedeutung eines Trillers zu geben, "
+"können Sie schreiben: \n"
+"\n"
+"U: T=!trill!"
 
 #: tune_elements.py:723
 msgid "Unknown symbol"
-msgstr ""
+msgstr "Unbekanntes Symbol"
 
 #: tune_elements.py:816
 msgid "Tuplet"
-msgstr ""
+msgstr "Tuplet"
 
 #: tune_elements.py:816
 msgid "Duplets, triplets, quadruplets, etc."
-msgstr ""
+msgstr "Duolen, Triolen, Quadrolen etc."
 
 #: tune_elements.py:822
 msgid "Bar"
-msgstr ""
+msgstr "Taktstrich"
 
 #: tune_elements.py:822
 msgid "Separates measures."
-msgstr ""
+msgstr "Trennt Takte"
 
 #: tune_elements.py:828
 msgid "Variant ending"
-msgstr ""
+msgstr "Variantes Ende"
 
 #: tune_elements.py:828
 msgid "To play a different ending each time"
-msgstr ""
+msgstr "Um jedesmal ein anderes Ende zu spielen"
 
 #: tune_elements.py:834
 msgid ""
@@ -3077,60 +3239,111 @@ msgid ""
 "the preceding one. This may only be used to add one complete bar's worth of "
 "music for each &. "
 msgstr ""
+"Mit dem & operator können Sie temporär Stimmen in einem Takt überlagern. "
+"Jeder % operator setzt den Zeitpunkt der Musk um einen Takt zurück, und die "
+"folgende Musik bildet eine temporäre Stimme parallel mit der vohergehenden. "
+"Dies kann nur verwendet werden um einen kompletten Takt für jedes & "
+"hinzuzufügen. "
 
 #: tune_elements.py:840
 msgid "Invalid character"
-msgstr ""
+msgstr "fehlerhaftes Zeichen"
 
 #: tune_elements.py:840
 msgid "This character is not allowed within the body of an abc tune."
-msgstr ""
+msgstr "Dieses Zeichen ist im Hauptteil eines ABC - Stückes nicht erlaubt"
 
 #: tune_elements.py:874 tune_elements.py:913
 msgid "Grace notes"
-msgstr ""
+msgstr "Verzierungsnoten"
 
 #: tune_elements.py:890
 msgid "Note group"
-msgstr ""
+msgstr "Notengruppe"
 
 #: tune_elements.py:898
 msgid "Note or chord"
-msgstr ""
+msgstr "Note oder Akkord"
 
 #: tune_elements.py:904
 msgid "Chord"
-msgstr ""
+msgstr "Akkord"
 
 #: tune_elements.py:911
 msgid "Note"
-msgstr ""
+msgstr "Note"
 
 #: tune_elements.py:923
 msgid "Rest"
-msgstr ""
+msgstr "Pause"
 
 #: tune_elements.py:930
 msgid "Measure rest"
-msgstr ""
+msgstr "Taktpause"
 
 #: tune_elements.py:937
 msgid "Multiple notes/chords"
-msgstr ""
+msgstr "Mehrere Noten/Akkorde"
 
 #: tune_elements.py:944
 msgid "Multiple notes"
-msgstr ""
+msgstr "Mehrere Noten"
 
 #: tune_elements.py:951
 msgid "Backslash"
-msgstr ""
+msgstr "Backslash (\\)"
 
 #: tune_elements.py:951
 msgid ""
 "In abc music code, by default, line-breaks in the code generate line-breaks "
 "in the typeset score and these can be suppressed by using a backslash."
 msgstr ""
+"In ABC-Code erzeugen Zeilenumbrüche in der Eingabe standardmässig auch "
+"Zeilenumbrüche in der Ausgabe. Diese können aber durch einen rückwärtigen "
+"Schrägstrich \"\\\" unterdrückt werden."
+
+#~ msgid ""
+#~ "The default (V=0) translates volta backets in all voices. V=1 prevents "
+#~ "abcm2ps to write volta brackets on all but the first voice. (A %%repbra 0 "
+#~ "command is added to each voice that hides its volta's.) When V=2 abcm2ps "
+#~ "only typesets volta brackets on the first voice of each xml-part. When "
+#~ "V=3 the volta brackets are only translated for the first abc voice, which "
+#~ "has the same effect on the output of abcm2ps as V=1, but the abc code is "
+#~ "not suited for abc2midi."
+#~ msgstr ""
+#~ "Die Voreinstllung (V=0) bestimmt die Darstellung der Voltenklammern "
+#~ "(Klammern für variante Enden) in allen Stimmen. Bei V=1 werden die "
+#~ "Voltenklammern bei allen bis auf die erste Stimme dargestellt. (Eine %"
+#~ "%repbra 0 Anweisung wird bei allen Stimmen hinzugefügt, die ihrer Volten "
+#~ "nicht darstellen.). Bei V=2 wird abcm2ps die Voltenklammern nur in der "
+#~ "ersten Stimme eines jeden XML-Parts darstellen. Bei V=3 werden die "
+#~ "Voltenklammern nur in der ersten ABC-Stimme dargestellt. Dies hat die "
+#~ "gleiche Wirkung auf die Ausgabe von abcm2ps wie V=1, aber der ABC-Code "
+#~ "ist nicht geeignet für abc2midi."
+
+#~ msgid "Change channel"
+#~ msgstr "Ändere den Kanal"
+
+#~ msgid "Change instrument"
+#~ msgstr "Ändere das Instrument"
+
+#~ msgid "Change font"
+#~ msgstr "Ändere Schriftart"
+
+#~ msgid "Single voice"
+#~ msgstr "Einzelne Stimme"
+
+#~ msgid "Piano"
+#~ msgstr "Klavier"
+
+#~ msgid "Choir"
+#~ msgstr "Chor"
+
+#~ msgid "Solo with piano"
+#~ msgstr "Solo mit Klavier"
+
+#~ msgid "Multiple voices"
+#~ msgstr "Mehrere Stimmen"
 
 #~ msgid ""
 #~ "Ghostscript could not be found. You need to install Ghostscript in order "
