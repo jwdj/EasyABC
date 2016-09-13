@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.5 2016-08-16'
+program_name = 'EasyABC 1.3.7.6 2016-09-13'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -4435,8 +4435,9 @@ class MainFrame(wx.Frame):
             self.mc.Seek(0)
         else:
             self.mc.Seek(0)
-            self.update_playback_rate()
             self.mc.Play()
+            self.set_playback_rate(self.last_playback_rate)
+            #self.update_playback_rate()
             self.is_really_playing = True
 
     def stop_playing(self):
@@ -4546,6 +4547,7 @@ class MainFrame(wx.Frame):
         # if media is finished but playback as a loop was used relaunch the playback immediatly
         # and prevent media of being stop (event is vetoed as explained in MediaCtrl documentation)
         if self.loop_midi_playback:
+            self.last_playback_rate = self.mc.PlaybackRate
             evt.Veto()  # does not work on Windows, music stops always
             wx.CallAfter(self.play_again)
 
@@ -4650,7 +4652,7 @@ class MainFrame(wx.Frame):
                 # self.music_and_score_out_of_sync()
 
         # turning pages and going to next line has to be done slighty earlier
-        future_offset = offset + 500  # 0.5 seconds should do
+        future_offset = offset + 250  # 0.25 seconds should do
         future_time_slice = self.future_time_slice
 
         if future_time_slice is None or not (future_time_slice.start <= future_offset < future_time_slice.stop):
