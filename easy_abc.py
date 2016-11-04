@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.6 2016-09-13'
+program_name = 'EasyABC 1.3.7.6 2016-11-04'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -3405,6 +3405,7 @@ class MyAbcm2psPage(wx.Panel):
         if old_path and path != old_path:
             self.settings['previous_abcm2ps_format_path'] = old_path
         self.settings['abcm2ps_format_path'] = path
+        self.Parent.Parent.Parent.Parent.refresh_tunes()
 
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
@@ -4318,6 +4319,12 @@ class MainFrame(wx.Frame):
         if not tune:
             return
         num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
+        if 1==0: #self.is_really_playing and self.played_notes_timeline and selected_note_indices and close_note_index is None:
+            page_index = self.music_pane.current_page.index
+            note_index = min(selected_note_indices)
+            pos_in_ms = next((n.start for n in self.played_notes_timeline if n.page == page_index and note_index in n.indices), -1)
+            if pos_in_ms != -1:  
+                self.mc.Seek(pos_in_ms)
 
         position, end_position = tune.offset_start, tune.offset_end
         tune_start_line = self.editor.LineFromPosition(position)
@@ -4427,6 +4434,8 @@ class MainFrame(wx.Frame):
 
     def play(self):
         self.normalize_volume()
+        if wx.Platform == "__WXMAC__":
+            time.sleep(0.4) # to fix first notes being skipped
         self.mc.Play()
         self.is_really_playing = True
 
@@ -5913,26 +5922,20 @@ class MainFrame(wx.Frame):
         self.multi_tunes_menu_items += [menu_item]
 
     def setup_typing_assistance_menu(self):
-        doremi_id = wx.NewId()
-        menu = self.mnu_TA = wx.Menu()
-        self.mni_TA_active = menu.AppendCheckItem(wx.NewId(), _("&Active") + '\tCtrl+T', "")
+        menu = self.mnu_TA = create_menu([], parent=self)
+        self.mni_TA_active = append_menu_item(menu, _("&Active") + '\tCtrl+T', "", self.GrayUngray, kind=wx.ITEM_CHECK)
         menu.AppendSeparator()
-        self.mni_TA_auto_case = menu.AppendCheckItem(wx.NewId(), _("Automatic uppercase/lowercase"), "")
-        #self.mni_TA_do_re_mi = wx.MenuItem(None, doremi_id, _("&Do-re-mi mode") + "\tCtrl+D", "")
-        #self.mni_TA_do_re_mi.SetKind(wx.ITEM_CHECK)
-        self.mni_TA_do_re_mi = menu.AppendCheckItem(doremi_id, _("&Do-re-mi mode") + " (experimental)" + "\tCtrl+D", "")
-        #self.mni_TA_do_re_mi.Enable(False)
-        self.mni_TA_add_note_durations = menu.AppendCheckItem(wx.NewId(), _("Add note &durations"), "")
+        self.mni_TA_auto_case = append_menu_item(menu, _("Automatic uppercase/lowercase"), "", None, kind=wx.ITEM_CHECK)
+        self.mni_TA_do_re_mi = append_menu_item(menu, _("&Do-re-mi mode") + " (experimental)" + "\tCtrl+D", "", self.OnDoReMiModeChange, kind=wx.ITEM_CHECK)
+        self.mni_TA_add_note_durations = append_menu_item(menu, _("Add note &durations"), "", None, kind=wx.ITEM_CHECK)
 
-        add_bar_menu = wx.Menu()
-        self.mni_TA_add_bar_disabled = add_bar_menu.Append(wx.ID_ANY, _('Disabled'), kind=wx.ITEM_RADIO)
-        self.mni_TA_add_bar = add_bar_menu.Append(wx.ID_ANY, _('Using spacebar'), kind=wx.ITEM_RADIO)
-        self.mni_TA_add_bar_auto = add_bar_menu.Append(wx.ID_ANY, _('Automatic'), kind=wx.ITEM_RADIO)
+        add_bar_menu = create_menu([], parent=self)
+        self.mni_TA_add_bar_disabled = append_menu_item(add_bar_menu, _('Disabled'), "", None, kind=wx.ITEM_RADIO)
+        self.mni_TA_add_bar = append_menu_item(add_bar_menu, _('Using spacebar'), "", None, kind=wx.ITEM_RADIO)
+        self.mni_TA_add_bar_auto = append_menu_item(add_bar_menu, _('Automatic'), "", None, kind=wx.ITEM_RADIO)
         append_submenu(menu, _('Add &bar'), add_bar_menu)
 
-        self.mni_TA_add_right = menu.AppendCheckItem(wx.NewId(), _('Add &matching right symbol: ), ], } and "'), "")
-        self.Bind(wx.EVT_MENU, self.GrayUngray, id=self.mni_TA_active.GetId())
-        self.Bind(wx.EVT_MENU, self.OnDoReMiModeChange, id=doremi_id)
+        self.mni_TA_add_right = append_menu_item(menu, _('Add &matching right symbol: ), ], } and "'), "", None, kind=wx.ITEM_CHECK)
         return menu
 
     def setup_menus(self):
@@ -6055,6 +6058,7 @@ class MainFrame(wx.Frame):
                 (_("&Learn ABC"), _("Link to the ABC notation website"), self.OnABCLearn),
                 (_("&Abcm2ps help"), _("Link to the Abcm2ps website"), self.OnAbcm2psHelp),
                 (_("&Abc2midi help"), _("Link to the Abc2midi website"), self.OnAbc2midiHelp),
+                (_("ABC &Quick Reference Card"), _("Link to a PDF with the most common ABC commands"), self.OnAbcCheatSheet),
                 (),
                 (_("&Check for update..."), _("Link to EasyABC download page"), self.OnCheckLastestVersion),
                 (),
@@ -6286,6 +6290,8 @@ class MainFrame(wx.Frame):
     def OnAbc2midiHelp(self, evt):
         show_in_browser('http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html')
 
+    def OnAbcCheatSheet(self, evt):
+        show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
 
     def OnClearCache(self, evt):
         # make sure that any currently played/loaded midi file is released by the media control
@@ -7436,6 +7442,8 @@ class MainFrame(wx.Frame):
             # adding a new slice
             if active_notes:
                 page = max([n.page for n in active_notes])
+                active_notes = [n for n in active_notes if n.page >= page] # prevent mingling of indices from different pages
+                
             all_indices_for_time_slice = set().union(*[n.indices for n in active_notes])
             svg_row = min([n.svg_row for n in active_notes]) if active_notes else 0
             time_slices.append(MidiNote(time_start, time_stop, all_indices_for_time_slice, page, svg_row))
