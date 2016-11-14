@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.6 2016-11-04'
+program_name = 'EasyABC 1.3.7.6 2016-11-12'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -4661,7 +4661,7 @@ class MainFrame(wx.Frame):
                 # self.music_and_score_out_of_sync()
 
         # turning pages and going to next line has to be done slighty earlier
-        future_offset = offset + 250  # 0.25 seconds should do
+        future_offset = offset + 300  # 0.3 seconds should do
         future_time_slice = self.future_time_slice
 
         if future_time_slice is None or not (future_time_slice.start <= future_offset < future_time_slice.stop):
@@ -4692,11 +4692,11 @@ class MainFrame(wx.Frame):
     def scroll_to_notes(self, page, indices):
         if not indices:
             return
-        x, y, _, _, _ = page.notes[min(indices)]
-        if len(indices) > 1:
-            x2, y2, _, _, _ = page.notes[max(indices)]
-            x = (x + x2) // 2
-            y = (y + y2) // 2
+        x, y, _, _, _ = page.notes[max(indices)]
+        #if len(indices) > 1:
+        #    x2, y2, _, _, _ = page.notes[min(indices)]
+        #    x = (x + x2) // 2
+        #    y = (y + y2) // 2
         self.scroll_music_pane(x, y)
 
     def music_and_score_out_of_sync(self):
@@ -5453,6 +5453,39 @@ class MainFrame(wx.Frame):
         else:
             self.statusbar.SetStatusText(_('Export failed'))
 
+    def MoveTune(self, from_index, to_index):
+        self.tune_list.GetItemData(from_index)
+        (_, _, line_no) = self.tune_list.itemDataMap[from_index]
+        offset_start = self.editor.PositionFromLine(line_no)
+        offset_start, offset_end = self.GetTextRangeOfTune(offset_start)
+
+        (_, _, line_no) = self.tune_list.itemDataMap[to_index]
+        insert_pos = self.editor.PositionFromLine(line_no)
+        
+        if insert_pos > offset_start:
+            _, insert_pos = self.GetTextRangeOfTune(insert_pos)
+            insert_pos -= offset_end - offset_start 
+
+        self.editor.BeginUndoAction()
+        abc = self.editor.GetTextRange(offset_start, offset_end)
+        self.editor.SetSelection(offset_start, offset_end)
+        self.editor.ReplaceSelection('')
+        self.editor.InsertText(insert_pos, abc)
+        self.editor.SetSelection(insert_pos, insert_pos)
+        self.editor.EndUndoAction()
+    
+    def OnMoveTuneUp(self, evt):
+        selected_index = self.tune_list.GetFirstSelected()
+        if selected_index > 0:
+            self.tune_list.DeselectAll()  
+            self.MoveTune(selected_index, selected_index - 1)
+    
+    def OnMoveTuneDown(self, evt):
+        selected_index = self.tune_list.GetFirstSelected()
+        if selected_index < self.tune_list.ItemCount - 1:  
+            self.tune_list.DeselectAll()  
+            self.MoveTune(selected_index, selected_index + 1)
+
     def OnMusicPaneDoubleClick(self, evt):
         self.editor.SetFocus()
 
@@ -5891,6 +5924,9 @@ class MainFrame(wx.Frame):
 
     def create_upload_context_menu(self):
         menu = create_menu([
+            (_('Move up'), '', self.OnMoveTuneUp),
+            (_('Move down'), '', self.OnMoveTuneDown),
+            (),
             (_('Export to &MIDI...'), '', self.OnExportMidi),
             (_('Export to &PDF...'), '', self.OnExportPDF),
             (_('Export to &one PDF...'), '', self.OnExportSelectedToSinglePDF, self.add_to_multi_list),
@@ -7545,7 +7581,7 @@ class MainFrame(wx.Frame):
         end_line = start_line + 1
         while end_line < line_count and not get_line(end_line).startswith('X:'):
             end_line += 1
-        end_position = editor.GetLineEndPosition(end_line-1)
+        end_position = editor.PositionFromLine(end_line)
         return (position, end_position)
 
     def GetFileHeaderBlock(self):

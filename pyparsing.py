@@ -562,8 +562,8 @@ class ParseResults(object):
                 return None
         elif (len(self) == 1 and
                len(self.__tokdict) == 1 and
-               self.__tokdict.values()[0][0][1] in (0,-1)):
-            return self.__tokdict.keys()[0]
+               list(self.__tokdict.values())[0][0][1] in (0,-1)):
+            return list(self.__tokdict.keys())[0]
         else:
             return None
 
