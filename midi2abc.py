@@ -181,7 +181,6 @@ def note_to_string(note, duration, default_len, key_accidentals, cur_accidentals
 
 def is_at_even(time, note_value):    
     offset_in_16ths = time_to_note_length(bar_residue(time)) / note_value
-    offset_in_16ths.reduce()
     return offset_in_16ths.denominator == 1
 
 def fix_lengths(notes):
@@ -216,18 +215,17 @@ def midi_to_abc(filename=None, notes=None, key=None, metre=Fraction(3, 4), defau
     cur_accidentals = key_accidentals[:]
 
     output = StringIO()
-    output.write('X:%s\n' % index)
-    if source: output.write('S:%s\n' % source)
-    if title:  output.write('T:%s\n' % title)
-    output.write('M:%s\n' % metre)    
-    output.write('L:%s\n' % default_len)
-    output.write('K:%s\n' % key.capitalize())
+    output.write(u'X:%s\n' % index)
+    if source: output.write(u'S:%s\n' % source)
+    if title:  output.write(u'T:%s\n' % title)
+    output.write(u'M:%s\n' % metre)    
+    output.write(u'L:%s\n' % default_len)
+    output.write(u'K:%s\n' % key.capitalize())
 
     # initialize variables used in loop
     last_note_start = -1.0
     bow_started = False
     broken_rythm_factor = Fraction(1,1)    
-    bar_num = 0
     num_notes = len(notes)
     bar_num = -1
 
@@ -246,18 +244,18 @@ def midi_to_abc(filename=None, notes=None, key=None, metre=Fraction(3, 4), defau
         # if current note is in a different bar than the last one, emit '|'
         if bar(notes[0].start) > bar(last_note_start):
             if len(notes) != num_notes:
-                output.write(' |')
+                output.write(u' |')
                 cur_accidentals = key_accidentals[:]
             if not inside_upbeat:
                 bar_num += 1
             inside_upbeat = False
             if bar_num % bars_per_line == 0 and bar_num > 0:
-                    output.write('\n')
+                    output.write(u'\n')
 
         # if we have advanced the length of a quarter note, emit space (for note grouping)
         br = bar_residue(notes[0].start)                
         if is_at_even(notes[0].start, Fraction(1, 4)) and not no_beam_breaks:            
-            output.write(' ')            
+            output.write(u' ')            
 
         # check if next three notes can be interpreted as a triplet        
         if is_triplet(notes) and not no_triplets:                                    
@@ -265,9 +263,9 @@ def midi_to_abc(filename=None, notes=None, key=None, metre=Fraction(3, 4), defau
             _notes = [n.note for n in notes[:3]]            
 
             # convert notes to string representation            
-            s = '(3' + ''.join([note_to_string(n.note, n.length*2, default_len, key_accidentals, cur_accidentals) for n in notes[:3]])
+            s = u'(3' + ''.join([note_to_string(n.note, n.length*2, default_len, key_accidentals, cur_accidentals) for n in notes[:3]])
             if slur_triplets:
-                s = '(' + s + ')'
+                s = u'(' + s + ')'
             output.write(s)            
                 
             last_note_start = notes[0].start
@@ -297,11 +295,11 @@ def midi_to_abc(filename=None, notes=None, key=None, metre=Fraction(3, 4), defau
             if notes and abs(br - int(br)) < 1.0/20 and not bow_started and is_four_16th_notes and slur_16th_pairs:
                 bow_started_here = True 
                 bow_started = True
-                output.write('(')
+                output.write(u'(')
             elif notes and abs(br - int(br)) < 1.0/20 and not bow_started and is_two_8th_notes and slur_8th_pairs and br < 2.0: 
                 bow_started_here = True 
                 bow_started = True
-                output.write('(')
+                output.write(u'(')
 
             # check if it's possible to use a broken rytm (< or >) between the current and next note/chord
             broken_rythm_symbol = ''
@@ -320,29 +318,29 @@ def midi_to_abc(filename=None, notes=None, key=None, metre=Fraction(3, 4), defau
                         broken_rythm_factor = Fraction(2,3)                        
 
             # convert notes to string representation and output
-            s = ''.join([note_to_string(n, length, default_len, key_accidentals, cur_accidentals) for n in chord_notes])
+            s = u''.join([note_to_string(n, length, default_len, key_accidentals, cur_accidentals) for n in chord_notes])
             if len(chord_notes) > 1:
-                s = '[' + s + ']'  # wrap chord              
+                s = u'[' + s + ']'  # wrap chord              
             output.write(s)
 
             # output broken rythm symbol if set
             if broken_rythm_symbol:
-                output.write(broken_rythm_symbol)            
+                output.write(unicode(broken_rythm_symbol))            
 
             # if a bow was previously started end it here                        
             if bow_started and not bow_started_here:
-                output.write(')')
+                output.write(u')')
                 bow_started = False            
                 
             #print 'note', note.start, length, chord_notes, '%.2f' % last_note_start, bar(last_note_start), '%.2f' % bar_residue(last_note_start)#, note.note            
 
-    output.write(' |')
-    output.write('\n')
+    output.write(u' |')
+    output.write(u'\n')
     
     # left strip lines
     lines = output.getvalue().split('\n')
     lines = [l.lstrip() for l in lines]
-    return '\n'.join(lines)
+    return u'\n'.join(lines)
 
 def main(argv):
     # setup default values 
