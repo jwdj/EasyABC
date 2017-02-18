@@ -172,15 +172,17 @@ class AbcTune(object):
         line = self.abc_lines[row-1]
         col = self.byte_to_unicode_index(line, col-1) + 1 # compensate for encoding differences
         
-        if self.is_gracenote_at(row, col):
-            return None # abcm2ps does not mark notes within braces 
-
-        start_of_chord = self.get_start_of_chord(row, col) 
-        if start_of_chord:
-            return start_of_chord - 1 # svg_col is 1-based
-        
-        if line[col-1] in '~.HIJKLMNOPQRSTUVWhijklmnopqrstuvw':
-            return col # in case of one letter symbol: abc2midi marks the symbol, abcm2ps marks the after note after the dot
+        try:
+            if self.is_gracenote_at(row, col):
+                return None # abcm2ps does not mark notes within braces 
+    
+            start_of_chord = self.get_start_of_chord(row, col) 
+            if start_of_chord:
+                return start_of_chord - 1 # svg_col is 1-based
             
-        return col-1
-            
+            if line[col-1] in '~.HIJKLMNOPQRSTUVWhijklmnopqrstuvw':
+                return col # in case of one letter symbol: abc2midi marks the symbol, abcm2ps marks the after note after the dot
+                
+            return col-1
+        except:
+            return None

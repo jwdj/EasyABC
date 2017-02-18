@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.5 2016-08-16'
+program_name = 'EasyABC 1.3.7.6 2016-11-12'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -3405,6 +3405,7 @@ class MyAbcm2psPage(wx.Panel):
         if old_path and path != old_path:
             self.settings['previous_abcm2ps_format_path'] = old_path
         self.settings['abcm2ps_format_path'] = path
+        self.Parent.Parent.Parent.Parent.refresh_tunes()
 
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
@@ -4034,6 +4035,7 @@ class MainFrame(wx.Frame):
         self.editor.SetDropTarget(MyFileDropTarget(self))
         self.tune_list.SetDropTarget(MyFileDropTarget(self))
         self.music_pane.SetDropTarget(MyFileDropTarget(self))
+        self.abc_assist_panel.SetDropTarget(MyFileDropTarget(self))
         self.GetMenuBar().SetDropTarget(MyFileDropTarget(self))
 
         self.tune_list_last_width = self.tune_list.GetSize().width
@@ -4098,6 +4100,7 @@ class MainFrame(wx.Frame):
 
         self.OnClearCache(None) # P09 2014-10-26
 
+        self.manager.GetPane(self.music_pane).Dockable(True) # 1.3.7.6 score pane movable
         # 1.3.7 [JWdJ] 2016-01-06
         self.ShowAbcAssist(self.settings.get('show_abc_assist', True))
 
@@ -4316,6 +4319,12 @@ class MainFrame(wx.Frame):
         if not tune:
             return
         num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
+        if 1==0: #self.is_really_playing and self.played_notes_timeline and selected_note_indices and close_note_index is None:
+            page_index = self.music_pane.current_page.index
+            note_index = min(selected_note_indices)
+            pos_in_ms = next((n.start for n in self.played_notes_timeline if n.page == page_index and note_index in n.indices), -1)
+            if pos_in_ms != -1:  
+                self.mc.Seek(pos_in_ms)
 
         position, end_position = tune.offset_start, tune.offset_end
         tune_start_line = self.editor.LineFromPosition(position)
@@ -4425,6 +4434,8 @@ class MainFrame(wx.Frame):
 
     def play(self):
         self.normalize_volume()
+        if wx.Platform == "__WXMAC__":
+            time.sleep(0.4) # to fix first notes being skipped
         self.mc.Play()
         self.is_really_playing = True
 
@@ -4433,8 +4444,9 @@ class MainFrame(wx.Frame):
             self.mc.Seek(0)
         else:
             self.mc.Seek(0)
-            self.update_playback_rate()
             self.mc.Play()
+            self.set_playback_rate(self.last_playback_rate)
+            #self.update_playback_rate()
             self.is_really_playing = True
 
     def stop_playing(self):
@@ -4544,6 +4556,7 @@ class MainFrame(wx.Frame):
         # if media is finished but playback as a loop was used relaunch the playback immediatly
         # and prevent media of being stop (event is vetoed as explained in MediaCtrl documentation)
         if self.loop_midi_playback:
+            self.last_playback_rate = self.mc.PlaybackRate
             evt.Veto()  # does not work on Windows, music stops always
             wx.CallAfter(self.play_again)
 
@@ -4644,11 +4657,11 @@ class MainFrame(wx.Frame):
             try:
                 self.music_pane.draw_notes_highlighted(current_time_slice.indices)
             except:
-                self.music_and_score_out_of_sync()
-                return
+                pass
+                # self.music_and_score_out_of_sync()
 
         # turning pages and going to next line has to be done slighty earlier
-        future_offset = offset + 500  # 0.5 seconds should do
+        future_offset = offset + 300  # 0.3 seconds should do
         future_time_slice = self.future_time_slice
 
         if future_time_slice is None or not (future_time_slice.start <= future_offset < future_time_slice.stop):
@@ -4673,16 +4686,17 @@ class MainFrame(wx.Frame):
                     self.last_played_svg_row = future_time_slice.svg_row
                     self.scroll_to_notes(self.music_pane.current_page, future_time_slice.indices)
             except:
-                self.music_and_score_out_of_sync()
+                pass
+                # self.music_and_score_out_of_sync()
 
     def scroll_to_notes(self, page, indices):
         if not indices:
             return
-        x, y, _, _, _ = page.notes[min(indices)]
-        if len(indices) > 1:
-            x2, y2, _, _, _ = page.notes[max(indices)]
-            x = (x + x2) // 2
-            y = (y + y2) // 2
+        x, y, _, _, _ = page.notes[max(indices)]
+        #if len(indices) > 1:
+        #    x2, y2, _, _, _ = page.notes[min(indices)]
+        #    x = (x + x2) // 2
+        #    y = (y + y2) // 2
         self.scroll_music_pane(x, y)
 
     def music_and_score_out_of_sync(self):
@@ -5439,6 +5453,39 @@ class MainFrame(wx.Frame):
         else:
             self.statusbar.SetStatusText(_('Export failed'))
 
+    def MoveTune(self, from_index, to_index):
+        self.tune_list.GetItemData(from_index)
+        (_, _, line_no) = self.tune_list.itemDataMap[from_index]
+        offset_start = self.editor.PositionFromLine(line_no)
+        offset_start, offset_end = self.GetTextRangeOfTune(offset_start)
+
+        (_, _, line_no) = self.tune_list.itemDataMap[to_index]
+        insert_pos = self.editor.PositionFromLine(line_no)
+        
+        if insert_pos > offset_start:
+            _, insert_pos = self.GetTextRangeOfTune(insert_pos)
+            insert_pos -= offset_end - offset_start 
+
+        self.editor.BeginUndoAction()
+        abc = self.editor.GetTextRange(offset_start, offset_end)
+        self.editor.SetSelection(offset_start, offset_end)
+        self.editor.ReplaceSelection('')
+        self.editor.InsertText(insert_pos, abc)
+        self.editor.SetSelection(insert_pos, insert_pos)
+        self.editor.EndUndoAction()
+    
+    def OnMoveTuneUp(self, evt):
+        selected_index = self.tune_list.GetFirstSelected()
+        if selected_index > 0:
+            self.tune_list.DeselectAll()  
+            self.MoveTune(selected_index, selected_index - 1)
+    
+    def OnMoveTuneDown(self, evt):
+        selected_index = self.tune_list.GetFirstSelected()
+        if selected_index < self.tune_list.ItemCount - 1:  
+            self.tune_list.DeselectAll()  
+            self.MoveTune(selected_index, selected_index + 1)
+
     def OnMusicPaneDoubleClick(self, evt):
         self.editor.SetFocus()
 
@@ -5877,6 +5924,9 @@ class MainFrame(wx.Frame):
 
     def create_upload_context_menu(self):
         menu = create_menu([
+            (_('Move up'), '', self.OnMoveTuneUp),
+            (_('Move down'), '', self.OnMoveTuneDown),
+            (),
             (_('Export to &MIDI...'), '', self.OnExportMidi),
             (_('Export to &PDF...'), '', self.OnExportPDF),
             (_('Export to &one PDF...'), '', self.OnExportSelectedToSinglePDF, self.add_to_multi_list),
@@ -5908,26 +5958,20 @@ class MainFrame(wx.Frame):
         self.multi_tunes_menu_items += [menu_item]
 
     def setup_typing_assistance_menu(self):
-        doremi_id = wx.NewId()
-        menu = self.mnu_TA = wx.Menu()
-        self.mni_TA_active = menu.AppendCheckItem(wx.NewId(), _("&Active") + '\tCtrl+T', "")
+        menu = self.mnu_TA = create_menu([], parent=self)
+        self.mni_TA_active = append_menu_item(menu, _("&Active") + '\tCtrl+T', "", self.GrayUngray, kind=wx.ITEM_CHECK)
         menu.AppendSeparator()
-        self.mni_TA_auto_case = menu.AppendCheckItem(wx.NewId(), _("Automatic uppercase/lowercase"), "")
-        #self.mni_TA_do_re_mi = wx.MenuItem(None, doremi_id, _("&Do-re-mi mode") + "\tCtrl+D", "")
-        #self.mni_TA_do_re_mi.SetKind(wx.ITEM_CHECK)
-        self.mni_TA_do_re_mi = menu.AppendCheckItem(doremi_id, _("&Do-re-mi mode") + " (experimental)" + "\tCtrl+D", "")
-        #self.mni_TA_do_re_mi.Enable(False)
-        self.mni_TA_add_note_durations = menu.AppendCheckItem(wx.NewId(), _("Add note &durations"), "")
+        self.mni_TA_auto_case = append_menu_item(menu, _("Automatic uppercase/lowercase"), "", None, kind=wx.ITEM_CHECK)
+        self.mni_TA_do_re_mi = append_menu_item(menu, _("&Do-re-mi mode") + " (experimental)" + "\tCtrl+D", "", self.OnDoReMiModeChange, kind=wx.ITEM_CHECK)
+        self.mni_TA_add_note_durations = append_menu_item(menu, _("Add note &durations"), "", None, kind=wx.ITEM_CHECK)
 
-        add_bar_menu = wx.Menu()
-        self.mni_TA_add_bar_disabled = add_bar_menu.Append(wx.ID_ANY, _('Disabled'), kind=wx.ITEM_RADIO)
-        self.mni_TA_add_bar = add_bar_menu.Append(wx.ID_ANY, _('Using spacebar'), kind=wx.ITEM_RADIO)
-        self.mni_TA_add_bar_auto = add_bar_menu.Append(wx.ID_ANY, _('Automatic'), kind=wx.ITEM_RADIO)
+        add_bar_menu = create_menu([], parent=self)
+        self.mni_TA_add_bar_disabled = append_menu_item(add_bar_menu, _('Disabled'), "", None, kind=wx.ITEM_RADIO)
+        self.mni_TA_add_bar = append_menu_item(add_bar_menu, _('Using spacebar'), "", None, kind=wx.ITEM_RADIO)
+        self.mni_TA_add_bar_auto = append_menu_item(add_bar_menu, _('Automatic'), "", None, kind=wx.ITEM_RADIO)
         append_submenu(menu, _('Add &bar'), add_bar_menu)
 
-        self.mni_TA_add_right = menu.AppendCheckItem(wx.NewId(), _('Add &matching right symbol: ), ], } and "'), "")
-        self.Bind(wx.EVT_MENU, self.GrayUngray, id=self.mni_TA_active.GetId())
-        self.Bind(wx.EVT_MENU, self.OnDoReMiModeChange, id=doremi_id)
+        self.mni_TA_add_right = append_menu_item(menu, _('Add &matching right symbol: ), ], } and "'), "", None, kind=wx.ITEM_CHECK)
         return menu
 
     def setup_menus(self):
@@ -6050,6 +6094,7 @@ class MainFrame(wx.Frame):
                 (_("&Learn ABC"), _("Link to the ABC notation website"), self.OnABCLearn),
                 (_("&Abcm2ps help"), _("Link to the Abcm2ps website"), self.OnAbcm2psHelp),
                 (_("&Abc2midi help"), _("Link to the Abc2midi website"), self.OnAbc2midiHelp),
+                (_("ABC &Quick Reference Card"), _("Link to a PDF with the most common ABC commands"), self.OnAbcCheatSheet),
                 (),
                 (_("&Check for update..."), _("Link to EasyABC download page"), self.OnCheckLastestVersion),
                 (),
@@ -6281,6 +6326,8 @@ class MainFrame(wx.Frame):
     def OnAbc2midiHelp(self, evt):
         show_in_browser('http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html')
 
+    def OnAbcCheatSheet(self, evt):
+        show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
 
     def OnClearCache(self, evt):
         # make sure that any currently played/loaded midi file is released by the media control
@@ -7295,7 +7342,8 @@ class MainFrame(wx.Frame):
                     elif on_off == 'off':
                         note_stop = time_in_ms
                         note_on = active_notes.pop((channel, note_num), None)
-                        notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
+                        if note_on is not None:
+                            notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
                 else:
                     m = tempo_re.match(line)
                     if m is not None:
@@ -7417,7 +7465,6 @@ class MainFrame(wx.Frame):
         while notes or active_notes:
             time_start = notes[0].start if notes else max_int 
             if time_start <= time_stop:
-                page = notes[0].page
                 same_note_start = list(takewhile(lambda n: n.start == time_start, notes))
                 notes = notes[len(same_note_start):]
                 active_notes += same_note_start
@@ -7429,9 +7476,12 @@ class MainFrame(wx.Frame):
                 time_stop = min(time_stop, active_notes[0].stop if active_notes else max_int)
 
             # adding a new slice
-            active_notes_same_page = [n for n in active_notes if n.page == page]
-            all_indices_for_time_slice = set().union(*[n.indices for n in active_notes_same_page])
-            svg_row = min([n.svg_row for n in active_notes_same_page]) if active_notes_same_page else 0
+            if active_notes:
+                page = max([n.page for n in active_notes])
+                active_notes = [n for n in active_notes if n.page >= page] # prevent mingling of indices from different pages
+                
+            all_indices_for_time_slice = set().union(*[n.indices for n in active_notes])
+            svg_row = min([n.svg_row for n in active_notes]) if active_notes else 0
             time_slices.append(MidiNote(time_start, time_stop, all_indices_for_time_slice, page, svg_row))
 
             # removing stopped notes
@@ -7531,7 +7581,7 @@ class MainFrame(wx.Frame):
         end_line = start_line + 1
         while end_line < line_count and not get_line(end_line).startswith('X:'):
             end_line += 1
-        end_position = editor.GetLineEndPosition(end_line-1)
+        end_position = editor.PositionFromLine(end_line)
         return (position, end_position)
 
     def GetFileHeaderBlock(self):
