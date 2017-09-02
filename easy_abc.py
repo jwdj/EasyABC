@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.6 2016-11-12'
+program_name = 'EasyABC 1.3.7.7 2017-08-31'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -6643,7 +6643,7 @@ class MainFrame(wx.Frame):
                     if self.add_bar_if_needed(bar_text):
                         return
                 elif c == ':':
-                    if not (line.rstrip(), caret) == (u'X', 1) and self.add_bar_if_needed(':|'):
+                    if not (caret == 1 and line.rstrip() in [u'X', u'Z']) and self.add_bar_if_needed(':|'):
                         return
                 else:
                     self.add_bar_if_needed()
