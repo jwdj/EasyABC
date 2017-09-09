@@ -1,0 +1,16 @@
+The files with an *.exe are Windows executables. The
+ones without the extension are Mac executables.
+
+The latest MAC executables of nwc2xml can be found in
+ http://code.google.com/p/nwc2xml/downloads/list
+
+The latest Mac executables of the abcmidi package can be found in
+http://abcplus.sourceforge.net/
+
+The latest Windows executables of the abcmidi package and
+abcm2ps can be found in
+http://ifdo.ca/~seymour/runabc/top.html (see abcmidi_win32.zip).
+This distribution has been updated to March 03 2014
+
+-- seymour.shlien@crc.ca
+

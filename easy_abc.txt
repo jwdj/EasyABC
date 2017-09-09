@@ -1,0 +1,305 @@
+Programmer's guide to easy_abc.py
+
+Ignoring all the support scripts, easy_abc.py is already over 5000 lines
+long, so finding one's way around is not easy.
+
+Three python programs were found very useful for exploring easy_abc.py and
+related source code. 1) there is the wxPython Widget inspection tool
+which is already built into wxPython. It is described in 
+http://wiki.wxpython.org/Widget%20Inspection%20Tool
+2) The Python Programmer's Editor - PyPE is useful for navigating
+about the code. You can find it on
+http://sourceforge.net/projects/pype/
+3) Finally the Winpdb - Cross Platform Python Debugger 
+http://sourceforge.net/projects/winpdb/?source=directory
+was also found handy.
+
+Widgets
+-------
+
+First we shall look at the WxPython widgets in easy_abc.
+When you start the program, the MainFrame window contains at
+least 6 widgets. They are
+StatusBar (status_line)
+AuiToolBar (control)
+FlexibleListCtrl (listCtrl)
+StyledTextCtrl (stcwindow)
+MusicScorePanel (panel)
+and TextCtrl (text)
+The type of wx widget is given in parentheses.
+
+The StatusBar is the horizontal bar at the bottom of the EasyABC frame
+which contains important messages. Most of the time it is blank.
+
+Below the AuiToolBar, there frame is split into a left and right half.
+The left half contains the FlexibleListCtrl which is used to list all
+the tunes in the open abc file. The right half is split into the upper
+and lower frames. The upper frame is the MusicScorePanel and is where
+the music score is displayed. The lower frame is the StyledTextCtrl and
+is where the contents of the open abc file can be edited.
+
+The AuiToolBar is the set of controls for playing, stopping, record, 
+ornamentation, dynamics, direction, and Zoom, which appear on a
+horizontal bar near the top of the EasyABC frame. This widget
+is a container for many other widgets -- buttons, sliders, static
+text and Combobox.
+
+
+There are many more widgets which pop up when you select some of
+the program options. 
+
+Abcm2psSettingsFrame (Dialog) (ABC Settings)
+ErrorFrame (Dialog)
+IncipitsFrame (Dialog)
+MidiSettingsFrame (Dialog)
+MidiOptionsFrame (Dialog)
+NewTuneFrame (Dialog)
+PageSetupDialog (Dialog)
+
+ProgressFrame (Gauge)
+TextEntryDialog (for Sort tunes and Renumber X:fields)
+
+AboutFrame (html Dialog)
+
+
+
+Classes in easy_abc.py
+----------------------
+
+MainFrame is the largest class consisting of more than 3000 lines of
+code and making the bulk of easy_abc.py. It contains numerous
+methods and subclasses. MainFrame setups up the user interface of
+Easyabc and contains many of the event handlers. To create the
+main page it calls up setup_menus(), setup_toolbar(), tune_list,
+editor, music_pane and lays them out. Events are bound to various
+methods in this class. It creates 3 objects which are vital components
+of the program. tune_list is a clone of ListCtrl which is used to
+provide direct access to any tune in the abc file. editor  is a
+clone of the StyledTextCtrl and is used as the main editor of
+the tune in abc notation. music_pane is a clone of MusicScorePanel
+which is defined in the module music_score_panel.py.
+
+There are about 20 classes defined in easy_abc.py such as AboutFrame(),
+ErrorFrame(), FlexibleListCtrl(), and etc. Some of these may be
+described as this guide is written.
+
+
+MusicUpdateThread. Any time a single note is changed, inserted or
+deleted in the editor, the music score panel is completely regenerated.
+EasyAbc runs a separate thread to perform this process in parallel
+without slowing down the user interface. The class MusicUpdateThread
+is used to create an object music_update_thread which runs as a
+separate task. The action of this task to run AbcToSvg is specified
+in the method called 'run'. The thread is started with EasyAbc and
+is aborted when EasyAbc closes.
+
+
+
+Core Description
+----------------
+
+The core functions of EasyAbc are loading an abc file into the
+editor, creating a table of contents in the listbox, displaying
+the music score, and creating and playing the corresponding MIDI
+file. A description of how this is done is given here.
+
+The menu item File/Open is bound to the MainFrame method
+called OnOpen. OnOpen creates an instance of the class wxFileDialog (which
+is part of wxPython) and calls it dlg. dlg is displayed and
+allows the user to browse to the path of the desired abc file
+and referenced by dlg.GetPath(). OnOpen will first create a new frame
+if another abc file is already loaded; otherwise it will
+immediately call MainFrame.load() which reads the entire abc file
+as a long string and puts it into the MainFrame.editor
+StyledTextControl -stc), using the stc method SetText().
+The StyledTextControl class is a powerful text editor which was
+imported into separately by the statement 'import wx.stc as stc'.
+This editor allows one to colourize different lexical components
+of the ABC language. The MainFrame.editor was created by MainFrame
+when the frame object was instantiated.  Finally MainFrame.load()
+call the methods UpdateTuneList to populate the listbox tune_list
+and then tune_list.Select(0) to select the first tune in the
+list.
+
+
+The method MainFrame.UpdateTuneList() calls MainFrame.GetTunes()
+which creates an index called 'tunes' by going through the contents
+of MainFrame.editor line by line and picking out the reference number,
+title, rhythm, and current start line of the tune. This information
+is stored in nested lists called self.tunes. The index self.tunes
+is used to create a Python dictionary called tune_list.itemDataMap.
+UpdateTuneList() loads the contents of the list into the listbox tune_list.
+
+
+When you click on a tune in the TuneList, EasyAbc automatically scrolls
+the editor to the abc transcription of that tune and displays the 
+sheet music in the frame above. Updating the editor is fairly simple
+however posting the new music score is rather complicated and
+involves communicating with another thread.
+
+When you click on a tune in the TuneList, an event EVT_LIST_ITEM_SELECTED
+which is bound to OnTuneSelected is posted. OnTuneSelected grabs the
+selected tune = self.GetSelectedTune() and sends it to the
+music_update_thread using the method ConvertAbcToSvg. It gets the
+scroll position of the tune LineFromPosition(tune.offset_start)
+and scrolls the editor to that position.
+
+The updating of the music panel involves converting the selected
+abc tune into a SVG file using an external program abcm2ps. The
+SVG file is then interpreted by another module svgrenderer which
+redraws the entire score in the music panel.
+
+The function AbcToSvg creates the SVG file from the abc representation. 
+It first checks whether the SVG file is up to date and cached away
+somewhere. The SVG file has a name generated by hashing the contents
+of the tune. The placement of this cached file, if it exists depends
+upon the operating system you are running; however, you can find
+out the directory where it is cached when you click on the top
+menu item Settings/Clear cache. It is a good idea to do this
+occasionally. If the cached file is not found, then AbcToSvg
+calls on abcm2ps to generate a new SVG file. The description
+on how the SVG file is processed is deferred presently.
+
+
+PlayMidi is the main gateway to converting the abc notated tune
+to a MIDI file and sending it to the media player. GetAbcToPlay is
+called to extract the tune from the editor. (The function provides
+an option of playing only selected notes.)  PlayMidi provides an
+option to remove all repeat indications from the abc representation.
+The function AbcToMidi converts the tune to midi_file which is loaded
+into the media player called mc by do_load_media_file.
+
+AbcToMidi adds %%MIDI commands if needed and cleans up any issues that
+may be a problem for abc2midi. Like AbcToSvg the MIDI files are stashed
+away in a cache. If the MIDI file is not found in the cache,  Abc2midi
+is called as a subprocess using the subprocess.Popen and
+subprocess.communicate functions. This is the recommended method
+of interacting with other programs in the operating system.
+
+Depending on the operating system, the media player is either
+DIRECTSHOW (Windows) or QUICKTIME (OS or OSX). This is set during
+the initialization of the MainFrame. The media player allows
+changing the tempo using the message mc.PlaybackRate.
+
+
+The EasyAbc editor allows the user to select notes directly from
+the music score panel and see them highlighted in the editor.
+Similarly, the user can select notes in the editor and see them
+highlighted in the music score panel. This is done by means
+of a translation table called renderer.notes which is generated
+by the method SvgRenderer.draw_svg_element in the module svgrenderer.
+For each drawable element, the method appends (x, y, line, col, desc)
+where x and y are the coordinates of where the element is drawn and
+line and col are the line and column number of the element in the
+abc transcription. desc is a descriptor of the element. Depending
+on the direction you are going the closest note is found by either
+matching the x,y coordinates or the line, col coordinates of the
+note.
+
+Svgrenderer extracts this information from the input svg file
+that was created by abcm2ps. Normally abcm2sp does not include
+this information, but there is an undocumented option -A which
+instructs abcm2ps to add this information as a comment in either
+the output PostScript or Scaleable Vector Graphics file that
+it produces.
+
+
+When you click on a note in the music score panel, the event EVT_LEFT_DOWN
+is posted and calls the method MusicScorePanel.OnLeftButtonDown in the
+module music_score_panel.py. The x,y coordinates of the mouse pointer
+is obtained from the method get_xy_of_mouse_event() which compensates for
+the zoom factor. The note index is obtained from the SvgElement.hit_test(x,y)
+in the module svgrender.py which scans the list SvgElement.notes. 
+add_note_to_selection adds this index to the selection,  the music
+score panel is redrawn, and the selected note is highlighted. Finally
+OnNoteSelectionChangedDesc is called.
+
+When you click on a note in the editor, the event EVT_LEFT_UP is posted
+which is bound to OnEditorMouseRelease. OnEditorMouseRelease calls
+ScrollMusicPaneToMatchEditor to look for the closest note in the
+music score panel using the renderer.notes  list. When the note
+is found, the music score panel is redrawn.
+
+Nils likes to implement some operations in a complicated way. When the
+user selects a specific tune from the list of titles, OnTuneSelected()
+is called which eventually causes the editor and music pane to be
+updated. In order to update the music pane, it is necessary to convert
+the abc tune into an svg file so it can be rendered on the screen. The
+conversion is done by the function AbcToSvg, however, easy_abc.py
+performs this using a thread that runs concurrently with the
+EasyAbc interface. This thread may cause some problems on
+some computers which are slow or do not have sufficient memory.
+
+The main program starts up a separate thread called self.music_update_thread
+which is an object of the class MusicUpdateThread(). This thread runs
+in the background over the time span of the program EasyAbc. The
+sole purpose of this thread is to compute the svg file from the
+abc tune. This allows the EasyAbc interface to run while the
+svg file is computed in the background. If you are just displaying
+a single tune, then whether the conversion is done as a separate
+thread or executed in EasyAbc is not important. On the other hand,
+if you are displaying a large bunch of tunes then AbcToSvg may
+be very busy and the EasyAbc interface may be unresponsive
+during that time. However, I have not figured out how to select
+a bunch of titles from the titles list box.
+
+Computing the svg file through this thread requires some complex
+signalling. First we need to tell the thread that we have new
+data to be processed by setting the flag self.request_exists from
+False to True. This is done by the method ConvertAbcToSvg which
+also passes the abc tune and header to the thread. Though the
+thread is 'sleeping' most of the time, it is still running and
+checks self.request_exists 20 times a second. As soon as
+self.request_exists is set to True the thread goes to work
+(see the run method in the class OnMusicUpdate). It verifies that
+there exists a K: field in the tune and executes the function
+AbcToSvg(). When AbcToSvg completes it posts a custom event
+message returning the names of the svg_files and any error messages
+in the event handler. After that the thread becomes dormant
+and waits again for the next self.request_exits.
+
+MusicUpdateDoneEvent which eventually posts a customized event named
+EVT_MUSIC_UPDATE_DONE which is bound to the handler
+self.OnMusicUpdateDone. Self.OnMusicUpdateDone grabs the names
+of the svg files and error messages and calls self.UpdateMusicPane.
+Self.UpdateMusicPane eventually calls self.music_pane.set_svg with
+one of the svg files to display.
+
+What can go wrong? Unless the thread is running in a separate
+processor they are actually not running concurrently; instead
+the processor is switching rapidly between the thread and the
+program many times per second. If the computer is slow and
+does not have sufficient memory, the delays could cause some
+synchronization problems. Two tasks may be trying to use the
+same resource at the same time. WxPython may not handle this
+correctly.
+
+ 
+EasyAbc saves your settings using a method called save_settings() to
+a file called settings1.3.dat whenever you make changes. The file
+is found in a directory close to where the cache is kept for
+svg and midi files. You can locate this when you clear out your cache
+using the menu item settings/Clear cache.
+
+
+Source files
+-------------
+
+
+Besides easy_abc.py, many other python files come with this package.
+
+abc2xml.py ande xml2abc.py  -- they are imported by xml2abc_interface.py
+
+abc_character_encoding.py  -- for importing decode_abc and encode_abc
+
+abc_scanner.py -- not used
+abc_scanner_old.py  --  not used
+abc_search.py -- supports edit/Find... and edit/Find next
+abc_styler.py -- supports coloring of tokens in abc Editor
+abc_aligner.py -- supports edit/align bars
+fraction.py -- for reading the time signature in easy_abc.py
+generalmidi.py -- for choosing one of the General Midi Instruments
+midi2abc.py -- for converting a MIDI file to an abc file (importing a MIDI
+                file.
+midi_meta_data.py -- used by easy_abc.py
+music_score_panel.py -- handles the music score panel

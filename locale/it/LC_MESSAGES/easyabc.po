@@ -1,0 +1,1033 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: EasyABC 1.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-11-01 18:26+0100\n"
+"PO-Revision-Date: 2014-11-01 18:27+0100\n"
+"Last-Translator: Frédéric AUPEPIN <frederic.aupepin@gmail.com>\n"
+"Language-Team: EasyABC <info@nilsliberg.se>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Italian\n"
+"X-Poedit-Country: ITALIAN\n"
+"X-Poedit-SourceCharset: iso-8859-1\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ../../..\n"
+
+#: ../../../easy_abc.py:836
+#, fuzzy
+msgid "Ghostscript could not be found. You need to install Ghostscript and set the path to the Ghostscript executable in order to use this feature."
+msgstr "Non trovo Ghostscript. Installare Ghostscript per utilizzare questa funzione"
+
+#: ../../../easy_abc.py:836
+#: ../../../easy_abc.py:2826
+#: ../../../easy_abc.py:5418
+msgid "Error"
+msgstr "Errore"
+
+#: ../../../easy_abc.py:1097
+#, python-format
+msgid "Error during conversion of %(filename)s: %(error)s"
+msgstr "Errore nella conversione di %(filename): %(error)"
+
+#: ../../../easy_abc.py:1467
+msgid "Field"
+msgstr "Campo"
+
+#: ../../../easy_abc.py:1468
+msgid "Description"
+msgstr "Descrizione"
+
+#: ../../../easy_abc.py:1540
+msgid "Generate incipits file..."
+msgstr "Genera il file degli incipit..."
+
+#: ../../../easy_abc.py:1544
+msgid "Number of bars to extract:"
+msgstr "Numero delle battute da estrarre :"
+
+#: ../../../easy_abc.py:1545
+msgid "Maximum number of repeats to extract:"
+msgstr "Numero massimo delle ripetizioni da estrarre:"
+
+#: ../../../easy_abc.py:1546
+msgid "Maximum number of titles/subtitles to extract:"
+msgstr "Numero massimo dei titoli/sottotitoli da estrarre:"
+
+#: ../../../easy_abc.py:1547
+msgid "Fields to sort by (eg. T):"
+msgstr "Ordina per (es. T):"
+
+#: ../../../easy_abc.py:1548
+msgid "Number of rows per column:"
+msgstr "Numero di righe per colonna:"
+
+#: ../../../easy_abc.py:1553
+msgid "&Two column output"
+msgstr "&Due colonne"
+
+#: ../../../easy_abc.py:1572
+#: ../../../easy_abc.py:2048
+#: ../../../easy_abc.py:2168
+#: ../../../easy_abc.py:2219
+#: ../../../easy_abc.py:2279
+#: ../../../easy_abc.py:5744
+msgid "&Ok"
+msgstr "&Ok"
+
+#: ../../../easy_abc.py:1573
+#: ../../../easy_abc.py:2049
+#: ../../../easy_abc.py:2169
+#: ../../../easy_abc.py:2220
+#: ../../../easy_abc.py:2280
+msgid "&Cancel"
+msgstr "&Annulla"
+
+#: ../../../easy_abc.py:1619
+msgid "Add new tune"
+msgstr "Aggiungi un brano"
+
+#: ../../../easy_abc.py:1656
+#: ../../../easy_abc.py:1786
+msgid "Additional command line parameters to abcm2ps"
+msgstr "Parametri addizionali alla linea di comando per abcm2ps"
+
+#: ../../../easy_abc.py:1701
+msgid "Leave this field empty in order to use the default value"
+msgstr "Lascia il campo vuoto per usare i valori predefiniti"
+
+#: ../../../easy_abc.py:1711
+#: ../../../easy_abc.py:1713
+#: ../../../easy_abc.py:1715
+#: ../../../easy_abc.py:1717
+#: ../../../easy_abc.py:1719
+#: ../../../easy_abc.py:1721
+#: ../../../easy_abc.py:1723
+#: ../../../easy_abc.py:1725
+msgid "Browse..."
+msgstr "Sfoglia..."
+
+#: ../../../easy_abc.py:1735
+#: ../../../easy_abc.py:1768
+msgid "Custom file paths (leave empty to use default)"
+msgstr "Percorso personalizzato (lasciare vuoto per il valore predefinito)"
+
+#: ../../../easy_abc.py:1739
+msgid "abcm2ps executable:"
+msgstr "Eseguibile abcm2ps:"
+
+#: ../../../easy_abc.py:1740
+msgid "abc2midi executable:"
+msgstr "Eseguibile abc2midi:"
+
+#: ../../../easy_abc.py:1741
+msgid "abc2abc executable:"
+msgstr "Eseguibile abc2abc:"
+
+#: ../../../easy_abc.py:1742
+msgid "abcm2ps format file:"
+msgstr "File di formato abcm2ps:"
+
+#: ../../../easy_abc.py:1743
+msgid "ghostscript executable:"
+msgstr "Eseguibile ghostscript:"
+
+#: ../../../easy_abc.py:1744
+msgid "nwc2xml executable:"
+msgstr "Eseguibile nwc2xml:"
+
+#: ../../../easy_abc.py:1745
+msgid "ps2pdf  executable:"
+msgstr "Eseguibile ps2pdf:"
+
+#: ../../../easy_abc.py:1746
+msgid "midiplayer:"
+msgstr "Player MIDI:"
+
+#: ../../../easy_abc.py:1789
+msgid "Include file header when rendering tunes"
+msgstr "Includi l'intestazione del file quando intepreta il brano"
+
+#: ../../../easy_abc.py:1842
+msgid "Choose a file"
+msgstr "Scegli un file"
+
+#: ../../../easy_abc.py:1850
+#, fuzzy
+msgid "Find midi player"
+msgstr "Trova player MIDI"
+
+#: ../../../easy_abc.py:1906
+msgid "Play chords"
+msgstr "Suona gli accordi"
+
+#: ../../../easy_abc.py:1910
+#, fuzzy
+msgid "Default instrument for all voices"
+msgstr "Strumenti predefiniti per la riproduzione multi voce:"
+
+#: ../../../easy_abc.py:1911
+msgid "Set Instruments per Voice..."
+msgstr "Imposta gli strumenti per la voce..."
+
+#: ../../../easy_abc.py:1914
+#, fuzzy
+msgid "Default instrument for playback: "
+msgstr "Strumenti predefiniti per la riproduzione:"
+
+#: ../../../easy_abc.py:1918
+#, fuzzy
+msgid "Default instrument for chord's playback: "
+msgstr "Strumenti predefiniti per la riproduzione degli accordi:"
+
+#: ../../../easy_abc.py:1920
+#, fuzzy
+msgid "Default instrument for bass chord's playback: "
+msgstr "Strumenti predefiniti per la riproduzione del basso degli accordi:"
+
+#: ../../../easy_abc.py:1992
+msgid "MIDI settings for voices"
+msgstr "Impostazioni MIDI per le voci"
+
+#: ../../../easy_abc.py:2006
+#, fuzzy
+msgid "Default instrument:"
+msgstr "Strumenti predefiniti:"
+
+#: ../../../easy_abc.py:2007
+msgid "Main Volume:"
+msgstr "Volume principale:"
+
+#: ../../../easy_abc.py:2008
+msgid "L/R Balance:"
+msgstr "Bilanciamento S/D:"
+
+#: ../../../easy_abc.py:2024
+#, fuzzy, python-format
+msgid "Voice n.%d: "
+msgstr "Voce n.%d:"
+
+#: ../../../easy_abc.py:2047
+msgid "&Reset"
+msgstr "&Reimposta"
+
+#: ../../../easy_abc.py:2132
+msgid "Midi device settings"
+msgstr "Parametri della periferica midi"
+
+#: ../../../easy_abc.py:2137
+msgid "Input device"
+msgstr "Periferica di input"
+
+#: ../../../easy_abc.py:2138
+msgid "Output device"
+msgstr "Periferica di output"
+
+#: ../../../easy_abc.py:2140
+#: ../../../easy_abc.py:2142
+msgid "None"
+msgstr "Nessuno"
+
+#: ../../../easy_abc.py:2196
+msgid "ABC Options"
+msgstr "Opzioni ABC"
+
+#: ../../../easy_abc.py:2201
+msgid "K: Key signature"
+msgstr "K: Tonalità"
+
+#: ../../../easy_abc.py:2202
+msgid "M: Metre"
+msgstr "M: Metrica"
+
+#: ../../../easy_abc.py:2203
+msgid "L: Default note length"
+msgstr "L: Durata standard della nota"
+
+#: ../../../easy_abc.py:2204
+msgid "T: Title"
+msgstr "T: Titolo"
+
+#: ../../../easy_abc.py:2205
+msgid "Bars per line"
+msgstr "Battute per linea"
+
+#: ../../../easy_abc.py:2206
+msgid "Numbers of notes in anacrusis"
+msgstr "Numero di note in anacrusi"
+
+#: ../../../easy_abc.py:2214
+msgid "Detect triplets"
+msgstr "Rileva le terzine"
+
+#: ../../../easy_abc.py:2215
+msgid "Detect broken rythms"
+msgstr "Rileva le note puntate"
+
+#: ../../../easy_abc.py:2216
+msgid "Use slurs on triplets"
+msgstr "Usa la legatura d'espressione sulla tripletta"
+
+#: ../../../easy_abc.py:2217
+msgid "Use slurs on eights (useful for some waltzes)"
+msgstr "Usa la legatura d'espressione sulle ottave (utile per alcuni valzer)"
+
+#: ../../../easy_abc.py:2218
+msgid "Use slurs on first pair of sixteenth (useful for some 16th polskas)"
+msgstr "Usa la legatura d'espressione sulla prima coppia di sedicesimi (utile per alcune polska)"
+
+#: ../../../easy_abc.py:2266
+#, fuzzy
+msgid "Errors"
+msgstr "Errore"
+
+#: ../../../easy_abc.py:2310
+msgid "Converting..."
+msgstr "Conversione..."
+
+#: ../../../easy_abc.py:2363
+#: ../../../easy_abc.py:2380
+msgid "Untitled"
+msgstr "Senza titolo"
+
+#: ../../../easy_abc.py:2429
+msgid "No."
+msgstr "No."
+
+#: ../../../easy_abc.py:2430
+msgid "Title"
+msgstr "Titolo"
+
+#: ../../../easy_abc.py:2452
+#: ../../../easy_abc.py:5525
+msgid "ABC errors"
+msgstr "Errore ABC"
+
+#: ../../../easy_abc.py:2457
+#: ../../../easy_abc.py:5524
+msgid "Musical score"
+msgstr "Spartito"
+
+#: ../../../easy_abc.py:2459
+#: ../../../easy_abc.py:5523
+msgid "Tune list"
+msgstr "Lista dei brani"
+
+#: ../../../easy_abc.py:2461
+#: ../../../easy_abc.py:5522
+msgid "ABC code"
+msgstr "Codice ABC"
+
+#: ../../../easy_abc.py:2607
+msgid "EasyABC - print preview"
+msgstr "EasyABC - Anteprima di stampa"
+
+#: ../../../easy_abc.py:2825
+#, python-format
+msgid "Unable to load %s: Unsupported format?"
+msgstr "Impossibile caricare %s : Formato non supportato?"
+
+#: ../../../easy_abc.py:2944
+msgid "Beats per minute"
+msgstr "Battute per minuto"
+
+#: ../../../easy_abc.py:2945
+msgid "Metre"
+msgstr "Misura"
+
+#: ../../../easy_abc.py:2970
+msgid "Zoom:"
+msgstr "Zoom:"
+
+#: ../../../easy_abc.py:2977
+msgid "Page"
+msgstr "Pagina"
+
+#: ../../../easy_abc.py:2990
+msgid "Tempo:"
+msgstr "Tempo:"
+
+#: ../../../easy_abc.py:2993
+msgid "Play position:"
+msgstr "Posizione nel brano:"
+
+#: ../../../easy_abc.py:3031
+#: ../../../easy_abc.py:3939
+msgid "&Do-re-mi mode"
+msgstr "Modalità &Do-re-mi"
+
+#: ../../../easy_abc.py:3158
+msgid "incipits"
+msgstr "incipit"
+
+#: ../../../easy_abc.py:3180
+#: ../../../easy_abc.py:3572
+#: ../../../easy_abc.py:3641
+msgid "Error: there was some trouble saving the file."
+msgstr "Errore: c'è stato un problema nel salvare il file."
+
+#: ../../../easy_abc.py:3180
+#: ../../../easy_abc.py:3572
+#: ../../../easy_abc.py:3641
+msgid "File could not be saved properly"
+msgstr "Il file non può essere salvato correttamente"
+
+#: ../../../easy_abc.py:3186
+msgid "Which field(s) do you want to sort the tunes by? (eg. T for title)"
+msgstr "Quale/i campo/i vuoi utilizzare per selezionare i brani? (es. T - selezione per titolo)"
+
+#: ../../../easy_abc.py:3186
+msgid "Sort tunes"
+msgstr "Ordina i brani"
+
+#: ../../../easy_abc.py:5464
+msgid "Search directories"
+msgstr "Cerca nella directory"
+
+#: ../../../easy_abc.py:3198
+#, fuzzy
+msgid "Please specify the index of the first tune: "
+msgstr "Indicare l'indice del primo brano:"
+
+#: ../../../easy_abc.py:3198
+msgid "Renumber X: fields"
+msgstr "Rinumera i campi X:"
+
+#: ../../../easy_abc.py:3219
+#, fuzzy
+msgid "Please enter your full name (your FolkWiki entries will henceforth be associated with this name): "
+msgstr "Inserisci il tuo nome (la tua pagina FolkWiki sarà associata a questo nome): "
+
+#: ../../../easy_abc.py:3219
+msgid "Enter your name"
+msgstr "Inserisci il tuo nome"
+
+#: ../../../easy_abc.py:3258
+#: ../../../easy_abc.py:3340
+#: ../../../easy_abc.py:3350
+#: ../../../easy_abc.py:3371
+#: ../../../easy_abc.py:3411
+msgid "Export tune as ..."
+msgstr "Esporta il brano come..."
+
+#: ../../../easy_abc.py:3265
+#: ../../../easy_abc.py:3305
+#: ../../../easy_abc.py:3384
+#, fuzzy
+msgid "Choose a directory..."
+msgstr "Scegli una directory..."
+
+#: ../../../easy_abc.py:3371
+#: ../../../easy_abc.py:3680
+msgid "MusicXML"
+msgstr "MusicXML"
+
+#: ../../../easy_abc.py:3445
+#: ../../../easy_abc.py:3502
+#: ../../../easy_abc.py:3558
+msgid "Export all tunes as ..."
+msgstr "Esporta tutti i brani come..."
+
+#: ../../../easy_abc.py:3663
+#: ../../../easy_abc.py:3678
+#: ../../../easy_abc.py:3800
+msgid "ABC file"
+msgstr "File ABC"
+
+#: ../../../easy_abc.py:3664
+#: ../../../easy_abc.py:3682
+msgid "Any file"
+msgstr "Tutti i file"
+
+#: ../../../easy_abc.py:3666
+msgid "Open ABC file"
+msgstr "Apri un file ABC"
+
+#: ../../../easy_abc.py:3677
+msgid "Any music file"
+msgstr "Tutti i file musicali"
+
+#: ../../../easy_abc.py:3679
+msgid "Midi file"
+msgstr "File MIDI"
+
+#: ../../../easy_abc.py:3681
+#, fuzzy
+msgid "Noteworthy Composer file"
+msgstr "File NoteWorthy Composer"
+
+#: ../../../easy_abc.py:3684
+msgid "Import and add tune"
+msgstr "Importa e aggiungi un brano"
+
+#: ../../../easy_abc.py:3732
+msgid "This ABC file seems to be encoded using UTF-8 but contains no indication of this fact. It is strongly recommended that an I:abc-charset field is added in order for you to load the file and safely save changes to it. Do you want EasyABC to add this for you automatically?"
+msgstr "Questo file ABC sembra codificato in UTF-8 ma non contiene indicazioni in proposito. Si raccomanda di aggiungere un campo I:abc-charset per caricare il file e salvare le modifiche senza problemi. Vuoi che EasyABC inserisca automaticamente questo campo?"
+
+#: ../../../easy_abc.py:3734
+msgid "Add abc-charset field?"
+msgstr "Aggiungi un campo abc-charset?"
+
+#: ../../../easy_abc.py:3741
+msgid ""
+"Could not find file.\n"
+"It may have been moved or deleted. Choose File,Open to locate it."
+msgstr ""
+"Impossibile trovare il file.\n"
+"Potrebbe essere stato spostato o cancellato. Utilizzare File,Apri per localizzarlo"
+
+#: ../../../easy_abc.py:3741
+msgid "File not found"
+msgstr "File non trovato"
+
+#: ../../../easy_abc.py:3762
+#, python-format
+msgid "Do you want to save your changes to %s?"
+msgstr "Vuoi salvare le modifiche a %s ?"
+
+#: ../../../easy_abc.py:3763
+msgid "Save changes?"
+msgstr "Salva le modifiche?"
+
+#: ../../../easy_abc.py:3780
+#, python-format
+msgid "This document contains characters (eg. %(ABC)s) that cannot be represented using the current character encoding (%(encoding)s). Do you want to switch to using UTF-8 as your character encoding (recommended)? (choosing No may cause some of these characters to be replaced by '?' when they are saved)"
+msgstr "Questo documento contiene caratteri (es. %(ABC)s) che non possono essere riprodotti con la codifica dei caratteri (%(encoding)s) attualmente in uso. Vuoi passare alla codifica UTF8 (raccomandato)? (scegliere No può provocare la sostituzione di alcuni di questi caratteri son il segno ? durante il salvataggio)."
+
+#: ../../../easy_abc.py:3784
+msgid "Switch to UTF-8 encoding?"
+msgstr "Passo alla codifica UTF-8?"
+
+#: ../../../easy_abc.py:3805
+#, python-format
+msgid "Save ABC file %s"
+msgstr "Salva il file ABC %s"
+
+#: ../../../easy_abc.py:3812
+msgid "The file already exists. Do you want to overwrite the existing file?"
+msgstr "File già esistente. Vuoi sovrascriverlo?"
+
+#: ../../../easy_abc.py:3813
+msgid "Overwrite existing file?"
+msgstr "Sovrascrivo il file esistente?"
+
+#: ../../../easy_abc.py:3835
+#, fuzzy
+msgid "abc2abc error/warnings: "
+msgstr "Errore/Avviso di abc2abc:"
+
+#: ../../../easy_abc.py:3836
+msgid "Abc2abc error message"
+msgstr "Messaggio d'errore di Abc2abc"
+
+#: ../../../easy_abc.py:3902
+msgid "Upload tune to FolkWiki"
+msgstr "Carica il brano su FolkWiki"
+
+#: ../../../easy_abc.py:3909
+msgid "Upload tune to Spillemandsportalen"
+msgstr "Carica il brano su Spillemandsportalen"
+
+#: ../../../easy_abc.py:3916
+msgid "Export to &MIDI..."
+msgstr "Esporta in formato &MIDI..."
+
+#: ../../../easy_abc.py:3922
+msgid "Export to &PDF..."
+msgstr "Esporta in formato &PDF..."
+
+#: ../../../easy_abc.py:3925
+msgid "Export to &SVG..."
+msgstr "Esporta in formato &SVG..."
+
+#: ../../../easy_abc.py:3934
+msgid "&Active"
+msgstr "&Attivo"
+
+#: ../../../easy_abc.py:3936
+msgid "Automatic uppercase/lowercase"
+msgstr "Maiuscolo/minuscolo automatico"
+
+#: ../../../easy_abc.py:3941
+msgid "Add note &durations"
+msgstr "Aggiungi &durata delle note"
+
+#: ../../../easy_abc.py:3942
+msgid "Add &bar"
+msgstr "Aggiungi una &battuta"
+
+#: ../../../easy_abc.py:3943
+msgid "Add &matching right symbol: ), ], } and \""
+msgstr "Aggiungi symbolo corrispondente: ), ], } o \""
+
+#: ../../../easy_abc.py:3961
+msgid "Note ornaments"
+msgstr "Ornamenti della nota"
+
+#: ../../../easy_abc.py:3962
+msgid "Directions"
+msgstr "Ripetizioni/Abbreviazioni"
+
+#: ../../../easy_abc.py:3963
+msgid "Dynamics"
+msgstr "Dinamiche"
+
+#: ../../../easy_abc.py:3968
+#, python-format
+msgid "Down %d semitones"
+msgstr "Abbassa di %d semitoni"
+
+#: ../../../easy_abc.py:3972
+#, python-format
+msgid "Up %d semitones"
+msgstr "Alza di %d semitoni"
+
+#: ../../../easy_abc.py:3976
+msgid "Double note lengths\tCtrl+Shift++"
+msgstr "Raddoppia la durata delle note\tCtrl+Shift++"
+
+#: ../../../easy_abc.py:3977
+msgid "Halve note lengths\tCtrl+Shift+-"
+msgstr "Dimezza la durata delle note\tCtrl+Shift++"
+
+#: ../../../easy_abc.py:3982
+msgid "as &PDF..."
+msgstr "come &PDF..."
+
+#: ../../../easy_abc.py:3983
+#: ../../../easy_abc.py:3990
+msgid "as &MIDI..."
+msgstr "come &MIDI..."
+
+#: ../../../easy_abc.py:3984
+msgid "as &SVG..."
+msgstr "come &SVG..."
+
+#: ../../../easy_abc.py:3985
+#: ../../../easy_abc.py:3991
+msgid "as &HTML..."
+msgstr "come &HTML..."
+
+#: ../../../easy_abc.py:3986
+#: ../../../easy_abc.py:3993
+#, fuzzy
+msgid "as Music&XML..."
+msgstr "come Music&XML..."
+
+#: ../../../easy_abc.py:3988
+#, fuzzy
+msgid "as a &PDF Book..."
+msgstr "come &PDF..."
+
+#: ../../../easy_abc.py:3989
+#, fuzzy
+msgid "as PDF &Files..."
+msgstr "come &file PDF..."
+
+#: ../../../easy_abc.py:4005
+msgid "&New\tCtrl+N"
+msgstr "&Nuovo\tCtrl+N"
+
+#: ../../../easy_abc.py:4005
+msgid "Create a new file"
+msgstr "Crea un nuovo file"
+
+#: ../../../easy_abc.py:4006
+msgid "&Open...\tCtrl+O"
+msgstr "&Apri...\tCtrl+O"
+
+#: ../../../easy_abc.py:4006
+msgid "Open an existing file"
+msgstr "Apri un file esistente"
+
+#: ../../../easy_abc.py:4007
+msgid "&Close"
+msgstr "&Chiudi "
+
+#: ../../../easy_abc.py:4007
+msgid "Close the current file"
+msgstr "Chiudi il file corrente"
+
+#: ../../../easy_abc.py:4009
+msgid "&Import and add..."
+msgstr "&Importa e aggiungi..."
+
+#: ../../../easy_abc.py:4009
+msgid "Import a song in ABC, Midi or MusicXML format and add it to the current document."
+msgstr "Importa un brano in formato ABC, Midi o MusicXML e aggiungi al documento corrente."
+
+#: ../../../easy_abc.py:4011
+msgid "&Export selected"
+msgstr "&Esporta la selezione"
+
+#: ../../../easy_abc.py:4012
+msgid "Export &all"
+msgstr "&Esporta tutto"
+
+#: ../../../easy_abc.py:4017
+msgid "&Save\tCtrl+S"
+msgstr "&Salva\tCtrl+S"
+
+#: ../../../easy_abc.py:4017
+msgid "Save the active file"
+msgstr "Salva il file attivo"
+
+#: ../../../easy_abc.py:4018
+msgid "Save &As...\tShift+Ctrl+S"
+msgstr "Salva &Come...\tShift+Ctrl+S"
+
+#: ../../../easy_abc.py:4018
+msgid "Save the active file with a new filename"
+msgstr "Salva con nome"
+
+#: ../../../easy_abc.py:4020
+msgid "&Print...\tCtrl+P"
+msgstr "&Stampa...\tCtrl+P"
+
+#: ../../../easy_abc.py:4020
+msgid "Print the selected tune"
+msgstr "Stampa il file selezionato"
+
+#: ../../../easy_abc.py:4021
+msgid "&Print preview\tCtrl+Shift+P"
+msgstr "&Anteprima di stampa\tCtrl+Shift+P"
+
+#: ../../../easy_abc.py:4022
+msgid "P&age Setup..."
+msgstr "&Impostazioni di pagina..."
+
+#: ../../../easy_abc.py:4022
+msgid "Change the printer and printing options"
+msgstr "Cambia le impostazioni di stampa"
+
+#: ../../../easy_abc.py:4024
+msgid "&Quit\tCtrl+Q"
+msgstr "&Esci\tCtrl+Q"
+
+#: ../../../easy_abc.py:4024
+msgid "Exit the application (prompt to save files)"
+msgstr "Esce dall'applicazione (chiede di salvare il file)"
+
+#: ../../../easy_abc.py:4027
+msgid "&Undo\tCtrl+Z"
+msgstr "Ann&ulla\tCtrl+Z"
+
+#: ../../../easy_abc.py:4027
+msgid "Undo the last action"
+msgstr "Annulla l'ultima azione"
+
+#: ../../../easy_abc.py:4028
+msgid "&Redo\tCtrl+Y"
+msgstr "&Ripeti\tCtrl+Y"
+
+#: ../../../easy_abc.py:4028
+msgid "Redo the last action"
+msgstr "Ripeti l'ultima azione"
+
+#: ../../../easy_abc.py:4030
+msgid "&Cut\tCtrl+X"
+msgstr "Ta&glia\tCtrl+X"
+
+#: ../../../easy_abc.py:4030
+msgid "Cut the selection and put it on the clipboard"
+msgstr "Taglia l'area selezionata e inserisci nella clipboard"
+
+#: ../../../easy_abc.py:4031
+msgid "&Copy\tCtrl+C"
+msgstr "&Copia\tCtrl+C"
+
+#: ../../../easy_abc.py:4031
+msgid "Copy the selection and put it on the clipboard"
+msgstr "Copia l'area selezionata e inseriscila nella clipboard"
+
+#: ../../../easy_abc.py:4032
+msgid "&Paste\tCtrl+V"
+msgstr "Incol&la\tCtrl+V"
+
+#: ../../../easy_abc.py:4032
+msgid "Paste clipboard contents"
+msgstr "Incolla il contenuto della clipboard"
+
+#: ../../../easy_abc.py:4033
+msgid "&Delete\tDel"
+msgstr "&Cancella\tDel"
+
+#: ../../../easy_abc.py:4033
+msgid "Delete the selection"
+msgstr "Cancella la selezione"
+
+#: ../../../easy_abc.py:4035
+msgid "&Insert musical symbol"
+msgstr "&Inserisci un simbolo musicale"
+
+#: ../../../easy_abc.py:4037
+msgid "&Transpose"
+msgstr "&Trasponi"
+
+#: ../../../easy_abc.py:4038
+msgid "&Change note length"
+msgstr "&Modifica la lunghezza della nota"
+
+#: ../../../easy_abc.py:4039
+msgid "A&lign bars\tCtrl+Shift+A"
+msgstr "A&llinea le battute\tCtrl+Shift+A"
+
+#: ../../../easy_abc.py:4042
+msgid "&Find...\tCtrl+F"
+msgstr "C&erca...\tCtrl+F"
+
+#: ../../../easy_abc.py:4043
+msgid "&Find Next\tF3"
+msgstr "Ce&rca il prossimo\tF3"
+
+#: ../../../easy_abc.py:4044
+msgid "&Replace...\tCtrl+H"
+msgstr "&Sostituisci...\tCtrl+H"
+
+#: ../../../easy_abc.py:4046
+msgid "&Select all\tCtrl+A"
+msgstr "&Seleziona tutto\tCtrl+A"
+
+#: ../../../easy_abc.py:4050
+msgid "Generate &incipits file..."
+msgstr "Genera il file degli &incipit..."
+
+#: ../../../easy_abc.py:4051
+msgid "&View incipits..."
+msgstr "&Mostra gli incipit..."
+
+#: ../../../easy_abc.py:4053
+msgid "&Renumber X: fields..."
+msgstr "&Rinumera i campi X:..."
+
+#: ../../../easy_abc.py:4054
+msgid "&Sort tunes..."
+msgstr "&Ordina i brani..."
+
+#: ../../../easy_abc.py:4057
+msgid "&ABC settings"
+msgstr "Parametri &ABC"
+
+#: ../../../easy_abc.py:4058
+msgid "&Midi device settings"
+msgstr "Parametri della periferica &MIDI"
+
+#: ../../../easy_abc.py:4060
+msgid "ABC &typing assistance"
+msgstr "Aiuto &inserimento ABC"
+
+#: ../../../easy_abc.py:4062
+msgid "&Clear cache..."
+msgstr "Pulisci &cache..."
+
+#: ../../../easy_abc.py:5474
+msgid "Cold &restart"
+msgstr "Reimposta tutto"
+
+#: ../../../easy_abc.py:4065
+msgid "&Refresh music"
+msgstr "&Aggiorna la partitura"
+
+#: ../../../easy_abc.py:4066
+msgid "&Automatically refresh music as I type"
+msgstr "Aggiorna &automaticamente la partitura mentre digiti"
+
+#: ../../../easy_abc.py:4068
+msgid "&Use reduced margins when displaying tunes on screen"
+msgstr "&Utilizza margini ridotti durante la visualizzazione sullo schermo"
+
+#: ../../../easy_abc.py:4069
+msgid "&Change editor font..."
+msgstr "&Modifica i font dell'editor..."
+
+#: ../../../easy_abc.py:4070
+msgid "&Use default editor font"
+msgstr "Utilizza i &font predefiniti"
+
+#: ../../../easy_abc.py:4076
+msgid "&Reset window layout to default"
+msgstr "&Riporta le finestre alla posizione predefinita"
+
+#: ../../../easy_abc.py:4087
+msgid "&Show fields and commands reference"
+msgstr "&Mostra il glossario dei campi e dei comandi ABC"
+
+#: ../../../easy_abc.py:4089
+msgid "&EasyABC Help"
+msgstr "Aiuto &EasyABC"
+
+#: ../../../easy_abc.py:4089
+msgid "Link to EasyABC Website"
+msgstr "Link al sito EasyABC"
+
+#: ../../../easy_abc.py:4090
+msgid "&ABC Standard Version 2.1"
+msgstr "&ABC Standard Versione 2.1"
+
+#: ../../../easy_abc.py:4090
+msgid "Link to the ABC Standard version 2.1"
+msgstr "Link ad ABC Standard versione 2.1"
+
+#: ../../../easy_abc.py:4091
+msgid "&Learn ABC"
+msgstr "&Impara ABC"
+
+#: ../../../easy_abc.py:4091
+msgid "Link to the ABC notation website"
+msgstr "Link al sito della notazione ABC"
+
+#: ../../../easy_abc.py:4093
+#: ../../../easy_abc.py:5740
+msgid "About EasyABC"
+msgstr "Informazioni su EasyABC"
+
+#: ../../../easy_abc.py:4096
+msgid "Messages"
+msgstr "Messaggi"
+
+#: ../../../easy_abc.py:5514
+msgid "Input processed tune"
+msgstr "Mostra il brano attuale"
+
+#: ../../../easy_abc.py:5515
+msgid "Show settings status"
+msgstr "Mostra le impostazioni"
+
+#: ../../../easy_abc.py:4096
+msgid "Show warnings and errors"
+msgstr "Mostra messaggi di errore"
+
+#: ../../../easy_abc.py:4097
+#, fuzzy
+msgid "input processed tune"
+msgstr "Stampa il file selezionato"
+
+#: ../../../easy_abc.py:4099
+msgid "&File"
+msgstr "&File"
+
+#: ../../../easy_abc.py:4100
+msgid "&Edit"
+msgstr "&Modifica"
+
+#: ../../../easy_abc.py:4101
+msgid "&Settings"
+msgstr "&Preferenze"
+
+#: ../../../easy_abc.py:4103
+msgid "&Tools"
+msgstr "&Strumenti"
+
+#: ../../../easy_abc.py:4104
+msgid "&View"
+msgstr "&Vedi"
+
+#: ../../../easy_abc.py:4105
+msgid "&Internals"
+msgstr "S&istema"
+
+#: ../../../easy_abc.py:4106
+msgid "&Help"
+msgstr "&Aiuto"
+
+#: ../../../easy_abc.py:4219
+#: ../../../easy_abc.py:4293
+#: ../../../easy_abc.py:4313
+msgid "Find"
+msgstr "Trova"
+
+#: ../../../easy_abc.py:4229
+msgid "Find & Replace"
+msgstr "Trova e sostituisci"
+
+#: ../../../easy_abc.py:4267
+#, python-format
+msgid "%d occurrences successfully replaced."
+msgstr "Testo sostituito %d volte."
+
+#: ../../../easy_abc.py:4269
+#: ../../../easy_abc.py:4313
+#, python-format
+msgid "Cannot find \"%s\""
+msgstr "\"%s\" non trovato."
+
+#: ../../../easy_abc.py:4270
+msgid "Replace All"
+msgstr "Sostituisci tutto."
+
+#: ../../../easy_abc.py:4354
+#, python-format
+msgid "This will remove %(count)s temporary files stored in the directory %(dir)s that in total use %(size).2f MB of your disk space. Proceed?"
+msgstr "Questo comando rimuove %(count) file temporanei dalla directory %(dir) che in totale occupano %(size).2f di spazio su disco. Procedo?"
+
+#: ../../../easy_abc.py:4355
+msgid "Clear cache?"
+msgstr "Pulisci la cache ?"
+
+#: ../../../easy_abc.py:4376
+msgid "Select a font for the ABC editor"
+msgstr "Seleziona un font per l'editor ABC"
+
+#: ../../../easy_abc.py:4384
+msgid "ABC fields and commands reference"
+msgstr "Glossario dei comandi e dei campi ABC"
+
+#: ../../../easy_abc.py:5396
+msgid "nwc2xml error"
+msgstr "errore nwc2xml"
+
+#: ../../../easy_abc.py:5434
+msgid "Name of tune"
+msgstr "Nome del brano"
+
+#~ msgid "ABC settings"
+#~ msgstr "Parametri ABC"
+
+#~ msgid "as Music&XML (alpha - experimental)..."
+#~ msgstr "som Music&XML (alpha - experimental)..."
+
+#~ msgid "as &MusicXML (alpha - experimental)..."
+#~ msgstr "som &MusicXML (alpha - experimental)..."
+
+#~ msgid "Tune name"
+#~ msgstr "Titel"
+
+#~ msgid "Export to svg (experimental)..."
+#~ msgstr "Eksporter til svg (eksperimentelt)..."
+
+#~ msgid "Default instrument used for playback:"
+#~ msgstr "Strumenti standard per la riproduzione:"
+
+#, fuzzy
+#~ msgid "Default instrument used for playback of MIDI Channel %d:"
+#~ msgstr "Strumenti standard per la riproduzione delle MIDI Channel %d:"
+
+#~ msgid "filename"
+#~ msgstr "nom de fichier"
+
+#~ msgid "abcm2ps abc_file.abc -O ps_file.ps "
+#~ msgstr "abcm2ps abc_file.abc -O ps_file.ps"
+
+#~ msgid "&Close\tCtrl+F4"
+#~ msgstr "&Chiudi\tCtrl+F4"
+
+#~ msgid "&Quit\tAlt+F4"
+#~ msgstr "&Esci\tAlt+F4"
+
+#, fuzzy
+#~ msgid "Export to midi..."
+#~ msgstr "Esporta in formato &PDF..."
+
+#, fuzzy
+#~ msgid "&Midi device settings...\tCtrl+D"
+#~ msgstr "Parametri della periferica &Midi"
+
+#, fuzzy
+#~ msgid "&Midi"
+#~ msgstr "&Modifica"

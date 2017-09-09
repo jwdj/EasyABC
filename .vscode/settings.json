@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "C:/Python27/python.exe",
+
+    "files.exclude": {
+        "**/*.pyc": true,
+        "**/*.bak": true
+    }
+}

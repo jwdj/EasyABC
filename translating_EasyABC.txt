@@ -1,0 +1,17 @@
+Download Poedit
+http://poedit.net/
+
+Install Poedit
+
+Start Poedit
+
+Choose 'Create new translation'
+
+Choose EasyABC.pot in the subfolder locale
+
+Pick the language you want to translate to
+
+Save the new po file to the following subfolder of the EasyABC folder
+locale/<languageid>/LC_MESSAGES/easyabc.po
+where <languageid> is usually two letters (fr for French, jp for Japanese)
+

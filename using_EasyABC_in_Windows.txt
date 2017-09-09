@@ -3,16 +3,27 @@ and wxPython3.0-win32-3.0.2.0-py27 installed on your system.
 
 You can download Python 2.7 from
 https://www.python.org/downloads/release/python-2710/
-and wx python from
+and wxPython from
 http://www.wxpython.org/download.php#msw
+or more specific
+https://sourceforge.net/projects/wxpython/files/wxPython/3.0.2.0/wxPython3.0-win32-3.0.2.0-py27.exe/download
 
 In addition you need to install pyparsing-2.0.1-win32-py2.7 and
 pywin32-219.win32-py2.7.
+https://sourceforge.net/projects/pywin32/
+https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/pywin32-221.win32-py2.7.exe/download
+
+Python has a package installer called pip. It is located in the Scripts-folder (C:\Python27\Scripts)
+But don't use it to install wxPython or pywin32.
+
+python -m pip install --upgrade pip
+pip install pygame
+pip install pyparsing
 
 If you are running easy_abc.py from a DOS command window, you
 should first execute an autoexec.bat file which contains
 
-set path=%path%;C:\python27
+set path=%path%;C:\python27;C:\python27\Scripts
 set PYTHONPATH=C:\python27\Lib
 
 You need to run the autoexec.bat each time you start up a DOS
