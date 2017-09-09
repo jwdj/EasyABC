@@ -7343,7 +7343,10 @@ class MainFrame(wx.Frame):
                         note_stop = time_in_ms
                         note_on = active_notes.pop((channel, note_num), None)
                         if note_on is not None:
-                            notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
+                            if page_index == note_on.page:
+                                notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
+                            else:
+                                notes.append(MidiNote(note_on.start, note_stop, note_on.indices, note_on.page, note_on.svg_row))
                 else:
                     m = tempo_re.match(line)
                     if m is not None:
@@ -7478,7 +7481,7 @@ class MainFrame(wx.Frame):
             # adding a new slice
             if active_notes:
                 page = max([n.page for n in active_notes])
-                active_notes = [n for n in active_notes if n.page >= page] # prevent mingling of indices from different pages
+                active_notes = [n for n in active_notes if n.page == page] # prevent mingling of indices from different pages
                 
             all_indices_for_time_slice = set().union(*[n.indices for n in active_notes])
             svg_row = min([n.svg_row for n in active_notes]) if active_notes else 0
