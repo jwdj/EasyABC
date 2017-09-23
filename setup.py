@@ -38,11 +38,11 @@ if sys.platform == "darwin":
                          'iconfile'       : "img/EasyABC.icns",
         #                 'optimize'       : 1,  #2
                          'compressed'     : 0,
-        #                 'excludes': ['Tkinter','tcl','tk','_ssl', 'email'], 
-                         'excludes': ['Tkinter','tcl','tk','_ssl', 'email', 'pygame', 'pygame.pypm'], 
+        #                 'excludes': ['Tkinter','tcl','tk','_ssl', 'email'],
+                         'excludes': ['Tkinter','tcl','tk','_ssl', 'email', 'pygame', 'pygame.pypm'],
         #                 'includes': ['mechanize', 'urllib', 'socket', 'pygame.pypm' ],
                          'includes': ['mechanize', 'urllib', 'socket' ],
-                            
+
                          }
     data_files = [('.', ['reference.txt', 'gpl-license.txt']),
                   ('bin', ['bin/abc2midi', 'bin/abcm2ps', 'bin/abc2abc', 'bin/nwc2xml']),
@@ -54,15 +54,15 @@ if sys.platform == "darwin":
                   ('locale/fr', []), ('locale/fr/LC_MESSAGES', glob.glob(os.path.join('locale/fr/LC_MESSAGES/*'))),
                   ('locale/nl', []), ('locale/nl/LC_MESSAGES', glob.glob(os.path.join('locale/nl/LC_MESSAGES/*'))),
                   ('locale/ja', []), ('locale/ja/LC_MESSAGES', glob.glob(os.path.join('locale/ja/LC_MESSAGES/*'))),
-                  ('locale/it', []), ('locale/it/LC_MESSAGES', glob.glob(os.path.join('locale/it/LC_MESSAGES/*'))),                  
+                  ('locale/it', []), ('locale/it/LC_MESSAGES', glob.glob(os.path.join('locale/it/LC_MESSAGES/*'))),
                   ]
-    
+
     setup(name="EasyABC",
       version=version,
       description=description,
       long_description=long_description,
       url=url,
-      author=author,      
+      author=author,
       options=options,
       data_files=data_files,
       #executables=executables,
@@ -106,13 +106,13 @@ else:
         appendScriptToExe = False,
         appendScriptToLibrary = False,
     )]
-            
+
     setup(name="EasyABC",
           version=version,
           description=description,
           long_description=long_description,
           url=url,
-          author=author,      
+          author=author,
           options=options,
-          executables=executables,      
+          executables=executables,
           )

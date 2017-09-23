@@ -25,10 +25,10 @@ class MusicScorePanel(wx.ScrolledWindow):
         for i in range(wx.Display.GetCount()):
             r = wx.Display(i).GetGeometry()
             self.buffer_width = max(self.buffer_width, r.GetWidth())
-            self.buffer_height = max(self.buffer_height, r.GetHeight())        
+            self.buffer_height = max(self.buffer_height, r.GetHeight())
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftButtonDown)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftButtonUp)
-        self.Bind(wx.EVT_MOTION, self.OnMouseMotion)        
+        self.Bind(wx.EVT_MOTION, self.OnMouseMotion)
         self.OnNoteSelectionChangedDesc = None
         self.cross_cursor = wx_cursor(wx.CURSOR_CROSS)
         self.pointer_cursor = wx_cursor(wx.CURSOR_ARROW)
@@ -36,7 +36,7 @@ class MusicScorePanel(wx.ScrolledWindow):
         self.drag_start_y = None
         self.drag_rect = None
         self.SetVirtualSize((self.buffer_width, self.buffer_height))
-        self.SetScrollbars(20, 20, 50, 50)        
+        self.SetScrollbars(20, 20, 50, 50)
         # 1.3.6.2 [JWdJ] 2015-02-14 hook events after initializing to prevent unnecessary redraws
         self.need_redraw = True
         self.redrawing = False
@@ -88,8 +88,8 @@ class MusicScorePanel(wx.ScrolledWindow):
     #     self.redraw()
     #     if self.OnNoteSelectionChangedDesc:
     #         self.OnNoteSelectionChangedDesc(self.renderer.selected_indices)
-    
-    def OnLeftButtonDown(self, event):        
+
+    def OnLeftButtonDown(self, event):
         if event.LeftDown():
             self.SetFocus()
             page = self.current_page
@@ -100,7 +100,7 @@ class MusicScorePanel(wx.ScrolledWindow):
             if note_index is None:
                 close_note_index = page.hit_test(x, y, return_closest_hit=True)
             else:
-                close_note_index = None            
+                close_note_index = None
 
             if note_index is not None:
                 page.add_note_to_selection(note_index)
@@ -108,19 +108,19 @@ class MusicScorePanel(wx.ScrolledWindow):
                 self.drag_start_x, self.drag_start_y = self.get_xy_of_mouse_event(event)
                 self.CaptureMouse()
                 self.OnMouseMotion(event)
-            
+
             if old_selection != page.selected_indices:
                 self.redraw()
             #if old_selection != self.renderer.selected_indices or note_index is not None:
             self.OnNoteSelectionChangedDesc(page.selected_indices, close_note_index=close_note_index)
-                
+
 ##        if event.LeftDown():
 ##            self.SetFocus()
 ##            old_selection = self.selected_note_path_indices.copy()
 ##            self.selected_note_path_indices = set()
 ##            self.selected_note_descriptions = set()
 ##            i, path = self.get_path_under_mouse(event)
-##            if path:            
+##            if path:
 ##                self.selected_note_path_indices.add(i)
 ##            else:
 ##                self.drag_start_x, self.drag_start_y = self.get_xy_of_mouse_event(event)
@@ -129,7 +129,7 @@ class MusicScorePanel(wx.ScrolledWindow):
 ##            if old_selection != self.selected_note_path_indices:
 ##                self.redraw()
 ##                if self.OnNoteSelectionChanged:
-##                    self.OnNoteSelectionChanged(sorted(self.selected_note_path_indices))                    
+##                    self.OnNoteSelectionChanged(sorted(self.selected_note_path_indices))
 
     def OnLeftButtonUp(self, event):
         if self.HasCapture():
@@ -139,11 +139,11 @@ class MusicScorePanel(wx.ScrolledWindow):
                 pass
             self.drag_start_x = None
             self.drag_start_y = None
-            self.drag_rect = None        
+            self.drag_rect = None
             self.OnMouseMotion(event)
             self.redraw()
 
-    def OnMouseMotion(self, event):        
+    def OnMouseMotion(self, event):
         page = self.current_page
         if self.HasCapture():
             if self.drag_start_x is not None and self.drag_start_y is not None:
@@ -160,11 +160,11 @@ class MusicScorePanel(wx.ScrolledWindow):
             if page.hit_test(x, y) is not None:
                 self.SetCursor(self.pointer_cursor)
             else:
-                self.SetCursor(self.cross_cursor)                
+                self.SetCursor(self.cross_cursor)
 ##        if self.HasCapture():
 ##            x, y = self.get_xy_of_mouse_event(event)
-##            self.drag_rect = (min(self.drag_start_x, x), min(self.drag_start_y, y), abs(self.drag_start_x-x), abs(self.drag_start_y-y))            
-##            #rect = wx.Rect2D(*self.drag_rect)            
+##            self.drag_rect = (min(self.drag_start_x, x), min(self.drag_start_y, y), abs(self.drag_start_x-x), abs(self.drag_start_y-y))
+##            #rect = wx.Rect2D(*self.drag_rect)
 ##            #rect = wx.Rect(*map(lambda x: int(x*self.renderer.zoom), self.drag_rect))
 ##            rect = wx.Rect(*map(lambda x: int(x), self.drag_rect))
 ##            self.renderer.select_notes(rect)
@@ -173,18 +173,18 @@ class MusicScorePanel(wx.ScrolledWindow):
 ##            for i, path in enumerate(self.note_paths):
 ##                path_box = path.GetBox()
 ##                if rect.Intersects(path_box):
-##                    self.selected_note_path_indices.add(i)            
+##                    self.selected_note_path_indices.add(i)
 ##            self.redraw()
-##            if old_selection != self.selected_note_path_indices and self.OnNoteSelectionChanged:                
+##            if old_selection != self.selected_note_path_indices and self.OnNoteSelectionChanged:
 ##                self.OnNoteSelectionChanged(sorted(self.selected_note_path_indices))
 ##        else:
 ##            i, path = self.get_path_under_mouse(event)
 ##            if path:
 ##                self.SetCursor(self.pointer_cursor)
 ##            else:
-##                self.SetCursor(self.cross_cursor)        
+##                self.SetCursor(self.cross_cursor)
 
-    def OnSize(self, evt):                
+    def OnSize(self, evt):
         w, h = self.GetClientSize()
         # 1.3.6.2 [JWdJ] 2015-02-14 prevent unneeded redraws
         if w != self.renderer.min_width or h != self.renderer.min_height:
@@ -193,7 +193,7 @@ class MusicScorePanel(wx.ScrolledWindow):
             if self.current_page != self.renderer.empty_page:
                 self.renderer.update_buffer(self.current_page)
                 self.redraw()
-        
+
     def OnPaint(self, evt):
         # The buffer already contains our drawing, so no need to
         # do anything else but create the buffered DC.  When this
@@ -263,7 +263,7 @@ class MusicScorePanel(wx.ScrolledWindow):
             path.AddLineToPoint(x+width, y)
             path.AddLineToPoint(x+width, y+height)
             path.AddLineToPoint(x, y+height)
-            path.AddLineToPoint(x, y)            
+            path.AddLineToPoint(x, y)
             dc.DrawPath(path)
 
     def draw_notes_highlighted(self, note_indices):

@@ -72,7 +72,7 @@ def info (s, warn=1): sys.stderr.write ((warn and '-- ' or '') + s + '\n')
 class Measure:
     def __init__ (s, p):
         s.reset ()
-        s.ixp = p       # part number  
+        s.ixp = p       # part number
         s.ixm = 0       # measure number
         s.mdur = 0      # measure duration (nominal metre value in divisions)
         s.divs = 0      # number of divisions per 1/4
@@ -182,7 +182,7 @@ class Music:
             if num in lyrdict: return lyrdict[num][1]   # lyrdict = num -> (lyric string, melisma)
         return 0 # no previous lyrics in voice or line number
 
-    def addChord (s, noot):  # careful: we assume that chord notes follow immediately 
+    def addChord (s, noot):  # careful: we assume that chord notes follow immediately
         s.lastnote.ns.append (noot)
 
     def addBar (s, lbrk, m): # linebreak, measure data
@@ -195,7 +195,7 @@ class Music:
                     x = p.str           # p.str is the ABC barline string
                     if m.lline:         # append begin of repeat, m.lline == ':'
                         x = (x + m.lline).replace (':|:','::').replace ('||','|')
-                    if s.nvlt == 3:     # add volta number only to lowest voice in part 0 
+                    if s.nvlt == 3:     # add volta number only to lowest voice in part 0
                         if m.ixp + v == min (s.vnums): x += m.lnum
                     elif m.lnum:        # new behaviour with I:repbra 0
                         x += m.lnum     # add volta number(s) or text to all voices
@@ -504,7 +504,7 @@ def outVoice (measure, divs, im, ip, unitL):    # note/elem objects of one measu
         nx = measure [ix]
         if isinstance (nx, Note) and nx.fact:
             ix, tupcnt = insTup (ix, measure, (1, 1))   # read one tuplet, insert annotation(s)
-        ix += 1 
+        ix += 1
     vs = []
     for nx in measure:
         if isinstance (nx, Note):
@@ -739,7 +739,7 @@ class Parser:
                 s.slurBuf [n] = (type2, v2, note2, grace)
         else:                               # unmatched slur, put in dict
             s.slurBuf [n] = (type2, v2, note2, grace)
-    
+
     def doNotations (s, note, nttn):
         for key, val in s.ornaments:
             if nttn.find (key) != None: note.before += val  # just concat all ornaments
@@ -954,7 +954,7 @@ class Parser:
         for d in degrees:   # chord alterations
             kind += altmap.get (d.findtext ('degree-alter'),'') + d.findtext ('degree-value','')
         kind = kind.replace ('79','9').replace ('713','13').replace ('maj6','6')
-        bass = e.findtext ('bass/bass-step','') + altmap.get (e.findtext ('bass/bass-alter'),'') 
+        bass = e.findtext ('bass/bass-step','') + altmap.get (e.findtext ('bass/bass-alter'),'')
         s.msc.appendElem (vt, '"%s%s%s%s%s"' % (root, alt, kind, sus, bass and '/' + bass))
 
     def doBarline (s, e):       # 0 = no repeat, 1 = begin repeat, 2 = end repeat
@@ -1105,7 +1105,7 @@ class Parser:
             ds = [(nt, step, midi, head) for (vd, nt), (step, midi, head) in ks if v == vd] # map perc notes
             id = s.vceInst.get (v, '')  # get the instrument-id for part with multiple instruments
             if id in instr:             # id is defined as midi-instrument in part-list
-                xs.append ((vabc, instr [id] + ds))  # get midi settings for id 
+                xs.append ((vabc, instr [id] + ds))  # get midi settings for id
             else:  xs.append ((vabc, defInstr   + ds))  # only one instrument for this part
         xs.sort ()  # put abc voices in order
         s.midiMap.extend ([midi for v, midi in xs])
@@ -1171,7 +1171,7 @@ class Parser:
 if __name__ == '__main__':
     from optparse import OptionParser
     from glob import glob
-    from zipfile import ZipFile 
+    from zipfile import ZipFile
     parser = OptionParser (usage='%prog [-h] [-u] [-m] [-c C] [-d D] [-n CPL] [-b BPL] [-o DIR] [-v V] [-x] [-p PFMT] <file1> [<file2> ...]', version=str(VERSION))
     parser.add_option ("-u", action="store_true", help="unfold simple repeats")
     parser.add_option ("-m", action="store", help="0 -> no %%MIDI, 1 -> minimal %%MIDI, 2-> all %%MIDI", default=0)

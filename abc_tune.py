@@ -82,7 +82,7 @@ class AbcTune(object):
         self.tune_body_start_line_index = body_start_line_index
         self.abc_lines = abc_lines
         self.note_line_indices = note_line_indices
-        
+
     def get_abc_per_voice(self):
         if self.__abc_per_voice is None:
             if self.tune_body_start_line_index:
@@ -139,7 +139,7 @@ class AbcTune(object):
         return self.x_number == abc_tune.x_number \
                and self.tune_header_start_line_index == abc_tune.tune_header_start_line_index \
                and self.first_note_line_index == abc_tune.first_note_line_index
-    
+
     def is_gracenote_at(self, row, col):
         line = self.abc_lines[row-1]
         i = col - 1
@@ -163,26 +163,26 @@ class AbcTune(object):
                 return i + 1
             i -= 1
         return None
-    
+
     @staticmethod
     def byte_to_unicode_index(text, index):
         return len(abc_text_to_unicode(text[:index]).encode('utf-8'))
-    
+
     def midi_col_to_svg_col(self, row, col):
         line = self.abc_lines[row-1]
         col = self.byte_to_unicode_index(line, col-1) + 1 # compensate for encoding differences
-        
+
         try:
             if self.is_gracenote_at(row, col):
-                return None # abcm2ps does not mark notes within braces 
-    
-            start_of_chord = self.get_start_of_chord(row, col) 
+                return None # abcm2ps does not mark notes within braces
+
+            start_of_chord = self.get_start_of_chord(row, col)
             if start_of_chord:
                 return start_of_chord - 1 # svg_col is 1-based
-            
+
             if line[col-1] in '~.HIJKLMNOPQRSTUVWhijklmnopqrstuvw':
                 return col # in case of one letter symbol: abc2midi marks the symbol, abcm2ps marks the after note after the dot
-                
+
             return col-1
         except:
             return None

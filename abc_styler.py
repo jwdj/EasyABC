@@ -61,7 +61,7 @@ class ABCStyler:
         get_text_range = editor.GetTextRangeRaw
         set_styling = editor.SetStyling
         start = editor.GetEndStyled()    # this is the first character that needs styling
-        end = event.GetPosition()        # this is the last character that needs styling        
+        end = event.GetPosition()        # this is the last character that needs styling
         line_start = editor.LineFromPosition(start)
         start = editor.PositionFromLine(line_start)
         state = editor.GetStyleAt(start-1)  # init style

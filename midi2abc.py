@@ -37,7 +37,7 @@ usage = '''PyMidi2Abc version 0.1 May 30 2008, usage:
 
 python pymidi2abc.py <options>
         [-f] <input file>
-        -o <output file>        
+        -o <output file>
         -k <key signature> key name, or -6 to 6 sharps
         -l <default note length (L: field)>
         -m <time signature>
@@ -46,9 +46,9 @@ python pymidi2abc.py <options>
         --nt Do not look for triplets or broken rhythm
         --s8 insert slurs on groups of 8th notes
         --s16 insert slurs on groups of 16th notes
-        --bpl=<number> of bars printed per line    
-        --title=<string> Adds T: field containing string    
-        --origin=<string> Adds O: field containing string            
+        --bpl=<number> of bars printed per line
+        --title=<string> Adds T: field containing string
+        --origin=<string> Adds O: field containing string
 '''
 
 

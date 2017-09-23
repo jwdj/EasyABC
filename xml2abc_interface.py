@@ -9,7 +9,7 @@ import xml.etree.ElementTree as E
 class StringFile(object):
     def __init__(self):
         self.parts = []
-    def write(self, s):        
+    def write(self, s):
         s = unicode(s, 'utf-8')
         self.parts.append(s)
     def getvalue(self):
@@ -57,7 +57,7 @@ def xml_to_abc (filename, options, info_messages = None):
     if file_numbers and 0 <= file_numbers[-1] <= 100000:
         X = file_numbers[-1]
     else:
-        X = 1    
+        X = 1
 
     # 1.3.6 [SS] 2014-12-18
     #options = namedtuple ('Options', 'u m c d n b v x p j')                     # emulate the options object
@@ -75,8 +75,8 @@ def xml_to_abc (filename, options, info_messages = None):
         abcOut.outfile = StringFile ()
         xml2abc.abcOut = abcOut
         xml2abc.fnm = ''
-        if os.path.splitext(filename)[1].lower() == '.mxl':            
-            z = ZipFile(filename)        
+        if os.path.splitext(filename)[1].lower() == '.mxl':
+            z = ZipFile(filename)
             fobj = z.open([n for n in z.namelist() if n[:4] != 'META' and n[-4:].lower() == '.xml'][0])
         else:
             fobj = open(filename, 'rb')
@@ -90,20 +90,20 @@ def xml_to_abc (filename, options, info_messages = None):
             s = re.sub(r'(?m)^ +', '', s)                                  # remove leading spaces on lines
             s = re.sub(r'(?m)^(?![a-zA-Z]:)([^%\n]+)%\d+\n', r'\1\n', s)   # remove bar number comments
             if s.count('V:') == 2 and 'V:1 treble' in s:                   # if there is just one voice (two mentions of V: in that case) with standard clef
-                s = re.sub('(?m)^(V:\d+.*\n)', '', s)                      #   remove all V: field lines        
+                s = re.sub('(?m)^(V:\d+.*\n)', '', s)                      #   remove all V: field lines
             s = s.replace('V:1 treble nm="Right Hand"\nV:2 treble nm="Left Hand"\nV:1', 'V:1')
             s = re.sub(r'(:\|]?)\s+\|]', r'\1', s)
             s = s.replace('|] |]', '|]')
             s = s.replace(':|[|:', '::')
             s = s.replace(':||:', '::')
-            
+
             for long_art, short_name in [('!tenuto!', 't'), ('!invertedturn!', 'i')]:
-                if long_art in s:  # make abc code shorter by using U: field for tenuto                
+                if long_art in s:  # make abc code shorter by using U: field for tenuto
                     s = s.replace('I:linebreak $', 'I:linebreak $\nU:%s=%s' % (short_name, long_art[1:-1]))
-                    s = s.replace(long_art, short_name)                
-            
-        results.append(s)    
-    
+                    s = s.replace(long_art, short_name)
+
+        results.append(s)
+
     return sorted(results, key=lambda x: len(x))[0]
 
 if __name__ == '__main__':
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     #~ import codecs
     #~ codecs.open('output_temp.abc', 'wb', 'utf-8').write(s)   # if you want the test output in a file
 
-    # TEST abc2xml    
+    # TEST abc2xml
     info_messages = []
     fobj = open (abc_test_file, 'rb')
     encoded_data = fobj.read ()

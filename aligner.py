@@ -22,21 +22,21 @@ def get_default_len(abc):
             return Fraction(1, 8)
 
 def get_metre(abc):
-    m = re.search(r'(?m)^M: *(\d+)/(\d+)', abc)    
+    m = re.search(r'(?m)^M: *(\d+)/(\d+)', abc)
     if m:
         return Fraction(int(m.group(1)), int(m.group(2)))
     else:
         return Fraction(4, 4)
 
 def get_key(abc):
-    m = re.search(r'(?m)^K: *(\w+)', abc)    
+    m = re.search(r'(?m)^K: *(\w+)', abc)
     if m:
         return m.group(1)
     else:
         return 'C'
 
 def remove_non_note_fragments(abc):
-    # replace non-note fragments of the text by replacing them by spaces (thereby preserving offsets), but keep also bar and repeat symbols    
+    # replace non-note fragments of the text by replacing them by spaces (thereby preserving offsets), but keep also bar and repeat symbols
     abc = re.sub(r'(?m)%.*$', '', abc)     # remove comments
     abc = re.sub(r'\[\w:.*?\]', '', abc)   # remove embedded fields
     abc = re.sub(r'\\"', '', abc)          # remove escaped " characters
@@ -49,7 +49,7 @@ def remove_non_note_fragments(abc):
 def replace_chords_by_first_note(abc):
     # replace "[AD]2 [B2C2e2]" by "A2 B2" - the first note in each chord
     abc = remove_non_note_fragments(abc)
-    note_pattern = r"(?P<note>([_=^]?[A-Ga-gxz](,+|'+)?))(?P<length>\d{0,2}/\d{1,2}|/+|\d{0,2})(?P<broken>[><]?)"    
+    note_pattern = r"(?P<note>([_=^]?[A-Ga-gxz](,+|'+)?))(?P<length>\d{0,2}/\d{1,2}|/+|\d{0,2})(?P<broken>[><]?)"
     def sub_func(m):
         match = re.search(note_pattern, m.group(0))
         if match:
@@ -57,7 +57,7 @@ def replace_chords_by_first_note(abc):
         else:
             return ''
     return re.sub(r'\[.*?\]', sub_func, abc)
-    
+
 def get_bar_length(abc, default_length, metre):
     abc = remove_non_note_fragments(abc)
     abc = replace_chords_by_first_note(abc)
@@ -99,7 +99,7 @@ def get_bar_length(abc, default_length, metre):
             length = length.split('/')[0]  # ignore any fraction
             multiplier = Fraction(1, int(length))
             for dot in match.group('dot'):
-                multiplier = multiplier * Fraction(3, 2)            
+                multiplier = multiplier * Fraction(3, 2)
             total_length = total_length + multiplier
         else:
             multiplier = Fraction(1)
@@ -126,7 +126,7 @@ def get_bar_length(abc, default_length, metre):
             if tuplet_notes_left:
                 multiplier = multiplier * Fraction(tuplet_time, tuplet_notes)
                 tuplet_notes_left -= 1
-            total_length = total_length + multiplier * default_length   
+            total_length = total_length + multiplier * default_length
     return total_length
 
 def is_likely_anacrusis(bar, default_length, metre):
@@ -139,8 +139,8 @@ def is_likely_anacrusis(bar, default_length, metre):
 
 def align_beams(bars):
     n = len(bars)
-    bar_parts = [re.split(' +', b) for b in bars]        
-    num_parts = min(len(p) for p in bar_parts)        
+    bar_parts = [re.split(' +', b) for b in bars]
+    num_parts = min(len(p) for p in bar_parts)
     for i in range(num_parts):
         parts = [bar_parts[line_no][i] for line_no in range(n)]
         max_len = max(len(p) for p in parts)
@@ -152,30 +152,30 @@ def align_beams(bars):
 
 def align_bars(bars, align_inside_bars_too=True):
     if bar_sep.match(bars[0]):
-        bars = [' %s ' % b.strip() for b in bars]        
+        bars = [' %s ' % b.strip() for b in bars]
     elif align_inside_bars_too:
         bars = align_beams(bars)
-    max_len = max(len(b) for b in bars)    
+    max_len = max(len(b) for b in bars)
     return [b.ljust(max_len) for b in bars]
 
 def align_bar_separators(bar_seps):
-    bar_seps = [' %s ' % bs.strip() for bs in bar_seps]    
-    if any(':|' in bs for bs in bar_seps):        
+    bar_seps = [' %s ' % bs.strip() for bs in bar_seps]
+    if any(':|' in bs for bs in bar_seps):
         just_func = string.rjust
-    else:        
-        just_func = string.ljust    
-    
+    else:
+        just_func = string.ljust
+
     if any('|' in bs for bs in bar_seps):
         # try to center around the last occurance of '|'
         max_pos_pipe = max(b.rfind('|') for b in bar_seps)
         for i in range(len(bar_seps)):
             p = bar_seps[i].rfind('|')
             if 0 <= p < max_pos_pipe:
-                bar_seps[i] = (' ' * (max_pos_pipe-p)) + bar_seps[i]                    
-        max_len = max(len(b) for b in bar_seps)    
-        return [b.ljust(max_len) for b in bar_seps]    
+                bar_seps[i] = (' ' * (max_pos_pipe-p)) + bar_seps[i]
+        max_len = max(len(b) for b in bar_seps)
+        return [b.ljust(max_len) for b in bar_seps]
     else:
-        max_len = max(len(b) for b in bar_seps)    
+        max_len = max(len(b) for b in bar_seps)
         return [just_func(b, max_len) for b in bar_seps]
 
 def split_line_into_parts(line):
@@ -190,7 +190,7 @@ def align_lines(whole_abc, lines, align_inside_bars_too=False):
     # determine the number of bars and pad lines with fewer elements by '' strings
     num_bars = max(len(lp) for lp in line_parts) + 1
     for line_no, lp in enumerate(line_parts):
-        line_parts[line_no] += [''] 
+        line_parts[line_no] += ['']
         if len(lp) < num_bars:
             line_parts[line_no] += [''] * (num_bars - len(lp))
 
@@ -198,8 +198,8 @@ def align_lines(whole_abc, lines, align_inside_bars_too=False):
         default_len = get_default_len(whole_abc)
         metre = get_metre(whole_abc)
 
-    first_bar_handled = False        
-    
+    first_bar_handled = False
+
     for i in range(num_bars):
         # if the first bar with notes haven't been handled yet, check if we're currently seeing any anacrusis
         if not first_bar_handled and any(re.search(r'[a-gA-Gxz]', line_parts[line_no][i]) for line_no in range(n)):
@@ -211,14 +211,14 @@ def align_lines(whole_abc, lines, align_inside_bars_too=False):
                 for line_no, is_ana in enumerate(is_anacrusis):
                     if not is_ana:
                         line_parts[line_no].insert(i, '')
-                                
+
         # if some element is a bar and others aren't, then add a kind of pseudo element ('') in order for the alignment to work
         any_is_bar_sep = any(bar_sep.match(line_parts[line_no][i]) for line_no in range(n))
         if any_is_bar_sep:
             for line_no in range(n):
                 if not bar_sep.match(line_parts[line_no][i]):
                     line_parts[line_no].insert(i, '')
-                
+
         bars = [line_parts[line_no][i] for line_no in range(n)]
         if any_is_bar_sep:
             bars = align_bar_separators(bars)
@@ -247,7 +247,7 @@ def extract_incipit(abc, num_bars=2, num_repeats=999):
                 else:
                     continue               # ignore fields in the tune body
             body.append(line)
-        elif re.match(r'[a-zA-Z]:', line):            
+        elif re.match(r'[a-zA-Z]:', line):
             header.append(line)
             if line.startswith('K:'):
                 in_body = True
@@ -257,11 +257,11 @@ def extract_incipit(abc, num_bars=2, num_repeats=999):
     #print '-'*10
     #print header
     #print '-'*10
-                
+
     default_len = get_default_len(header)
     metre = get_metre(header)
     key = get_key(header)
-        
+
     parts = split_line_into_parts(abc.strip())
     inside_repeat_ending = False
     L = [[]]       # list of parts (bar seps and bars) for each repeat/ending
@@ -273,7 +273,7 @@ def extract_incipit(abc, num_bars=2, num_repeats=999):
         m = re.search(r'\[K:.*?\]', part)
         if m:
             last_seen_key = m.group(0)
-        
+
         if bar_sep.match(part):
             if re.search(r'\|\d', part):
                 inside_repeat_ending = True
@@ -293,15 +293,15 @@ def extract_incipit(abc, num_bars=2, num_repeats=999):
                 if len(L) > 1 and len(L[-2]) >= 1 and is_likely_anacrusis(L[-2][-1], default_len, metre):
                     L[-1].append(L[-2][-1])
                     del L[-2][-1]
-                L[-1].append(part)    
-                
-    def extract_bars(parts, num_bars, default_len, metre):        
+                L[-1].append(part)
+
+    def extract_bars(parts, num_bars, default_len, metre):
         result = []
         bar_count = 0
         first_bar_handled = False
-        for part in parts:            
+        for part in parts:
             result.append(part)
-            if re.search(r'[a-gA-Gxz]', part) and not re.match(r'\s*\[\w:.*?\]\s*', part):            
+            if re.search(r'[a-gA-Gxz]', part) and not re.match(r'\s*\[\w:.*?\]\s*', part):
                 if first_bar_handled:
                     bar_count += 1
                 else:
@@ -309,11 +309,11 @@ def extract_incipit(abc, num_bars=2, num_repeats=999):
                     if is_likely_anacrusis(part, default_len, metre):
                         bar_count = 0
                     else:
-                        bar_count = 1                                
+                        bar_count = 1
             elif num_bars == bar_count:
                 break
         return (' '.join(result)).strip()
-    
+
     L = [extract_bars(parts, num_bars, default_len, metre) for parts in L]
     L = [x.strip() for x in L if x.strip()]
     L = L[:num_repeats]
@@ -330,6 +330,6 @@ u(AB)|(cd)cB ABcd|c2f2 a4|(ag)(gf) (fe)(ed)|
 d6 c2|(Bc)BA (GA)Bc|d2g2 b4|(ba)(ag) (gf)eg|f4 z2:|
 K:Bb
 |:F2|F4 d2Bc|d2FA B2B,C|(DB,)B,B, (DB,)B,B,|F2F2 F4|
-e4 g2cd|e2AB c2FG|({B}(A)F)FF (AF)FF|(dB)BB B2:| '''        
+e4 g2cd|e2AB c2FG|({B}(A)F)FF (AF)FF|(dB)BB B2:| '''
 
     print(extract_incipit(s, num_repeats=2, num_bars=2))

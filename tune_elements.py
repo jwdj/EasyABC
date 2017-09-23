@@ -365,13 +365,13 @@ class AbcElement(object):
             return None
 
         result = None
-        scope_info = context.get_scope_info(self.tune_scope) 
+        scope_info = context.get_scope_info(self.tune_scope)
         encoded_text = scope_info.encoded_text
         text = scope_info.text
         p1, p2 = context.get_selection_within_scope(self.tune_scope)
         if len(text) != len(encoded_text):
-            p1 = len(encoded_text[:p1].decode('utf-8')) 
-            p2 = len(encoded_text[:p2].decode('utf-8')) 
+            p1 = len(encoded_text[:p1].decode('utf-8'))
+            p2 = len(encoded_text[:p2].decode('utf-8'))
 
         if p1 == p2 and 0 < p1 <= len(text) and text[p1 - 1] not in whitespace_chars:
             p1 -= 1

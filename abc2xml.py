@@ -92,7 +92,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     syllable    = Combine (Optional ('~') + syl_chars + ZeroOrMore (Literal ('~') + syl_chars)) + Optional ('-')
     lyr_elem    = (syllable | skip_note | extend_note | measure_end) + Optional (white).suppress ()
     lyr_line    = Optional (white).suppress () + ZeroOrMore (lyr_elem)
-    
+
     syllable.setParseAction (lambda t: pObj ('syl', t))
     skip_note.setParseAction (lambda t: pObj ('skip', t))
     extend_note.setParseAction (lambda t: pObj ('ext', t))
@@ -172,7 +172,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     bar_left = (oneOf ('[|: |: [: :') + Optional (volta)) | Optional ('|').suppress () + volta | oneOf ('| [|')
     bars = ZeroOrMore (':') + ZeroOrMore ('[') + OneOrMore (oneOf ('| ]'))
     bar_right = invisible_barline | double_rep | Combine (bars) | dashed_barline | voice_overlay | bare_volta
-    
+
     errors =  ~bar_right + Optional (Word (' \n')) + CharsNotIn (':&|', exact=1)
     linebreak = Literal ('$') | ~decorations + Literal ('!')    # no need for I:linebreak !!!
     element = fld_or_lyr | broken | decorations | stem | chord_or_text | grace_notes | tuplet_start | linebreak | errors
@@ -404,7 +404,7 @@ def addElemT (parent, tag, text, level):
     e.text = text
     addElem (parent, e, level)
     return e
-    
+
 def mkTmod (tmnum, tmden, lev):
     tmod = E.Element ('time-modification')
     addElemT (tmod, 'actual-notes', str (tmnum), lev + 1)
@@ -540,7 +540,7 @@ def splitHeaderVoices (abctext):
 def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0):
     slurs = m2.findall ('note/notations/slur')
     for slr in slurs:
-        slrnum = int (slr.get ('number')) + slur_offset 
+        slrnum = int (slr.get ('number')) + slur_offset
         slr.set ('number', str (slrnum))    # make unique slurnums in m2
     vs = m2.findall ('note/voice')          # set all voice number elements in m2
     for v in vs: v.text  = str (voice_offset + int (v.text))
@@ -998,7 +998,7 @@ class MusicXml:
             slurnum = len (s.slurstack) + 1
             s.slurstack.append (slurnum)
             ntn = E.Element ('slur', number='%d' % slurnum, type='start')
-            addElem (nots, ntn, lev + 1)            
+            addElem (nots, ntn, lev + 1)
         if nots.getchildren() != []:    # only add notations if not empty
             addElem (nt, nots, lev)
 
@@ -1068,7 +1068,7 @@ class MusicXml:
         s.prevNote = None
 
     def staffDecos (s, decos, maat, lev):
-        gstaff = s.gStaffNums.get (s.vid, 0)        # staff number of the current voice        
+        gstaff = s.gStaffNums.get (s.vid, 0)        # staff number of the current voice
         for d in decos:
             d = s.usrSyms.get (d, d).strip ('!+')   # try to replace user defined symbol
             if d in s.dynaMap:
@@ -1129,7 +1129,7 @@ class MusicXml:
                 note, octstr = clefm.groups ()
                 nUp = note.upper ()
                 octnum = (4 if nUp == note else 5) + (len (octstr) if "'" in octstr else -len (octstr))
-                gtrans = (3 if nUp in 'AFD' else 4) - octnum 
+                gtrans = (3 if nUp in 'AFD' else 4) - octnum
                 if clef not in ['perc', 'none']: clef = s.clefLineMap [nUp]
             if clef:
                 s.gtrans = gtrans   # only change global tranposition when a clef is really defined
@@ -1711,7 +1711,7 @@ class MusicXml:
                 vcelyr = vce
                 elem1 = vcelyr [0][0]   # the first element of the first measure
                 if  elem1.name == 'inline'and elem1.t[0] == 'V':    # is a voice definition
-                    voicedef = elem1 
+                    voicedef = elem1
                     del vcelyr [0][0]   # do not read voicedef twice
                 else:
                     voicedef = ''
@@ -1785,7 +1785,7 @@ def decodeInput (data_string):
     info ('decoded from %s' % enc)
     return unicode_string
 
-xmlVersion = "<?xml version='1.0' encoding='utf-8'?>"    
+xmlVersion = "<?xml version='1.0' encoding='utf-8'?>"
 def fixDoctype (elem):
     if python3: xs = E.tostring (elem, encoding='unicode')  # writing to file will auto-encode to utf-8
     else:       xs = E.tostring (elem, encoding='utf-8')    # keep the string utf-8 encoded for writing to file
@@ -1826,7 +1826,7 @@ def convert (pad, fnm, abc_string, mxl, rOpt):
         outfile = sys.stdout
         outfile.write (xmldoc)
         outfile.write ('\n')
-    
+
 #----------------
 # Main Program
 #----------------

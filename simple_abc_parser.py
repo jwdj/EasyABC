@@ -32,7 +32,7 @@ key_data = \
         'f#': ('#', 6), 'd#m': ('#', 6), 'g#dor':  ('#', 0),
         'c#': ('#', 7), 'a#m': ('#', 7), 'c#dor':  ('#', 0),}
 
-def get_base_note_for_key(key):    
+def get_base_note_for_key(key):
     key = key[:2]
     #print key, notes_sharp, notes_flat
     if key in notes_sharp:
@@ -57,30 +57,30 @@ def get_best_key_for_midi_notes(notes):
             penalty += 2
         if key.endswith('dor'):
             penalty += 1
-        penalty_key_tuples.append((penalty, key))        
+        penalty_key_tuples.append((penalty, key))
     penalty_key_tuples.sort()
     #print '\n'.join((str(x) for x in penalty_key_tuples))
     #print 'notes[-1]=', notes[-1]
-    #print 'penalty', penalty_key_tuples[0][0]    
+    #print 'penalty', penalty_key_tuples[0][0]
     return penalty_key_tuples[0][1]  # key of the first (and best) item
 
 def update_extra_accidentals_for_note(basic_accidentals, extra_accidentals, note):
-    # merge the basic and extra accidentals and let the later have precedence over the former        
+    # merge the basic and extra accidentals and let the later have precedence over the former
     accidentals = [b if b is not None else a for a, b in zip(basic_accidentals, extra_accidentals)]
 
-    basic_notes_in_key   = [x+y for x,y in zip(doremi2chromatic, basic_accidentals)]    
+    basic_notes_in_key   = [x+y for x,y in zip(doremi2chromatic, basic_accidentals)]
     current_notes_in_key = [x+y for x,y in zip(doremi2chromatic, accidentals)]
 
     change = None
 
-    #if not note in current_notes_in_key:            
+    #if not note in current_notes_in_key:
     #    if
 
     return { None: '',
              0:    '=',
             -1:    '_',
-             1:     '^'}[change]            
-            
+             1:     '^'}[change]
+
 # map from do-re-mi scale index to chromatic interval
 doremi2chromatic = [0, 2, 4, 5, 7, 9, 11, 13]
 
@@ -103,28 +103,28 @@ def get_accidentals(fifths):
     scale = []
     for i in range(7):
         scale.append(steps[i] + {-1: 'b', 0: '', 1:'#'}[one_octave[i]])
-    print(' '.join(scale))    
+    print(' '.join(scale))
 
     # use the same for all octaves
-    accidentals = {}            
+    accidentals = {}
     for octave in range(1, 7):
-        for step in range(7):            
+        for step in range(7):
             note = '%s%s' % (steps[step], octave)  # eg. G4
             accidentals[note] = one_octave[step]
     return accidentals
 
 def get_accidentals_for_key(key):
     ''' returns a list of seven values corresponding to the notes in the C scale. 1 means #, -1 means b, and 0 means no change. '''
-    key = key.lower().strip().strip() 
+    key = key.lower().strip().strip()
     sharp_or_flat, number = key_data[key]
     # initially no of the seven notes are flat or sharp (0=neutral)
-    accidentals = [0] * 7    
-    # add accidentals 
+    accidentals = [0] * 7
+    # add accidentals
     for i in range(number):
         if sharp_or_flat == '#':
             accidentals[(3 - 3*i) % 7] = 1
         else:
-            accidentals[(6 + 3*i) % 7] = -1            
+            accidentals[(6 + 3*i) % 7] = -1
     return accidentals
 
 class Note:
@@ -146,9 +146,9 @@ class Note:
                 n = n + "'" * (octave - 1)
         elif octave < 0:
             if abs(octave) > 1:
-                n = n + "," * abs(octave)                
+                n = n + "," * abs(octave)
         return n #+ str(self.duration)
-    
+
     def __str__(self):
         return repr(self)
 

@@ -184,7 +184,7 @@ mapping = {'\\`A': u'\xc0',
 '\\~i': u'\u0129',
 '\\~U': u'\u0168',
 '\\~u': u'\u0169',
-'\\oA': u'\xc5',           
+'\\oA': u'\xc5',
 '\\oa': u'\xe5',
 '\\oU': u'\u016e',
 '\\ou': u'\u016f',
@@ -467,7 +467,7 @@ mapping = {'\\`A': u'\xc0',
 '\\k,': u'\u0137',
 '"\\u;"': u'\u0173',
 '\\u?': u'\u0169',
-'\\u-': u'\u016b',           
+'\\u-': u'\u016b',
 
 r'{\aa}': u'\xe5',
 r'{\aA}': u'\xc5',}
@@ -477,4 +477,3 @@ encoded_char_re = re.compile('|'.join(re.escape(k) for k in mapping))
 
 def decode_abc(abc_code): return encoded_char_re.sub(lambda m: mapping[m.group(0)], abc_code)
 def encode_abc(abc_code): return ''.join(reverse_mapping.get(c, c) for c in abc_code)
-	

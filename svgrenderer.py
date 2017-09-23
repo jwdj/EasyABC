@@ -55,18 +55,17 @@ def try_convert_to_float(v):
         return v
 
 def pop_many(list_obj, n):
-    return [list_obj.popleft() for i in range(n)]
+    return [list_obj.popleft() for _ in range(n)]
 
-def flatten(L):
-    if isinstance(L,list):
-        return sum(map(flatten,L))
-    else:
-        return L
+def flatten(value):
+    if isinstance(value, list):
+        return sum(map(flatten, value))
+    return value
 
 class SvgElement(object):
     def __init__(self, name, attributes, children):
         self.name = name              # the name of the svg element (excluding the namespace), eg. 'g', 'circle', 'ellipse'
-        self.attributes = attributes  
+        self.attributes = attributes
         self.children = children
 
     # 1.3.7.2 [JWDJ] not used
@@ -77,7 +76,7 @@ class SvgElement(object):
     #             yield c
 
 # 1.3.6.2 [JWdJ] 2015-02-22 introduced SvgPage for better handling of multiple pages.
- 
+
 # An abc tune may convert into several svg files in order to display all the pages.
 # The class contains the function parse_element which performs an initial pass through
 # the svg files creating a dictionary for all the <def> and <g> 's that occur in the
@@ -127,7 +126,7 @@ class SvgPage(object):
             self.id_to_element = {}
             self.class_attributes = {}
             self.notes_in_row = defaultdict(list) # 1.3.6.3 [JWDJ] contains for each row of abctext note information
-            children = [c for c in self.parse_elements(svg, {}) if c.name not in ['defs','style']]
+            children = [c for c in self.parse_elements(svg, {}) if c.name not in ['defs', 'style']]
 
         self.indices_per_row_col = self.group_note_indices(self.notes_row_col)
         self.root_group = SvgElement('g', {}, children)
@@ -338,7 +337,7 @@ class SvgRenderer(object):
         if self.buffer:
             # if size has decreased by less than 250 pixels, then don't change size
             if 0 <= self.buffer.GetWidth() - width < 250:
-                width = self.buffer.GetWidth()        
+                width = self.buffer.GetWidth()
             if 0 <= self.buffer.GetHeight() - height < 250:
                 height = self.buffer.GetHeight()
             # if size has increased, then resize and add some extra pixels so that we won't
@@ -347,8 +346,8 @@ class SvgRenderer(object):
                 width += 250
             if self.buffer.GetHeight() < height:
                 height += 250
-        
-        if self.buffer is None or width != self.buffer.GetWidth() or height != self.buffer.GetHeight():            
+
+        if self.buffer is None or width != self.buffer.GetWidth() or height != self.buffer.GetHeight():
             #print 'create new buffer!!!!!!!!', (width, height)
             self.buffer = wx_bitmap(width, height, 32)
 
@@ -400,7 +399,7 @@ class SvgRenderer(object):
     def draw(self, page, clear_background=True, dc=None):
         dc = dc or wx.MemoryDC(self.buffer)
         ##print 'draw', self.buffer.GetWidth(), self.buffer.GetHeight()
-        if clear_background:            
+        if clear_background:
             dc.SetBackground(wx.WHITE_BRUSH)
             dc.Clear()
         #h = dc.Size[1] # for simulating OSX
@@ -431,7 +430,7 @@ class SvgRenderer(object):
 
     def parse_path(self, svg_path_str):
         ''' Translates the path data in the svg file to instructions for drawing
-            on the music pane.  
+            on the music pane.
         '''
         # 1.3.6.3 [JWDJ] 2015-3 search cache once instead of twice
         path = self.path_cache.get(svg_path_str)
@@ -484,7 +483,7 @@ class SvgRenderer(object):
                     if next_cmd == 'a' and (rx, ry, xrot, large_arg_flag, sweep_flag) == tuple([svg_path[i] for i in range(1, 6)]) and tuple([svg_path[i] for i in range(6, 8)]) in [(x, -y), (-x, y)]:
                         # two arcs make an ellipse
                         xcenter = curx + x / 2
-                        ycenter = cury + y / 2 
+                        ycenter = cury + y / 2
                         path.AddEllipse(xcenter-rx, ycenter-ry, rx+rx, ry+ry)
                         path.AddLineToPoint(curx, cury)
                         pop_many(svg_path, 8)
@@ -492,7 +491,7 @@ class SvgRenderer(object):
                         x += curx
                         y += cury
                         xcenter = (x + curx) / 2
-                        ycenter = (y + cury) / 2 
+                        ycenter = (y + cury) / 2
                         if x == curx:
                             startAngle = pi * 3/2
                             endAngle = pi / 2
@@ -503,7 +502,7 @@ class SvgRenderer(object):
                             startAngle += pi
                             endAngle += pi
                         clockwise = sweep_flag
-                        
+
                         path.AddArc(xcenter, ycenter, rx, startAngle, endAngle, clockwise)
                     else:
                         # https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
@@ -518,7 +517,7 @@ class SvgRenderer(object):
             self.path_cache[svg_path_str] = path
         return path
 
-    # 1.3.6.2 [JWdJ] not used 
+    # 1.3.6.2 [JWdJ] not used
     # def get_transform(self, svg_transform):
     #     if svg_transform in self.transform_cache:
     #         matrix = self.transform_cache[svg_transform]
@@ -553,16 +552,16 @@ class SvgRenderer(object):
         for t, args in self.transform_re.findall(svg_transform or ''):
             args = list(map(float, split_transform(args)))
             if t == 'translate':
-                dc.Translate(*args)                    
-            elif t == 'rotate':                
+                dc.Translate(*args)
+            elif t == 'rotate':
                 dc.Rotate(radians(args[0]))
             elif t == 'scale':
                 if len(args) == 1:
                     args *= 2
-                dc.Scale(*args)                
-            elif t == 'matrix':                
-                dc.ConcatTransform(dc.CreateMatrix(*args))            
-        
+                dc.Scale(*args)
+            elif t == 'matrix':
+                dc.ConcatTransform(dc.CreateMatrix(*args))
+
     def set_fill(self, dc, svg_fill):
         # 1.3.6.3 [JWDJ] 2015-3 search cache once instead of twice
         brush = self.fill_cache.get(svg_fill)
@@ -594,7 +593,7 @@ class SvgRenderer(object):
         if pen is None:
             if svg_stroke == 'none':
                 pen = self.renderer.CreatePen(wx.NullPen)
-            else:                
+            else:
                 wxpen = wx.Pen(wx_colour(svg_stroke), line_width)
                 if linecap == 'butt':
                     wxpen.SetCap(wx.CAP_BUTT)
@@ -660,7 +659,7 @@ class SvgRenderer(object):
         else:
             # 1.3.6.3 [JWDJ] 2015-3 Only set fill if fill is specified (where 'none' is not the same as None)
             fill = attr.get('fill')
-            if fill is None and name=='circle':
+            if fill is None and name == 'circle':
                 fill = current_color # 1.3.6.4 To draw the two dots in !segno!
             if fill is not None:
                 if fill == 'currentColor':
@@ -679,7 +678,7 @@ class SvgRenderer(object):
                 stroke = self.highlight_color
 
             self.set_stroke(dc, stroke, float(attr.get('stroke-width', 1.0)), attr.get('stroke-linecap', 'butt'), attr.get('stroke-dasharray', None))
-            
+
         #print 'setmatrix', matrix.Get(), '[%s]' % attr.get('transform', '')
 
         # 1.3.6.2 [JWdJ] 2015-02-14 Process most common names first (path, ellipse, use)
@@ -724,12 +723,12 @@ class SvgRenderer(object):
             text = attr['text']
             if not self.can_draw_sharps_and_flats:
                 text = text.replace(u'\u266d', 'b').replace(u'\u266f', '#').replace(u'\u266e', '=')
-            x, y = float(attr.get('x', 0)), float(attr.get('y', 0))            
+            x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
             if attr.get('font-style') == 'italic':
                 style = wx.FONTSTYLE_ITALIC
             else:
                 style = wx.FONTSTYLE_NORMAL
-            if attr.get('font-weight') == 'bold':                
+            if attr.get('font-weight') == 'bold':
                 weight = wx.FONTWEIGHT_BOLD
             else:
                 weight = wx.FONTWEIGHT_NORMAL
@@ -752,20 +751,21 @@ class SvgRenderer(object):
 
             ##print repr(text), font_face, attr.get('font-size'), attr.get('font-weight')
             wxfont = wx.Font(font_size, font_family, style, weight, False, font_face, wx.FONTENCODING_DEFAULT)
-            if '__WXMSW__' in wx.PlatformInfo:                
+            if wx.VERSION >= (3, 0) or '__WXMSW__' in wx.PlatformInfo:
                 wxfont.SetPixelSize((font_size, font_size))
                 y += 1
             else:
                 wxfont.SetPointSize(font_size)
+
             font = dc.CreateFont(wxfont, wx_colour(attr.get('fill', 'black')))
             dc.SetFont(font)
-            (width, height, descent, externalLeading) = dc.GetFullTextExtent(text)                
+            (width, height, descent, externalLeading) = dc.GetFullTextExtent(text)
             if attr.get('text-anchor') == 'middle':
-                x -= width / 2                
+                x -= width / 2
             elif attr.get('text-anchor') == 'end':
                 x -= width
             try:
-                dc.DrawText(text, x, y-height+descent)                
+                dc.DrawText(text, x, y-height+descent)
             except wx.PyAssertionError:
                 raise Exception(u'Could not draw text, text=%s, font=%s (%s / %s), size=%s, fill=%s, weight=%s, style=%s, x=%s, y=%s, height=%s, descent=%s, transform=%s' %
                                 (repr(text), font_face, wxfont.GetFaceName(), wxfont.GetDefaultEncoding(), font_size,
@@ -789,7 +789,7 @@ class SvgRenderer(object):
             path.AddLineToPoint(x+width, y+height)
             path.AddLineToPoint(x, y+height)
             path.AddLineToPoint(x, y)
-            dc.DrawPath(path)                     
+            dc.DrawPath(path)
         elif name == 'line':
             x1, y1, x2, y2 = map(float, (attr['x1'], attr['y1'], attr['x2'], attr['y2']))
             # 1.3.6.3 [JWDJ] 2015-3 Fill and stroke already have been set
@@ -862,13 +862,13 @@ if __name__ == "__main__":
     print('new matrix', matrix_to_str(dc.GetTransform()))
 
     print('----')
-    dc.SetTransform(original)    
-    dc.Scale(0.5, 0.5)    
+    dc.SetTransform(original)
+    dc.Scale(0.5, 0.5)
     dc.Translate(150, 150)
     dc.Rotate(radians(25))
     dc.Scale(0.5, 0.5)
     print('new matrix %s' % matrix_to_str(dc.GetTransform()))
-    
+
     buffer.SaveFile('dc_test_linux.png', wx.BITMAP_TYPE_PNG)
     if True:
         r = wx.GraphicsRenderer.GetDefaultRenderer()
@@ -876,13 +876,13 @@ if __name__ == "__main__":
         m2 = r.CreateMatrix(); m2.Translate(50, 60)
         m1.Concat(m2)
         print(m1.TransformPoint(100, 100))
-        
+
         m1 = r.CreateMatrix(); m1.Scale(1.0, -1.0)
         m2 = r.CreateMatrix(); m2.Translate(50, 60)
         m2.Concat(m1)
-        print(m1.TransformPoint(100, 100)) 
-        
+        print(m1.TransformPoint(100, 100))
+
         renderer = SvgRenderer(True)
         #renderer.set_svg(open(os.path.join('abc', 'cache', 'temp_02e3f5d62f001.svg'), 'rb').read())
-        renderer.buffer.SaveFile('test_output.png', wx.BITMAP_TYPE_PNG)    
-        
+        renderer.buffer.SaveFile('test_output.png', wx.BITMAP_TYPE_PNG)
+

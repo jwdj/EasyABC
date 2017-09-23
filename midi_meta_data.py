@@ -16,30 +16,30 @@ class NoteOnHandler(MidiOutStream):
 
     def update_time(self, new_time=0, relative=1):
         MidiOutStream.update_time(self, new_time, relative)
-        if relative:                        
-            if new_time != 0:     # ignore the 0 case since the tempo may not yet have been defined at that time              
+        if relative:
+            if new_time != 0:     # ignore the 0 case since the tempo may not yet have been defined at that time
                 self.abs_time_ms += self.tempo_value * new_time / (self.division * 1000.0)
         else:
-            self.abs_time_ms = self.tempo_value * new_time / (self.division * 1000.0)        
+            self.abs_time_ms = self.tempo_value * new_time / (self.division * 1000.0)
 
-    def header(self, format=0, nTracks=1, division=96):        
+    def header(self, format=0, nTracks=1, division=96):
         self.division = division
 
-    def tempo(self, value):        
-        self.tempo_value = value # tempo in us/quarternote        
+    def tempo(self, value):
+        self.tempo_value = value # tempo in us/quarternote
 
     def continuous_controller(self, channel, controller, value):
         if 110 <= controller <= 114:
             self.CC[controller] = value
-        if controller == 114:            
-            row = (self.CC[110] << 14) | (self.CC[111] << 7) | (self.CC[112])            
+        if controller == 114:
+            row = (self.CC[110] << 14) | (self.CC[111] << 7) | (self.CC[112])
             col = (self.CC[113] << 7) | (self.CC[114])
             col -= 1   # make column zero-based
-            self.offsets.append((row, col, self.abs_time_ms))            
+            self.offsets.append((row, col, self.abs_time_ms))
 
 def midi_to_meta_data(midi_file_path):
     ''' returns a list: [(row, col, millisecond_midi_offset), ...] '''
-    event_handler = NoteOnHandler()    
+    event_handler = NoteOnHandler()
     midi_in = MidiInFile(event_handler, midi_file_path)
     midi_in.read()
     return event_handler.offsets

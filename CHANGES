@@ -530,3 +530,9 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - MAC only: a delay was added before playing to fix first notes not being played
 - Added to the Help menu a link to 'ABC Quick Reference Card'
 - after switching to another format file in abc-settings the music score refreshes
+
+1.3.7.7
+- German translation updated (thanks to Bernhard Weichel)
+- Fix for 'Follow score' for notes spanning multiple pages
+- Import midi fixed
+- Fixed: Typing Z: appeared as Z |:
