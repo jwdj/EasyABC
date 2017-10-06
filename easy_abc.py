@@ -4125,6 +4125,7 @@ class MainFrame(wx.Frame):
         self.document_name = _('Untitled') + ' %d' % self.untitled_number
         self.SetTitle('%s - %s' % (program_name, self.document_name))
         self.editor.ClearAll()
+        self.editor.SetSavePoint()
 
     # 1.3.6.2 [JWdJ] 2015-02
     @property
