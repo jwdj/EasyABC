@@ -647,9 +647,7 @@ def start_process(cmd):
     # 1.3.6.4 [SS] 2015-05-27
     #process = subprocess.Popen(cmd,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE,close_fds=True,creationflags=creationflags)
     process = subprocess.Popen(cmd, shell=False, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
-    stdout_value, stderr_value = process.communicate()
-    execmessages += '\n'+stderr_value + stdout_value
-    return
+    return process
 
 
 def get_output_from_process(cmd, input=None, creationflags=None, cwd=None, bufsize=0, encoding='utf-8', errors='strict', output_encoding=None):
@@ -2023,6 +2021,7 @@ class MidiThread(threading.Thread):
         self.__want_abort = False # 1.3.6.3 [JWdJ]
         self.start()
         self.__is_busy = False
+        self.midiplayer_process = None
 
     def run(self):
         while not self.__want_abort:
@@ -2041,7 +2040,7 @@ class MidiThread(threading.Thread):
             #note this is not the same as
             #c = [midiplayer_path, midi_file, midiplayer_parameters]
             try:
-                start_process(c)
+                self.midiplayer_process = start_process(c)
             except Exception as e:
                 pass
                 # print(e)
@@ -2072,11 +2071,19 @@ class MidiThread(threading.Thread):
 
     def abort(self):
         self.__want_abort = True
+        if self.midiplayer_process is not None:
+            self.midiplayer_process.terminate()
+            self.midiplayer_process = None
 
     @property
     def is_busy(self):
-        return self.__is_busy
-
+        if self.midiplayer_process is None:
+            return False
+        self.midiplayer_process.poll()
+        if self.midiplayer_process.returncode is not None:
+            self.midiplayer_process = None
+            return False
+        return True
 
 class RecordThread(threading.Thread):
     def __init__(self, notify_window, midi_in_device_ID, midi_out_device_ID=None, metre_1=3, metre_2=4, bpm=70):
@@ -4458,7 +4465,10 @@ class MainFrame(wx.Frame):
 
     def stop_playing(self):
         self.is_really_playing = False
-        if self.mc:
+        if self.settings['midiplayer_path'] and self.play_music_thread is not None:
+            self.play_music_thread.abort()
+
+        elif self.mc:
             self.mc.Stop()
             self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
             self.play_button.SetBitmap(self.play_bitmap)
@@ -4525,10 +4535,9 @@ class MainFrame(wx.Frame):
         '''
         if self.play_music_thread is None:
             self.play_music_thread = MidiThread(self.settings)
-        elif self.play_music_thread.is_busy:
-            self.play_music_thread.abort()
-            self.play_music_thread = MidiThread(self.settings)
 
+        self.play_music_thread.abort()
+        self.play_music_thread = MidiThread(self.settings)
         self.play_music_thread.play_midi(midifile)
 
     def do_load_media_file(self, path):
