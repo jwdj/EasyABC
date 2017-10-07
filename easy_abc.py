@@ -4610,8 +4610,7 @@ class MainFrame(wx.Frame):
         self.flip_tempobox(False)
         self.media_slider.SetValue(0)
         self.reset_BpmSlider()
-        if wx.Platform != "__WXMSW__":
-            self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
+        self.toolbar.Refresh() # 1.3.7.7? [LB] fixes toolbar repaint bug
         if self.record_thread and self.record_thread.is_running:
             self.OnToolRecord(None)
 
@@ -4741,7 +4740,7 @@ class MainFrame(wx.Frame):
         self.loop_check.Show(state)
         self.follow_score_check.Show(state)
         self.UpdateTimingSliderVisibility()
-        self.toolbar.Realize()
+        self.toolbar.Refresh()
         wx.Yield()
 
     def show_toolbar_panel(self, panel, visible):
@@ -7563,8 +7562,7 @@ class MainFrame(wx.Frame):
             # hide page controls if there are less than 2 pages
             # 1.3.6.2 [JWdJ] 2015-02
             self.cur_page_combo.Parent.Show(pages > 1)
-            if wx.Platform != "__WXMSW__":
-                self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug on Windows
+            self.toolbar.Refresh() #  # 1.3.7.7? [LB] fixes toolbar repaint bug on all OS
 
         # 1.3.6.2 [JWdJ] 2015-02
         try:
