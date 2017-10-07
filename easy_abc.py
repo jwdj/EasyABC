@@ -4465,8 +4465,9 @@ class MainFrame(wx.Frame):
 
     def stop_playing(self):
         self.is_really_playing = False
-        if self.settings['midiplayer_path'] and self.play_music_thread is not None:
-            self.play_music_thread.abort()
+        if self.settings['midiplayer_path']:
+             if self.play_music_thread is not None:
+                self.play_music_thread.abort()
 
         elif self.mc:
             self.mc.Stop()
