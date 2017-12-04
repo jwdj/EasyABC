@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.7 2017-09-10'
+program_name = 'EasyABC 1.3.7.8 2017-12-04'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -7901,10 +7901,10 @@ class MainFrame(wx.Frame):
         global execmessages, visible_abc_code
         info_messages = []
         # [SS] 2014-12-18
-        options = namedtuple ('Options', 'u m c d n b v x p j t')                     # emulate the options object
+        options = namedtuple ('Options', 'u m c d n b v x p j t v1 ped')                     # emulate the options object
         options.m = 0; options.j = 0; options.p = []; options.b = 0; options.d = 0  # unused options
         options.n = 0; options.v = 0; options.u = 0; options.c = 0; options.x = 0   # but all may be used if needed
-        options.t = 0
+        options.t = 0; options.v1 = False; options.ped = True
         if self.settings['xmlunfold']:
             options.u = 1
         if self.settings['xmlmidi']:

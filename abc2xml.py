@@ -3,7 +3,7 @@
 '''
 Copyright (C) 2012: Willem G. Vree
 Contributions: Nils Liberg, Nicolas Froment, Norman Schmidt, Reinier Maliepaard, Martin Tarenskeen,
-               Paul Villiger, Alexander Scheutzow
+               Paul Villiger, Alexander Scheutzow, Herbert Schneider
 
 This program is free software; you can redistribute it and/or modify it under the terms of the
 GNU General Public License as published by the Free Software Foundation; either version 2 of
@@ -22,7 +22,7 @@ try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import types, sys, os, re, datetime
 
-VERSION = 69
+VERSION = 79
 
 python3 = sys.version_info[0] > 2
 lmap = lambda f, xs: list (map (f, xs))   # eager map for python 3
@@ -87,12 +87,13 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     skip_note   = oneOf ('* - ~')
     extend_note = Literal ('_')
     measure_end = Literal ('|')
-    syl_chars   = CharsNotIn ('*~-_| \t\n]')
+    syl_str     = CharsNotIn ('*~-_| \t\n\\]')
+    syl_chars   = Combine (OneOrMore (syl_str | Regex (r'\\.')))
     white       = Word (' \t')
     syllable    = Combine (Optional ('~') + syl_chars + ZeroOrMore (Literal ('~') + syl_chars)) + Optional ('-')
     lyr_elem    = (syllable | skip_note | extend_note | measure_end) + Optional (white).suppress ()
     lyr_line    = Optional (white).suppress () + ZeroOrMore (lyr_elem)
-
+    
     syllable.setParseAction (lambda t: pObj ('syl', t))
     skip_note.setParseAction (lambda t: pObj ('skip', t))
     extend_note.setParseAction (lambda t: pObj ('ext', t))
@@ -116,13 +117,13 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     basenote = oneOf ('C D E F G A B c d e f g a b y')  # includes spacer for parse efficiency
     accidental = oneOf ('^^ __ ^ _ =')
     rest_sym  = oneOf ('x X z Z')
-    slur_beg = oneOf ('( .(') + ~Word (nums)    # no tuplet_start
+    slur_beg = oneOf ("( (, (' .( .(, .('") + ~Word (nums)    # no tuplet_start
     slur_ends = OneOrMore (oneOf (') .)'))
 
     long_decoration = Combine (oneOf ('! +') + CharsNotIn ('!+ \n') + oneOf ('! +'))
     staccato        = Literal ('.') + ~Literal ('|')    # avoid dotted barline
     pizzicato       = Literal ('!+!')   # special case: plus sign is old style deco marker
-    decoration      = staccato | userdef_symbol | long_decoration | slur_beg | pizzicato
+    decoration      = slur_beg | staccato | userdef_symbol | long_decoration | pizzicato
     decorations     = OneOrMore (decoration)
 
     tie = oneOf ('.- -')
@@ -151,7 +152,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     seventh          = oneOf ('7 ma7 Maj7 M7 maj7 mi7 m7 dim7 o7 -7 aug7 +7 m7b5 mi7b5')
     sixth            = oneOf ('6 ma6 M6 m6 mi6')
     ninth            = oneOf ('9 ma9 M9 maj9 Maj9 mi9 m9')
-    elevn            = oneOf ('11 ma11 M11 maj11 Maj11 mi m11')
+    elevn            = oneOf ('11 ma11 M11 maj11 Maj11 mi11 m11')
     suspended        = oneOf ('sus sus2 sus4')
     chord_degree     = Combine (Optional (chord_accidental) + oneOf ('2 4 5 6 7 9 11 13'))
     chord_kind       = Optional (seventh | sixth | ninth | elevn | triad, '_') + Optional (suspended)
@@ -172,7 +173,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     bar_left = (oneOf ('[|: |: [: :') + Optional (volta)) | Optional ('|').suppress () + volta | oneOf ('| [|')
     bars = ZeroOrMore (':') + ZeroOrMore ('[') + OneOrMore (oneOf ('| ]'))
     bar_right = invisible_barline | double_rep | Combine (bars) | dashed_barline | voice_overlay | bare_volta
-
+    
     errors =  ~bar_right + Optional (Word (' \n')) + CharsNotIn (':&|', exact=1)
     linebreak = Literal ('$') | ~decorations + Literal ('!')    # no need for I:linebreak !!!
     element = fld_or_lyr | broken | decorations | stem | chord_or_text | grace_notes | tuplet_start | linebreak | errors
@@ -404,7 +405,7 @@ def addElemT (parent, tag, text, level):
     e.text = text
     addElem (parent, e, level)
     return e
-
+    
 def mkTmod (tmnum, tmden, lev):
     tmod = E.Element ('time-modification')
     addElemT (tmod, 'actual-notes', str (tmnum), lev + 1)
@@ -457,61 +458,74 @@ def fixSlurs (x):   # repair slurs when after broken sign or grace-close
     return slur_move.sub (r'\2\1', x)
 
 def splitHeaderVoices (abctext):
+    escField = lambda x: '[' + x.replace (']',r'%5d') + ']' # hope nobody uses %5d in a field
     r1 = re.compile (r'%.*$')           # comments
-    r2 = re.compile (r'^[A-Zw]:.*$')    # information field, including lyrics
+    r2 = re.compile (r'^([A-Zw]:.*$)|\[[A-Zw]:[^]]*]$')     # information field, including lyrics
     r3 = re.compile (r'^%%(?=[^%])')    # directive: ^%% folowed by not a %
-    xs, nx = [], 0
+    xs, nx, mcont, fcont = [], 0, 0, 0  # result lines, X-encountered, music continuation, field continuation
+    mln = fln = ''                      # music line, field line
     for x in abctext.splitlines ():
         x = x.strip ()
-        if not x and nx == 1: break     # end of tune
+        if not x and nx == 1: break     # end of tune (empty line)
+        if x.startswith ('X:'):
+            if nx == 1: break           # second tune starts without an empty line !!
+            nx = 1                      # start first tune
         x = r3.sub ('I:', x)            # replace %% -> I:
         x2 = r1.sub ('', x)             # remove comment
-        while x2.endswith ('*') and not (x2.startswith ('w:') or 'percmap' in x2):
+        while x2.endswith ('*') and not (x2.startswith ('w:') or x2.startswith ('+:') or 'percmap' in x2):
             x2 = x2[:-1]                # remove old syntax for right adjusting
         if not x2: continue             # empty line
-        if x2[:2] == 'W:': continue     # skip W: lyrics
-        if x2[:2] == 'w:' and xs[-1][-1] ==  '\\':
-            xs[-1] = xs[-1][:-1]        # ignore line continuation before lyrics line
-        ro = r2.match (x2)
+        if x2[:2] == 'W:':
+            field = x2 [2:].strip ()
+            ftype = mxm.metaMap.get ('W', 'W')  # respect the (user defined --meta) mapping of various ABC fields to XML meta data types
+            c = mxm.metadata.get (ftype, '')
+            mxm.metadata [ftype] = c + '\n' + field if c else field   # concatenate multiple info fields with new line as separator
+            continue                    # skip W: lyrics
+        if x2[:2] == '+:':              # field continuation
+            fln += x2[2:]
+            continue
+        ro = r2.match (x2)              # single field on a line
         if ro:                          # field -> inline_field, escape all ']'
-            if x2[-1] == '\\': x2 = x2[:-1] # ignore continuation after field line
-            x2 = '[' + x2.replace (']',r'%5d') + ']'    # hope nobody uses %5d in a field
-        if x2[:2] == '+:':              # new style continuation
-            xs[-1] += x2[2:]
-        elif xs and xs[-1][-1] ==  '\\':  # old style continuation
-            xs[-1] = xs[-1][:-1] + x2
-        else:                           # skip lines (except I:) until first X:
-            if x.startswith ('X:'):
-                if nx == 1: break       # second tune starts without an empty line !!
-                nx = 1                  # start of first tune
-            if nx == 1 or x.startswith ('I:'):
-                xs.append (x2)
-    if xs and xs[-1][-1] == '\\':       # nothing left to continue with, remove last continuation
-        xs[-1] = xs[-1][:-1]
+            if fcont:                   # old style \-info-continuation active
+                fcont = x2 [-1] == '\\' # possible further \-info-continuation
+                fln += re.sub (r'^.:(.*?)\\*$', r'\1', x2) # add continuation, remove .: and \
+                continue
+            if fln: mln += escField (fln)
+            if x2.startswith ('['): x2 = x2.strip ('[]')
+            fcont = x2 [-1] == '\\'     # first encounter of old style \-info-continuation
+            fln = x2.rstrip ('\\')      # remove continuation from field and inline brackets
+            continue
+        if nx == 1:                     # x2 is a new music line
+            fcont = 0                   # stop \-continuations (-> only adjacent \-info-continuations are joined)
+            if fln:
+                mln +=  escField (fln)
+                fln = ''
+            if mcont:
+                mcont = x2 [-1] == '\\' 
+                mln += x2.rstrip ('\\')
+            else:
+                if mln: xs.append (mln); mln = ''
+                mcont = x2 [-1] == '\\'
+                mln = x2.rstrip ('\\')
+            if not mcont: xs.append (mln); mln = ''
+    if fln: mln += escField (fln)
+    if mln: xs.append (mln)
 
-    r1 = re.compile (r'\[[A-Z]:[^]]*\]') # inline field
-    r2 = re.compile (r'\[K:')           # start of K: field
-    r3 = re.compile (r'\[V:|\[I:MIDI')  # start of V: field or midi field
-    fields, voices, b = [], [], 0
-    for i, x in enumerate (xs):
-        n = len (r1.sub ('', x))        # remove all inline fields
-        if n > 0: b = 1; break          # real abc present -> end of header
-        if r2.search (x):               # start of K: field
-            fields.append (x)
-            i += 1; b = 1
-            break                       # first K: field -> end of header
-        if r3.search (x):               # start of V: field
-            voices.append (x)
-        else:
-            fields.append (x)
-    if b: voices += xs[i:]
-    else: voices += []                  # tune has only header fields
-    header =  '\n'.join (fields)
-    abctext = '\n'.join (voices)
+    hs = re.split (r'(\[K:[^]]*\])', xs [0])   # look for end of header K:
+    if len (hs) == 1: header = hs[0]; xs [0] = ''               # no K: present
+    else: header = hs [0] + hs [1]; xs [0] = ''.join (hs[2:])   # h[1] is the first K:
+    abctext = '\n'.join (xs)                    # the rest is body text
+    hfs, vfs = [], []
+    for x in header[1:-1].split (']['):
+        if x[0] == 'V': vfs.append (x)          # filter voice- and midi-definitions
+        elif x[:6] == 'I:MIDI': vfs.append (x)  # from the header to vfs
+        else: hfs.append (x)                    # all other fields stay in header
+    header = '[' + ']['.join (hfs) + ']'        # restore the header
+    abctext = ('[' + ']['.join (vfs) + ']' if vfs else '') + abctext    # prepend voice/midi from header before abctext
 
     xs = abctext.split ('[V:')
     if len (xs) == 1: abctext = '[V:1]' + abctext # abc has no voice defs at all
-    elif r1.sub ('', xs[0]).strip ():   # remove inline fields from starting text, if any
+    elif re.sub (r'\[[A-Z]:[^]]*\]', '', xs[0]).strip ():   # remove inline fields from starting text, if any
         abctext = '[V:1]' + abctext     # abc with voices has no V: at start
 
     r1 = re.compile (r'\[V:\s*(\S*)[ \]]') # get voice id from V: field (skip spaces betwee V: and ID)
@@ -520,7 +534,9 @@ def splitHeaderVoices (abctext):
     xs = re.split (r'(\[V:[^]]*\])', abctext)   # split on every V-field (V-fields included in split result list)
     if len (xs) == 1: raise ValueError ('bugs ...')
     else:
-        header += xs[0]     # xs[0] = text between K: and first V:, normally empty, but we put it in the header
+        pm = re.findall (r'\[P:.\]', xs[0])         # all P:-marks after K: but before first V:
+        if pm: xs[2] = ''.join (pm) + xs[2]         # prepend P:-marks to the text of the first voice
+        header += re.sub (r'\[P:.\]', '', xs[0])    # clear all P:-marks from text between K: and first V: and put text in the header
         i = 1
         while i < len (xs):             # xs = ['', V-field, voice abc, V-field, voice abc, ...]
             vce, abc = xs[i:i+2]
@@ -540,7 +556,7 @@ def splitHeaderVoices (abctext):
 def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0):
     slurs = m2.findall ('note/notations/slur')
     for slr in slurs:
-        slrnum = int (slr.get ('number')) + slur_offset
+        slrnum = int (slr.get ('number')) + slur_offset 
         slr.set ('number', str (slrnum))    # make unique slurnums in m2
     vs = m2.findall ('note/voice')          # set all voice number elements in m2
     for v in vs: v.text  = str (voice_offset + int (v.text))
@@ -678,13 +694,13 @@ def stepTrans (step, soct, clef):   # [A-G] (1...8)
     if clef.startswith ('bass'):
         nm7 = 'C,D,E,F,G,A,B'.split (',')
         n = 14 + nm7.index (step) - 12  # two octaves extra to avoid negative numbers
-        step, soct = nm7 [n % 7], soct + n / 7 - 2  # subtract two octaves again
+        step, soct = nm7 [n % 7], soct + n // 7 - 2  # subtract two octaves again
     return step, soct
 
 def reduceMids (parts, vidsnew, midiInst):       # remove redundant instruments from a part
     for pid, part in zip (vidsnew, parts):
         mids, repls, has_perc = {}, {}, 0
-        for ipid, ivid, ch, prg in midiInst.values ():
+        for ipid, ivid, ch, prg in list (midiInst.values ()):
             if ipid != pid: continue                # only instruments from part pid
             if ch == '10': has_perc = 1; continue   # only consider non percussion instruments
             instId, inst = 'I%s-%s' % (ipid, ivid), (ch, prg)
@@ -701,15 +717,17 @@ def reduceMids (parts, vidsnew, midiInst):       # remove redundant instruments 
 
 class MusicXml:
     typeMap = {1:'long', 2:'breve', 4:'whole', 8:'half', 16:'quarter', 32:'eighth', 64:'16th', 128:'32nd', 256:'64th'}
-    dynaMap = {'p':1,'pp':1,'ppp':1,'f':1,'ff':1,'fff':1,'mp':1,'mf':1,'sfz':1}
+    dynaMap = {'p':1,'pp':1,'ppp':1,'pppp':1,'f':1,'ff':1,'fff':1,'ffff':1,'mp':1,'mf':1,'sfz':1}
     tempoMap = {'larghissimo':40, 'moderato':104, 'adagissimo':44, 'allegretto':112, 'lentissimo':48, 'allegro':120, 'largo':56,
             'vivace':168, 'adagio':59, 'vivo':180, 'lento':62, 'presto':192, 'larghetto':66, 'allegrissimo':208, 'adagietto':76,
             'vivacissimo':220, 'andante':88, 'prestissimo':240, 'andantino':96}
     wedgeMap = {'>(':1, '>)':1, '<(':1,'<)':1,'crescendo(':1,'crescendo)':1,'diminuendo(':1,'diminuendo)':1}
-    artMap = {'.':'staccato','>':'accent','accent':'accent','wedge':'staccatissimo','tenuto':'tenuto'}
+    artMap = {'.':'staccato','>':'accent','accent':'accent','wedge':'staccatissimo','tenuto':'tenuto',
+              'breath':'breath-mark','marcato':'strong-accent','^':'strong-accent','slide':'scoop'}
     ornMap = {'trill':'trill-mark','T':'trill-mark','turn':'turn','uppermordent':'inverted-mordent','lowermordent':'mordent',
               'pralltriller':'inverted-mordent','mordent':'mordent','turn':'turn','invertedturn':'inverted-turn'}
-    tecMap = {'upbow':'up-bow', 'downbow':'down-bow', 'plus':'stopped'}
+    tecMap = {'upbow':'up-bow', 'downbow':'down-bow', 'plus':'stopped','open':'open-string','snap':'snap-pizzicato',
+              'thumb':'thumb-position'}
     capoMap = {'fine':('Fine','fine','yes'), 'D.S.':('D.S.','dalsegno','segno'), 'D.C.':('D.C.','dacapo','yes'),'dacapo':('D.C.','dacapo','yes'),
                'dacoda':('To Coda','tocoda','coda'), 'coda':('coda','coda','coda'), 'segno':('segno','segno','segno')}
     sharpness = ['Fb', 'Cb','Gb','Db','Ab','Eb','Bb','F','C','G','D','A', 'E', 'B', 'F#','C#','G#','D#','A#','E#','B#']
@@ -724,8 +742,10 @@ class MusicXml:
     uSyms = {'~':'roll', 'H':'fermata','L':'>','M':'lowermordent','O':'coda',
              'P':'uppermordent','S':'segno','T':'trill','u':'upbow','v':'downbow'}
     pageFmtDef = [0.75,297,210,18,18,10,10] # the abcm2ps page formatting defaults for A4
-    creditTab = {'O':'origin', 'A':'area', 'Z':'transcription', 'N':'notes', 'G':'group', 'H':'history', 'R':'rhythm',
-                 'B':'book', 'D':'discography', 'F':'fileurl', 'S':'source'}
+    metaTab = {'O':'origin', 'A':'area', 'Z':'transcription', 'N':'notes', 'G':'group', 'H':'history', 'R':'rhythm',
+                'B':'book', 'D':'discography', 'F':'fileurl', 'S':'source', 'P':'partmap', 'W':'lyrics'}
+    metaMap = {'C':'composer'}  # mapping of composer is fixed
+    metaTypes = {'composer':1,'lyricist':1,'poet':1,'arranger':1,'translator':1, 'rights':1} # valid MusicXML meta data types
 
     def __init__ (s):
         s.pageFmtCmd = []   # set by command line option -p
@@ -734,7 +754,7 @@ class MusicXml:
         s.divisions = 120   # xml duration of 1/4 note
         s.ties = {}         # {abc pitch tuple -> alteration} for all open ties
         s.slurstack = []    # stack of open slur numbers
-        s.slurbeg = 0       # number of slurs to start (when slurs are detected at element-level)
+        s.slurbeg = []      # type of slurs to start (when slurs are detected at element-level)
         s.tmnum = 0         # time modification, numerator
         s.tmden = 0         # time modification, denominator
         s.ntup = 0          # number of tuplet notes remaining
@@ -750,7 +770,7 @@ class MusicXml:
         s.curVolta = ''     # open volta bracket
         s.title = ''        # title of music
         s.creator = {}      # {creator-type -> creator string}
-        s.credits = {}      # {credit-type -> string}
+        s.metadata = {}     # {metadata-type -> string}
         s.lyrdash = {}      # {lyric number -> 1 if dash between syllables}
         s.usrSyms = s.uSyms # user defined symbols
         s.prevNote = None   # xml element of previous beamed note to correct beams (start, continue)
@@ -829,7 +849,7 @@ class MusicXml:
             num, den  = simplify (max ([num, 1]), 64)   # smallest num == 1
             info ('duration too small: rounded to %d/%d' % (num, den))
         if n.name == 'rest' and ('Z' in n.t or 'X' in n.t):
-            num, den = s.mdur         # duration of one measure
+              num, den = s.mdur         # duration of one measure
         dvs = (4 * s.divisions * num) // den    # divisions is xml-duration of 1/4
         rdvs = dvs                      # real duration (will be 0 for chord/grace)
         num, den = simplify (num, den * 4)      # scale by 1/4 for s.typeMap
@@ -966,39 +986,47 @@ class MusicXml:
         if tstart:              # start a tie
             s.ties[ptup] = (alter, nots, s.overlayVnum) # remember pitch tuple to stop tie and apply same alteration
             tie = E.Element ('tied', type='start')
+            if tstart.t[0] == '.-': tie.set ('line-type', 'dotted')
             addElem (nots, tie, lev + 1)
         if decos:               # look for slurs and decorations
+            slurMap = { '(':1, '.(':1, '(,':1, "('":1, '.(,':1, ".('":1 }
             arts = []           # collect articulations
             for d in decos:     # do all slurs and decos
-                if d == '(': s.slurbeg += 1; continue # slurs made in while loop at the end
+                if d in slurMap: s.slurbeg.append (d); continue # slurs made in while loop at the end
                 elif d == 'fermata' or d == 'H':
                     ntn = E.Element ('fermata', type='upright')
                 elif d == 'arpeggio':
                     ntn = E.Element ('arpeggiate', number='1')
-                elif d in ['-(', '~(', '-)', '~)']:
-                    lt = 'wavy'  if d[0] == '~' else 'solid'
-                    tp = 'start' if d[1] == '(' else 'stop'
+                elif d in ['~(', '~)']:
                     if d[1] == '(': tp = 'start'; s.glisnum += 1; gn = s.glisnum
                     else:           tp = 'stop'; gn = s.glisnum; s.glisnum -= 1
                     if s.glisnum < 0: s.glisnum = 0; continue   # stop without previous start
-                    ntn = E.Element ('glissando', {'line-type':lt, 'number':'%d' % gn, 'type':tp})
+                    ntn = E.Element ('glissando', {'line-type':'wavy', 'number':'%d' % gn, 'type':tp})
+                elif d in ['-(', '-)']:
+                    if d[1] == '(': tp = 'start'; s.slidenum += 1; gn = s.slidenum
+                    else:           tp = 'stop'; gn = s.slidenum; s.slidenum -= 1
+                    if s.slidenum < 0: s.slidenum = 0; continue   # stop without previous start
+                    ntn = E.Element ('slide', {'line-type':'solid', 'number':'%d' % gn, 'type':tp})
                 else: arts.append (d); continue
                 addElem (nots, ntn, lev + 1)
             if arts:        # do only note articulations and collect staff annotations in xmldecos
                 rest = s.doArticulations (nots, arts, lev + 1)
                 if rest: info ('unhandled note decorations: %s' % rest)
-        if slurs:               # these are only slur endings
+        if slurs:           # these are only slur endings
             for d in slurs.t:           # slurs to be closed on this note
                 if not s.slurstack: break    # no more open old slurs
                 slurnum = s.slurstack.pop ()
                 slur = E.Element ('slur', number='%d' % slurnum, type='stop')
                 addElem (nots, slur, lev + 1)
-        while s.slurbeg > 0:    # create slurs beginning on this note
-            s.slurbeg -= 1
+        while s.slurbeg:    # create slurs beginning on this note
+            stp = s.slurbeg.pop (0)
             slurnum = len (s.slurstack) + 1
             s.slurstack.append (slurnum)
             ntn = E.Element ('slur', number='%d' % slurnum, type='start')
-            addElem (nots, ntn, lev + 1)
+            if '.' in stp: ntn.set ('line-type', 'dotted')
+            if ',' in stp: ntn.set ('placement', 'below')
+            if "'" in stp: ntn.set ('placement', 'above')
+            addElem (nots, ntn, lev + 1)            
         if nots.getchildren() != []:    # only add notations if not empty
             addElem (nt, nots, lev)
 
@@ -1013,10 +1041,20 @@ class MusicXml:
                 orn = E.Element ('ornaments')
                 addElem (nots, orn, lev)
                 addElem (orn, E.Element (s.ornMap[a]), lev + 1)
+            elif a in ['trill(','trill)']:
+                orn = E.Element ('ornaments')
+                addElem (nots, orn, lev)
+                type = 'start' if a.endswith ('(') else 'stop'
+                if type == 'start': addElem (orn, E.Element ('trill-mark'), lev + 1)                
+                addElem (orn, E.Element ('wavy-line', type=type), lev + 1)                
             elif a in s.tecMap:
                 tec = E.Element ('technical')
                 addElem (nots, tec, lev)
                 addElem (tec, E.Element (s.tecMap[a]), lev + 1)
+            elif a in '012345':
+                tec = E.Element ('technical')
+                addElem (nots, tec, lev)
+                addElemT (tec, 'fingering', a, lev + 1)
             else: decos.append (a)  # return staff annotations
         return decos
 
@@ -1033,7 +1071,10 @@ class MusicXml:
             lyrel = E.Element ('lyric', number = str (i + 1))
             addElem (nt, lyrel, lev)
             addElemT (lyrel, 'syllabic', type, lev + 1)
-            addElemT (lyrel, 'text', lyrobj.t[0].replace ('~',' '), lev + 1)
+            txt = lyrobj.t[0]                       # the syllabe
+            txt = re.sub (r'(?<!\\)~', ' ', txt)    # replace ~ by space when not escaped (preceded by \)
+            txt = re.sub (r'\\(.)', r'\1', txt)     # replace all escaped characters by themselves (for the time being)
+            addElemT (lyrel, 'text', txt, lev + 1)
 
     def doBeams (s, n, nt, den, lev):
         if hasattr (n, 'chord') or hasattr (n, 'grace'):
@@ -1068,7 +1109,7 @@ class MusicXml:
         s.prevNote = None
 
     def staffDecos (s, decos, maat, lev):
-        gstaff = s.gStaffNums.get (s.vid, 0)        # staff number of the current voice
+        gstaff = s.gStaffNums.get (s.vid, 0)        # staff number of the current voice        
         for d in decos:
             d = s.usrSyms.get (d, d).strip ('!+')   # try to replace user defined symbol
             if d in s.dynaMap:
@@ -1078,6 +1119,14 @@ class MusicXml:
                 if ')' in d: type = 'stop'
                 else: type = 'crescendo' if '<' in d or 'crescendo' in d else 'diminuendo'
                 addDirection (maat, E.Element ('wedge', type=type), lev, gstaff)
+            elif d.startswith ('8v'):
+                if 'a' in d: type, plce = 'down', 'above'
+                else:        type, plce = 'up', 'below'
+                if ')' in d: type = 'stop'
+                addDirection (maat, E.Element ('octave-shift', type=type, size='8'), lev, gstaff, placement=plce)
+            elif d in (['ped','ped-up']):
+                type = 'stop' if d.endswith ('up') else 'start'
+                addDirection (maat, E.Element ('pedal', type=type), lev, gstaff)
             elif d in ['coda', 'segno']:
                 text, attr, val = s.capoMap [d]
                 dir = addDirection (maat, E.Element (text), lev, gstaff, placement='above')
@@ -1089,8 +1138,8 @@ class MusicXml:
                 dir = addDirection (maat, words, lev, gstaff, placement='above')
                 sound = E.Element ('sound'); sound.set (attr, val)
                 addElem (dir, sound, lev + 1)
-            elif d == '(': s.slurbeg += 1   # start slur on next note
-            elif d in ['/-','//-','///-']:  # duplet tremolo sequence
+            elif d == '(' or d == '.(': s.slurbeg.append (d)   # start slur on next note
+            elif d in ['/-','//-','///-','////-']:  # duplet tremolo sequence
                 s.tmnum, s.tmden, s.ntup, s.trem, s.intrem = 2, 1, 2, len (d) - 1, 1
             elif d in ['/','//','///']: s.trem = - len (d)  # single note tremolo
             else: s.nextdecos.append (d)    # keep annotation for the next note
@@ -1129,7 +1178,7 @@ class MusicXml:
                 note, octstr = clefm.groups ()
                 nUp = note.upper ()
                 octnum = (4 if nUp == note else 5) + (len (octstr) if "'" in octstr else -len (octstr))
-                gtrans = (3 if nUp in 'AFD' else 4) - octnum
+                gtrans = (3 if nUp in 'AFD' else 4) - octnum 
                 if clef not in ['perc', 'none']: clef = s.clefLineMap [nUp]
             if clef:
                 s.gtrans = gtrans   # only change global tranposition when a clef is really defined
@@ -1241,6 +1290,12 @@ class MusicXml:
                 s.doField_I (ftype, field, instDir, addTrans)
             elif ftype == 'Q':
                 s.doTempo (maat, field, lev)
+            elif ftype == 'P':  # ad hoc translation of P: into a staff text direction
+                words = E.Element ('rehearsal')
+                words.set ('font-weight', 'bold')
+                words.text = field
+                gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
+                addDirection (maat, words, lev, gstaff, placement='above')
             elif ftype in 'TCOAZNGHRBDFSU':
                 info ('**illegal header field in body: %s, content: %s' % (ftype, field))
             else:
@@ -1264,15 +1319,18 @@ class MusicXml:
             elems.append ((words, []))
         if t:
             try:
-                if t.group (4): num, den, upm = 1, s.unitLcur[1] , float (t.group (4))
+                if t.group (4): num, den, upm = 1, s.unitLcur[1] , float (t.group (4))  # old syntax Q:120
                 else:           num, den, upm = int (t.group (1)), int (t.group (2)), float (t.group (3))
             except: info ('conversion error: %s' % field); return
+            num, den = simplify (num, den);
+            dotted, den_not = (1, den // 2) if num == 3 else (0, den)
             metro = E.Element ('metronome')
-            u = E.Element ('beat-unit'); u.text = s.typeMap.get (4 * den, 'quarter')
-            pm = E.Element ('per-minute'); pm.text = '%.2f' % upm
-            elems.append ((metro, [u, pm]))
+            u = E.Element ('beat-unit'); u.text = s.typeMap.get (4 * den_not, 'quarter')
+            pm = E.Element ('per-minute'); pm.text = ('%.2f' % upm).rstrip ('0').rstrip ('.')
+            subelms = [u, E.Element ('beat-unit-dot'), pm] if dotted else [u, pm]
+            elems.append ((metro, subelms))
         dir = addDirection (maat, elems, lev, gstaff, [], placement='above')
-        if num != 1: info ('in Q: numerator > 1 in %d/%d not supported' % (num, den))
+        if num != 1 and num != 3: info ('in Q: numerator in %d/%d not supported' % (num, den))
         qpm = 4. * num * upm / den
         sound = E.Element ('sound'); sound.set ('tempo', '%.2f' % qpm)
         addElem (dir, sound, lev + 1)
@@ -1344,11 +1402,12 @@ class MusicXml:
             s.linebrk = 0
         for it, x in enumerate (t):
             if x.name == 'note' or x.name == 'rest':
+                if x.dur.t[0] == 0: info ('note/rest with duration 0 was skipped in part %s, voice %s, measure %d' % (s.pid, s.vid, i)); continue;
                 note = s.mkNote (x, lev + 1)
                 addElem (maat, note, lev + 1)
             elif x.name == 'lbar':
                 bar = x.t[0]
-                if bar == '|': pass # skip redundant bar
+                if bar == '|' or bar == '[|': pass # skip redundant bar
                 elif ':' in bar:    # forward repeat
                     volta = x.t[1] if len (x.t) == 2  else ''
                     s.mkBarline (maat, 'left', lev + 1, style='heavy-light', dir='forward', ending=volta)
@@ -1403,6 +1462,7 @@ class MusicXml:
     def mkPart (s, maten, id, lev, attrs, nstaves, rOpt):
         s.slurstack = []
         s.glisnum = 0;          # xml number attribute for glissandos
+        s.slidenum = 0;         # xml number attribute for slides
         s.unitLcur = s.unitL    # set the default unit length at begin of each voice
         s.curVolta = ''
         s.lyrdash = {}
@@ -1530,7 +1590,7 @@ class MusicXml:
         elif x.startswith ('MIDI') or x.startswith ('midi'):
             r1 = re.search (r'program *(\d*) +(\d+)', x)
             r2 = re.search (r'channel *(\d+)', x)
-            r3 = re.search (r"drummap\s+([^_=]*)([A-Ga-g])([,']*)\s+(\d+)", x)
+            r3 = re.search (r"drummap\s+([_=^]*)([A-Ga-g])([,']*)\s+(\d+)", x)
             if r1: ch, prg = r1.groups ()       # channel nr or '', program nr
             if r2: ch, prg = r2.group (1), ''   # channel nr only
             if r1 or r2:
@@ -1609,12 +1669,7 @@ class MusicXml:
         elif type == 'K':
             attrmap[type] = value
         elif type == 'T':
-            if s.title: s.title = s.title + '\n' + value
-            else:       s.title = value
-        elif type == 'C':
-            s.creator ['composer'] = s.creator.get ('composer', '') + value
-        elif type == 'Z':
-            s.creator ['lyricist'] = s.creator.get ('lyricist', '') + value
+            s.title = s.title + '\n' + value if s.title else value
         elif type == 'U':
             sym = fld.t[2].strip ('!+')
             s.usrSyms [value] = sym
@@ -1622,20 +1677,30 @@ class MusicXml:
             s.doField_I (type, value, lambda x,y,z:0, lambda x:0)
         elif type == 'Q':
             attrmap[type] = value
-        elif type in s.creditTab: s.credits [s.creditTab [type]] = value
+        elif type in 'CRZNOAGHBDFSP':           # part maps are treated as meta data
+            type = s.metaMap.get (type, type)   # respect the (user defined --meta) mapping of various ABC fields to XML meta data types
+            c = s.metadata.get (type, '')
+            s.metadata [type] = c + '\n' + value if c else value    # concatenate multiple info fields with new line as separator
         else:
             info ('skipped header: %s' % fld)
 
     def mkIdentification (s, score, lev):
         if s.title:
-            addElemT (score, 'movement-title', s.title, lev + 1)
+            xs = s.title.split ('\n')   # the first T: line goes to work-title
+            ys = '\n'.join (xs [1:])    # place subsequent T: lines into work-number
+            w = E.Element ('work')
+            addElem (score, w, lev + 1)
+            if ys: addElemT (w, 'work-number', ys, lev + 2)
+            addElemT (w, 'work-title', xs[0], lev + 2)
         ident = E.Element ('identification')
         addElem (score, ident, lev + 1)
-        if s.creator:
-            for ctype, cname in s.creator.items ():
-                c = E.Element ('creator', type=ctype)
-                c.text = cname
+        for mtype, mval in s.metadata.items ():
+            if mtype in s.metaTypes and mtype != 'rights':    # all metaTypes are MusicXML creator types
+                c = E.Element ('creator', type=mtype)
+                c.text = mval
                 addElem (ident, c, lev + 2)
+        if 'rights' in s.metadata:
+            c = addElemT (ident, 'rights', s.metadata ['rights'], lev + 2)
         encoding = E.Element ('encoding')
         addElem (ident, encoding, lev + 2)
         encoder = E.Element ('encoder')
@@ -1647,6 +1712,7 @@ class MusicXml:
         encodingDate = E.Element ('encoding-date')
         encodingDate.text = str (datetime.date.today ())
         addElem (encoding, encodingDate, lev + 3)
+        s.addMeta (ident, lev + 2)
 
     def mkDefaults (s, score, lev):
         if s.pageFmtCmd: s.pageFmtAbc = s.pageFmtCmd
@@ -1672,22 +1738,32 @@ class MusicXml:
         addElemT (margins, 'top-margin', '%g' % (t * scale), lev + 3)
         addElemT (margins, 'bottom-margin', '%g' % (b * scale), lev + 3)
 
-    def mkCredits (s, score, lev):
-        if not s.credits: return
-        for ctype, ctext in s.credits.items ():
-            credit = E.Element ('credit', page='1')
-            addElemT (credit, 'credit-type', ctype, lev + 2)
-            addElemT (credit, 'credit-words', ctext, lev + 2)
-            addElem (score, credit, lev)
+    def addMeta (s, parent, lev):
+        misc = E.Element ('miscellaneous')
+        mf = 0
+        for mtype, mval in sorted (s.metadata.items ()):
+            if mtype == 'S':
+                addElemT (parent, 'source', mval, lev)
+            elif mtype in s.metaTypes: continue  # mapped meta data has already been output (in creator elements)
+            else:
+                mf = E.Element ('miscellaneous-field', name=s.metaTab [mtype])
+                mf.text = mval
+                addElem (misc, mf, lev + 1)
+        if mf != 0: addElem (parent, misc, lev)
 
-    def parse (s, abc_string, rOpt=False):
+    def parse (s, abc_string, rOpt=False, bOpt=False):
         abctext = abc_string.replace ('[I:staff ','[I:staff')  # avoid false beam breaks
         s.reset ()
         header, voices = splitHeaderVoices (abctext)
         ps = []
         try:
+            lbrk_insert = 0 if re.search (r'I:linebreak\s*([!$]|none)|I:continueall\s*(1|true)', header) else bOpt
             hs = abc_header.parseString (header) if header else ''
             for id, voice in voices:
+                if lbrk_insert:                                 # insert linebreak at EOL
+                    r1 = re.compile (r'\[[wA-Z]:[^]]*\]')       # inline field
+                    has_abc = lambda x: r1.sub ('', x).strip () # empty if line only contains inline fields
+                    voice = '\n'.join ([balk.rstrip ('$!') + '$' if has_abc (balk) else balk for balk in voice.splitlines ()])
                 prevLeftBar = None      # previous voice ended with a left-bar symbol (double repeat)
                 vce = abc_voice.parseString (voice).asList ()
                 lyr_notes = []          # remember notes between lyric blocks
@@ -1711,7 +1787,7 @@ class MusicXml:
                 vcelyr = vce
                 elem1 = vcelyr [0][0]   # the first element of the first measure
                 if  elem1.name == 'inline'and elem1.t[0] == 'V':    # is a voice definition
-                    voicedef = elem1
+                    voicedef = elem1 
                     del vcelyr [0][0]   # do not read voicedef twice
                 else:
                     voicedef = ''
@@ -1731,10 +1807,6 @@ class MusicXml:
                 info ('Syntax error at column %d' % err.col, warn=0)
             raise
 
-        s.unitL = (1, 8)
-        s.title = ''
-        s.creator = {}  # {creator type -> name string}
-        s.credits = {}  # {credit type -> string}
         score = E.Element ('score-partwise')
         attrmap = {'Div': str (s.divisions), 'K':'C treble', 'M':'4/4'}
         for res in hs:
@@ -1768,7 +1840,6 @@ class MusicXml:
 
         s.mkIdentification (score, lev)
         s.mkDefaults (score, lev + 1)
-        s.mkCredits (score, lev)
 
         partlist = s.mkPartlist (vids, partAttr, lev + 1)
         addElem (score, partlist, lev + 1)
@@ -1785,7 +1856,7 @@ def decodeInput (data_string):
     info ('decoded from %s' % enc)
     return unicode_string
 
-xmlVersion = "<?xml version='1.0' encoding='utf-8'?>"
+xmlVersion = "<?xml version='1.0' encoding='utf-8'?>"    
 def fixDoctype (elem):
     if python3: xs = E.tostring (elem, encoding='unicode')  # writing to file will auto-encode to utf-8
     else:       xs = E.tostring (elem, encoding='utf-8')    # keep the string utf-8 encoded for writing to file
@@ -1807,13 +1878,14 @@ def xml2mxl (pad, fnm, data):   # write xml data to compressed .mxl file
     f.close ()
     info ('%s written' % outfile, warn=0)
 
-def convert (pad, fnm, abc_string, mxl, rOpt):
+def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False):
     # these globals should be initialised (as in the __main__ secion) before calling convert
     global mxm                                          # optimisation 1: keep instance of MusicXml
     global abc_header, abc_voice, abc_scoredef          # optimisation 2: keep computed grammars
-    score = mxm.parse (abc_string, rOpt)
+    score = mxm.parse (abc_string, rOpt, bOpt)
     xmldoc = fixDoctype (score)
     ipad, ifnm = os.path.split (fnm)                    # base name of input path is
+    if tOpt: ifnm = mxm.title.split ('\n')[0].replace (',','_').replace ("'",'_').replace ('?','_')
     if pad:
         if not mxl or mxl in ['a', 'add']:
             outfnm = os.path.join (pad, ifnm + '.xml')  # joined with path from -o option
@@ -1826,7 +1898,7 @@ def convert (pad, fnm, abc_string, mxl, rOpt):
         outfile = sys.stdout
         outfile.write (xmldoc)
         outfile.write ('\n')
-
+    
 #----------------
 # Main Program
 #----------------
@@ -1838,12 +1910,15 @@ if __name__ == '__main__':
     global abc_header, abc_voice, abc_scoredef  # keep computed grammars
     mxm = MusicXml ()
 
-    parser = OptionParser (usage='%prog [-h] [-r] [-m SKIP NUM] [-o DIR] [-p PFMT] [-z MODE] <file1> [<file2> ...]', version='version %d' % VERSION)
+    parser = OptionParser (usage='%prog [-h] [-r] [-t] [-b] [-m SKIP NUM] [-o DIR] [-p PFMT] [-z MODE] [--meta MAP] <file1> [<file2> ...]', version='version %d' % VERSION)
     parser.add_option ("-o", action="store", help="store xml files in DIR", default='', metavar='DIR')
     parser.add_option ("-m", action="store", help="skip SKIP (0) tunes, then read at most NUM (1) tunes", nargs=2, type='int', default=(0,1), metavar='SKIP NUM')
     parser.add_option ("-p", action="store", help="pageformat PFMT (mm) = scale (0.75), pageheight (297), pagewidth (210), leftmargin (18), rightmargin (18), topmargin (10), botmargin (10)", default='', metavar='PFMT')
     parser.add_option ("-z", "--mxl", dest="mxl", help="store as compressed mxl, MODE = a(dd) or r(eplace)", default='', metavar='MODE')
     parser.add_option ("-r", action="store_true", help="show whole measure rests in merged staffs", default=False)
+    parser.add_option ("-t", action="store_true", help="use tune title as file name", default=False)
+    parser.add_option ("-b", action="store_true", help="line break at EOL", default=False)
+    parser.add_option ("--meta", action="store", help="map infofields to XML metadata, MAP = R:poet,Z:lyricist,N:...", default='', metavar='MAP')
     options, args = parser.parse_args ()
     if len (args) == 0: parser.error ('no input file given')
     pad = options.o
@@ -1854,9 +1929,16 @@ if __name__ == '__main__':
         if not os.path.isdir (pad): parser.error ('%s is not a directory' % pad)
     if options.p:   # set page formatting values
         try:        # space, page-height, -width, margin-left, -right, -top, -bottom
-            mxm.pageFmtCmd = list(map (float, options.p.split (',')))
+            mxm.pageFmtCmd = map (float, options.p.split (','))
             if len (mxm.pageFmtCmd) != 7: raise ValueError ('-p needs 7 values')
         except Exception as err: parser.error (err)
+    for x in options.meta.split (','):
+        if not x: continue
+        try: field, tag = x.split (':')
+        except: parser.error ('--meta: %s cannot be split on colon' % x)
+        if field not in 'OAZNGHRBDFSPW': parser.error ('--meta: field %s is no valid ABC field' % field)
+        if tag not in mxm.metaTypes: parser.error ('--meta: tag %s is no valid XML creator type' % tag)
+        mxm.metaMap [field] = tag
 
     abc_header, abc_voice, abc_scoredef = abc_grammar ()    # compute grammar only once per file set
     fnmext_list = []
@@ -1888,7 +1970,7 @@ if __name__ == '__main__':
             tune = preamble + 'X:' + tune       # restore preamble before each tune
             fnmNum = '%s%02d' % (fnm, itune + 1) if numtunes > 1 else fnm
             try:                                # convert string abctext -> file pad/fnmNum.xml
-                convert (pad, fnmNum, tune, options.mxl, options.r)
+                convert (pad, fnmNum, tune, options.mxl, options.r, options.t, options.b)
             except ParseException: pass         # output already printed
             except Exception as err: info ('an exception occurred.\n%s' % err)
     info ('done in %.2f secs' % (time.time () - t_start))
