@@ -1,10 +1,10 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.8 2017-12-04'
+program_name = 'EasyABC 1.3.7.8 2018-01-04'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015-2016 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
+# Copyright (C) 2015-2018 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,322 +19,6 @@ program_name = 'EasyABC 1.3.7.8 2017-12-04'
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# V1.3.7.2
-# - Note selection bug on OSX fixed
-# - 'Add bar' type assist now has option automatic
-#
-# V1.3.7.1
-# - Dutch translation
-# - ABC assist improvements
-#
-# V1.3.7.0
-# Incremental improvements and bug fixes.
-#
-# New V1.3.6.4
-# - Recent files menu
-# - Font from .svg file now rendered properly
-# - Some fixes to accommodate 1.3.6.3 issues on the Mac.
-# - On Windows the 'Input Processed Tune' window was not updated correctly (since 1.3.6.3)
-# - Added an option to play a short introduction (count in) before the music is played.
-# - Added volume controls for the guitar bass/chord accompaniment
-# - Added to internals show output midi file (an advanced feature for debugging)
-#
-# New V1.3.6.3
-# When the cursor moves outside the current page, the correct page is automatically chosen
-# Unique filenames for midi and svg to prevent problems when multiple editor windows are used
-# Preprocessing abc file and generating midi/svg split up
-# Volume-settings still work even when the abc code contains %%MIDI program
-# Music score can be zoomed in further
-# MIDI file starts a little faster after pressing play on Windows OS
-# Play button acts as pause button when tune is playing
-# Fixed "Processed Abc Tune": no longer editable and uses fixed font now. Also resizing fixed.
-# More text translatable
-# Easier switching between different versions of executables by using dropdown button in File Settings tab
-# Removed buttons 'Change abcm2ps path' and 'Restore abcm2ps path' because the default can be chosen in de File Settings tab
-# Sometimes opening the messages window showed the 'processed tune' window
-# Added beats/minute controlled to the toolbar
-# Changed Internals->Messages to fixed font so Abcm2ps-messages with a ^ make sense
-#
-#
-# New V1.3.6.2
-# EasyAbc now supports the abcm2ps voicecolor command which has been
-# introduced in version 8.5 and higher. There have been other changes
-# which improve the performance of the svg rendering functions.
-#
-#
-# New V1.3.6.1
-# Added settings/cold restart
-# Eliminated path_ps2pdf settings option
-# Checked the values of some of the page settings (for abcm2ps)
-# Rearranged settings in Abc Settings NoteBook
-
-# New in V1.3.6
-# Reworking the internals/Messages.
-# To make the abc file settings more transparent, they now show the
-# default settings if the executables are found. However
-# if you make them blank, the next time easyabc starts, it will
-# set them to the defaults provided the executabls exist.
-# The voice/channel settings is now a separate page in the
-# abc settings tabbed book.
-# Eliminated hash code from cached abc,svg,midi temp files.
-# Added tools/search which searches recursively all abc files
-# in a folder for a tune containing a specific word in the title.
-# A list of all tunes found is shown in a listbox and clicking
-# anyone of those tunes will automatically load the file.
-# Added option to set the gchord pattern in the Abc Settings
-# Changed the call sequence to AbcToSvg so that it is more compact.
-# Added abcm2ps page in abc settings. The page provides an
-# option to include bar line numbering in the music output.
-# Added a status bar which is used to report any problems that
-# are detected when processing a tune.
-# The popup Error Messages have been suppressed. The user needs
-# to go to the Internals/messages menu item to view the problems.
-# A progress bar appears for operations that take a long time
-# -- for example exporting a large collection of tunes to midi
-# files. The user has the option of cancelling in the middle.
-# Upgraded the xml modules (abc2xml.py-??, xml2abc.py-?? and
-# xml2abc_interface) to the latest versions developed by Wim Vree.
-# Added to the Internals menu, Show settings status function.
-# Added Settings/Cold restart/ an option to put EasyAbc in
-# the state as if it is running for the first time. The settings.1.3.dat
-# file will be recreated with the initial settings.
-
-#
-# New in V1.3.5_p09 patch.
-# On startup the program checks that the abc settings are consistent.
-# The path to ghostscript and /or ps2pdf can be specified by the
-# user. If the path to ps2pdf is specified, that program will be
-# used to create the pdf file from the PostScript file.
-# The abc settings dialog box has been replaced with a tabbed
-# notebook leaving more space for more user options to be introduced
-# in future versions of this program.
-# Upgraded to abc2xml_v61 and xml2abc_v52.
-# If midiplayer is defined in abc settings, that player will be used.
-# Added 'internals' to the top menu for viewing some of the
-# internals of the program. Internals/messages displays the warnings
-# and error messages returned by abc2midi and other applications.
-# Internals/input processed tune displays the abc file actually
-# given to abc2midi or other applications so that line numbers
-# can be matched with the warnings.
-#
-#
-# New in V1.3.5_p08 patch.
-# The music panel representation now responds to moving the cursor using
-# arrow keys in the edit panel.
-# Fixed a problem in playing a tune (converting to MIDI) when the
-# tune has non ascii characters. (reported by Chuck Boody)
-# The F7 key will stop playing MIDI music.
-# Included a new application abccore.py which runs separately
-# from easy_abc.py. It was created by Seymour Shlien and is in
-# still in development.
-#
-# New in V1.3.5_p07 patch
-# Add option to be able to set different instrument for each midi voice (request from Chuck Boody)
-# Add option to be able to set volume and balance for each midi voice (request from Chuck Boody)
-# Add option to have default instrument for all voices (previous behaviour)
-# Remove experimental mention concerning abc2xml (request from Chuck Boody)
-# Fix the fact that on MacOS X guitar chord are always played if the are define in another voice than voice 1 (reported by Chuck Boody)
-# Try to reduce glitch while looping playback if double-click on play button
-#
-# New in V1.3.5_p06 patch
-# upgrade to version 54 of abc2xml
-# upgrade to version 2014-02-05 of abcMIDI (abc2abc and abc2midi)
-# upgrade to version 7.7.1 of abcm2ps
-# fixed alarm regarding musicxml file when imported in Finale (reported by Chuck Boody) need to verify with other software
-# fixed bug: Easy_abc manages svg files created with version 7.6.5 and later for width/height (reported by Frederic Aupepin)
-# increase size of line for staff lines, bar lines, and note stems (patch from Seymour)
-#
-# New in V1.3.5_p05 patch
-# upgrade to version 2013-03-26 of abcMIDI (abc2abc and abc2midi)
-# upgrade to version 7.5.2 of abcm2ps
-# upgrade to version 50 of xml2abc
-#
-# New in V1.3.5_p04 patch
-# fixed bug: note selection from tune with abcm2ps version 7.2.0 and later (reported by Chuck Boody)
-#
-# New in V1.3.5_p03 patch
-# add an export all to individual pdf files (request from Chuck Boody)
-#
-# New in V1.3.5_p02 patch
-# add an export all for midi (request from Chuck Boody)
-# fixed bug: syntax highlighting ']' in comments (reported by Frederic Aupepin)
-#
-# New in V1.3.5_p01 patch
-# fixed bug: syntax highlighting with lyrics (reported by Chuck Boody)
-#
-# All other changes from V1.3 to V1.3.5 are described in changes.txt
-# which comes with the source code.
-
-
-# Table of Contents
-# ---------------------------------
-
-#Global:
-#   str2fractions(), calc_tune_id(), read_text_if_file_exists(),
-#   get_ghostscript_path(), upload_tune(), get_default_path_for_executable(),
-#   launch_file(), remove_non_note_fragments(), get_notes_from_abc(),
-#   copy_bar_symbols_from_first_voice(), process_MCM(), get_hash_code(),
-#   change_abc_tempo(), add_table_of_contents_to_postscript_file(),
-#   sort_abc_tunes(), process_abc_code(), AbcToPS, GetSvgFileList(),
-#   AbcToSvg(), AbcToAbc(), MidiToMftext(),
-#   AbcToPDF(), test_for_guitar_chords(), list_voices_in(),
-#   grab_time_signature(), drum_intro(), need_left_repeat(),
-#   make_abc_introduction(), AbcToMidi(), process_abc_for_midi(),
-#   add_abc2midi_options(), str2bool(), fix_boxmarks(),
-#   change_texts_into_chords(), NWCToXml(), frac_mod()
-
-#class AbcTune()
-#    abc_code()
-
-#class MidiTune()
-#    cleanup()
-
-#class SvgTune()
-#    render_page(),clear_pages(),cleanup(),page_count()
-
-#class MusicPrintout()
-#   HasPage(), GetPageInfo(), OnPrintPage()
-
-#class MusicUpdateDoneEvent()
-
-#class MusicUpdateThread()
-#   run(), ConvertAbcToSvg(), abort()
-
-#  frac_mod(), start_process()
-
-#class MidiThread()
-#   run(), play_midi, clear_queue, queue_task
-#   abort, is_busy()
-
-#class RecordThread()
-#   timedelta_microseconds(), beat_duration(), run(), quantize_swinged_16th(),
-#   quantize_triplet(), quantize(), abort()
-
-#class IncipitsFrame()
-#  GrayUngray(), OnTwoColumns(), save_settings(), OnOk(), OnCancel()
-
-#class MyNoteBook()
-
-#class AbcFileSettingsFrame()
-#   OnBrowse(), OnChangePath(), change_path_for_control(), On_Chk_IncludeHeader()
-#   OnPath_midiplayer(), OnRestoreSettings()
-#   append_exe(), keep_existing_paths(), get_default_path()
-
-#class MyChordPlayPage()
-#   OnPlayChords(), OnNodynamics(), OnNofermatas(), OnNograce(), OnBarfly()
-#   OnMidiIntro(), OnMidi_Program(), On_midi_chord_program(),
-#   On_midi_bass_program, SetGchordChoices(), OnGchordSelection(),
-#   OnBeatsPerMinute(), OnTranspose(), OnTuning(), OnChordVol(), OnBassVol()
-
-#class MyVoicePage()
-#  OnProgramSelection(), OnSliderScroll(), OnResetDefault()
-
-#class MyAbcm2psPage()
-#  OnAbcm2psClean(), OnAbcm2psDefaults(), OnAbcm2psBar()
-#  OnAbcm2pslyrics(), OnAbcm2psref(), OnAbcm2psend()
-#  OnPSScale(), OnPSleftmarg(), OnPSrightmarg(),
-#  OnPStopmarg(), OnPSbotmarg(), OnPSpagewidth(),
-#  OnPSpageheight(), OnFormat(), On_extra_params(),
-#  OnBrowse_format()
-
-#class MyXmlPage()
-#   OnXmlPage(), OnXmlCompressed(), OnXmlUnfold(), OnXmlMidi()
-#   OnVolta(), OnMaxbars(), OnMaxchrs(), OnCreditval(), OnUnitval()
-
-#class MidiSettingsFrame()
-#   OnOk(), OnCancel()
-
-#class MidiOptionsFrame()
-#   OnOk(), OnCancel()
-
-#class ErrorFrame()
-#   OnKeyDownEvent(), OnOk(), OnCancel()
-
-#class ProgressFrame()
-#   SetPercent()
-
-#class FlexibleListCtrl()
-#   GetListCtrl(), GetSortImages(), getColumnText(), GetSecondarySortValues()
-
-#class MySearchFrame()
-#   On_browse_abcsearch(), On_start_search(), find_abc_files(),
-#   find_abc_string(),OnItemSelected()
-
-#class MyHtmlFrame()
-
-#class MyOpenPopupMenu()
-
-#class MainFrame()
-#   OnPageSetup(),OnPrint(),OnPrintPreview(),GetAbcToPlay(),
-#   parse_desc(), get_num_extra_header_lines(),OnNoteSelectionChangeDesc(),
-#   transpose_selected_note(), OnResetView(), OnSettingsChanged(),
-#   OnToggleMusicPaneMaximize(), OnMouseWheel(), update_playback_rate()
-#   OnBpmSlider(), OnBpmSliderClick(), start_midi_out(),
-#   do_load_media_file(), OnMediaLoaded(),
-#   OnMediaStop(), OnMediaFinished(), OnToolRecord(),
-#   OnToolStop(), OnSeek(), OnZoomSlider(), OnPlayTimer(),
-#   OnRecordBpmSelected(), OnRecordMetreSelected(), flip_toolbar(),
-#   setup_toolbar(), OnRecordStop(), OnDoReMiModeChange(),
-#   generate_incipits_abc(), OnGenerateIncipits(), OnViewIncipits()
-#   OnSortTunes(), OnRenumberTunes(), OnSearchDirectories(),
-#   OnUploadTune(), OnGetFileNameForTune(), OnExportMidi(),
-#   OnExportAllMidi(), OnExportAllPDFFiles(), OnExportPDF()
-#   OnExportSVG(), OnExportMusicXML(), OnExportAllMusicXML(),
-#   OnExportHTML(), OnExportAllHTML(), createArchive(),
-#   OnExportAllEpub(), OnExportAllPDF(),
-#   OnMusicPaneDoubleClick(), OnMusicPaneKeyDown(), OnRightClickList(),
-#   OnInsertSymbol(), OnToolPlay(), OnToolPlayLoop(),
-#   OnToolRefresh(), OnToolAbcAssist(), UpdateAbcAssistSetting(),
-#   __onPaneClose(), OnToolAddTune(), OnToolDynamics(),
-#   OnToolOrnamentation(), OnToolDirections(), CanClose(),
-#   OnNew(), OnOpen(), OnImport(), get_encoding(),
-#   load_or_import(), load(), ask_save(), save(),
-#   save_as(), AbcToAbcCurrentTune(), OnHaveL(), OnDoubleL(),
-#   OnTranspose(), OnAlignBars(), create_symbols_popup_menu(),
-#   create_menu_bar(), create_menu(), append_menu_item()
-#   create_upload_context_menu(), setup_typing_assistance_menu(),
-#   setup_menus(), OnShowMessages(), ShowMessages(), OnShowAbcTune(),
-#   OnCloseFile(), OnSave(), OnSaveAs(), OnQuit(),
-#   do_command(), OnUndo(), OnRedo(), OnCut(), OnCopy(),
-#   OnPaste(), OnDelete(), OnSelectAll(), OnFind(),
-#   OnReplace, OnFindClose(), get_scintilla_find_flags(),
-#   OnFindReplace(), OnFindReplaceAll(), OnFindNextABC(),
-#   OnFindNext(), OnAbout(), OnEasyABCHelp(), OnABCStandard(),
-#   OnABCLearn(), OnAbcm2psHelp(), OnClearCache(), OnMidiSettings(),
-#   OnAbcSettings(), OnChangeFont(), OnViewFieldReference(),
-#   OnFieldReferenceItemDClick(), OnUseDefaultFont(),
-#   ScrollMusicPaneToMatchEditor(), OnMovedToDifferentLine(),
-#   AutoInsertXNum(), DoReMiToNote(), OnCharEvent(),
-#   FixNoteDurations(), AddTextWithUndo(), OnKeyDownEvent(),
-#   StartKeyboardInputMode(), OnEditorMouseRelease(),
-#   OnPosChanged(), OnModified(), AutomaticUpdate(),
-#   OnChangeText(), GrayUnGray(), OnUpdate(), OnClose(),
-#   DetermineMidiPlayRange(), PlayMidi(), GetTextPositionOfTune()
-#   OnTuneListClick(), SetErrorMessage(), OnPageSelected(),
-#   UpdateMusicPane(), OnMusicUpdateDone(), GetTextRangeOfTune()
-#   GetFileHeaderBlock(), GetSelectedTune(), GetTune(),
-#   OnTuneDoubleClicked(), OnTuneSelected(), UpdateTuneList()
-#   UpdateTuneListVisibility(), OnTimer(), GetTunes(),
-#   GetTuneAbc(), InitEditor(), OnDropFile(), update_statusbar_and_messages()
-#   handle_midi_conversion(), OnReducedMargins(), load_settings(),
-#   save_settings(), restore_settings()
-
-#class MyFileDropTarget()
-
-#class AboutFrame()
-
-#class MyInfoFrame()
-#   ShowText(), update_text()
-
-#class MyAbcFrame()
-#   ShowText(), update_text()
-
-#class MyMidiTextTree
-#   LoadMidiData
-
-#class MyApp()
-#   CheckCanDrawSharpFlat(), NewMainFrame(), UnRegisterFrame(),
-#   GetAllFrames(), MacOpenFile(), OnInit(),
 
 
 # # for finding memory leaks uncomment following two lines
@@ -384,18 +68,15 @@ import re
 import subprocess
 import hashlib
 
-try:
+if PY3:
     from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
     from urllib.request import urlopen, Request, urlretrieve
     from urllib.error import HTTPError, URLError
-except ImportError:
+    import pickle as pickle # py3
+else:
     from urlparse import urlparse, urlunparse, parse_qsl # py2
     from urllib import urlencode, urlretrieve, quote
     from urllib2 import urlopen, Request, HTTPError, URLError
-
-try:
-    import pickle as pickle # py3
-except ImportError:
     import cPickle as pickle # py2
 
 import threading
@@ -423,7 +104,7 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 # from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED # 1.3.7.3 [JWdJ] 2016-04-09
 from wx import GetTranslation as _
 from wxhelper import *
-##from xml2abc_nils import xml_to_abc
+from midiplayer import *
 from xml2abc_interface import xml_to_abc, abc_to_xml
 from midi2abc import midi_to_abc, Note, duration2abc
 # from midi_meta_data import midi_to_meta_data # 1.3.6.3 [JWdJ] 2015-04-22
@@ -3925,7 +3606,6 @@ class MainFrame(wx.Frame):
         self.played_notes_timeline = None
         self.current_time_slice = None
         self.future_time_slice = None
-        self.is_really_playing = False
         self.keyboard_input_mode = False
         self.last_refresh_time = datetime.now()
         self.last_line_number_selected = -1
@@ -3951,25 +3631,28 @@ class MainFrame(wx.Frame):
 
         self.setup_menus()
         self.setup_toolbar()
-
-        try:
-            if wx.Platform == "__WXMAC__":
-                self.mc = wx.media.MediaCtrl(self, szBackend=wx.media.MEDIABACKEND_QUICKTIME)
-            elif wx.Platform == "__WXMSW__":
-                if platform.release() == 'XP':
-                    self.mc = wx.media.MediaCtrl(self, szBackend=wx.media.MEDIABACKEND_DIRECTSHOW)
-                else:
-                    self.mc = wx.media.MediaCtrl(self, szBackend=wx.media.MEDIABACKEND_WMP10)
-            else:
-                self.mc = wx.media.MediaCtrl(self)
-            self.mc.Hide()
-            self.Bind(wx.media.EVT_MEDIA_LOADED, self.OnMediaLoaded)
-            # Bind other event to be sure to act on the first one that occurs (evenif they should be almost at the same time)
-            self.Bind(wx.media.EVT_MEDIA_FINISHED, self.OnMediaFinished)
-            self.Bind(wx.media.EVT_MEDIA_STOP, self.OnMediaStop)
-        except NotImplementedError:
-            self.mc = None  # if media player not supported on this platform
-
+        self.mc = None
+        if wx.Platform != "__WXMAC__":
+            try:
+                self.mc = FluidSynthPlayer(self, backend)
+            except:
+                self.mc = None
+        if self.mc is None:
+            try:
+                backend = None
+                if wx.Platform == "__WXMAC__":
+                    backend = wx.media.MEDIABACKEND_QUICKTIME
+                elif wx.Platform == "__WXMSW__":
+                    if platform.release() == 'XP':
+                        backend = wx.media.MEDIABACKEND_DIRECTSHOW
+                    else:
+                        backend = wx.media.MEDIABACKEND_WMP10
+                self.mc = WxMediaPlayer(self, backend)
+            except NotImplementedError:
+              self.mc = DummyMidiPlayer()  # if media player not supported on this platform
+            
+        self.mc.OnAfterLoad = self.OnMediaLoaded
+        self.mc.OnAfterStop = self.OnAfterStop
         # self.media_file_loaded = False
         self.play_music_thread = None
 
@@ -4427,57 +4110,22 @@ class MainFrame(wx.Frame):
         else:
             evt.Skip()
 
-    # 1.3.6.3 [JWdJ] 2015-04-21 added helper functions for playing MIDI
-    def normalize_volume(self):
-        if wx.Platform != "__WXMAC__":
-            try: self.mc.Volume = 0.9
-            except: pass
-
     def play(self):
         if self.settings['follow_score'] and self.current_page_index != 0:
             self.current_page_index = 0
             self.UpdateMusicPane()
-
-        def delayedplay():
-            self.normalize_volume()
-            if wx.Platform == "__WXMAC__":
-                time.sleep(0.4) # to fix first notes being skipped
-            self.mc.Play()
-            self.is_really_playing = True
-        wx.CallAfter(delayedplay)            
-
-    def play_again(self):
-        if self.is_playing():
-            self.mc.Seek(0)
-        else:
-            self.mc.Seek(0)
-            self.mc.Play()
-            self.set_playback_rate(self.last_playback_rate)
-            #self.update_playback_rate()
-            self.is_really_playing = True
+        wx.CallAfter(self.mc.Play)
 
     def stop_playing(self):
-        self.is_really_playing = False
-        if self.mc:
-            self.mc.Stop()
-            self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
-            self.play_button.SetBitmap(self.play_bitmap)
-            self.play_button.Refresh()
-            self.media_slider.SetValue(0)
-
-    def is_playing(self):
-        return self.mc and self.mc.GetState() == wx.media.MEDIASTATE_PLAYING
-
-    def is_paused(self):
-        return self.mc and self.mc.GetState() == wx.media.MEDIASTATE_PAUSED
-
-    def set_playback_rate(self, playback_rate):
-        if self.mc and (self.is_playing() or wx.Platform != "__WXMAC__"): # after setting playbackrate on Windows the self.mc.GetState() becomes MEDIASTATE_STOPPED
-            self.mc.PlaybackRate = playback_rate
+        self.mc.Stop()
+        self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
+        self.play_button.SetBitmap(self.play_bitmap)
+        self.play_button.Refresh()
+        self.media_slider.SetValue(0)
 
     def update_playback_rate(self):
         tempo_multiplier = self.get_tempo_multiplier() / self.applied_tempo_multiplier
-        self.set_playback_rate(tempo_multiplier)
+        self.mc.PlaybackRate = tempo_multiplier
 
     def OnBpmSlider(self, evt):
         self.update_playback_rate()
@@ -4542,7 +4190,7 @@ class MainFrame(wx.Frame):
             wx.MessageBox(_("Unable to load %s: Unsupported format?") % path,
                           _("Error"), wx.ICON_ERROR | wx.OK)
 
-    def OnMediaLoaded(self, evt):
+    def OnMediaLoaded(self):
         def play():
             # if wx.Platform == "__WXMAC__":
             #    time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
@@ -4556,28 +4204,15 @@ class MainFrame(wx.Frame):
                 self.mc.Seek(0)  # When using wx.media.MEDIABACKEND_QUICKTIME the music starts playing too early (when loading a file)
                 time.sleep(0.5)  # hopefully this fixes the first notes not being played
             self.play()
-
+        print('blabla')
         wx.CallAfter(play)
 
-    def OnMediaStop(self, evt):
-        # if media is finished but playback as a loop was used relaunch the playback immediatly
-        # and prevent media of being stop (event is vetoed as explained in MediaCtrl documentation)
-        if self.loop_midi_playback:
-            self.last_playback_rate = self.mc.PlaybackRate
-            evt.Veto()  # does not work on Windows, music stops always
-            wx.CallAfter(self.play_again)
-
-    def OnMediaFinished(self, evt):
-        # if media is finished but playback as a loop was used relaunch the playback immediatly
-        # (OnMediaStop should already have restarted it if required as event STOP arrive before FINISHED)
-        self.is_really_playing = False
-        if self.loop_midi_playback:
-            self.play_again()
-        else:
+    def OnAfterStop(self):
+        print('OnAfterStop')
         # 1.3.6.3 [SS] 2015-05-04
-            self.flip_tempobox(False)
-            self.stop_playing()
-            self.reset_BpmSlider()
+        self.flip_tempobox(False)
+        self.stop_playing()
+        self.reset_BpmSlider()
 
     def OnToolRecord(self, evt):
         if self.record_thread and self.record_thread.is_running:
@@ -4624,7 +4259,7 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def OnPlayTimer(self, evt):
-        if not self.is_closed and self.media_slider.Parent.Shown and self.is_really_playing:
+        if not self.is_closed and self.media_slider.Parent.Shown and self.mc.is_playing:
             offset = self.mc.Tell()
             if self.settings.get('follow_score', False):
                 self.queue_number_follow_score += 1
@@ -5164,10 +4799,16 @@ class MainFrame(wx.Frame):
         return False
 
     def export_pdf_tunes(self, only_selected=False, single_file=False):
-        if not os.path.exists(self.settings.get('gs_path')):
+        gs_path = self.settings.get('gs_path')
+        if not gs_path:
+            dlg = wx.MessageDialog(self, _('EasyABC needs an external program called GhostScript to generate PDFs. You can get it from https://www.ghostscript.com/download/'), _('Warning'), wx.OK)
+            dlg.ShowModal()
+            return
+        if not os.path.exists(gs_path):
             dlg = wx.MessageDialog(self, _('ghostscript was not found here. Go to settings and indicate the path'), _('Warning'), wx.OK)
             dlg.ShowModal()
             return
+
         self.export_tunes(_('PDF file'), '.pdf', self.export_pdf, only_selected=only_selected, single_file=single_file)
 
     def OnExportSVG(self, evt):
@@ -5525,10 +5166,10 @@ class MainFrame(wx.Frame):
             self.play_button.Disable()
 
     def OnToolPlay(self, evt):
-        if self.is_playing():
+        if self.mc.is_playing:
             self.mc.Pause()
             self.play_button.SetBitmap(self.play_bitmap)
-        elif self.is_paused():
+        elif self.mc.is_paused:
             self.mc.Play()
             self.play_button.SetBitmap(self.pause_bitmap)
         else:
@@ -5557,7 +5198,7 @@ class MainFrame(wx.Frame):
             wx.MessageBox(_('Looping is not possible when using an external midi player. Empty the midiplayer path in Settings -> ABC Settings -> File Settings to regain the looping ability when you double click the play button'), _('Looping unavailable'), wx.OK | wx.ICON_INFORMATION)
         else:
             self.loop_midi_playback = True
-        if not self.is_playing():
+        if not self.mc.is_playing:
             self.OnToolPlay(evt)
 
     def OnToolRefresh(self, evt):
@@ -7909,7 +7550,7 @@ class MainFrame(wx.Frame):
             options.u = 1
         if self.settings['xmlmidi']:
             options.m = 1
-        if self.settings['xml_v'] != 0 :
+        if self.settings['xml_v'] != 0:
             options.v = int(self.settings['xml_v'])
         if self.settings['xml_n'] != 0:
             options.n = int(self.settings['xml_n'])

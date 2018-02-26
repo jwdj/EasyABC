@@ -45,10 +45,15 @@ set PYTHONPATH=C:\Python35\Lib
 
 Python has a package installer called pip. It is located in the Scripts-folder (C:\Python35\Scripts)
 
-python -m pip install --upgrade pip
-pip install pywin32
 pip install pyparsing
-pip install --upgrade --trusted-host wxpython.org --pre -f http://wxpython.org/Phoenix/snapshot-builds/ wxPython_Phoenix
+pip install pygame
+pip install pywin32
+from an elevated command prompt (run as administrator):
+    python.exe Scripts\pywin32_postinstall.py -install 
+
+Download .whl file from https://pypi.python.org/pypi/wxPython/
+pip install "D:\Downloads\wxPython-4.0.1-cp36-cp36m-win32.whl"
+
 
 Now EasyABC can be started using:
 python easy_abc.py

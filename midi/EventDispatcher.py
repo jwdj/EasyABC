@@ -4,11 +4,11 @@
 from struct import unpack
 
 # custom
-from DataTypeConverters import readBew, readVar, varLen, toBytes
+from .DataTypeConverters import readBew, readVar, varLen, toBytes
 
 # uhh I don't really like this, but there are so many constants to 
 # import otherwise
-from constants import *
+from .constants import *
 
 
 class EventDispatcher:
@@ -132,7 +132,7 @@ class EventDispatcher:
 
         else:
 
-            raise ValueError, 'Illegal channel message!'
+            raise ValueError('Illegal channel message!')
 
 
 
