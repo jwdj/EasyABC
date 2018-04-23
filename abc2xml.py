@@ -22,15 +22,17 @@ try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import types, sys, os, re, datetime
 
-VERSION = 80
+VERSION = 84
 
 python3 = sys.version_info[0] > 2
 lmap = lambda f, xs: list (map (f, xs))   # eager map for python 3
 if python3:
+    int_type = int
     list_type = list
     str_type = str
     uni_type = str
 else:
+    int_type = types.IntType
     list_type = types.ListType
     str_type = types.StringTypes
     uni_type = types.UnicodeType
@@ -130,7 +132,8 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     rest = Optional (accidental) + rest_sym + note_length
     pitch = Optional (accidental) + basenote + Optional (octave, 0)
     note = pitch + note_length + Optional (tie) + Optional (slur_ends)
-    chord_note = note | decorations | rest | b1
+    dec_note = Optional (decorations) + pitch + note_length + Optional (tie) + Optional (slur_ends)
+    chord_note = dec_note | rest | b1
     grace_notes = Forward ()
     chord = Suppress ('[') + OneOrMore (chord_note | grace_notes) + Suppress (']') + note_length + Optional (tie) + Optional (slur_ends)
     stem = note | chord | rest
@@ -226,6 +229,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     pizzicato.setParseAction (lambda t: ['!plus!']) # translate !+!
     slur_ends.setParseAction (lambda t: pObj ('slurs', t))
     chord.setParseAction (lambda t: pObj ('chord', t, 1))
+    dec_note.setParseAction (noteActn)
     tie.setParseAction (lambda t: pObj ('tie', t))
     pitch.setParseAction (lambda t: pObj ('pitch', t))
     bare_volta.setParseAction (lambda t: ['|']) # return barline that user forgot
@@ -351,6 +355,18 @@ def convertBroken (t):  # convert broken rhythms to normal note durations
             remove.insert (0, i)    # and its index, highest index first
     for i in remove: del t[i]       # delete broken symbols from high to low
 
+def ptc2midi (n):       # convert parsed pitch attribute to a midi number
+    pt = getattr (n, 'pitch', '')
+    if pt:
+        p = pt.t
+        if len (p) == 3: acc, step, oct = p
+        else:       acc = ''; step, oct = p
+        nUp = step.upper ()
+        oct = (4 if nUp == step else 5) + int (oct)
+        midi = oct * 12 + [0,2,4,5,7,9,11]['CDEFGAB'.index (nUp)] + {'^':1,'_':-1}.get (acc, 0) + 12
+    else: midi = 130    # all non pitch objects first
+    return midi
+
 def convertChord (t):   # convert chord to sequence of notes in musicXml-style
     ins = []
     for i, x in enumerate (t):
@@ -363,8 +379,9 @@ def convertChord (t):   # convert chord to sequence of notes in musicXml-style
             tie = getattr (x, 'tie', None)      # chord tie
             slurs = getattr (x, 'slurs', [])    # slur endings
             if type (x.note) != list_type: x.note = [x.note]    # when chord has only one note ...
-            elms = []; j = 0
-            for nt in x.objs:   # all chord elements in source order (note | decorations | rest | grace note)
+            elms = []; j = 0                    # sort chord notes, highest first
+            nss = sorted (x.objs, key = ptc2midi, reverse=1) if mxm.orderChords else x.objs
+            for nt in nss:   # all chord elements (note | decorations | rest | grace note)
                 if nt.name == 'note':
                     num2, den2 = nt.dur.t           # note duration * chord duration
                     nt.dur.t = simplify (num1 * num2, den1 * den2)
@@ -717,7 +734,7 @@ def stepTrans (step, soct, clef):   # [A-G] (1...8)
 def reduceMids (parts, vidsnew, midiInst):       # remove redundant instruments from a part
     for pid, part in zip (vidsnew, parts):
         mids, repls, has_perc = {}, {}, 0
-        for ipid, ivid, ch, prg in list (midiInst.values ()):
+        for ipid, ivid, ch, prg, vol, pan in sorted (list (midiInst.values ())):
             if ipid != pid: continue                # only instruments from part pid
             if ch == '10': has_perc = 1; continue   # only consider non percussion instruments
             instId, inst = 'I%s-%s' % (ipid, ivid), (ch, prg)
@@ -731,6 +748,41 @@ def reduceMids (parts, vidsnew, midiInst):       # remove redundant instruments 
             for e in part.findall ('measure/note/instrument'):
                 id = e.get ('id')                   # replace all redundant instrument Id's
                 if id in repls: e.set ('id', repls [id])
+
+class stringAlloc:
+    def __init__ (s):
+        s.snaarVrij = []    # [[(t1, t2) ...] for each string ]
+        s.snaarIx = []      # index in snaarVrij for each string
+        s.curstaff = -1     # staff being allocated
+    def beginZoek (s):      # reset snaarIx at start of each voice
+        s.snaarIx = []
+        for i in range (len (s.snaarVrij)): s.snaarIx.append (0)
+    def setlines (s, stflines, stfnum):
+        if stfnum != s.curstaff:    # initialize for new staff
+            s.curstaff = stfnum
+            s.snaarVrij = []
+            for i in range (stflines): s.snaarVrij.append ([])
+            s.beginZoek ()
+    def isVrij (s, snaar, t1, t2):  # see if string snaar is free between t1 and t2
+        xs = s.snaarVrij [snaar]
+        for i in range (s.snaarIx [snaar], len (xs)):
+            tb, te = xs [i]
+            if t1 >= te: continue   # te_prev < t1 <= te
+            if t1 >= tb: s.snaarIx [snaar] = i; return 0    # tb <= t1 < te
+            if t2 > tb: s.snaarIx [snaar] = i; return 0     # t1 < tb < t2
+            s.snaarIx [snaar] = i;  # remember position for next call
+            xs.insert (i, (t1,t2))  # te_prev < t1 < t2 < tb
+            return 1
+        xs.append ((t1,t2))
+        s.snaarIx [snaar] = len (xs) - 1
+        return 1
+    def bezet (s, snaar, t1, t2):   # force allocation of note (t1,t2) on string snaar
+        xs = s.snaarVrij [snaar]
+        for i, (tb, te) in enumerate (xs):
+            if t1 >= te: continue   # te_prev < t1 <= te
+            xs.insert (i, (t1, t2))
+            return
+        xs.append ((t1,t2))
 
 class MusicXml:
     typeMap = {1:'long', 2:'breve', 4:'whole', 8:'half', 16:'quarter', 32:'eighth', 64:'16th', 128:'32nd', 256:'64th'}
@@ -763,12 +815,12 @@ class MusicXml:
                 'B':'book', 'D':'discography', 'F':'fileurl', 'S':'source', 'P':'partmap', 'W':'lyrics'}
     metaMap = {'C':'composer'}  # mapping of composer is fixed
     metaTypes = {'composer':1,'lyricist':1,'poet':1,'arranger':1,'translator':1, 'rights':1} # valid MusicXML meta data types
-    tuning = 'E2,A2,D3,G3,B3,E4'.split (',')    # default string tuning (guitar)
+    tuningDef = 'E2,A2,D3,G3,B3,E4'.split (',') # default string tuning (guitar)
 
     def __init__ (s):
         s.pageFmtCmd = []   # set by command line option -p
         s.reset ()
-    def reset (s):
+    def reset (s, fOpt=False):
         s.divisions = 120   # xml duration of 1/4 note
         s.ties = {}         # {abc pitch tuple -> alteration} for all open ties
         s.slurstack = []    # stack of open slur numbers
@@ -806,7 +858,7 @@ class MusicXml:
         s.pageFmtAbc = []   # formatting from abc directives
         s.mdur = (4,4)      # duration of one measure
         s.gtrans = 0        # octave transposition (by clef)
-        s.midprg = ['', ''] # MIDI channel nr, program nr for the current part
+        s.midprg = ['', '', '', ''] # MIDI channel nr, program nr, volume, panning for the current part
         s.vid = ''          # abc voice id for the current voice
         s.pid = ''          # xml part id for the current voice
         s.gcue_on = 0       # insert <cue/> tag in each note
@@ -816,8 +868,15 @@ class MusicXml:
         s.vcepid = {}       # voice_id -> part_id
         s.midiInst = {}     # inst_id -> (part_id, voice_id, channel, midi_number), remember instruments used
         s.capo = 0          # fret position of the capodastro
+        s.tunmid = []       # midi numbers of strings
+        s.tunTup = []       # ordered midi numbers of strings [(midi_num, string_num), ...] (midi_num from high to low)
+        s.fOpt = fOpt       # force string/fret allocations for tab staves
+        s.orderChords = 0   # order notes in a chord
+        s.chordDecos = {}   # decos that should be distributed to all chord notes for xml
         ch10 = 'acoustic-bass-drum,35;bass-drum-1,36;side-stick,37;acoustic-snare,38;hand-clap,39;electric-snare,40;low-floor-tom,41;closed-hi-hat,42;high-floor-tom,43;pedal-hi-hat,44;low-tom,45;open-hi-hat,46;low-mid-tom,47;hi-mid-tom,48;crash-cymbal-1,49;high-tom,50;ride-cymbal-1,51;chinese-cymbal,52;ride-bell,53;tambourine,54;splash-cymbal,55;cowbell,56;crash-cymbal-2,57;vibraslap,58;ride-cymbal-2,59;hi-bongo,60;low-bongo,61;mute-hi-conga,62;open-hi-conga,63;low-conga,64;high-timbale,65;low-timbale,66;high-agogo,67;low-agogo,68;cabasa,69;maracas,70;short-whistle,71;long-whistle,72;short-guiro,73;long-guiro,74;claves,75;hi-wood-block,76;low-wood-block,77;mute-cuica,78;open-cuica,79;mute-triangle,80;open-triangle,81'
         s.percsnd = [x.split (',') for x in ch10.split (';')]   # {name -> midi number} of standard channel 10 sound names
+        s.gTime = (0,0)     # (XML begin time, XML end time) in divisions
+        s.tabStaff = ''     # == pid (part ID) for a tab staff
 
     def mkPitch (s, acc, note, oct, lev):
         if s.percVoice: # percussion map switched off by perc=off (see doClef)
@@ -860,6 +919,8 @@ class MusicXml:
         if ndeco:                       # add decorations, translate used defined symbols
             decos += [s.usrSyms.get (d, d).strip ('!+') for d in ndeco.t]
         s.nextdecos = []
+        if s.tabStaff == s.pid and s.fOpt and n.name != 'rest':  # force fret/string allocation if explicit string decoration is missing
+            if [d for d in decos if d in '0123456789'] == []: decos.append ('0')
         return decos
 
     def mkNote (s, n, lev):
@@ -918,13 +979,15 @@ class MusicXml:
             addElem (nt, pitch, lev + 1)
         if s.ntup >= 0:                 # modify duration for tuplet notes
             dvs = dvs * s.tmden // s.tmnum
-        if dvs: addElemT (nt, 'duration', str (dvs), lev + 1)   # skip when dvs == 0, requirement of musicXML
-        if (s.midprg != ['', ''] or midi) and n.name != 'rest': # only add when %%midi was present or percussion
+        if dvs:
+            addElemT (nt, 'duration', str (dvs), lev + 1)   # skip when dvs == 0, requirement of musicXML
+            if not ischord: s.gTime = s.gTime [1], s.gTime [1] + dvs
+        if (s.midprg != ['', '', '', ''] or midi) and n.name != 'rest': # only add when %%midi was present or percussion
             instId = 'I%s-%s' % (s.pid, 'X' + midi if midi else s.vid)
-            chan, midi = ('10', midi) if midi else s.midprg
+            chan, midi = ('10', midi) if midi else s.midprg [:2]
             inst = E.Element ('instrument', id=instId)  # instrument id for midi
             addElem (nt, inst, lev + 1)
-            if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, chan, midi)   # for instrument list in mkScorePart
+            if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, chan, midi, s.midprg [2], s.midprg [3]) # for instrument list in mkScorePart
         addElemT (nt, 'voice', '1', lev + 1)    # default voice, for merging later
         addElemT (nt, 'type', xmltype, lev + 1) # add note type
         for i in range (ndot):          # add dots
@@ -949,15 +1012,19 @@ class MusicXml:
             if s.ntup == 0:             # last tuplet note (and possible chord notes there after)
                 if rdvs: tupnotation = 'stop'   # only insert notation in the real note (rdvs > 0)
                 s.cmpNormType (rdvs, lev + 1)   # compute and/or add normal-type elements (-> s.ntype)
-        if 'stemless' in decos or (s.nostems and n.name != 'rest'):
+        hasStem = 1
+        if not ischord: s.chordDecos = {}       # clear on non chord note
+        if 'stemless' in decos or (s.nostems and n.name != 'rest') or 'stemless' in s.chordDecos:
+            hasStem = 0
             addElemT (nt, 'stem', 'none', lev + 1)
-            if 'stemless' in decos: decos.remove ('stemless')
+            if 'stemless' in decos: decos.remove ('stemless')   # do not handle in doNotations
+            if hasattr (n, 'pitches'): s.chordDecos ['stemless'] = 1    # set on first chord note
         if notehead:
             nh = addElemT (nt, 'notehead', re.sub (r'[+-]$', '', notehead), lev + 1)
             if notehead[-1] in '+-': nh.set ('filled', 'yes' if notehead[-1] == '+' else 'no')
         gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
         if gstaff: addElemT (nt, 'staff', str (gstaff), lev + 1)
-        if not s.nostems: s.doBeams (n, nt, den, lev + 1)   # no stems -> no beams in a tab staff
+        if hasStem: s.doBeams (n, nt, den, lev + 1)   # no stems -> no beams in a tab staff
         s.doNotations (n, decos, ptup, alter, tupnotation, tstop, nt, lev + 1)
         if n.objs: s.doLyr (n, nt, lev + 1)
         return nt
@@ -982,7 +1049,7 @@ class MusicXml:
         if pts:                                     # make list of pitches in chord: [(pitch, octave), ..]
             if type (pts.pitch) == pObj: pts = [pts.pitch]      # chord with one note
             else: pts = [tuple (p.t[-2:]) for p in pts.pitch]   # normal chord
-        for pt, (tie_alter, nts, vnum) in list (s.ties.items ()):   # scan all open ties and delete illegal ones
+        for pt, (tie_alter, nts, vnum) in sorted (list (s.ties.items ())):  # scan all open ties and delete illegal ones
             if vnum != s.overlayVnum: continue      # tie belongs to different overlay
             if pts and pt in pts: continue          # pitch tuple of tie exists in chord
             if getattr (n, 'chord', 0): continue    # skip chord notes
@@ -1088,17 +1155,31 @@ class MusicXml:
             elif a in '0123456':
                 tec = E.Element ('technical')
                 addElem (nots, tec, lev)
-                if s.curClef == 'tab':
-                    ix = len (s.tuning) - int (a)
-                    bstep, boct = s.tuning [ix]
-                    bmidi = int (boct) * 12 + [0,2,4,5,7,9,11]['CDEFGAB'.index (bstep)] + 12
-                    alt = int (nt.findtext ('pitch/alter') or 0)
+                if s.tabStaff == s.pid:             # current voice belongs to a tabStaff
+                    alt = int (nt.findtext ('pitch/alter') or 0)    # find midi number of current note
                     step = nt.findtext ('pitch/step')
                     oct = int (nt.findtext ('pitch/octave'))
                     midi = oct * 12 + [0,2,4,5,7,9,11]['CDEFGAB'.index (step)] + alt + 12
-                    fret =  midi - bmidi - s.capo
+                    if a == '0':                    # no string annotation: find one
+                        firstFit = ''
+                        for smid, istr in s.tunTup: # midi numbers of open strings from high to low
+                            if midi >= smid:        # highest open string where this note can be played
+                                isvrij = s.strAlloc.isVrij (istr - 1, s.gTime [0], s.gTime [1])
+                                a = str (istr)      # string number
+                                if not firstFit: firstFit = a
+                                if isvrij: break
+                        if not isvrij:              # no free string, take the first fit (lowest fret)
+                            a = firstFit
+                            s.strAlloc.bezet (int (a) - 1, s.gTime [0], s.gTime [1])
+                    else:                           # force annotated string number 
+                        s.strAlloc.bezet (int (a) - 1, s.gTime [0], s.gTime [1])
+                    bmidi = s.tunmid [int (a) - 1]  # midi number of allocated string (with capodastro)
+                    fret =  midi - bmidi            # fret position (respecting capodastro)
                     if fret < 25 and fret >= 0:
                         addElemT (tec, 'fret', str (fret), lev + 1)
+                    else:
+                        altp = 'b' if alt == -1 else '#' if alt == 1 else ''
+                        info ('fret %d out of range, note %s%d on string %s' % (fret, step+altp, oct, a))
                     addElemT (tec, 'string', a, lev + 1)
                 else:
                     addElemT (tec, 'fingering', a, lev + 1)
@@ -1253,10 +1334,16 @@ class MusicXml:
             if cue_onoff: s.gcue_on = cue_onoff.group (1) == 'on'
             nlines = 0
             if clef == 'tab':
-                if strings: s.tuning = strings.group (1).split (',')
+                s.tabStaff = s.pid
                 if capo: s.capo = int (capo.group (1))
+                if strings: s.tuning = strings.group (1).split (',')
+                s.tunmid = [int (boct) * 12 + [0,2,4,5,7,9,11]['CDEFGAB'.index (bstep)] + 12 + s.capo for bstep, boct in s.tuning]
+                s.tunTup = sorted (zip (s.tunmid, range (len (s.tunmid), 0, -1)), reverse=1)
+                s.tunmid.reverse ()
                 nlines = str (len (s.tuning))
+                s.strAlloc.setlines (len (s.tuning), s.pid)
                 s.nostems = 'nostems' in field  # tab clef without stems
+                s.diafret = 'diafret' in field  # tab with diatonic fretting
             if stafflines or nlines:
                 e = E.Element ('staff-details')
                 if gstaff: e.set ('number', str (gstaff))   # only add staff number when defined
@@ -1269,7 +1356,8 @@ class MusicXml:
                         addElemT (st, 'tuning-octave', t[1], lev + 3)
                         addElem (e, st, lev + 2)
                 if s.capo: addElemT (e, 'capo', str (s.capo), lev + 2)
-                atts.append ((8, e))                    
+                atts.append ((8, e))
+        s.diafret = 0           # chromatic fretting is default
         atts = []               # collect xml attribute elements [(order-number, xml-element), ..]
         gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
         for ftype, field in fieldmap.items ():
@@ -1323,7 +1411,7 @@ class MusicXml:
                     k = E.Element ('key')
                     koctave = []
                     lowerCaseSteps = [step.upper () for step, alter in alts if step.islower ()]
-                    for step, alter in list (s.keyAlts.items ()):
+                    for step, alter in sorted (list (s.keyAlts.items ())):
                         if alter == '0':                    # skip neutrals
                             del s.keyAlts [step.upper ()]   # otherwise you get neutral signs on normal notes
                             continue
@@ -1368,6 +1456,9 @@ class MusicXml:
             addElem (maat, att, lev)
             for _, att_elem in sorted (atts, key=lambda x: x[0]):   # ordering !
                 addElem (att, att_elem, lev + 1)
+        if s.diafret:
+            other = E.Element ('other-direction'); other.text = 'diatonic fretting'
+            addDirection (maat, other, lev, 0)
 
     def doTempo (s, maat, field, lev):
         gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
@@ -1530,12 +1621,13 @@ class MusicXml:
         s.curVolta = ''
         s.lyrdash = {}
         s.linebrk = 0
-        s.midprg = ['', '']     # MIDI channel nr, program nr for the current part
+        s.midprg = ['', '', '', ''] # MIDI channel nr, program nr, volume, panning for the current part
         s.gcue_on = 0           # reset cue note marker for each new voice
         s.gtrans = 0            # reset octave transposition (by clef)
         s.percVoice = 0         # 1 if percussion clef encountered
         s.curClef = ''          # current abc clef (for percmap)
         s.nostems = 0           # for the tab clef
+        s.tuning = s.tuningDef  # reset string tuning to default
         part = E.Element ('part', id=id)
         s.overlayVnum = 0       # overlay voice number to relate ties that extend from one overlayed measure to the next
         gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
@@ -1553,13 +1645,15 @@ class MusicXml:
         return part
 
     def mkScorePart (s, id, vids_p, partAttr, lev):
-        def mkInst (instId, vid, midchan, midprog, midnot, lev):
+        def mkInst (instId, vid, midchan, midprog, midnot, vol, pan, lev):
             si = E.Element ('score-instrument', id=instId)
             addElemT (si, 'instrument-name', partAttr.get (vid, [''])[0], lev + 2)
             mi = E.Element ('midi-instrument', id=instId)
             if midchan: addElemT (mi, 'midi-channel', midchan, lev + 2)
             if midprog: addElemT (mi, 'midi-program', str (int (midprog) + 1), lev + 2) # compatible with abc2midi
             if midnot:  addElemT (mi, 'midi-unpitched', str (int (midnot) + 1), lev + 2)
+            if vol: addElemT (mi, 'volume', '%.2f' % (int (vol) / 1.27), lev + 2)
+            if pan: addElemT (mi, 'pan', '%.2f' % (int (pan) / 127. * 180 - 90), lev + 2)
             return (si, mi)
         naam, subnm, midprg = partAttr [id]
         sp = E.Element ('score-part', id='P'+id)
@@ -1570,9 +1664,9 @@ class MusicXml:
         snm.text = subnm
         if subnm: addElem (sp, snm, lev + 1)    # only add if subname was given
         inst = []
-        for instId, (pid, vid, chan, midprg) in sorted (s.midiInst.items ()):
+        for instId, (pid, vid, chan, midprg, vol, pan) in sorted (s.midiInst.items ()):
             midprg, midnot = ('0', midprg) if chan == '10' else (midprg, '')
-            if pid == id: inst.append (mkInst (instId, vid, chan, midprg, midnot, lev))
+            if pid == id: inst.append (mkInst (instId, vid, chan, midprg, midnot, vol, pan, lev))
         for si, mi in inst: addElem (sp, si, lev + 1)
         for si, mi in inst: addElem (sp, mi, lev + 1)
         return sp
@@ -1627,8 +1721,8 @@ class MusicXml:
             acc, astep, aoct = p1
             nstep, noct = (astep, aoct) if p2 == '*' else p2
             if p3 == '*':                           midi = str (midiVal (acc, astep, aoct))
-            elif isinstance (p3, types.ListType):   midi = str (midiVal (p3[0], p3[1], p3[2]))
-            elif isinstance (p3, types.IntType):    midi = str (p3)
+            elif isinstance (p3, list_type):        midi = str (midiVal (p3[0], p3[1], p3[2]))
+            elif isinstance (p3, int_type):         midi = str (p3)
             else:                                   midi = getMidNum (p3.lower ())
             head = re.sub (r'(.)-([^x])', r'\1 \2', p4) # convert abc note head names to xml
             s.percMap [(s.pid, acc + astep, aoct)] = (nstep, noct, midi, head)
@@ -1662,13 +1756,22 @@ class MusicXml:
             r1 = re.search (r'program *(\d*) +(\d+)', x)
             r2 = re.search (r'channel *(\d+)', x)
             r3 = re.search (r"drummap\s+([_=^]*)([A-Ga-g])([,']*)\s+(\d+)", x)
-            if r1: ch, prg = r1.groups ()       # channel nr or '', program nr
-            if r2: ch, prg = r2.group (1), ''   # channel nr only
-            if r1 or r2:
-                ch, prg = ch or s.midprg [0], prg or s.midprg [1]
+            r4 = re.search (r'control *(\d+) +(\d+)', x)
+            ch_nw, prg_nw, vol_nw, pan_nw = '', '', '', ''
+            if r1: ch_nw, prg_nw = r1.groups () # channel nr or '', program nr
+            if r2: ch_nw = r2.group (1)         # channel nr only
+            if r4:
+                cnum, cval = r4.groups ()       # controller number, controller value
+                if cnum == '7': vol_nw = cval
+                if cnum == '10': pan_nw = cval
+            if r1 or r2 or r4:
+                ch  = ch_nw  or s.midprg [0]
+                prg = prg_nw or s.midprg [1]
+                vol = vol_nw or s.midprg [2]
+                pan = pan_nw or s.midprg [3]
                 instId = 'I%s-%s' % (s.pid, s.vid)              # only look for real instruments, no percussion
                 if instId in s.midiInst: instChange (ch, prg)   # instChance -> doFields
-                s.midprg = [ch, prg]            # mknote: new instrument -> s.midiInst
+                s.midprg = [ch, prg, vol, pan]  # mknote: new instrument -> s.midiInst
             if r3:      # translate drummap to percmap
                 acc, step, oct, midi = r3.groups ()
                 oct = -len (oct) if ',' in x else len (oct)
@@ -1822,9 +1925,9 @@ class MusicXml:
                 addElem (misc, mf, lev + 1)
         if mf != 0: addElem (parent, misc, lev)
 
-    def parse (s, abc_string, rOpt=False, bOpt=False):
+    def parse (s, abc_string, rOpt=False, bOpt=False, fOpt=False):
         abctext = abc_string.replace ('[I:staff ','[I:staff')  # avoid false beam breaks
-        s.reset ()
+        s.reset (fOpt)
         header, voices = splitHeaderVoices (abctext)
         ps = []
         try:
@@ -1836,6 +1939,7 @@ class MusicXml:
                     has_abc = lambda x: r1.sub ('', x).strip () # empty if line only contains inline fields
                     voice = '\n'.join ([balk.rstrip ('$!') + '$' if has_abc (balk) else balk for balk in voice.splitlines ()])
                 prevLeftBar = None      # previous voice ended with a left-bar symbol (double repeat)
+                s.orderChords = s.fOpt and ('tab' in voice [:200] or [x for x in hs if x.t[0] == 'K' and 'tab' in x.t[1]])
                 vce = abc_voice.parseString (voice).asList ()
                 lyr_notes = []          # remember notes between lyric blocks
                 for m in vce:           # all measures
@@ -1891,20 +1995,23 @@ class MusicXml:
 
         lev = 0
         vids, parts, partAttr = [], [], {}
+        s.strAlloc = stringAlloc ()
         for vid, _, vce in ps:          # voice id, voice parse tree
             pname, psubnm, voicedef = vdefs [vid]   # part name
             attrmap ['V'] = voicedef    # abc text of first voice definition (after V:vid) or empty
             pid = 'P%s' % vid           # let part id start with an alpha
             s.vid = vid                 # avoid parameter passing, needed in mkNote for instrument id
             s.pid = s.vcepid [s.vid]    # xml part-id for the current voice
+            s.gTime = (0, 0)            # reset time
+            s.strAlloc.beginZoek ()     # reset search index
             part = s.mkPart (vce, pid, lev + 1, attrmap, s.gNstaves.get (vid, 0), rOpt)
             if 'Q' in attrmap: del attrmap ['Q']    # header tempo only in first part
             parts.append (part)
             vids.append (vid)
             partAttr [vid] = (pname, psubnm, s.midprg)
-            if s.midprg != ['', '']:    # when a part has only rests
+            if s.midprg != ['', '', '', ''] and not s.percVoice:    # when a part has only rests
                 instId = 'I%s-%s' % (s.pid, s.vid)
-                if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, s.midprg [0], s.midprg [1])
+                if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, s.midprg [0], s.midprg [1], s.midprg [2], s.midprg [3])
         parts, vidsnew = mergeParts (parts, vids, s.staves, rOpt) # merge parts into staves as indicated by %%score
         parts, vidsnew = mergeParts (parts, vidsnew, s.grands, rOpt, 1) # merge grand staves
         reduceMids (parts, vidsnew, s.midiInst)
@@ -1949,11 +2056,11 @@ def xml2mxl (pad, fnm, data):   # write xml data to compressed .mxl file
     f.close ()
     info ('%s written' % outfile, warn=0)
 
-def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False):
+def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False, fOpt=False):
     # these globals should be initialised (as in the __main__ secion) before calling convert
     global mxm                                          # optimisation 1: keep instance of MusicXml
     global abc_header, abc_voice, abc_scoredef, abc_percmap # optimisation 2: keep computed grammars
-    score = mxm.parse (abc_string, rOpt, bOpt)
+    score = mxm.parse (abc_string, rOpt, bOpt, fOpt)
     xmldoc = fixDoctype (score)
     ipad, ifnm = os.path.split (fnm)                    # base name of input path is
     if tOpt: ifnm = mxm.title.split ('\n')[0].replace (',','_').replace ("'",'_').replace ('?','_')
@@ -2008,6 +2115,7 @@ if __name__ == '__main__':
     parser.add_option ("-t", action="store_true", help="use tune title as file name", default=False)
     parser.add_option ("-b", action="store_true", help="line break at EOL", default=False)
     parser.add_option ("--meta", action="store", help="map infofields to XML metadata, MAP = R:poet,Z:lyricist,N:...", default='', metavar='MAP')
+    parser.add_option ("-f", action="store_true", help="force string/fret allocations for tab staves", default=False)
     options, args = parser.parse_args ()
     if len (args) == 0: parser.error ('no input file given')
     pad = options.o
@@ -2018,7 +2126,7 @@ if __name__ == '__main__':
         if not os.path.isdir (pad): parser.error ('%s is not a directory' % pad)
     if options.p:   # set page formatting values
         try:        # space, page-height, -width, margin-left, -right, -top, -bottom
-            mxm.pageFmtCmd = map (float, options.p.split (','))
+            mxm.pageFmtCmd = lmap (float, options.p.split (','))
             if len (mxm.pageFmtCmd) != 7: raise ValueError ('-p needs 7 values')
         except Exception as err: parser.error (err)
     for x in options.meta.split (','):
@@ -2056,7 +2164,7 @@ if __name__ == '__main__':
             tune = preamble + 'X:' + tune       # restore preamble before each tune
             fnmNum = '%s%02d' % (fnm, itune + 1) if numtunes > 1 else fnm
             try:                                # convert string abctext -> file pad/fnmNum.xml
-                convert (pad, fnmNum, tune, options.mxl, options.r, options.t, options.b)
+                convert (pad, fnmNum, tune, options.mxl, options.r, options.t, options.b, options.f)
             except ParseException: pass         # output already printed
             except Exception as err: info ('an exception occurred.\n%s' % err)
     info ('done in %.2f secs' % (time.time () - t_start))

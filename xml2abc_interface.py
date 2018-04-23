@@ -5,19 +5,29 @@ import xml2abc
 import abc2xml
 from collections import namedtuple
 import xml.etree.ElementTree as E
+import sys
+PY3 = sys.version_info.major > 2
 
 class StringFile(object):
     def __init__(self):
         self.parts = []
     def write(self, s):
-        s = unicode(s, 'utf-8')
+        if PY3:
+            if type (s) is bytes:
+                s = s.decode ('utf-8', 'replace') 
+        else:
+            s = unicode(s, 'utf-8')
         self.parts.append(s)
     def getvalue(self):
         return u''.join(self.parts)
 
 def info (info_string, message, warn=1):
-    if type (message) is str:
-        message = message.decode ('latin-1', 'replace')
+    if PY3:
+        if type (message) is bytes:
+            message = message.decode ('latin-1', 'replace')
+    else:
+        if type (message) is str:
+            message = message.decode ('latin-1', 'replace')
     message = (warn and u'-- ' or u'') + message + u'\n'  # warnings prepended with --
     info_string.append (message)
 
@@ -37,7 +47,7 @@ def abc_to_xml(abc, output_filepath, mxl=False, pageFormat=None, info_messages=N
     if not pageFormat:
         pageFormat = []
     if not hasattr (abc2xml, 'abc_header'): # compute grammar only once
-        abc2xml.abc_header, abc2xml.abc_voice, abc2xml.abc_scoredef = abc2xml.abc_grammar ()
+        abc2xml.abc_header, abc2xml.abc_voice, abc2xml.abc_scoredef, abc2xml.abc_percmap = abc2xml.abc_grammar ()
         abc2xml.mxm = abc2xml.MusicXml()    # mxm should be set in abc2xml, otherwise the options won't work
 
     if info_messages is None:   # only information messages of abc2xml, a real error raises an exception that contains the error message

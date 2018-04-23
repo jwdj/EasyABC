@@ -1,3 +1,0 @@
-pywin32
-cx_Freeze
-mechanize

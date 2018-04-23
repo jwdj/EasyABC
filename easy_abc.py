@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.8 2018-01-04'
+program_name = 'EasyABC 1.3.7.8 2018-04-23'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2018 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -673,7 +673,7 @@ def sort_abc_tunes(abc_code, sort_fields, keep_free_text=True):
             preceeding_lines.append(line)
 
     def get_sort_key_for_tune(tune, sort_fields):
-        return tuple([tune.header.get(f, '') for f in sort_fields])
+        return tuple([tune.header.get(f, '').lower() for f in sort_fields])
 
     tunes = [(get_sort_key_for_tune(t, sort_fields), t) for t in tunes]
     tunes.sort()
@@ -2084,7 +2084,8 @@ class AbcFileSettingsFrame(wx.Panel):
             PathEntry('midi2abc', _('midi2abc executable:'), _('This executable is used to disassemble the output midi file'), True),
             PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False),
             PathEntry('nwc2xml', _('nwc2xml executable:'), _('For NoteWorthy Composer - Windows only'), False),
-            PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False)
+            PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False),
+            PathEntry('soundfont', _('soundfont:'), _('Your preferred Sound Font (.sf2)'), False)
         ]
 
         if wx.Platform == "__WXMSW__":
@@ -4204,11 +4205,9 @@ class MainFrame(wx.Frame):
                 self.mc.Seek(0)  # When using wx.media.MEDIABACKEND_QUICKTIME the music starts playing too early (when loading a file)
                 time.sleep(0.5)  # hopefully this fixes the first notes not being played
             self.play()
-        print('blabla')
         wx.CallAfter(play)
 
     def OnAfterStop(self):
-        print('OnAfterStop')
         # 1.3.6.3 [SS] 2015-05-04
         self.flip_tempobox(False)
         self.stop_playing()
@@ -5007,7 +5006,8 @@ class MainFrame(wx.Frame):
             finally:
                 dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
-        filepath = filepath.encode('utf-8')
+        if not PY3:
+            filepath = filepath.encode('utf-8')
         if convert_func(tune, filepath):
             execmessages = execmessages + u'creating '+ filepath + u'\n'
             # 1.3.6 [SS] 2014-12-08
@@ -7542,10 +7542,10 @@ class MainFrame(wx.Frame):
         global execmessages, visible_abc_code
         info_messages = []
         # [SS] 2014-12-18
-        options = namedtuple ('Options', 'u m c d n b v x p j t v1 ped')                     # emulate the options object
+        options = namedtuple ('Options', 'u m c d n b v x p j t v1 ped s')                     # emulate the options object
         options.m = 0; options.j = 0; options.p = []; options.b = 0; options.d = 0  # unused options
         options.n = 0; options.v = 0; options.u = 0; options.c = 0; options.x = 0   # but all may be used if needed
-        options.t = 0; options.v1 = False; options.ped = True
+        options.t = 0; options.v1 = False; options.ped = True; options.s = 0
         if self.settings['xmlunfold']:
             options.u = 1
         if self.settings['xmlmidi']:

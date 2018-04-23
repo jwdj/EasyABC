@@ -33,7 +33,7 @@ class MidiPlayer(object):
     def Length(self):
         return 0
 
-    def Tell():
+    def Tell(self):
         return 0
 
     @property
@@ -64,7 +64,7 @@ class WxMediaPlayer(MidiPlayer):
         parent_window.Bind(wx.media.EVT_MEDIA_STOP, self.OnMediaStop)
 
     def Play(self):
-        print('Play')
+        # print('Play')
         if wx.Platform != "__WXMAC__":
             try: self.mc.Volume = 0.9
             except: pass
@@ -75,7 +75,7 @@ class WxMediaPlayer(MidiPlayer):
         self.is_really_playing = True
 
     def Stop(self):
-        print('Stop')
+        # print('Stop')
         self.is_really_playing = False
         self.mc.Stop()
         self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
@@ -113,12 +113,12 @@ class WxMediaPlayer(MidiPlayer):
         return self.mc.GetState() == wx.media.MEDIASTATE_PAUSED
 
     def OnMediaLoaded(self, evt):
-        print('OnMediaLoaded')
+        # print('OnMediaLoaded')
         if self.OnAfterLoad is not None:
             self.OnAfterLoad()
 
     def OnMediaStop(self, evt):
-        print('Media stopped')
+        # print('Media stopped')
         # if media is finished but playback as a loop was used relaunch the playback immediatly
         # and prevent media of being stop (event is vetoed as explained in MediaCtrl documentation)
         if self.loop_midi_playback:
@@ -127,18 +127,18 @@ class WxMediaPlayer(MidiPlayer):
             wx.CallAfter(self.play_again)
 
     def OnMediaFinished(self, evt):
-        print('Media finished')
+        # print('Media finished')
         # if media is finished but playback as a loop was used relaunch the playback immediatly
         # (OnMediaStop should already have restarted it if required as event STOP arrive before FINISHED)
         self.is_really_playing = False
         if self.loop_midi_playback:
             self.play_again()
         elif self.OnAfterStop is not None:
-            print('Media OnAfterStop')
+            # print('Media OnAfterStop')
             self.OnAfterStop()
 
     def play_again(self):
-        if self.is_playing():
+        if self.is_playing:
             self.Seek(0)
         else:
             self.Seek(0)
@@ -146,6 +146,10 @@ class WxMediaPlayer(MidiPlayer):
             self.set_playback_rate(self.last_playback_rate)
             #self.update_playback_rate()
             self.is_really_playing = True
+    
+    def set_playback_rate(self, playback_rate):
+        if self.mc and (self.is_playing or wx.Platform != "__WXMAC__"): # after setting playbackrate on Windows the self.mc.GetState() becomes MEDIASTATE_STOPPED
+            self.mc.PlaybackRate = playback_rate        
          
 
 
@@ -179,7 +183,7 @@ class FluidSynthPlayer(MidiPlayer):
     def load(self, path):          # load a midi file
         self.reset()              # reset the player, empty the playlist
         self.pause_time  = 0       # resume playing at time == 0
-        self.p.add(fnm)           # add file to playlist
+        self.p.add(path)           # add file to playlist
         self.p.load()             # load first file from playlist
         self.dur = max ([self.p.get_length (i) for i in range (16)])  # get max length of all tracks
         if self.p.get_status() == 2:  # not a midi file
@@ -188,9 +192,9 @@ class FluidSynthPlayer(MidiPlayer):
 
     def reset(self):              # the only way to empty the playlist ...
         self.p.delete()           # delete player
-        self.p = F.Player(s.fs)   # make a new one
+        self.p = F.Player(self.fs)   # make a new one
 
-    def play(s):
+    def play(self):
         if self.playing:
             self.pause_time = self.p.stop()
             self.playing = 0

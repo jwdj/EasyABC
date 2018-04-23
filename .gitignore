@@ -47,6 +47,13 @@ Temporary Items
 
 # Compiled Python
 *.pyc
+*.pyd
+
+# Executables/DLL
+*.exe
+*.dll
 
 abc_styler - geen succes.py
 *.stackdump
+build
+dist
