@@ -20,6 +20,12 @@ program_name = 'EasyABC 1.3.7.8 2018-09-24'
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# V1.3.7.8 
+# - made BPM slider sticky for looping [EPO]
+# - fixed bug where tempo reset after loop [EPO]
+# - fixed crash when trying to Select() empty combobox in MainFrame/@current_page_index.setter [EPO]
+#
+
 
 # # for finding memory leaks uncomment following two lines
 # import gc
@@ -3842,7 +3848,8 @@ class MainFrame(wx.Frame):
 
         self.__current_page_index = value
         if self.cur_page_combo.GetSelection() != value:
-            self.cur_page_combo.Select(value)
+            if self.cur_page_combo.GetCount() > 0:  #[EPO] 2018-11-27 crashes in next statement if list empty
+                self.cur_page_combo.Select(value)
 
     @property
     def current_file(self):
@@ -3919,8 +3926,12 @@ class MainFrame(wx.Frame):
                 if wx.Platform == "__WXMAC__":
                     self.preview.SetZoom(100)
 
-                if not self.preview.Ok():
-                    return
+                if PY3:
+                    if not self.preview.IsOk:
+                        return
+                else:
+                    if not self.preview.Ok():
+                        return
 
                 pfrm = wx.PreviewFrame(self.preview, self, _("EasyABC - print preview"))
 
@@ -3985,7 +3996,7 @@ class MainFrame(wx.Frame):
 
     def parse_desc(self, desc):
         parts = desc.split()
-        row, col = map(int, parts[1].split(':'))
+        row, col = list(map(int, parts[1].split(':')))
         return (row, col)
 
     def get_num_extra_header_lines(self, tune):
@@ -4142,8 +4153,9 @@ class MainFrame(wx.Frame):
         self.media_slider.SetValue(0)
 
     def update_playback_rate(self):
-        tempo_multiplier = self.get_tempo_multiplier() / self.applied_tempo_multiplier
-        self.mc.PlaybackRate = tempo_multiplier
+        if self.mc.supports_tempo_change_while_playing:
+            tempo_multiplier = self.get_tempo_multiplier() / self.applied_tempo_multiplier
+            self.mc.PlaybackRate = tempo_multiplier
 
     def OnBpmSlider(self, evt):
         self.update_playback_rate()
@@ -4158,6 +4170,7 @@ class MainFrame(wx.Frame):
     # 1.3.6.3 [SS] 2015-05-05
     def reset_BpmSlider(self):
         self.bpm_slider.SetValue(0)
+        self.bpm_slider.Enabled = True
         self.update_playback_rate() # 1.3.6.4 [JWDJ]
 
     def OnChangeFollowScore(self, event):
@@ -4233,6 +4246,7 @@ class MainFrame(wx.Frame):
     def OnToolRecord(self, evt):
         if self.record_thread and self.record_thread.is_running:
             self.record_thread.abort()
+            self.record_thread = None		#EPO prevent segmentation error (undefined variable)
         else:
             midi_in_device_ID = self.settings.get('midi_device_in', None)
             if midi_in_device_ID is None:
@@ -4240,7 +4254,7 @@ class MainFrame(wx.Frame):
                 midi_in_device_ID = self.settings.get('midi_device_in', None)
             midi_out_device_ID = self.settings.get('midi_device_out', None)
             if midi_in_device_ID is not None:
-                metre_1, metre_2 = map(int, self.settings['record_metre'].split('/'))
+                metre_1, metre_2 = list(map(int, self.settings['record_metre'].split('/')))
                 self.record_thread = RecordThread(self, midi_in_device_ID, midi_out_device_ID, metre_1, metre_2, bpm = self.settings['record_bpm'])
                 self.record_thread.start()
 
@@ -4251,7 +4265,7 @@ class MainFrame(wx.Frame):
         #self.play_panel.Show(False)
         self.flip_tempobox(False)
         self.media_slider.SetValue(0)
-        self.reset_BpmSlider()
+        # self.reset_BpmSlider()     #[EPO] 2018-11-20 make sticky - this is new functionality
         if wx.Platform != "__WXMSW__":
             self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
         if self.record_thread and self.record_thread.is_running:
@@ -4280,7 +4294,7 @@ class MainFrame(wx.Frame):
             if self.settings.get('follow_score', False):
                 self.queue_number_follow_score += 1
                 queue_number = self.queue_number_follow_score
-                wx.CallLater(0, self.FollowScore, offset, queue_number)
+                wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
 
             self.media_slider.SetValue(offset)
 
@@ -4460,9 +4474,9 @@ class MainFrame(wx.Frame):
 
         # 1.3.6.2 [JWdJ] 2015-02-15 text 'Page' was drawn multiple times. Replaced StaticLabel with StaticText
         self.cur_page_combo = self.add_combobox_to_toolbar(_('Page'), choices=['99 / 99'], style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.cur_page_combo.Select(0)
+        if self.cur_page_combo.GetCount() > 0:  #EPO
+            self.cur_page_combo.Select(0)
         self.Bind(wx.EVT_COMBOBOX, self.OnPageSelected, self.cur_page_combo)
-
         # 1.3.6.3 [SS] 2015-05-03
         self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, 0, -100, 100, (-1, -1), (130, 22))
         if wx.Platform == "__WXMSW__":
@@ -5194,6 +5208,7 @@ class MainFrame(wx.Frame):
             # 1.3.6.3 [SS] 2015-05-04
             if not self.settings['midiplayer_path']:
                 self.flip_tempobox(True)
+            self.bpm_slider.Enabled = self.mc.supports_tempo_change_while_playing
             #self.play_panel.Show(not self.settings['midiplayer_path']) # 1.3.6.2 [JWdJ] 2015-02
             # self.toolbar.Realize() # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
 
@@ -5324,8 +5339,10 @@ class MainFrame(wx.Frame):
                     result = self.save_as()
             if result == wx.ID_CANCEL:
                 return False
-        if self.record_thread:
+
+        if self.record_thread != None:
             self.record_thread.abort()
+            self.record_thread = None	#[EPO] 2018-11-20 prevent segmentation error (undefined variable)
         return True
 
     def OnNew(self, evt=None):
@@ -8275,12 +8292,12 @@ class MyApp(wx.App):
         L.sort(key=lambda f: not f.IsActive()) # make sure an active frame comes first in the list
         return L
 
-    def MacOpenFile(self, filename):
-        frame = self.NewMainFrame()
-        frame.Show(True)
-        self.SetTopWindow(frame)
-        ##path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
-        frame.load_or_import(filename)
+    # def MacOpenFile(self, filename):	# [EPO] 2018-11-20 TODO  dup open file creates two frames (why?)
+    #     frame = self.NewMainFrame()
+    #     frame.Show(True)
+    #     self.SetTopWindow(frame)
+    #     ##path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
+    #     frame.load_or_import(filename)
 
     def OnInit(self):
         self.SetAppName('EasyABC')
@@ -8291,7 +8308,6 @@ class MyApp(wx.App):
         cache_dir = os.path.join(app_dir, 'cache')
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
-
         default_lang = wx.LANGUAGE_DEFAULT
         locale = wx.Locale(language=default_lang)
         locale.AddCatalogLookupPathPrefix(os.path.join(cwd, 'locale'))
