@@ -1783,8 +1783,10 @@ class RecordThread(threading.Thread):
         gmidi_in.append(self.midi_out)
         self.notes = []
         self.is_running = False
-        self.tick1 = wx.Sound(os.path.join(cwd, 'sound', 'tick1.wav'))
-        self.tick2 = wx.Sound(os.path.join(cwd, 'sound', 'tick2.wav'))
+
+        import wx.adv
+        self.tick1 = wx.adv.Sound(os.path.join(cwd, 'sound', 'tick1.wav'))
+        self.tick2 = wx.adv.Sound(os.path.join(cwd, 'sound', 'tick2.wav'))
 
     def timedelta_microseconds(self, td):
         return td.seconds*1000000 + td.microseconds
