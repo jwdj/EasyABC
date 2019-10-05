@@ -57,3 +57,6 @@ abc_styler - geen succes.py
 *.stackdump
 build
 dist
+.vscode
+*.spec
+*.sf2

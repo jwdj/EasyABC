@@ -111,7 +111,14 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 from wx import GetTranslation as _
 from wxhelper import *
 # from midiplayer import *
-from fluidsynthplayer import *
+fluidsynth_available = False
+if wx.Platform != "__WXMAC__":
+    try:
+        from fluidsynthplayer import *
+        fluidsynth_available = True
+    except:
+        pass
+
 from wxmediaplayer import *
 from xml2abc_interface import xml_to_abc, abc_to_xml
 from midi2abc import midi_to_abc, Note, duration2abc
@@ -3654,13 +3661,15 @@ class MainFrame(wx.Frame):
         self.setup_toolbar()
         self.mc = None
         self.load_settings()
+        
         soundfont_path = settings.get('soundfont_path', None)
-        if soundfont_path and os.path.exists(soundfont_path) and wx.Platform != "__WXMAC__":
+        if fluidsynth_available and soundfont_path and os.path.exists(soundfont_path):
             try:
                 self.mc = FluidSynthPlayer(soundfont_path)
             except Exception as e:
                 error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])) + os.linesep + os.linesep.join(errors)
                 self.mc = None
+
         if self.mc is None:
             try:
                 backend = None
@@ -3743,7 +3752,8 @@ class MainFrame(wx.Frame):
         self.tune_list.SetDropTarget(MyFileDropTarget(self))
         self.music_pane.SetDropTarget(MyFileDropTarget(self))
         self.abc_assist_panel.SetDropTarget(MyFileDropTarget(self))
-        self.GetMenuBar().SetDropTarget(MyFileDropTarget(self))
+        if wx.Platform == "__WXMSW__":
+            self.GetMenuBar().SetDropTarget(MyFileDropTarget(self))
 
         self.tune_list_last_width = self.tune_list.GetSize().width
 
@@ -4398,7 +4408,6 @@ class MainFrame(wx.Frame):
         self.follow_score_check.Show(state)
         self.UpdateTimingSliderVisibility()
         self.toolbar.Realize()
-        wx.Yield()
 
     def show_toolbar_panel(self, panel, visible):
         #for sizer_item in panel.Sizer.Children:
