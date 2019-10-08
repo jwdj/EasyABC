@@ -510,7 +510,7 @@ def get_notes_from_abc(abc, exclude_grace_notes=False):
     # find and return ABC notes (including the text ranges)
     # 1.3.6.3 [JWDJ] 2015-3 made regex case sensitive again, because after typing Z and <space> a bar did not appear
     return [(note.start(0), note.end(0), note.group(0)) for note in
-            re.finditer(r"([_=^]?[[A-Ga-gz](,+|'+)?\d{0,2}(/\d{1,2}|/+)?)[><-]?", abc)]
+            re.finditer(r"([_=^]?[A-Ga-gz](,+|'+)?\d{0,2}(/\d{1,2}|/+)?)[><-]?", abc)]
 
 def copy_bar_symbols_from_first_voice(abc):
     # normalize line endings (necessary for ^ in regexp) and extract the header and the two voices
@@ -6964,10 +6964,13 @@ class MainFrame(wx.Frame):
         tempo_re = re.compile(r'^\s*(\d+\.\d+)\s+Metatext\s+tempo\s+=\s+(\d+\.\d+)\s+bpm')
         new_track_re = re.compile('^Track \d+ contains')
 
+        def timediff_in_seconds(first, last, bpm):
+            return ((last - first) * 60 / bpm)
+
         def time_value_to_milliseconds(value, tempos):
             tempos = [t for t in tempos if t[0] <= value]
             time_start, bpm, sec_until_time_start = tempos[-1]
-            sec = sec_until_time_start + ((value - time_start) * 60 / bpm)
+            sec = sec_until_time_start + timediff_in_seconds(time_start, value, bpm)
             return int(sec * 1000)
 
         def append_tempo(tempos, time_start, tempo):
@@ -6977,7 +6980,7 @@ class MainFrame(wx.Frame):
                 if later_start:
                     raise Exception('Cannot insert tempo at {0}'.format(time_start))
                 prev_start, prev_bpm, prev_sec_until_time_start = tempos[-1]
-                sec_until_time_start = prev_sec_until_time_start + ((time_start - prev_start) * 60 / prev_bpm)
+                sec_until_time_start = prev_sec_until_time_start + timediff_in_seconds(prev_start, time_start, prev_bpm)
             tempos.append((time_start, tempo, sec_until_time_start))
 
         tempos = []
@@ -7760,7 +7763,9 @@ class MainFrame(wx.Frame):
             # 1.3.6.3 [JWDJ] 2015-04-25 # sometimes window was unreachable because window_x and window_y set to -32000
             window_x = max(settings.get('window_x', 40), 0)
             window_y = max(settings.get('window_y', 40), 0)
-            dimensions = window_x, window_y, settings.get('window_width', 1000), settings.get('window_height', 800)
+            window_width = max(settings.get('window_width', 1000), 600)
+            window_height = max(settings.get('window_height', 800), 400)
+            dimensions = window_x, window_y, window_width, window_height
             if PY3:
                 self.SetSize(*dimensions)
             else:
