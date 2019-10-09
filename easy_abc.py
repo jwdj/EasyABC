@@ -1,10 +1,9 @@
-#!/usr/bin/python2.7
 #
 
-program_name = 'EasyABC 1.3.7.8 2018-09-24'
+program_name = 'EasyABC 1.3.7.8 2019-10-09'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015-2018 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
+# Copyright (C) 2015-2019 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -58,6 +57,7 @@ else:
 
 import os, os.path
 import wx
+WX4 = wx.version().startswith('4')
 
 if os.getenv('EASYABCDIR'):
     cwd = os.getenv('EASYABCDIR')
@@ -3451,7 +3451,7 @@ class MySearchFrame(wx.Frame):
     def __init__(self,parent,settings):
         wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Search files"), style=wx.DEFAULT_FRAME_STYLE, name='searcher')
         # Add a panel so it looks the correct on all platforms
-        if PY3:
+        if WX4:
             wx.Frame.SetSize(self, -1, -1, 380,400)
         else:
             wx.Frame.SetDimensions(self, -1, -1, 380,400)
@@ -3936,7 +3936,7 @@ class MainFrame(wx.Frame):
                 if wx.Platform == "__WXMAC__":
                     self.preview.SetZoom(100)
 
-                if PY3:
+                if WX4:
                     if not self.preview.IsOk:
                         return
                 else:
@@ -4150,7 +4150,7 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def play(self):
-        if self.settings['follow_score'] and self.current_page_index != 0:
+        if self.settings.get('follow_score', False) and self.current_page_index != 0:
             self.current_page_index = 0
             self.UpdateMusicPane()
         wx.CallAfter(self.mc.Play)
@@ -4474,15 +4474,12 @@ class MainFrame(wx.Frame):
         self.toolbar.AddSeparator()
 
         self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, 1000, 500, 3000, (30, 60), (130, 22))
-        if PY3:
-            self.zoom_slider.SetTickFreq(10)
-        else:
-            self.zoom_slider.SetTickFreq(10, 0)
+        wx_slider_set_tick_freq(self.zoom_slider, 10)
         self.Bind(wx.EVT_SLIDER, self.OnZoomSlider, self.zoom_slider)
         self.zoom_slider.Bind(wx.EVT_LEFT_DOWN, self.OnZoomSliderClick)
 
         # 1.3.6.2 [JWdJ] 2015-02-15 text 'Page' was drawn multiple times. Replaced StaticLabel with StaticText
-        self.cur_page_combo = self.add_combobox_to_toolbar(_('Page'), choices=['99 / 99'], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cur_page_combo = self.add_combobox_to_toolbar(_('Page'), choices=['1 / 1'], style=wx.CB_DROPDOWN | wx.CB_READONLY)
         if self.cur_page_combo.GetCount() > 0:  #EPO
             self.cur_page_combo.Select(0)
         self.Bind(wx.EVT_COMBOBOX, self.OnPageSelected, self.cur_page_combo)
@@ -6965,7 +6962,7 @@ class MainFrame(wx.Frame):
         new_track_re = re.compile('^Track \d+ contains')
 
         def timediff_in_seconds(first, last, bpm):
-            return ((last - first) * 60 / bpm)
+            return (last - first) * 60 / bpm
 
         def time_value_to_milliseconds(value, tempos):
             tempos = [t for t in tempos if t[0] <= value]
@@ -7431,7 +7428,7 @@ class MainFrame(wx.Frame):
             insert_item = tune_list.InsertStringItem
             set_item_data = tune_list.SetItemData
             get_item_count = tune_list.GetItemCount
-            if PY3:
+            if WX4:
                 insert_item = tune_list.InsertItem
                 set_item = tune_list.SetItem
             for xnum, title, line_no in tunes:
@@ -7532,7 +7529,7 @@ class MainFrame(wx.Frame):
         self.editor.SetLexer(stc.STC_LEX_CONTAINER)
         self.editor.SetProperty("fold", "0")
         self.editor.SetUseTabs(False)
-        if not PY3:
+        if not WX4:
             self.editor.SetUseAntiAliasing(True)
 
         if not font_face:
@@ -7766,7 +7763,7 @@ class MainFrame(wx.Frame):
             window_width = max(settings.get('window_width', 1000), 600)
             window_height = max(settings.get('window_height', 800), 400)
             dimensions = window_x, window_y, window_width, window_height
-            if PY3:
+            if WX4:
                 self.SetSize(*dimensions)
             else:
                 self.SetDimensions(*dimensions)

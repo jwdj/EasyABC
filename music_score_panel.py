@@ -3,6 +3,7 @@ import traceback
 import sys
 from wxhelper import wx_cursor, wx_colour
 PY3 = sys.version_info.major > 2
+WX4 = wx.version().startswith('4')
 
 class MusicScorePanel(wx.ScrolledWindow):
     def __init__(self, parent, renderer):
@@ -278,7 +279,7 @@ class MusicScorePanel(wx.ScrolledWindow):
 
     def Draw(self):
         dc = wx.BufferedDC(None, self.renderer.buffer)
-        if not PY3:
+        if not WX4:
             dc.BeginDrawing()
         try:
             try:
@@ -288,7 +289,7 @@ class MusicScorePanel(wx.ScrolledWindow):
                 if self.current_page != self.renderer.empty_page:
                     self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
             finally:
-                if not PY3:
+                if not WX4:
                     dc.EndDrawing()
         except Exception as e:
             error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))

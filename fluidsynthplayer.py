@@ -35,12 +35,14 @@ class FluidSynthPlayer(MidiPlayer):
     def Load(self, path):          # load a midi file
         self.reset()              # reset the player, empty the playlist
         self.pause_time  = 0       # resume playing at time == 0
-        self.p.add(path)           # add file to playlist
-        self.p.load()             # load first file from playlist
-        self.duration_in_ticks = max([self.p.get_length(i) for i in range (16)])  # get max length of all tracks
-        if self.p.get_status() == 2:  # not a midi file
-            return False
-        return True
+        if os.path.exists(path):
+            self.p.add(path)           # add file to playlist
+            self.p.load()             # load first file from playlist
+            self.duration_in_ticks = max([self.p.get_length(i) for i in range (16)])  # get max length of all tracks
+            if self.p.get_status() == 2:  # not a midi file
+                return False
+            return True
+        return False
 
     def reset(self):              # the only way to empty the playlist ...
         self.p.delete()           # delete player

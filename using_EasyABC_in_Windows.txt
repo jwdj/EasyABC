@@ -51,8 +51,11 @@ pip install pywin32
 from an elevated command prompt (run as administrator):
     python.exe Scripts\pywin32_postinstall.py -install 
 
-Download .whl file from https://pypi.org/project/wxPython/#files
+pip install -U wxPython
+
+(If that does not work: Download .whl file from https://pypi.org/project/wxPython/#files and run
 pip install "D:\Downloads\wxPython-4.0.6-cp37-cp37m-win32.whl"
+)
 
 Now EasyABC can be started using:
 python easy_abc.py

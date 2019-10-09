@@ -1,32 +1,31 @@
 import wx
 
-import sys
-PY3 = sys.version_info.major > 2
+WX4 = wx.version().startswith('4')
 
 
 def wx_cursor(c):
-    if PY3:
+    if WX4:
         return wx.Cursor(c)
     else:
         return wx.StockCursor(c)
 
 
 def wx_colour(c):
-    if PY3:
+    if WX4:
         return wx.Colour(c)
     else:
         return wx.NamedColour(c)
 
 
 def delete_menuitem(menu, item):
-    if PY3:
+    if WX4:
         menu.Delete(item)
     else:
         menu.DeleteItem(item)
 
 
 def append_submenu(menu, label, submenu):
-    if PY3:
+    if WX4:
         return menu.AppendSubMenu(submenu, label)
     else:
         return menu.AppendMenu(-1, label, submenu)
@@ -36,7 +35,7 @@ def append_menu_item(menu, label, description, handler, kind=wx.ITEM_NORMAL, id=
     menu_item = wx.MenuItem(menu, -1, label, description, kind)
     if bitmap is not None:
         menu_item.SetBitmap(bitmap)
-    if PY3:
+    if WX4:
         menu.Append(menu_item)
     else:
         menu.AppendItem(menu_item)
@@ -96,7 +95,13 @@ def create_menu_bar(items, parent=None):
 
 
 def wx_bitmap(width, height, depth=-1):
-    if PY3:
+    if WX4:
         return wx.Bitmap(width, height, depth)
     else:
         return wx.EmptyBitmap(width, height, depth)
+
+def wx_slider_set_tick_freq(slider, freq):
+    if WX4:
+        slider.SetTickFreq(freq)
+    else:
+        slider.SetTickFreq(freq, 0)
