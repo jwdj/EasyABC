@@ -47,9 +47,9 @@ if sys.platform == "darwin":
                                    'CFBundleDocumentTypes': [{
                                                               'CFBundleTypeExtensions': ['abc'],
                                                               'CFBundleTypeName': 'ABC notation file',
-                                                              'CFBundleTypeRole': 'Viewer'
+                                                              'CFBundleTypeRole': 'Editor'
                                                             }]
-                                  }
+                                   }
                          }
     data_files = [('.', ['reference.txt', 'gpl-license.txt']),
                   ('bin', ['bin/abc2midi', 'bin/abcm2ps', 'bin/abc2abc', 'bin/nwc2xml', 'bin/midi2abc']),
