@@ -4343,7 +4343,10 @@ class MainFrame(wx.Frame):
                 # self.music_and_score_out_of_sync()
 
         # turning pages and going to next line has to be done slighty earlier
-        future_offset = offset + 300  # 0.3 seconds should do
+        if self.mc.unit_is_midi_tick:
+            future_offset = offset + 480  # one quarter note should do
+        else:
+            future_offset = offset + 300  # 0.3 seconds should do
         future_time_slice = self.future_time_slice
 
         if future_time_slice is None or not (future_time_slice.start <= future_offset < future_time_slice.stop):
@@ -4479,7 +4482,7 @@ class MainFrame(wx.Frame):
         self.zoom_slider.Bind(wx.EVT_LEFT_DOWN, self.OnZoomSliderClick)
 
         # 1.3.6.2 [JWdJ] 2015-02-15 text 'Page' was drawn multiple times. Replaced StaticLabel with StaticText
-        self.cur_page_combo = self.add_combobox_to_toolbar(_('Page'), choices=['1 / 1'], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cur_page_combo = self.add_combobox_to_toolbar(_('Page'), choices=[' 1 / 1 '], style=wx.CB_DROPDOWN | wx.CB_READONLY)
         if self.cur_page_combo.GetCount() > 0:  #EPO
             self.cur_page_combo.Select(0)
         self.Bind(wx.EVT_COMBOBOX, self.OnPageSelected, self.cur_page_combo)
@@ -6980,6 +6983,7 @@ class MainFrame(wx.Frame):
                 sec_until_time_start = prev_sec_until_time_start + timediff_in_seconds(prev_start, time_start, prev_bpm)
             tempos.append((time_start, tempo, sec_until_time_start))
 
+        ticks_per_quarter = 480
         tempos = []
         notes = []
         row_col_midi_notes = defaultdict(lambda: defaultdict(int))
@@ -7026,22 +7030,26 @@ class MainFrame(wx.Frame):
                 m = note_re.match(line)
                 if m is not None:
                     time_value = float(m.group(1))
-                    time_in_ms = time_value_to_milliseconds(time_value, tempos)
+                    if self.mc.unit_is_midi_tick:
+                        converted_time = time_value * ticks_per_quarter
+                    else: 
+                        converted_time = time_value_to_milliseconds(time_value, tempos)
+
                     on_off = m.group(2)
                     channel = int(m.group(3))
                     note_num = int(m.group(4))
                     if on_off == 'on':
-                        note_start = time_in_ms
+                        note_start = converted_time
                         active_notes[(channel, note_num)] = MidiNote(note_start, None, indices, page_index, svg_row)
                     elif on_off == 'off':
-                        note_stop = time_in_ms
+                        note_stop = converted_time
                         note_on = active_notes.pop((channel, note_num), None)
                         if note_on is not None:
                             if page_index == note_on.page:
                                 notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
                             else:
                                 notes.append(MidiNote(note_on.start, note_stop, note_on.indices, note_on.page, note_on.svg_row))
-                else:
+                elif not self.mc.unit_is_midi_tick:
                     m = tempo_re.match(line)
                     if m is not None:
                         tempo_start = float(m.group(1))

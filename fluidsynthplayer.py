@@ -41,6 +41,7 @@ class FluidSynthPlayer(MidiPlayer):
             self.duration_in_ticks = max([self.p.get_length(i) for i in range (16)])  # get max length of all tracks
             if self.p.get_status() == 2:  # not a midi file
                 return False
+            self.OnAfterLoad.fire()
             return True
         return False
 
@@ -60,6 +61,7 @@ class FluidSynthPlayer(MidiPlayer):
     def Stop(self):
         if self.is_playing:
             self.p.stop()
+            self.OnAfterStop.fire()
         self.pause_time = 0
 
     def Seek(self, time):         # go to time (in midi ticks)
@@ -89,3 +91,7 @@ class FluidSynthPlayer(MidiPlayer):
 
     def Length(self):
         return self.duration_in_ticks
+
+    @property
+    def unit_is_midi_tick(self):
+        return True

@@ -48,6 +48,10 @@ class MidiPlayer(object):
     def supports_tempo_change_while_playing(self):
         return False
 
+    @property
+    def unit_is_midi_tick(self):
+        return False
+
     def Play(self):
         pass
 
