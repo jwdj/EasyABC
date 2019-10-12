@@ -5454,7 +5454,7 @@ class MainFrame(wx.Frame):
             return
 
         if wx.Platform == "__WXMAC__":
-            text = text.replace('\r\n', '\r')
+            text = text.replace('\r\n', '\n')
         else:
             text = re.sub('\r+', '\r', text)
             if not '\n' in text:
