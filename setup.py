@@ -7,7 +7,7 @@ import os.path
 if sys.version_info.major > 2:
     basestring = str
 
-version = '1.3.7.4'
+version = '1.3.7.8'
 description = "EasyABC"
 long_description = "Nils Liberg's EasyABC 1.3.7 (Seymour Shlien)"
 url = 'http://www.nilsliberg.se/ksp/easyabc/'
@@ -34,18 +34,25 @@ if sys.platform == "darwin":
     import py2app
 #    import bdist_mpkg
     buildstyle = 'app'
-    options["py2app"] = {"argv_emulation" : True,
+    options["py2app"] = {"argv_emulation" : False,
                          'iconfile'       : "img/EasyABC.icns",
         #                 'optimize'       : 1,  #2
                          'compressed'     : 0,
         #                 'excludes': ['Tkinter','tcl','tk','_ssl', 'email'],
-                         'excludes': ['Tkinter','tcl','tk','_ssl', 'email', 'pygame', 'pygame.pypm'],
+                         'excludes': ['Tkinter','tcl','tk','_ssl', 'pygame', 'pygame.pypm'],
         #                 'includes': ['mechanize', 'urllib', 'socket', 'pygame.pypm' ],
                          'includes': ['mechanize', 'urllib', 'socket' ],
-
+                         'packages': ['wx'],
+                         'plist': {
+                                   'CFBundleDocumentTypes': [{
+                                                              'CFBundleTypeExtensions': ['abc'],
+                                                              'CFBundleTypeName': 'ABC notation file',
+                                                              'CFBundleTypeRole': 'Editor'
+                                                            }]
+                                   }
                          }
     data_files = [('.', ['reference.txt', 'gpl-license.txt']),
-                  ('bin', ['bin/abc2midi', 'bin/abcm2ps', 'bin/abc2abc', 'bin/nwc2xml']),
+                  ('bin', ['bin/abc2midi', 'bin/abcm2ps', 'bin/abc2abc', 'bin/nwc2xml', 'bin/midi2abc']),
                   ('img', glob.glob(os.path.join('img', '*.*'))),
                   ('sound', glob.glob(os.path.join('sound', '*.*'))),
                   ('locale', []),
@@ -67,7 +74,7 @@ if sys.platform == "darwin":
       data_files=data_files,
       #executables=executables,
       **{buildstyle : [{'script' : 'easy_abc.py',
-                     'icon_resources' : [(0, 'img\\logo.ico')]}
+                     'icon_resources' : [(0, 'img/logo.ico')]}
                        ]}
       )
 
@@ -83,7 +90,7 @@ else:
                      'bin\\nwc2xml.exe',
                      'bin\\zlibwapi.dll',
                      'reference.txt',
-	                 'gpl-license.txt',
+                     'gpl-license.txt',
                      'easy_abc.exe.manifest',
                      'Microsoft.VC90.CRT\\Microsoft.VC90.CRT.manifest',
                      'Microsoft.VC90.CRT\\msvcm90.dll',
