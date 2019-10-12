@@ -21,7 +21,7 @@ class FluidSynthPlayer(MidiPlayer):
         self.duration_in_ticks = 0               # length of midi file
         self.pause_time = 0        # time in midi ticks where player stopped
         self.set_gain(0.7)
-    
+
     def set_soundfont(self, sf2_path):         # load another sound font
         self.sf2 = sf2_path
         if self.sfid >= 0:
@@ -65,7 +65,7 @@ class FluidSynthPlayer(MidiPlayer):
         self.pause_time = 0
 
     def Seek(self, time):         # go to time (in midi ticks)
-        if time > self.duration_in_ticks or time < 0: 
+        if time > self.duration_in_ticks or time < 0:
             return
         ticks = self.p.seek(time)
         self.pause_time = time
@@ -73,13 +73,13 @@ class FluidSynthPlayer(MidiPlayer):
 
     def Tell(self):
         return self.p.get_ticks() # get play position in midi ticks
-        
+
     def dispose(self):             # free some memory
         self.p.delete()
         self.fs.delete()
 
     @property
-    def is_playing(self):             
+    def is_playing(self):
         return self.p.get_status() == 1  # 0 = ready, 1 = playing, 2 = finished
 
     @property

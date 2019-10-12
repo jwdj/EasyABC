@@ -14,7 +14,10 @@ from midiplayer import MidiPlayer
 class WxMediaPlayer(MidiPlayer):
     def __init__(self, parent_window, backend=None):
         super(WxMediaPlayer, self).__init__()
-        self.mc = wx.media.MediaCtrl(parent_window, szBackend=backend)
+        if backend is not None:
+            self.mc = wx.media.MediaCtrl(parent_window, szBackend=backend)
+        else:
+            self.mc = wx.media.MediaCtrl(parent_window)
         self.mc.Hide()
         self.is_really_playing = False
         self.loop_midi_playback = False

@@ -307,7 +307,7 @@ class SvgRenderer(object):
         self.empty_page = SvgPage(self, None)
         self.buffer = None
         # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
-        self.highlight_color = '#cc0000'
+        self.highlight_color = '#ee0000'
         self.default_transform = None
         #self.update_buffer(self.empty_page)
         if wx.Platform == "__WXMAC__":
