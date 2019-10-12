@@ -105,3 +105,10 @@ def wx_slider_set_tick_freq(slider, freq):
         slider.SetTickFreq(freq)
     else:
         slider.SetTickFreq(freq, 0)
+
+def wx_sound(path):
+    if WX4:
+        import wx.adv
+        return wx.adv.Sound(path)
+    else:
+        return wx.Sound(path)

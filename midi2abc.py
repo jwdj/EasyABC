@@ -153,7 +153,7 @@ def note_to_string(note, duration, default_len, key_accidentals, cur_accidentals
         -7: '=C _D =D _E _F =F _G =G _A __B _B _C', }
 
     scale = accidentals_to_scale[n_accidentals].split()
-    notes = [n.lower().translate(None, '_=^')
+    notes = [n.lower().translate(str.maketrans('', '', '_=^'))
              for n in scale]   # for semitone: the name of the note
     # for semitone: 0 if white key, -1 or -2 if flat, 1 or 2 if sharp
     accidentals = [n.count('^') - n.count('_') for n in scale]
