@@ -12,15 +12,13 @@ import fluidsynth as F
 class FluidSynthPlayer(MidiPlayer):
     def __init__(self, sf2_path):
         super(FluidSynthPlayer, self).__init__()
-        self.fs = F.Synth(bsize=2048) # make a synth
-        self.driver_name = F.onLinux and 'pulseaudio' or 'dsound'
-        self.fs.start(self.driver_name)  # set default output driver and start clock
+        self.fs = F.Synth(gain=0.7, bsize=2048) # make a synth
+        self.fs.start()  # set default output driver and start clock
         self.sfid = self.fs.sfload(sf2_path)
         self.fs.program_select(0, self.sfid, 0, 0)
         self.p = F.Player(self.fs)   # make a new player
         self.duration_in_ticks = 0               # length of midi file
         self.pause_time = 0        # time in midi ticks where player stopped
-        self.set_gain(0.7)
 
     def set_soundfont(self, sf2_path):         # load another sound font
         self.sf2 = sf2_path
@@ -36,11 +34,12 @@ class FluidSynthPlayer(MidiPlayer):
         self.reset()              # reset the player, empty the playlist
         self.pause_time  = 0       # resume playing at time == 0
         if os.path.exists(path):
-            self.p.add(path)           # add file to playlist
-            self.p.load()             # load first file from playlist
-            self.duration_in_ticks = max([self.p.get_length(i) for i in range (16)])  # get max length of all tracks
-            if self.p.get_status() == 2:  # not a midi file
-                return False
+            success = self.p.add(path)           # add file to playlist
+            #self.p.seek(0)
+            self.p.play()
+            #self.duration_in_ticks = self.p.get_length()
+            #if self.p.get_status() == 2:  # not a midi file
+            #    return False
             self.OnAfterLoad.fire()
             return True
         return False
@@ -53,6 +52,7 @@ class FluidSynthPlayer(MidiPlayer):
         if self.is_playing:
             return
         self.p.play(self.pause_time)
+        self.duration_in_ticks = self.p.get_length()
 
     def Pause(self):
         if self.is_playing:
@@ -90,6 +90,8 @@ class FluidSynthPlayer(MidiPlayer):
         self.p.set_gain(gain)
 
     def Length(self):
+        # if self.duration_in_ticks == 0:
+        self.duration_in_ticks = self.p.get_length()
         return self.duration_in_ticks
 
     @property

@@ -1,9 +1,9 @@
 #
 
-program_name = 'EasyABC 1.3.7.8 2019-10-09'
+program_name = 'EasyABC 1.3.7.8 2020-02-13'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015-2019 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
+# Copyright (C) 2015-2020 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,12 +19,10 @@ program_name = 'EasyABC 1.3.7.8 2019-10-09'
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# V1.3.7.8 
+# V1.3.7.8
 # - made BPM slider sticky for looping [EPO]
 # - fixed bug where tempo reset after loop [EPO]
 # - fixed crash when trying to Select() empty combobox in MainFrame/@current_page_index.setter [EPO]
-#
-
 
 # # for finding memory leaks uncomment following two lines
 # import gc
@@ -111,13 +109,13 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 from wx import GetTranslation as _
 from wxhelper import *
 # from midiplayer import *
+from fluidsynthplayer import *
 fluidsynth_available = False
-if wx.Platform != "__WXMAC__":
-    try:
-        from fluidsynthplayer import *
-        fluidsynth_available = True
-    except:
-        pass
+try:
+    from fluidsynthplayer import *
+    fluidsynth_available = True
+except:
+    pass
 
 from wxmediaplayer import *
 from xml2abc_interface import xml_to_abc, abc_to_xml
@@ -146,6 +144,8 @@ if wx.Platform == "__WXMSW__":
     import win32api
     import win32process
 try:
+    old_stdout = sys.stdout
+    sys.stdout = open(os.devnull, 'w')
     if wx.Platform == "__WXMAC__":
         import pygame.midi as pypm
         pypm.init()
@@ -158,6 +158,8 @@ except ImportError:
         import pypm
     except ImportError:
         sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work')
+finally:
+    sys.stdout = old_stdout
 
 def str2fraction(s):
     parts = [int(x.strip()) for x in s.split('/')]
@@ -579,10 +581,13 @@ def process_MCM(abc):
 def get_hash_code(*args):
     hash = hashlib.md5()
     for arg in args:
-        if type(arg) is unicode:
+        if PY3 or type(arg) is unicode:
             arg = arg.encode('utf-8', 'ignore')
         hash.update(arg)
-        hash.update(program_name)
+        if PY3:
+            hash.update(program_name.encode('utf-8', 'ignore'))
+        else:
+            hash.update(program_name)
     return hash.hexdigest()[:10]
 
 def change_abc_tempo(abc_code, tempo_multiplier):
@@ -3661,8 +3666,8 @@ class MainFrame(wx.Frame):
         self.setup_toolbar()
         self.mc = None
         self.load_settings()
-        
-        soundfont_path = settings.get('soundfont_path', None)
+
+        soundfont_path = settings.get('soundfont_path', '/usr/share/sounds/sf2/FluidR3_GM.sf2')
         if fluidsynth_available and soundfont_path and os.path.exists(soundfont_path):
             try:
                 self.mc = FluidSynthPlayer(soundfont_path)
@@ -4160,7 +4165,7 @@ class MainFrame(wx.Frame):
         self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
         self.play_button.SetBitmap(self.play_bitmap)
         self.play_button.Refresh()
-        self.media_slider.SetValue(0)
+        self.progress_slider.SetValue(0)
 
     def update_playback_rate(self):
         if self.mc.supports_tempo_change_while_playing:
@@ -4237,8 +4242,8 @@ class MainFrame(wx.Frame):
             #    time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
             # self.mc.Seek(self.play_start_offset, wx.FromStart)
             self.play_button.SetBitmap(self.pause_bitmap)
-            self.media_slider.SetRange(0, self.mc.Length())
-            self.media_slider.SetValue(0)
+            self.progress_slider.SetRange(0, self.mc.Length())
+            self.progress_slider.SetValue(0)
             self.OnBpmSlider(None)
             self.update_playback_rate()
             if wx.Platform == "__WXMAC__":
@@ -4274,7 +4279,7 @@ class MainFrame(wx.Frame):
         # 1.3.6.3 [SS] 2015-04-03
         #self.play_panel.Show(False)
         self.flip_tempobox(False)
-        self.media_slider.SetValue(0)
+        self.progress_slider.SetValue(0)
         # self.reset_BpmSlider()     #[EPO] 2018-11-20 make sticky - this is new functionality
         if wx.Platform != "__WXMSW__":
             self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
@@ -4282,7 +4287,7 @@ class MainFrame(wx.Frame):
             self.OnToolRecord(None)
 
     def OnSeek(self, evt):
-        self.mc.Seek(self.media_slider.GetValue())
+        self.mc.Seek(self.progress_slider.GetValue())
 
     def OnZoomSlider(self, evt):
         old_factor = self.zoom_factor
@@ -4299,14 +4304,17 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def OnPlayTimer(self, evt):
-        if not self.is_closed and self.media_slider.Parent.Shown and self.mc.is_playing:
+        if not self.is_closed and self.progress_slider.Parent.Shown and self.mc.is_playing:
             offset = self.mc.Tell()
+            if offset >= self.progress_slider.Max:
+                length = self.mc.Length()
+                self.progress_slider.SetRange(0, length)
             if self.settings.get('follow_score', False):
                 self.queue_number_follow_score += 1
                 queue_number = self.queue_number_follow_score
                 wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
 
-            self.media_slider.SetValue(offset)
+            self.progress_slider.SetValue(offset)
 
     def FollowScore(self, offset, queue_number):
         if self.queue_number_follow_score != queue_number:
@@ -4406,7 +4414,7 @@ class MainFrame(wx.Frame):
         ''' rearranges the toolbar depending on whether a midi file is played using the
             mc media player'''
         # self.show_toolbar_panel(self.bpm_slider.Parent, state)
-        self.show_toolbar_panel(self.media_slider.Parent, state)
+        self.show_toolbar_panel(self.progress_slider.Parent, state)
         self.loop_check.Show(state)
         self.follow_score_check.Show(state)
         self.UpdateTimingSliderVisibility()
@@ -4490,7 +4498,7 @@ class MainFrame(wx.Frame):
         self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, 0, -100, 100, (-1, -1), (130, 22))
         if wx.Platform == "__WXMSW__":
             self.bpm_slider.SetTick(0)  # place a tick in the middle for neutral tempo
-        self.media_slider = self.add_slider_to_toolbar(_('Play position'), False, 0, 0, 100, (-1, -1), (130, 22))
+        self.progress_slider = self.add_slider_to_toolbar(_('Play position'), False, 0, 0, 100, (-1, -1), (130, 22))
 
         self.loop_check = self.add_checkbox_to_toolbar(_('Loop'))
 
@@ -4501,7 +4509,7 @@ class MainFrame(wx.Frame):
         self.timing_slider.Bind(wx.EVT_SLIDER, self.OnChangeTiming)
         self.timing_slider.Bind(wx.EVT_LEFT_DOWN, self.OnTimingSliderClick)
 
-        self.Bind(wx.EVT_SLIDER, self.OnSeek, self.media_slider)
+        self.Bind(wx.EVT_SLIDER, self.OnSeek, self.progress_slider)
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
         self.bpm_slider.Bind(wx.EVT_LEFT_DOWN, self.OnBpmSliderClick)
 
@@ -5126,7 +5134,7 @@ class MainFrame(wx.Frame):
                     success = self.export_tune(tune, file_type, extension, convert_func, path, show_save_dialog=individual_save_dialog)
                 except Exception as e:
                     error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-                    # print(error_msg)
+                    print(error_msg)
                     success = False
 
                 if not success:
@@ -7032,7 +7040,7 @@ class MainFrame(wx.Frame):
                     time_value = float(m.group(1))
                     if self.mc.unit_is_midi_tick:
                         converted_time = time_value * ticks_per_quarter
-                    else: 
+                    else:
                         converted_time = time_value_to_milliseconds(time_value, tempos)
 
                     on_off = m.group(2)
