@@ -33,7 +33,7 @@ revmods = { revModels [0]: (0.2, 0.0, 0.5, 0.9), revModels [1]: (0.4, 0.2, 0.5, 
 if platform.system() == 'Windows':
     lib = './libfluidsynth-2.dll'
 else:
-    lib = 'libfluidsynth.so.2'
+    lib = './libfluidsynth.so.2'
 
 try:
     F = CDLL(lib)

@@ -7934,9 +7934,11 @@ class MainFrame(wx.Frame):
                 gs_path = get_ghostscript_path()
                 settings['gs_path'] = gs_path
             elif wx.Platform == '__WXGTK__':
-                gs_path = subprocess.check_output(["which", "gs"])
-                #print gs_path
-                settings['gs_path'] = gs_path[0:-1]
+                try:
+                    gs_path = subprocess.check_output(["which", "gs"])
+                    settings['gs_path'] = gs_path[0:-1]
+                except:
+                    settings['gs_path'] = ''
             #1.3.6.1 [SS] 2014-01-13
             elif wx.Platform == "__WXMAC__":
                 #gs_path = os.path.join(cwd, 'gs-8.71-macosx')
