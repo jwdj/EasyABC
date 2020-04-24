@@ -7952,14 +7952,14 @@ class MainFrame(wx.Frame):
         gs_path = settings['gs_path'] #eliminate trailing \n
         if gs_path and (os.path.exists(gs_path) == False):
             msg = _('The executable %s could not be found') % gs_path
-            dlg = wx.MessageDialog(self, wsg, _('Warning'), wx.OK)
+            dlg = wx.MessageDialog(self, msg, _('Warning'), wx.OK)
             dlg.ShowModal()
 
         # 1.3.6.1 [SS] 2015-01-13 2015-01-28
         #if wx.Platform == "__WXMAC__" and (os.path.exists(gs_path) == False):
             #if ps2pdf_path and  os.path.exists(ps2pdf_path) == False:
                 #msg = 'The executable '+ps2pdf_path+' could not be found.'
-                #dlg = wx.MessageDialog(self, wsg,'Warning', wx.OK)
+                #dlg = wx.MessageDialog(self, msg,'Warning', wx.OK)
                 #dlg.ShowModal()
 
 
