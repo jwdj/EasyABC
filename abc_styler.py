@@ -67,7 +67,10 @@ class ABCStyler:
         state = editor.GetStyleAt(start-1)  # init style
         text_length = editor.GetTextLength()
         old_state = state
-        editor.StartStyling(start, 31)   # only style the text style bits
+        try:
+            editor.StartStyling(start, 31)   # only style the text style bits
+        except:
+            editor.StartStyling(start)
         buffer_size = min(65536, end-start)
         i = start
         chPrev = chr(get_char_at(i-1))
