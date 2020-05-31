@@ -109,13 +109,11 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 from wx import GetTranslation as _
 from wxhelper import *
 # from midiplayer import *
-from fluidsynthplayer import *
-fluidsynth_available = False
 try:
     from fluidsynthplayer import *
     fluidsynth_available = True
-except:
-    pass
+except ImportError:
+    fluidsynth_available = False
 
 from wxmediaplayer import *
 from xml2abc_interface import xml_to_abc, abc_to_xml
@@ -4427,7 +4425,6 @@ class MainFrame(wx.Frame):
 
     def setup_toolbar(self):
         self.toolbar = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize)#, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
-        self.toolbar.SetToolAlignment(wx.ALIGN_CENTER_VERTICAL)
         try:
             self.toolbar.SetAGWWindowStyleFlag(aui.AUI_TB_PLAIN_BACKGROUND)
         except:
@@ -6229,7 +6226,7 @@ class MainFrame(wx.Frame):
         if (sx, sy) != orig_scroll:
             #print 'scroll', sx, sy
             ux, uy = self.music_pane.GetScrollPixelsPerUnit()
-            self.music_pane.Scroll(sx/ux, sy/uy)
+            self.music_pane.Scroll(int(sx/ux), int(sy/uy))
 
     def OnMovedToDifferentLine(self, queue_number_movement):
         if self.queue_number_movement != queue_number_movement:

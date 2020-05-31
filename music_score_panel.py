@@ -282,17 +282,17 @@ class MusicScorePanel(wx.ScrolledWindow):
         if not WX4:
             dc.BeginDrawing()
         try:
-            try:
-                dc.SetBackground(wx.WHITE_BRUSH)
-                dc.Clear()
-                self.draw_drag_rect(dc)
-                if self.current_page != self.renderer.empty_page:
-                    self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
-            finally:
-                if not WX4:
-                    dc.EndDrawing()
+            dc.SetBackground(wx.WHITE_BRUSH)
+            dc.Clear()
+            self.draw_drag_rect(dc)
+            if self.current_page != self.renderer.empty_page:
+                self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
         except Exception as e:
             error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-            # print('Warning: %s' % error_msg)
+            print('Warning: ' + error_msg)
+        finally:
+            if not WX4:
+                dc.EndDrawing()
+
 
 

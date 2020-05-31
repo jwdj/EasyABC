@@ -32,6 +32,7 @@ from datetime import datetime
 from wxhelper import wx_colour, wx_bitmap
 import sys
 PY3 = sys.version_info.major > 2
+WX4 = wx.version().startswith('4')
 
 # 1.3.6.2 [JWdJ] 2015-02-12 tags evaluated only once
 svg_namespace = 'http://www.w3.org/2000/svg'
@@ -307,7 +308,7 @@ class SvgRenderer(object):
         self.empty_page = SvgPage(self, None)
         self.buffer = None
         # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
-        self.highlight_color = '#ee0000'
+        self.highlight_color = '#00cc00'  # '#ee0000'
         self.default_transform = None
         #self.update_buffer(self.empty_page)
         if wx.Platform == "__WXMAC__":
@@ -592,22 +593,42 @@ class SvgRenderer(object):
         pen = self.stroke_cache.get(key)
         if pen is None:
             if svg_stroke == 'none':
-                pen = self.renderer.CreatePen(wx.NullPen)
-            else:
-                wxpen = wx.Pen(wx_colour(svg_stroke), line_width)
-                if linecap == 'butt':
-                    wxpen.SetCap(wx.CAP_BUTT)
-                elif linecap == 'round':
-                    wxpen.SetCap(wx.CAP_ROUND)
+                if WX4:
+                    pen = self.renderer.CreatePen(wx.GraphicsPenInfo())
                 else:
-                    raise Exception('linecap %s not supported yet' % linecap)
-                if dasharray:
-                    # 1.3.6.3 [JWDJ] 2015-3 dasharray is always a tuple, never a str or unicode
-                    #if type(dasharray) in (str, unicode):
-                    #    dasharray = [int(x.strip()) for x in dasharray.split(',')]
-                    wxpen.SetDashes(list(dasharray))
-                    wxpen.SetStyle(wx.USER_DASH)
-                wxpen.SetJoin(wx.JOIN_MITER)
+                    pen = self.renderer.CreatePen(wx.NullPen)
+            else:
+                if WX4:
+                    wxpen = wx.GraphicsPenInfo(wx_colour(svg_stroke)).Width(line_width)
+                    if linecap == 'butt':
+                        wxpen.Cap(wx.CAP_BUTT)
+                    elif linecap == 'round':
+                        wxpen.Cap(wx.CAP_ROUND)
+                    else:
+                        raise Exception('linecap %s not supported yet' % linecap)
+                    # if dasharray:
+                    #     # 1.3.6.3 [JWDJ] 2015-3 dasharray is always a tuple, never a str or unicode
+                    #     #if type(dasharray) in (str, unicode):
+                    #     #    dasharray = [int(x.strip()) for x in dasharray.split(',')]
+                    #     wxpen.Dashes(list(dasharray))
+                    #     wxpen.Style(wx.USER_DASH)
+                    wxpen.Join(wx.JOIN_MITER)
+                else:
+                    wxpen = wx.Pen(wx_colour(svg_stroke), line_width)
+                    if linecap == 'butt':
+                        wxpen.SetCap(wx.CAP_BUTT)
+                    elif linecap == 'round':
+                        wxpen.SetCap(wx.CAP_ROUND)
+                    else:
+                        raise Exception('linecap %s not supported yet' % linecap)
+                    if dasharray:
+                        # 1.3.6.3 [JWDJ] 2015-3 dasharray is always a tuple, never a str or unicode
+                        #if type(dasharray) in (str, unicode):
+                        #    dasharray = [int(x.strip()) for x in dasharray.split(',')]
+                        wxpen.SetDashes(list(dasharray))
+                        wxpen.SetStyle(wx.USER_DASH)
+                    wxpen.SetJoin(wx.JOIN_MITER)
+
                 pen = self.renderer.CreatePen(wxpen)
             self.stroke_cache[key] = pen
         dc.SetPen(pen)
@@ -752,7 +773,7 @@ class SvgRenderer(object):
             ##print repr(text), font_face, attr.get('font-size'), attr.get('font-weight')
             wxfont = wx.Font(font_size, font_family, style, weight, False, font_face, wx.FONTENCODING_DEFAULT)
             if wx.VERSION >= (3, 0) or '__WXMSW__' in wx.PlatformInfo:
-                wxfont.SetPixelSize((font_size, font_size))
+                wxfont.SetPixelSize(wx.Size(0, font_size))
                 y += 1
             else:
                 wxfont.SetPointSize(font_size)
