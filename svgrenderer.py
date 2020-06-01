@@ -299,16 +299,18 @@ class SvgRenderer(object):
         self.transform_re = re.compile(r'(\w+)\((.+?)\)')
         self.transform_split_re = re.compile(r',\s*|\s+')
         self.color_re = re.compile(r'color:(#[0-9a-f]{6})')
+        self.style_re = re.compile(r'^(?P<key>[a-z-]+):(?P<value>.*)$')
         self.scale_re = re.compile(r'scale\((.+?)\)')
         self.viewbox_re = re.compile(r'0 0 (\d+) (\d+)')
         self.float_px_re = re.compile(r'^(\d*(?:\.\d+))?px$')
+        self.font_re = re.compile(r'\bfont:(?:(?P<typeface>[a-z-]+) )?(?P<size>-?\d+(?:\.\d+)?(?:px|pt|em|ex|in|cm|mm|pc|%)?) (?P<family>[-\w]+)')
         self.zoom = 1.0
         self.min_width = 1
         self.min_height = 1
         self.empty_page = SvgPage(self, None)
         self.buffer = None
         # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
-        self.highlight_color = '#00cc00'  # '#ee0000'
+        self.highlight_color = '#009900'  # '#ee0000'
         self.default_transform = None
         #self.update_buffer(self.empty_page)
         if wx.Platform == "__WXMAC__":
@@ -393,7 +395,7 @@ class SvgRenderer(object):
         for element_id, current_color, matrix in [page.note_draw_info[i] for i in note_indices]:
             gc.PushState()
             gc.SetTransform(gc.CreateMatrix(*matrix))
-            self.draw_svg_element(page, gc, page.id_to_element[element_id], highlight, current_color)
+            self.draw_svg_element(page, gc, page.id_to_element[element_id], highlight, current_color, {})
             gc.PopState()
         gc.PopState()
 
@@ -413,7 +415,7 @@ class SvgRenderer(object):
         page.note_draw_info = []
         gc.PushState()
         gc.Scale(self.zoom, self.zoom)
-        self.draw_svg_element(page, gc, page.root_group, False, page.base_color)
+        self.draw_svg_element(page, gc, page.root_group, False, page.base_color, {})
         gc.PopState()
 
         # in order to reveal all the sensitive areas in the music pane,
@@ -643,7 +645,7 @@ class SvgRenderer(object):
     #     om.Concat(sm)
     #     return om
 
-    def draw_svg_element(self, page, dc, svg_element, highlight, current_color):
+    def draw_svg_element(self, page, dc, svg_element, highlight, current_color, current_style):
         ''' This is the main engine for converting the svg items in the svg file into graphics
         displayed in the music pane. The book SVG Essentials by J. David
         Eisenberg describes all the elements used (eg. g, use, ellipse, ...)
@@ -668,13 +670,34 @@ class SvgRenderer(object):
         if name == 'g':
             style = attr.get('style')
             if style:
-                m = self.color_re.match(style)
-                if m:
-                    current_color = m.group(1).upper()
+                parts = style.split(";")
+                for part in parts:
+                    part = part.strip()
+                    m = self.font_re.match(part)
+                    if m:
+                        size = m.group('size')
+                        if size and size != 'inherit':
+                            current_style['font-size'] = size[:-2]  # remove px
+
+                        typeface = m.group('typeface')
+                        if typeface and typeface != 'inherit':
+                            current_style['font-typeface'] = typeface
+
+                        family = m.group('family')
+                        if family and family != 'inherit':
+                            current_style['font-family'] = family
+                    else:
+                        m = self.color_re.match(part)
+                        if m:
+                            current_color = m.group(1).upper()
+                        key = part[:part.index(':')]
+                        value = part[part.index(':')+1:].strip()
+                        if (value != 'inherit'):
+                            current_style[key] = value
 
             # 1.3.6.2 [JWdJ] 2015-02-14 Only 'g' and 'defs' have children
             for child in svg_element.children:
-                self.draw_svg_element(page, dc, child, highlight, current_color)
+                self.draw_svg_element(page, dc, child, highlight, current_color, current_style.copy())
 
         # if something is going to be drawn, prepare
         else:
@@ -710,6 +733,7 @@ class SvgRenderer(object):
             #    dc.SetPen(wx.Pen('#000000', 1, wx.SOLID))
             #End of patch
             dc.DrawPath(path, wx.WINDING_RULE)
+
         elif name == 'use':
             x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
             element_id = attr[href_tag][1:]
@@ -725,35 +749,41 @@ class SvgRenderer(object):
 
             dc.PushState()
             dc.Translate(x, y)
-            self.draw_svg_element(page, dc, page.id_to_element[element_id], highlight, current_color)
+            self.draw_svg_element(page, dc, page.id_to_element[element_id], highlight, current_color, current_style.copy())
             if desc:
                 page.note_draw_info.append((element_id, current_color, dc.GetTransform().Get()))
             dc.PopState()
+
         elif name == 'ellipse':
             cx, cy, rx, ry = attr.get('cx', 0), attr.get('cy', 0), attr['rx'], attr['ry']
             cx, cy, rx, ry = map(float, (cx, cy, rx, ry))
             path = dc.CreatePath()
             path.AddEllipse(cx-rx, cy-ry, rx+rx, ry+ry)
             dc.DrawPath(path)
+
         elif name == 'circle':
             cx, cy, r = map(float, (attr.get('cx', 0), attr.get('cy', 0), attr['r']))
             path = dc.CreatePath()
             path.AddCircle(cx, cy, r)
             dc.DrawPath(path)
+
         elif name == 'text':
             text = attr['text']
             if not self.can_draw_sharps_and_flats:
                 text = text.replace(u'\u266d', 'b').replace(u'\u266f', '#').replace(u'\u266e', '=')
             x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
-            if attr.get('font-style') == 'italic':
+
+            if attr.get('font-style') or current_style.get('font-typeface') == 'italic':
                 style = wx.FONTSTYLE_ITALIC
             else:
                 style = wx.FONTSTYLE_NORMAL
-            if attr.get('font-weight') == 'bold':
+
+            if attr.get('font-weight') or current_style.get('font-typeface') == 'bold':
                 weight = wx.FONTWEIGHT_BOLD
             else:
                 weight = wx.FONTWEIGHT_NORMAL
-            font_size = int(round(float(attr.get('font-size', 12))*1))
+
+            font_size = int(round(float(attr.get('font-size') or current_style.get('font-size', 12))))
             # 1.3.6.3 [JWDJ] 2015-3 bugfix: use correct font family
             font_face = ''
             svg_to_wx_font_family = {
@@ -764,7 +794,7 @@ class SvgRenderer(object):
                 'sans': wx.FONTFAMILY_SWISS, # should be 'sans-serif' (abcm2ps bug?)
             }
 
-            svg_font_family = attr.get('font-family', 'serif').lower()
+            svg_font_family = (attr.get('font-family') or current_style.get('font-family', 'serif')).lower()
             font_family = svg_to_wx_font_family.get(svg_font_family)
             if font_family is None:
                 font_family = wx.FONTFAMILY_DEFAULT
@@ -780,11 +810,13 @@ class SvgRenderer(object):
 
             font = dc.CreateFont(wxfont, wx_colour(attr.get('fill', 'black')))
             dc.SetFont(font)
+
             (width, height, descent, externalLeading) = dc.GetFullTextExtent(text)
             if attr.get('text-anchor') == 'middle':
                 x -= width / 2
             elif attr.get('text-anchor') == 'end':
                 x -= width
+
             try:
                 dc.DrawText(text, x, y-height+descent)
             except wx.PyAssertionError:
@@ -794,6 +826,7 @@ class SvgRenderer(object):
                                 attr.get('font-weight', '<none>'),
                                 attr.get('font-style', '<none>'),
                                 x, y, height, descent, dc.GetTransform().Get()))
+
         elif name == 'rect':
             x, y, width, height = attr.get('x', 0), attr.get('y', 0), attr['width'], attr['height']
             if '%' in width:
@@ -811,6 +844,7 @@ class SvgRenderer(object):
             path.AddLineToPoint(x, y+height)
             path.AddLineToPoint(x, y)
             dc.DrawPath(path)
+
         elif name == 'line':
             x1, y1, x2, y2 = map(float, (attr['x1'], attr['y1'], attr['x2'], attr['y2']))
             # 1.3.6.3 [JWDJ] 2015-3 Fill and stroke already have been set
