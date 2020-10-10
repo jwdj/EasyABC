@@ -2010,10 +2010,15 @@ class IncipitsFrame(wx.Dialog):
         self.ok = wx.Button(self, -1, _('&Ok'))
         self.cancel = wx.Button(self, -1, _('&Cancel'))
         self.ok.SetDefault()
-        btn_box = wx.BoxSizer(wx.HORIZONTAL)
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
-        btn_box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
-        btn_box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
+        if PY3:
+            btn_box = wx.BoxSizer(wx.HORIZONTAL)
+            btn_box.Add(self.ok, wx.ID_OK)
+            btn_box.Add(self.cancel, wx.ID_CANCEL)
+        else:
+            btn_box = wx.BoxSizer(wx.HORIZONTAL)
+            btn_box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
+            btn_box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(box1, flag=wx.ALL | wx.EXPAND, border=10)
@@ -2626,8 +2631,13 @@ class MyVoicePage(wx.Panel):
 
         # reset buttons box
         self.reset = wx.Button(self, -1, _('&Reset'))
-        btn_box = wx.BoxSizer(wx.HORIZONTAL)
-        btn_box.Add(self.reset, flag=wx.ALIGN_RIGHT)
+        if PY3:
+            btn_box = wx.BoxSizer()
+            btn_box.Add(self.reset)
+        else:
+            btn_box = wx.BoxSizer(wx.HORIZONTAL)
+            btn_box.Add(self.reset, flag=wx.ALIGN_RIGHT)
+
         reset_toolTip = _('The instrument for all voices is set to the default midi program. The volume and pan are set to 96/64.')
         self.reset.SetToolTip(wx.ToolTip(reset_toolTip))
 
@@ -2925,9 +2935,9 @@ class MyAbcm2psPage(wx.Panel):
         gridsizer2.Add(self.chkm2psdef,0,0,0,0)
 
         gridsizer2.Add(numberbars,0,0,0,0)
-        gridsizer2.Add(self.chkm2psbar,0,0,0.0)
+        gridsizer2.Add(self.chkm2psbar,0,0,0,0)
 
-        gridsizer2.Add(refnumbers,0,0,0.0)
+        gridsizer2.Add(refnumbers,0,0,0,0)
         gridsizer2.Add(self.chkm2psref,0,0,0,0)
 
         gridsizer2.Add(nolyrics,0,0,0,0)
@@ -2955,8 +2965,8 @@ class MyAbcm2psPage(wx.Panel):
         self.gridsizer3.Add(pageheight,0,0,0,0)
         self.gridsizer3.Add(self.pageheight,0,0,0,0)
 
-        self.gridsizer3.Add(scalefact,0,0.0,0)
-        self.gridsizer3.Add(self.scaleval,0,0.0,0)
+        self.gridsizer3.Add(scalefact,0,0,0,0)
+        self.gridsizer3.Add(self.scaleval,0,0,0,0)
 
         # 1.3.6.1 [SS] 2015-01-28
         self.gridsizer4.Add(extras,0,0,0,0)
