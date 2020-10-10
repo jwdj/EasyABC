@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # coding=latin-1
 '''
-Copyright (C) 2012: Willem G. Vree
+Copyright (C) 2012-2018: Willem G. Vree
 Contributions: Nils Liberg, Nicolas Froment, Norman Schmidt, Reinier Maliepaard, Martin Tarenskeen,
-               Paul Villiger, Alexander Scheutzow, Herbert Schneider
+               Paul Villiger, Alexander Scheutzow, Herbert Schneider, David Randolph
 
 This program is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of
-the License, or (at your option) any later version.
+Lesser GNU General Public License as published by the Free Software Foundation;
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License for more details. <http://www.gnu.org/licenses/gpl.html>.
+See the Lesser GNU General Public License for more details. <http://www.gnu.org/licenses/lgpl.html>.
 '''
 
+from functools import reduce
 from pyparsing import Word, OneOrMore, Optional, Literal, NotAny, MatchFirst
 from pyparsing import Group, oneOf, Suppress, ZeroOrMore, Combine, FollowedBy
 from pyparsing import srange, CharsNotIn, StringEnd, LineEnd, White, Regex
@@ -22,7 +22,7 @@ try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import types, sys, os, re, datetime
 
-VERSION = 84
+VERSION = 228
 
 python3 = sys.version_info[0] > 2
 lmap = lambda f, xs: list (map (f, xs))   # eager map for python 3
@@ -79,7 +79,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     part_seq = OneOrMore (part | Suppress ('|'))
     brace_gr = Suppress ('{') + part_seq + Suppress ('}')
     bracket_gr = Suppress ('[') + part_seq + Suppress (']')
-    part << MatchFirst (simple_part | grand_staff | brace_gr | bracket_gr | Suppress ('|'))
+    part <<= MatchFirst (simple_part | grand_staff | brace_gr | bracket_gr | Suppress ('|'))
     abc_scoredef = Suppress (oneOf ('staves score')) + OneOrMore (part)
 
     #----------------------------------------
@@ -147,7 +147,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
 
     acciaccatura    = Literal ('/')
     grace_stem      = Optional (decorations) + stem
-    grace_notes     << Group (Suppress ('{') + Optional (acciaccatura) + OneOrMore (grace_stem) + Suppress ('}'))
+    grace_notes     <<= Group (Suppress ('{') + Optional (acciaccatura) + OneOrMore (grace_stem) + Suppress ('}'))
 
     text_expression  = Optional (oneOf ('^ _ < > @'), '^') + Optional (CharsNotIn ('"'), "")
     chord_accidental = oneOf ('# b =')
@@ -424,7 +424,7 @@ def compChordTab ():    # avoid some typing work: returns mapping constant {ABC 
 
 def addElem (parent, child, level):
     indent = 2
-    chldrn = parent.getchildren ()
+    chldrn = list (parent)
     if chldrn:
         chldrn[-1].tail += indent * ' '
     else:
@@ -604,7 +604,7 @@ def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0):
                 if n.find ('grace') == None and n.find ('chord') == None)
     dur1 -= sum (int (b.text) for b in m1.findall ('backup/duration'))
     nns, es = 0, []             # nns = number of real notes in m2
-    for e in m2.getchildren (): # scan all elements of m2
+    for e in list (m2): # scan all elements of m2
         if e.tag == 'attributes':
             if not is_grand: continue # no attribute merging for normal voices
             else: nns += 1       # but we do merge (clef) attributes for a grand staff
@@ -623,11 +623,11 @@ def mergePartList (parts, rOpt, is_grand=0):    # merge parts, make grand staff 
     def delAttrs (part):                # for the time being we only keep clef attributes
         xs = [(m, e) for m in part.findall ('measure') for e in m.findall ('attributes')]
         for m, e in xs:
-            for c in e.getchildren ():
+            for c in list (e):
                 if c.tag == 'clef': continue    # keep clef attribute
                 if c.tag == 'staff-details': continue    # keep staff-details attribute
                 e.remove (c)                    # delete all other attrinutes for higher staff numbers
-            if len (e.getchildren ()) == 0: m.remove (e)    # remove empty attributes element
+            if len (list (e)) == 0: m.remove (e)    # remove empty attributes element
 
     p1 = parts[0]
     for p2 in parts[1:]:
@@ -662,7 +662,7 @@ def mergeParts (parts, vids, staves, rOpt, is_grand=0):
 def mergePartMeasure (part, msre, ovrlaynum, rOpt):         # merge msre into last measure of part, only for overlays
     slurs = part.findall ('measure/note/notations/slur')    # find highest slur num in part
     slur_max = max ([int (slr.get ('number')) for slr in slurs] + [0])
-    last_msre = part.getchildren ()[-1] # last measure in part
+    last_msre = list (part)[-1] # last measure in part
     mergeMeasure (last_msre, msre, slur_max, ovrlaynum, rOpt) # voice offset = s.overlayVNum
 
 def setFristVoiceNameFromGroup (vids, vdefs): # vids = [vid], vdef = {vid -> (name, subname, voicedef)}
@@ -821,7 +821,7 @@ class MusicXml:
         s.pageFmtCmd = []   # set by command line option -p
         s.reset ()
     def reset (s, fOpt=False):
-        s.divisions = 120   # xml duration of 1/4 note
+        s.divisions = 2520  # xml duration of 1/4 note, 2^3 * 3^2 * 5 * 7 => 5,7,9 tuplets
         s.ties = {}         # {abc pitch tuple -> alteration} for all open ties
         s.slurstack = []    # stack of open slur numbers
         s.slurbeg = []      # type of slurs to start (when slurs are detected at element-level)
@@ -902,7 +902,7 @@ class MusicXml:
         addElemT (pitch, 'step', nUp, lev + 1)
         alter = ''
         if (note, oct) in s.ties:
-            tied_alter, _, vnum = s.ties [(note,oct)]               # vnum = overlay voice number when tie started
+            tied_alter, _, vnum, _ = s.ties [(note,oct)]            # vnum = overlay voice number when tie started
             if vnum == s.overlayVnum: alter = tied_alter            # tied note in the same overlay -> same alteration
         elif acc:
             s.msreAlts [(nUp, octnum)] = s.alterTab [acc]
@@ -940,12 +940,13 @@ class MusicXml:
             info ('duration too small: rounded to %d/%d' % (num, den))
         if n.name == 'rest' and ('Z' in n.t or 'X' in n.t):
               num, den = s.mdur         # duration of one measure
+        noMsrRest = not (n.name == 'rest' and (num, den) == s.mdur) # not a measure rest
         dvs = (4 * s.divisions * num) // den    # divisions is xml-duration of 1/4
         rdvs = dvs                      # real duration (will be 0 for chord/grace)
         num, den = simplify (num, den * 4)      # scale by 1/4 for s.typeMap
         ndot = 0
-        if num == 3: ndot = 1; den = den // 2   # look for dotted notes
-        if num == 7: ndot = 2; den = den // 4
+        if num == 3 and noMsrRest: ndot = 1; den = den // 2 # look for dotted notes
+        if num == 7 and noMsrRest: ndot = 2; den = den // 4
         nt = E.Element ('note')
         if isgrace:                     # a grace note (and possibly a chord note)
             grace = E.Element ('grace')
@@ -969,6 +970,7 @@ class MusicXml:
         if n.name == 'rest':
             if 'x' in n.t or 'X' in n.t: nt.set ('print-object', 'no')
             rest = E.Element ('rest')
+            if not noMsrRest: rest.set ('measure', 'yes')
             addElem (nt, rest, lev + 1)
         else:
             p = n.pitch.t           # get pitch elements from parsed tokens
@@ -982,6 +984,14 @@ class MusicXml:
         if dvs:
             addElemT (nt, 'duration', str (dvs), lev + 1)   # skip when dvs == 0, requirement of musicXML
             if not ischord: s.gTime = s.gTime [1], s.gTime [1] + dvs
+        ptup = (step, oct)              # pitch tuple without alteration to check for ties
+        tstop = ptup in s.ties and s.ties[ptup][2] == s.overlayVnum  # open tie on this pitch tuple in this overlay
+        if tstop:
+            tie = E.Element ('tie', type='stop')
+            addElem (nt, tie, lev + 1)
+        if getattr (n, 'tie', 0):
+            tie = E.Element ('tie', type='start')
+            addElem (nt, tie, lev + 1)
         if (s.midprg != ['', '', '', ''] or midi) and n.name != 'rest': # only add when %%midi was present or percussion
             instId = 'I%s-%s' % (s.pid, 'X' + midi if midi else s.vid)
             chan, midi = ('10', midi) if midi else s.midprg [:2]
@@ -989,12 +999,10 @@ class MusicXml:
             addElem (nt, inst, lev + 1)
             if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, chan, midi, s.midprg [2], s.midprg [3]) # for instrument list in mkScorePart
         addElemT (nt, 'voice', '1', lev + 1)    # default voice, for merging later
-        addElemT (nt, 'type', xmltype, lev + 1) # add note type
+        if noMsrRest: addElemT (nt, 'type', xmltype, lev + 1) # add note type if not a measure rest
         for i in range (ndot):          # add dots
             dot = E.Element ('dot')
             addElem (nt, dot, lev + 1)
-        ptup = (step, oct)              # pitch tuple without alteration to check for ties
-        tstop = ptup in s.ties and s.ties[ptup][2] == s.overlayVnum  # open tie on this pitch tuple in this overlay
         decos = s.getNoteDecos (n)      # get decorations for this note
         if acc and not tstop:           # only add accidental if note not tied
             e = E.Element ('accidental')
@@ -1049,7 +1057,7 @@ class MusicXml:
         if pts:                                     # make list of pitches in chord: [(pitch, octave), ..]
             if type (pts.pitch) == pObj: pts = [pts.pitch]      # chord with one note
             else: pts = [tuple (p.t[-2:]) for p in pts.pitch]   # normal chord
-        for pt, (tie_alter, nts, vnum) in sorted (list (s.ties.items ())):  # scan all open ties and delete illegal ones
+        for pt, (tie_alter, nts, vnum, ntelm) in sorted (list (s.ties.items ())):  # scan all open ties and delete illegal ones
             if vnum != s.overlayVnum: continue      # tie belongs to different overlay
             if pts and pt in pts: continue          # pitch tuple of tie exists in chord
             if getattr (n, 'chord', 0): continue    # skip chord notes
@@ -1057,7 +1065,9 @@ class MusicXml:
             if getattr (n, 'grace', 0): continue    # skip grace notes
             info ('tie between different pitches: %s%s converted to slur' % pt)
             del s.ties [pt]                         # remove the note from pending ties
-            e = [t for t in nts.findall ('tied') if t.get ('type') == 'start'][0]   # get the tie start element
+            e = [t for t in ntelm.findall ('tie') if t.get ('type') == 'start'][0]  # get the tie start element
+            ntelm.remove (e)                        # delete start tie element
+            e = [t for t in nts.findall ('tied') if t.get ('type') == 'start'][0]   # get the tied start element
             e.tag = 'slur'                          # convert tie into slur
             slurnum = len (s.slurstack) + 1
             s.slurstack.append (slurnum)
@@ -1085,7 +1095,7 @@ class MusicXml:
             tie = E.Element ('tied', type='stop')
             addElem (nots, tie, lev + 1)
         if tstart:              # start a tie
-            s.ties[ptup] = (alter, nots, s.overlayVnum) # remember pitch tuple to stop tie and apply same alteration
+            s.ties[ptup] = (alter, nots, s.overlayVnum, nt) # remember pitch tuple to stop tie and apply same alteration
             tie = E.Element ('tied', type='start')
             if tstart.t[0] == '.-': tie.set ('line-type', 'dotted')
             addElem (nots, tie, lev + 1)
@@ -1128,7 +1138,7 @@ class MusicXml:
             if ',' in stp: ntn.set ('placement', 'below')
             if "'" in stp: ntn.set ('placement', 'above')
             addElem (nots, ntn, lev + 1)            
-        if nots.getchildren() != []:    # only add notations if not empty
+        if list (nots) != []:    # only add notations if not empty
             addElem (nt, nots, lev)
 
     def doArticulations (s, nt, nots, arts, lev):
@@ -1527,6 +1537,12 @@ class MusicXml:
         if len (rnt) == 2: addElemT (root, 'root-alter', alterMap [rnt[1]], lev + 2)
         kind = s.chordTab.get (sym.kind.t[0], 'major')
         addElemT (chord, 'kind', kind, lev + 1)
+        if hasattr (sym, 'bass'):
+            bnt = sym.bass.t
+            bass = E.Element ('bass')
+            addElem (chord, bass, lev + 1)
+            addElemT (bass, 'bass-step', bnt[0], lev + 2)
+            if len (bnt) == 2: addElemT (bass, 'bass-alter', alterMap [bnt[1]], lev + 2)
         degs = getattr (sym, 'degree', '')
         if degs:
             if type (degs) != list_type: degs = [degs]
@@ -1647,7 +1663,8 @@ class MusicXml:
     def mkScorePart (s, id, vids_p, partAttr, lev):
         def mkInst (instId, vid, midchan, midprog, midnot, vol, pan, lev):
             si = E.Element ('score-instrument', id=instId)
-            addElemT (si, 'instrument-name', partAttr.get (vid, [''])[0], lev + 2)
+            pnm = partAttr.get (vid, [''])[0]   # part name if present
+            addElemT (si, 'instrument-name', pnm or 'dummy', lev + 2)   # MuseScore needs a name
             mi = E.Element ('midi-instrument', id=instId)
             if midchan: addElemT (mi, 'midi-channel', midchan, lev + 2)
             if midprog: addElemT (mi, 'midi-program', str (int (midprog) + 1), lev + 2) # compatible with abc2midi
@@ -2034,6 +2051,9 @@ def decodeInput (data_string):
     info ('decoded from %s' % enc)
     return unicode_string
 
+def ggd (a, b): # greatest common divisor
+    return a if b == 0 else ggd (b, a % b)
+
 xmlVersion = "<?xml version='1.0' encoding='utf-8'?>"    
 def fixDoctype (elem):
     if python3: xs = E.tostring (elem, encoding='unicode')  # writing to file will auto-encode to utf-8
@@ -2057,21 +2077,21 @@ def xml2mxl (pad, fnm, data):   # write xml data to compressed .mxl file
     info ('%s written' % outfile, warn=0)
 
 def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False, fOpt=False):
-    # these globals should be initialised (as in the __main__ secion) before calling convert
-    global mxm                                          # optimisation 1: keep instance of MusicXml
-    global abc_header, abc_voice, abc_scoredef, abc_percmap # optimisation 2: keep computed grammars
     score = mxm.parse (abc_string, rOpt, bOpt, fOpt)
     xmldoc = fixDoctype (score)
+    writefile (pad, fnm, xmldoc, mxl, tOpt)
+
+def writefile (pad, fnm, xmldoc, mxlOpt, tOpt=False):
     ipad, ifnm = os.path.split (fnm)                    # base name of input path is
     if tOpt: ifnm = mxm.title.split ('\n')[0].replace (',','_').replace ("'",'_').replace ('?','_')
     if pad:
-        if not mxl or mxl in ['a', 'add']:
+        if not mxlOpt or mxlOpt in ['a', 'add']:
             outfnm = os.path.join (pad, ifnm + '.xml')  # joined with path from -o option
             outfile = open (outfnm, 'w')
             outfile.write (xmldoc)
             outfile.close ()
             info ('%s written' % outfnm, warn=0)
-        if mxl: xml2mxl (pad, ifnm, xmldoc)             # also write a compressed version
+        if mxlOpt: xml2mxl (pad, ifnm, xmldoc)          # also write a compressed version
     else:
         outfile = sys.stdout
         outfile.write (xmldoc)
@@ -2095,6 +2115,34 @@ def expand_abc_include (abctxt):
         if x != None: ys.append (x)
     return '\n'.join (ys)
 
+abc_header, abc_voice, abc_scoredef, abc_percmap = abc_grammar () # compute grammars only once
+mxm = MusicXml ()               # same for instance of MusicXml
+def getXmlScores (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # added by David Randolph
+    xml_strings = []
+    abctext = expand_abc_include (abc_string)
+    fragments =  abctext.split ('X:')
+    preamble = fragments [0]    # tunes can be preceeded by formatting instructions
+    tunes = fragments[1:]
+    if not tunes and preamble: tunes, preamble = ['1\n' + preamble], ''  # tune without X:
+    for itune, tune in enumerate (tunes):
+        if itune < skip: continue           # skip tunes, then read at most num tunes
+        if itune >= skip + num: break
+        tune = preamble + 'X:' + tune       # restore preamble before each tune
+        try:                                # convert string abctext -> file pad/fnmNum.xml
+            score = mxm.parse (tune, rOpt, bOpt, fOpt)
+            ds = list (score.iter ('duration')) # need to iterate twice
+            ss = [int (d.text) for d in ds]
+            deler = reduce (ggd, ss + [21]) # greatest common divisor of all durations
+            for i, d in enumerate (ds): d.text = str (ss [i] // deler)
+            for d in score.iter ('divisions'): d.text = str (int (d.text) // deler)
+            xml_str = fixDoctype (score)
+            xml_strings.append (xml_str)
+        except ParseException:
+            pass         # output already printed
+        except Exception as err:
+            info ('an exception occurred.\n%s' % err)
+    return xml_strings
+
 #----------------
 # Main Program
 #----------------
@@ -2102,9 +2150,6 @@ if __name__ == '__main__':
     from optparse import OptionParser
     from glob import glob
     import time
-    global mxm  # keep instance of MusicXml
-    global abc_header, abc_voice, abc_scoredef, abc_percmap # keep computed grammars
-    mxm = MusicXml ()
 
     parser = OptionParser (usage='%prog [-h] [-r] [-t] [-b] [-m SKIP NUM] [-o DIR] [-p PFMT] [-z MODE] [--meta MAP] <file1> [<file2> ...]', version='version %d' % VERSION)
     parser.add_option ("-o", action="store", help="store xml files in DIR", default='', metavar='DIR')
@@ -2136,8 +2181,6 @@ if __name__ == '__main__':
         if field not in 'OAZNGHRBDFSPW': parser.error ('--meta: field %s is no valid ABC field' % field)
         if tag not in mxm.metaTypes: parser.error ('--meta: tag %s is no valid XML creator type' % tag)
         mxm.metaMap [field] = tag
-
-    abc_header, abc_voice, abc_scoredef, abc_percmap = abc_grammar ()   # compute grammar only once per file set
     fnmext_list = []
     for i in args: fnmext_list += glob (i)
     if not fnmext_list: parser.error ('none of the input files exist')
@@ -2151,20 +2194,9 @@ if __name__ == '__main__':
             info ('skipped directory %s. Only files are accepted' % fnmext)
             continue
         abctext = readfile (fnmext)
-        abctext = expand_abc_include (abctext)
-        fragments =  abctext.split ('X:')
-        preamble = fragments [0]    # tunes can be preceeded by formatting instructions
-        tunes = fragments[1:]
-        if not tunes and preamble: tunes, preamble = ['1\n' + preamble], ''  # tune without X:
-        skip, num = options.m       # skip tunes, then read at most num tunes
-        numtunes = min ([len (tunes), num])     # number of tunes to be converted
-        for itune, tune in enumerate (tunes):
-            if itune < skip: continue
-            if itune >= skip + num: break
-            tune = preamble + 'X:' + tune       # restore preamble before each tune
-            fnmNum = '%s%02d' % (fnm, itune + 1) if numtunes > 1 else fnm
-            try:                                # convert string abctext -> file pad/fnmNum.xml
-                convert (pad, fnmNum, tune, options.mxl, options.r, options.t, options.b, options.f)
-            except ParseException: pass         # output already printed
-            except Exception as err: info ('an exception occurred.\n%s' % err)
+        skip, num = options.m
+        xml_strings = getXmlScores (abctext, skip, num, options.r, options.b, options.f)
+        for itune, xmldoc in enumerate (xml_strings):
+            fnmNum = '%s%02d' % (fnm, itune + 1) if len (xml_strings) > 1 else fnm
+            writefile (pad, fnmNum, xmldoc, options.mxl, options.t)
     info ('done in %.2f secs' % (time.time () - t_start))
