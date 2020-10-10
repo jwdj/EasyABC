@@ -72,9 +72,9 @@ class Synth:            # interface for the FluidSynth synthesizer
         self.audio_driver = F.new_fluid_audio_driver(self.settings, self.synth)
         if not self.audio_driver:   # API returns 0 on error (not None)
             self.audio_driver = None
-        else:   # print some info
-            psize = self.setting_getint('audio.period-size')
-            nper = self.setting_getint('audio.periods')
+        # else:   # print some info
+            # psize = self.setting_getint('audio.period-size')
+            # nper = self.setting_getint('audio.periods')
             # print 'audio.period-size:', psize.value, 'audio.periods:', nper.value, 'latency:', nper.value * psize.value * 1000 / 44100, 'msec'
 
     def delete(self):              # release all memory

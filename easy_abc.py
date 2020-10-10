@@ -1,6 +1,6 @@
 #
 
-program_name = 'EasyABC 1.3.7.8 2020-02-13'
+program_name = 'EasyABC 1.3.7.8 2020-10-10'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2020 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -455,7 +455,7 @@ def upload_tune(tune, author):
     if m:
         captcha_url = m.group(1).encode('utf-8')
         f = tempfile.NamedTemporaryFile(delete=False)
-        img_path = f.name
+        # img_path = f.name
         # print(captcha_url)
         # print(img_path)
         img_data = urlopen(captcha_url).read()
@@ -607,7 +607,7 @@ def change_abc_tempo(abc_code, tempo_multiplier):
             return m.group(0)
 
     abc_code, n1 = re.subn(r'(?m)^Q: *(.+)', lambda m, mul=tempo_multiplier: subfunc(m, mul), abc_code)
-    abc_code, n2 = re.subn(r'\[Q: *(.+)\]', lambda m, mul=tempo_multiplier: subfunc(m, mul), abc_code)
+    abc_code, _ = re.subn(r'\[Q: *(.+)\]', lambda m, mul=tempo_multiplier: subfunc(m, mul), abc_code)
     # if no Q: field that is not inline add a new Q: field after the X: line
     # (it seems to be ignored by abcmidi if added earlier in the code)
     if n1 == 0:
@@ -657,7 +657,6 @@ def sort_abc_tunes(abc_code, sort_fields, keep_free_text=True):
     preceeding_lines = []
     Tune = namedtuple('Tune', 'lines header preceeding_lines')
     cur_tune = None
-    inside_begin = ''
     for line in lines:
 
         if line.startswith('X:'):
@@ -764,7 +763,7 @@ def process_abc_code(settings, abc_code, header, minimal_processing=False, tempo
 def AbcToPS(abc_code, cache_dir, extra_params='', abcm2ps_path=None, abcm2ps_format_path=None):
     ''' converts from abc to postscript. Returns (ps_file, error_message) tuple, where ps_file is None if the creation was not successful '''
     global execmessages
-    hash_code = get_hash_code(abc_code, read_text_if_file_exists(abcm2ps_format_path))
+    # hash_code = get_hash_code(abc_code, read_text_if_file_exists(abcm2ps_format_path))
     ps_file = os.path.abspath(os.path.join(cache_dir, 'temp.ps'))
 
     # determine parameters
@@ -1039,7 +1038,7 @@ def grab_time_signature(abccode):
     ''' The function detects the first time signature M: n/m in
         abccode and returns [n, m].
     '''
-    fracpat = re.compile('(\d+)/(\d+)')
+    fracpat = re.compile(r'(\d+)/(\d+)')
     loc = abccode.find('M:')
     meter = abccode[loc+2:loc+10]
     meter = meter.lstrip()
@@ -1200,7 +1199,6 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     default_midi_bassvol = settings.get('bassvol')
     # 1.3.6.3 [SS] 2015-05-04
     default_tempo = settings.get('bpmtempo')
-    add_meta_data = False
     #build the list of midi program to be used for each voice
     midi_program_ch_list = ['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
                             'midi_program_ch5', 'midi_program_ch6', 'midi_program_ch7', 'midi_program_ch8',
@@ -1486,10 +1484,6 @@ def str2bool(v):
     else:
         return v
 
-
-
-
-
 def fix_boxmarks_texts(abc):
     ''' Some Noteworthy Composer files use a special font where some note decorations are input
         as a single letter. Substitute real ABC decorations. '''
@@ -1683,12 +1677,12 @@ class MusicUpdateThread(threading.Thread):
                 # wx.PostEvent(self.notify_window, MusicUpdateDoneEvent(-1, (svg_files, error)))
                 # time.sleep(10.0)
                 # continue
-                error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                # error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
                 # print(error_msg)
                 pass
             except Exception as e:
                 svg_files, error = [], unicode(e)
-                error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                # error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
                 # print(error_msg)
                 pass
             svg_tune = SvgTune(abc_tune, svg_files, error)
@@ -1804,10 +1798,9 @@ class RecordThread(threading.Thread):
 
     @property
     def beat_duration(self):
-        return 1000000 * 60/self.bpm
+        return 1000000 * 60 / self.bpm  # unit is microseconds
 
     def run(self):
-        #beat_duration = 1000000 * 60/self.bpm  # unit is microseconds
         self.is_running = True
         NOTE_ON = 0x09
         NOTE_OFF = 0x08
@@ -2011,7 +2004,7 @@ class IncipitsFrame(wx.Dialog):
         self.cancel = wx.Button(self, -1, _('&Cancel'))
         self.ok.SetDefault()
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
-        if PY3:
+        if WX4:
             btn_box = wx.BoxSizer(wx.HORIZONTAL)
             btn_box.Add(self.ok, wx.ID_OK)
             btn_box.Add(self.cancel, wx.ID_CANCEL)
@@ -2074,7 +2067,7 @@ class MyNoteBook(wx.Frame):
         voicepage = MyVoicePage(nb, settings)
         # 1.3.6.1 [SS] 2015-02-02
         abcm2pspage = MyAbcm2psPage(nb, settings, abcsettings)
-        xmlpage    = MyXmlPage(nb, settings)
+        xmlpage    = MusicXmlPage(nb, settings)
         nb.AddPage(abcm2pspage, _("Abcm2ps"))
         nb.AddPage(chordpage, _("Abc2midi"))
         nb.AddPage(voicepage, _("Voices"))
@@ -2631,7 +2624,7 @@ class MyVoicePage(wx.Panel):
 
         # reset buttons box
         self.reset = wx.Button(self, -1, _('&Reset'))
-        if PY3:
+        if WX4:
             btn_box = wx.BoxSizer()
             btn_box.Add(self.reset)
         else:
@@ -2729,8 +2722,8 @@ class MidiSettingsFrame(wx.Dialog):
         self.SetBackgroundColour(wx.Colour(245, 244, 235))
         border = 4
         sizer = wx.GridBagSizer(5, 5)
-        sizer.Add(wx.StaticText(self, -1, _('Input device')), wx.GBPosition(0, 0), flag=wx.ALL | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('Output device')), wx.GBPosition(1, 0), flag=wx.ALL | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(wx.StaticText(self, -1, _('Input device')), wx.GBPosition(0, 0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(wx.StaticText(self, -1, _('Output device')), wx.GBPosition(1, 0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         inputDevices = [_('None')]
         inputDeviceIDs = [None]
@@ -2762,13 +2755,19 @@ class MidiSettingsFrame(wx.Dialog):
 
         self.ok = wx.Button(self, -1, _('&Ok'))
         self.cancel = wx.Button(self, -1, _('&Cancel'))
-        box = wx.BoxSizer(wx.HORIZONTAL)
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
-        box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
-        box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
+        if WX4:
+            box = wx.BoxSizer()
+            box.Add(self.ok, wx.ID_OK)
+            box.Add(self.cancel, wx.ID_CANCEL)
+        else:
+            box = wx.BoxSizer(wx.HORIZONTAL)
+            box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
+            box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
+
         sizer.Add(self.inputDevice, wx.GBPosition(0, 1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         sizer.Add(self.outputDevice, wx.GBPosition(1, 1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(box, wx.GBPosition(2, 0), (1, 2), flag=0 | wx.ALL | wx.ALL | wx.ALIGN_RIGHT, border=border)
+        sizer.Add(box, wx.GBPosition(2, 0), (1, 2), flag=0 | wx.ALL | wx.ALIGN_RIGHT, border=border)
         self.ok.SetDefault()
 
         self.SetSizer(sizer)
@@ -3017,7 +3016,7 @@ class MyAbcm2psPage(wx.Panel):
     # 1.3.6.2 [SS] 2015-03-15
     def OnPSScale(self, evt):
         val = self.scaleval.GetValue()
-        m   = re.findall("\d+.\d+|\d+",val)
+        m   = re.findall(r"\d+.\d+|\d+",val)
         if len(m) > 0 and 0.1 < float(val) < 1.5:
             self.settings['abcm2ps_scale'] = str(val)
 
@@ -3025,7 +3024,7 @@ class MyAbcm2psPage(wx.Panel):
         # 1.3.6.1 [SS] 2015-01-13
         val = self.leftmargin.GetValue()
         # extract only the number
-        m   = re.findall("\d+.\d+|\d+",val)
+        m   = re.findall(r"\d+.\d+|\d+",val)
         if len(m) > 0:
             val = str(m[0])
             self.settings['abcm2ps_leftmargin'] = val
@@ -3033,7 +3032,7 @@ class MyAbcm2psPage(wx.Panel):
     def OnPSrightmarg(self, evt):
         # 1.3.6.1 [SS] 2015-01-13
         val = self.rightmargin.GetValue()
-        m   = re.findall("\d+.\d+|\d+",val)
+        m   = re.findall(r"\d+.\d+|\d+",val)
         if len(m) > 0:
             val = str(m[0])
             self.settings['abcm2ps_rightmargin'] = val
@@ -3041,7 +3040,7 @@ class MyAbcm2psPage(wx.Panel):
     def OnPStopmarg(self, evt):
         # 1.3.6.1 [SS] 2015-01-13
         val = self.topmargin.GetValue()
-        m   = re.findall("\d+.\d+|\d+",val)
+        m   = re.findall(r"\d+.\d+|\d+",val)
         if len(m) > 0:
             val = str(m[0])
             self.settings['abcm2ps_topmargin'] = val
@@ -3049,7 +3048,7 @@ class MyAbcm2psPage(wx.Panel):
     def OnPSbotmarg(self, evt):
         # 1.3.6.1 [SS] 2015-01-13
         val = self.botmargin.GetValue()
-        m   = re.findall("\d+.\d+|\d+",val)
+        m   = re.findall(r"\d+.\d+|\d+",val)
         if len(m) > 0:
             val = str(m[0])
             self.settings['abcm2ps_botmargin'] = val
@@ -3057,14 +3056,14 @@ class MyAbcm2psPage(wx.Panel):
     # 1.3.6.1 [SS] 2015-01-28
     def OnPSpagewidth(self, evt):
         val = self.pagewidth.GetValue()
-        m   = re.findall("\d+.\d+|\d+",val)
+        m   = re.findall(r"\d+.\d+|\d+",val)
         if len(m) > 0:
             val = str(m[0])
             self.settings['abcm2ps_pagewidth'] = val
 
     def OnPSpageheight(self, evt):
         val = self.pageheight.GetValue()
-        m   = re.findall("\d+.\d+|\d+",val)
+        m   = re.findall(r"\d+.\d+|\d+",val)
         if len(m) > 0:
             val = str(m[0])
             self.settings['abcm2ps_pageheight'] = val
@@ -3125,7 +3124,7 @@ class MyAbcm2psPage(wx.Panel):
 
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
-class MyXmlPage(wx.Panel):
+class MusicXmlPage(wx.Panel):
     def __init__(self, parent, settings):
         wx.Panel.__init__(self,parent)
         self.settings = settings
@@ -3305,11 +3304,17 @@ class MidiOptionsFrame(wx.Dialog):
         self.slur_16ths = wx.CheckBox(self, -1, _('Use slurs on first pair of sixteenth (useful for some 16th polskas)'))
         self.ok = wx.Button(self, -1, _('&Ok'))
         self.cancel = wx.Button(self, -1, _('&Cancel'))
-        box = wx.BoxSizer(wx.HORIZONTAL)
         #box.AddStretchSpacer()
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
-        box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
-        box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
+        if WX4:
+            box = wx.BoxSizer()
+            box.Add(self.ok, wx.ID_OK)
+            box.Add(self.cancel, wx.ID_CANCEL)
+        else:
+            box = wx.BoxSizer(wx.HORIZONTAL)
+            box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
+            box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
+
         sizer.Add(self.key,                     wx.GBPosition(0, 1), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
         sizer.Add(self.metre,                   wx.GBPosition(1, 1), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
         sizer.Add(self.default_len,             wx.GBPosition(2, 1), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
@@ -3364,10 +3369,16 @@ class ErrorFrame(wx.Dialog):
 
         self.ok = wx.Button(self, -1, _('&Ok'))
         self.cancel = wx.Button(self, -1, _('&Cancel'))
-        box = wx.BoxSizer(wx.HORIZONTAL)
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
-        box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
-        box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
+        if WX4:
+            box = wx.BoxSizer()
+            box.Add(self.ok, wx.ID_OK)
+            box.Add(self.cancel, wx.ID_CANCEL)
+        else:
+            box = wx.BoxSizer(wx.HORIZONTAL)
+            box.Add(self.ok, wx.ID_OK, flag=wx.ALIGN_RIGHT)
+            box.Add(self.cancel, wx.ID_CANCEL, flag=wx.ALIGN_RIGHT)
+
         sizer.Add(self.error, flag=wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=border)
         sizer.Add(box, flag=wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.ALIGN_RIGHT, border=border)
         self.ok.SetDefault()
@@ -3581,7 +3592,7 @@ class MySearchFrame(wx.Frame):
                 break
             index = lwholefile.find(searchstring, loc, linend)
             if index != -1:
-                if PY3:
+                if WX4:
                     list_ctrl.InsertItem(self.count, wholefile[loc+2:linend])
                 else:
                     list_ctrl.InsertStringItem(self.count, wholefile[loc+2:linend])
@@ -4612,7 +4623,7 @@ class MainFrame(wx.Frame):
                             continue
                     if line[0] != 'W':
                         header.append(line)
-                elif re.match('\s*%', line):
+                elif re.match(r'\s*%', line):
                     pass
                 else:
                     break
@@ -4764,7 +4775,7 @@ class MainFrame(wx.Frame):
                 xnum = int(dlg.GetValue())
                 lines = text_to_lines(self.editor.GetText())
                 for i in range(len(lines)):
-                    if re.match('X:\s*\d+\s*$', lines[i]):
+                    if re.match(r'X:\s*\d+\s*$', lines[i]):
                         if lines[i].startswith('X: '):
                             lines[i] = 'X: %d' % xnum
                         else:
@@ -6977,7 +6988,7 @@ class MainFrame(wx.Frame):
         pos_re = re.compile(r'^\s*(\d+\.\d+)\s+CntlParm\s+1\s+unknown\s+=\s+(\d+)')
         note_re = re.compile(r'^\s*(\d+\.\d+)\s+Note (on|off)\s+(\d+)\s+(\d+)')
         tempo_re = re.compile(r'^\s*(\d+\.\d+)\s+Metatext\s+tempo\s+=\s+(\d+\.\d+)\s+bpm')
-        new_track_re = re.compile('^Track \d+ contains')
+        new_track_re = re.compile(r'^Track \d+ contains')
 
         def timediff_in_seconds(first, last, bpm):
             return (last - first) * 60 / bpm
@@ -7654,7 +7665,7 @@ class MainFrame(wx.Frame):
                     # 1.3.6 [SS] 2014-12-18
                     abc_code = xml_to_abc(xml_file_path,options,info_messages)
                     if '%%score 1 2' in abc_code:
-                        abc_code = re.sub('%%score 1 2\s*', '', abc_code)
+                        abc_code = re.sub(r'%%score 1 2\s*', '', abc_code)
                         #abc_code = copy_bar_symbols_from_first_voice(abc_code)
                     abc_code = fix_boxmarks_texts(abc_code)
                     abc_code = change_texts_into_chords(abc_code)
