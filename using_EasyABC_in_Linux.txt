@@ -10,10 +10,51 @@ Please note that if you wish to run Nils Liberg's original
 version, EasyABC 1.3.5, you will need to find an old version of
 abcm2ps.
 
-Though recent versions of EasyABC also comply with Python 3 and
-higher, it is easier to run it with Python 2.7. If you insist
-on using Python 3, you will need to find a way of making wxpython
-available.
+EasyABC has migrated from Python 2 to Python 3. Python 2 should still work however.
+
+easy_abc.py expects to be started from it's installation directory
+in order to find its data files. If you start it from some other working
+directory, then you need to set the EASYABCDIR environment variable
+to point to the installation directory.
+
+EasyABC supports both FluidSynth 2 and the mediaplayer from wxPython, but most users report problems with the wxPython player.
+
+We have tested EasyABC on Linux Mint 20 using Virtual Box 6.1
+The steps we had to do are as follows:
+
+sudo apt install abcmidi abcm2ps libfluidsynth2 fluid-soundfont-gm jackd
+
+The soundfont should now be installed in
+
+sudo apt install python3-wxgtk4.0 python3-wxgtk-media4.0 python-wxtools python3-pygame
+
+unzip Downloads/EasyABC-master.zip
+mv EasyABC-master/ EasyABC
+cd EasyABC
+
+Now you can run EasyABC:
+python3 easy_abc.py
+
+You may get a GStreamer error. Just ignore it.
+
+Then choose a soundfont in Settings -> ABC Settings -> File Settings -> soundfont
+You can find one here: /usr/share/sounds/sf2/FluidR3_GM.sf2
+
+Now exit and run EasyABC again to use FluidSynth as the mediaplayer.
+
+
+--------------------------------------------------------
+Running EasyABC
+
+Once EasyABC is running for the first time, it will search for
+abcm2ps, abc2midi, and other executables in the /usr/bin/ and
+/usr/local/bin folders. If it does not find these executables,
+a message will pop up. If these executables are already on your
+system, you can tell EasyABC where to find them by going
+to the menu item, Settings/ABC Settings and then selecting File Settings.
+
+--------------------------------------------------------
+Using more recent version of abcm2ps or abc2midi
 
 Though abcm2ps, abc2midi, and other related programs may come
 with your current linux distribution, they are probably old
@@ -24,59 +65,25 @@ Binaries and Debian installs can be found in the abcplus web page
 http://abcplus.sourceforge.net/
 which is maintained by Guido Gonzato.
 
-easy_abc.py expects to be started from it's installation directory
-in order to find its data files. If you start it from some other working
-directory, then you need to set the EASYABCDIR environment variable
-to point to the installation directory.
-
-
-Installing dependancies:
------------------------------------------------
-Dependancies:
-  abcm2ps >=6.4.1  (preferrably >= 8.12)
-  abcMIDI 2016.07.20 is recent.
-  python 2.7
-  wxPython python module >= 2.8.12.0
-  optional: pygame or pypm python module (if midi input is to be supported)
-
-Start your package manager and make sure that you have 
-python-wxgtk2.8 (version 2.8.12.0 or later). If you don't, please use
-the information on this page to install it:
-http://wiki.wxpython.org/InstallingOnUbuntuOrDebian
-
-You also require python-wxgtk-media3.0. If it does not appear in your
-package manager you can run,
-sudo apt-get install python-wxgtk-media3.0
-
-You should also get python-pygame.
-
-Also make sure that you have a new version of abcm2ps installed
-(version 6.4.1 or later). 
-
 If you have obtained the source code to abcm2ps and the abcmidi package
 then you will need to uncompress the zip file, cd into that directory
 and run:
     ./configure
     make
     make install
-    
-Depending upon your Linux distribution, you may be able to play
-and run the score following option without further configuration.
-This feature worked on Linux Mint 17.3.
+
+--------------------------------------------------------
+External MIDI player
 
 It is very convenient to run Linux on a virtual machine on the
 Windows host using Oracle's VirtualBox. This way you can avoid
 disk partitioning and finding all the drivers for your graphics
-and audio card. Unfortunately in order to play a MIDI file
-we needed an external program like TiMidity and the score
-following feature did not run.  EasyABC uses xvideo and its
-adapters to play MIDI files. The adapters could not be found
-when Linux was running from a virtual machine.
-(Running xvinfo says 'no adapters present'.)
+and audio card.
 
-In such a case, you may be successful running TiMidity. On Linux
-Mint, we installed TiMidity, timidity-interfaces-extra, and freepats.
-If your package manager does not find TiMidity, you can find it on 
+If you cannot get the sound to work or do not want to use score following you can
+use an external program like TiMidity.
+On Linux Mint, we installed TiMidity, timidity-interfaces-extra, and freepats.
+If your package manager does not find TiMidity, you can find it on
 http://sourceforge.net.
 
 Recent versions of TiMidity may not run correctly on your system
@@ -108,29 +115,15 @@ http://www.midi-howto.com/midi-howto-10.html
 http://www.csounds.com/manual/html/RealTimeLinux.html
 http://linux-audio.com/TiMidity-howto.html
 
-If you get this to work on your Linux system as well as score
-following, please tell us.
-
-
-
---------------------------------------------------------  
-Running EasyABC
-
-Once EasyABC is running for the first time, it will search for
-abcm2ps, abc2midi, and other executables in the /usr/bin/ and
-/usr/local/bin folders. If it does not find these executables,
-a message will pop up. If these executables are already on your
-system, you can tell EasyABC where to find them by going 
-to the menu item, Settings/ABC Settings and then selecting File Settings.
 
 -----------------------------------------------------
 Other stand alone programs coming with EasyABC:
 
 midi2abc.py can invoked like a standalone program:
-   
+
 python pymidi2abc.py <options>
         [-f] <input file>
-        -o <output file>        
+        -o <output file>
         -k <key signature> key name, or -6 to 6 sharps
         -l <default note length (L: field)>
         -m <time signature>
@@ -139,21 +132,21 @@ python pymidi2abc.py <options>
         --nt Do not look for triplets or broken rhythm
         --s8 insert slurs on groups of 8th notes
         --s16 insert slurs on groups of 16th notes
-        --bpl=<number> of bars printed per line    
-        --title=<string> Adds T: field containing string    
-        --origin=<string> Adds O: field containing string  
-	
+        --bpl=<number> of bars printed per line
+        --title=<string> Adds T: field containing string
+        --origin=<string> Adds O: field containing string
+
 Here is an example:
         python midi2abc.py -f mymidifile.mid -l 1/8 -m 4/4
-	
+
 -----------------------------------------------------
 
 xml2abc_nils.py can also be invoked like a standalone program:
 	python xml2abc_nils.py mytune.xml
-	
+
 Please note that Nils' xml2abc converter is now largely superceded by the, more powerful, one:
 http://wim.vree.org/svgParse/xml2abc.html
 
-Seymour Shlien fy733@ncf.ca
-Jan Wybren de Jong  jw_de_jong@yahoo.com
+Seymour Shlien fy733 [at] ncf [d0t] ca
+Jan Wybren de Jong  jw_de_jong [at] yahoo [d0t] com
 

@@ -33,6 +33,7 @@ from wxhelper import wx_colour, wx_bitmap
 import sys
 PY3 = sys.version_info.major > 2
 WX4 = wx.version().startswith('4')
+WX41 = WX4 and not wx.version().startswith('4.0')
 
 # 1.3.6.2 [JWdJ] 2015-02-12 tags evaluated only once
 svg_namespace = 'http://www.w3.org/2000/svg'
@@ -595,12 +596,12 @@ class SvgRenderer(object):
         pen = self.stroke_cache.get(key)
         if pen is None:
             if svg_stroke == 'none':
-                if WX4:
+                if WX41:
                     pen = self.renderer.CreatePen(wx.GraphicsPenInfo())
                 else:
                     pen = self.renderer.CreatePen(wx.NullPen)
             else:
-                if WX4:
+                if WX41:
                     wxpen = wx.GraphicsPenInfo(wx_colour(svg_stroke)).Width(line_width)
                     if linecap == 'butt':
                         wxpen.Cap(wx.CAP_BUTT)
@@ -879,7 +880,7 @@ if __name__ == "__main__":
     import os.path
     app = MyApp(0)
 
-    buffer = wx.EmptyBitmap(200, 200, 32)
+    buffer = wx_bitmap(200, 200, 32)
     dc = wx.MemoryDC(buffer)
     dc.SetBackground(wx.WHITE_BRUSH)
     dc.Clear()

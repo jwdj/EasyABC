@@ -33,18 +33,18 @@ revmods = { revModels [0]: (0.2, 0.0, 0.5, 0.9), revModels [1]: (0.4, 0.2, 0.5, 
 if platform.system() == 'Windows':
     lib = './libfluidsynth-2.dll'
 else:
-    lib = './libfluidsynth.so.2'
+    lib = 'libfluidsynth.so.2'
 
 try:
     F = CDLL(lib)
 except:
-    raise ImportError("Couldn't find the FluidSynth library in the program directory.")
+    raise ImportError("Couldn't find the FluidSynth library.")
 
 
 class Synth:            # interface for the FluidSynth synthesizer
     def __init__(self, gain=0.2, samplerate=44100.0, bsize=64):
         self.settings = F.new_fluid_settings()
-        self.setting_setnum('synth.gain' , gain)
+        self.setting_setnum('synth.gain', gain)
         # self.setting_setnum('synth.sample-rate', samplerate)
         # self.setting_setint('audio.period-size', bsize)
         # self.setting_setint('audio.periods', 2)
