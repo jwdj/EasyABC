@@ -31,7 +31,11 @@ revmods = { revModels [0]: (0.2, 0.0, 0.5, 0.9), revModels [1]: (0.4, 0.2, 0.5, 
 # F = CDLL (..) makes all API functions avalable as F.<api-function>
 
 if platform.system() == 'Windows':
-    lib = './libfluidsynth-2.dll'
+    script_path = os.path.dirname(os.path.abspath(__file__))
+    fluidsynth_lib_path = script_path + '\\bin\\fluidsynth'
+    envpath = os.environ.get('PATH', '')
+    os.environ['PATH'] = fluidsynth_lib_path + ';' + envpath
+    lib = 'libfluidsynth-2.dll'
 else:
     lib = 'libfluidsynth.so.2'
 

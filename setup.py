@@ -89,13 +89,20 @@ else:
                      'bin\\abc2abc.exe',
                      'bin\\nwc2xml.exe',
                      'bin\\zlibwapi.dll',
+                     'bin\\FluidSynth\\libsndfile-1.dll',
+                     'bin\\FluidSynth\\intl.dll',
+                     'bin\\FluidSynth\\libfluidsynth-2.dll',
+                     'bin\\FluidSynth\\libglib-2.0-0.dll',
+                     'bin\\FluidSynth\\libgobject-2.0-0.dll',
+                     'bin\\FluidSynth\\libgthread-2.0-0.dll',
+                     'bin\\FluidSynth\\libinstpatch-2.dll',				 
                      'reference.txt',
                      'gpl-license.txt',
                      'easy_abc.exe.manifest',
                      'Microsoft.VC90.CRT\\Microsoft.VC90.CRT.manifest',
                      'Microsoft.VC90.CRT\\msvcm90.dll',
                      'Microsoft.VC90.CRT\\msvcp90.dll',
-                     'Microsoft.VC90.CRT\\msvcr90.dll',]
+                     'Microsoft.VC90.CRT\\msvcr90.dll']
 
     # 1.3.7.1 [JWDJ] to maintain the folder structure make a tuple with same source and target path
     include_files = [x for x in include_files if not isinstance(x, basestring)] + [(x, x) for x in include_files if isinstance(x, basestring)] # maintain folder structure
