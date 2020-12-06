@@ -597,7 +597,7 @@ class SvgRenderer(object):
         if pen is None:
             if svg_stroke == 'none':
                 if WX41:
-                    pen = self.renderer.CreatePen(wx.GraphicsPenInfo())
+                    pen = self.renderer.CreatePen(wx.GraphicsPenInfo(style=wx.PENSTYLE_TRANSPARENT))
                 else:
                     pen = self.renderer.CreatePen(wx.NullPen)
             else:
