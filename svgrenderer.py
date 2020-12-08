@@ -64,6 +64,15 @@ def flatten(value):
         return sum(map(flatten, value))
     return value
 
+def parse_css_props(props):
+    attributes = {}
+    for prop_match in css_prop_re.finditer(props):
+        prop_name = prop_match.group('name')
+        prop_value = prop_match.group('value')
+        attributes[prop_name] = prop_value
+    return attributes
+
+
 class SvgElement(object):
     def __init__(self, name, attributes, children):
         self.name = name              # the name of the svg element (excluding the namespace), eg. 'g', 'circle', 'ellipse'
@@ -163,16 +172,8 @@ class SvgPage(object):
         # 1.3.6.5 [JWdJ] 2015-11-05 added parsing style property
         style = element.attrib.get('style')
         if style:
-            attributes.update(self.parse_css_props(style))
+            attributes.update(parse_css_props(style))
         attributes.update(element.attrib)
-        return attributes
-
-    def parse_css_props(self, props):
-        attributes = {}
-        for prop_match in css_prop_re.finditer(props):
-            prop_name = prop_match.group('name')
-            prop_value = prop_match.group('value')
-            attributes[prop_name] = prop_value
         return attributes
 
     def parse_css(self, css):
@@ -180,7 +181,7 @@ class SvgPage(object):
         for match in css_class_re.finditer(css):
             class_name = match.group('class')
             props = match.group('props')
-            self.class_attributes[class_name] = self.parse_css_props(props)
+            self.class_attributes[class_name] = parse_css_props(props)
 
     def parse_elements(self, elements, parent_attributes):
         result = []
@@ -775,9 +776,9 @@ class SvgRenderer(object):
             x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
 
             if attr.get('font-style') or current_style.get('font-typeface') == 'italic':
-                style = wx.FONTSTYLE_ITALIC
+                font_style = wx.FONTSTYLE_ITALIC
             else:
-                style = wx.FONTSTYLE_NORMAL
+                font_style = wx.FONTSTYLE_NORMAL
 
             if attr.get('font-weight') or current_style.get('font-typeface') == 'bold':
                 weight = wx.FONTWEIGHT_BOLD
@@ -796,13 +797,28 @@ class SvgRenderer(object):
             }
 
             svg_font_family = (attr.get('font-family') or current_style.get('font-family', 'serif')).lower()
+
+            style = attr.get('style')
+            if style:
+                style_info = parse_css_props(style)
+                font_info = style_info.get('font', '')
+                for fi in font_info.split(' '):
+                    if fi == 'bold':
+                        weight = wx.FONTWEIGHT_BOLD
+                    elif fi == 'italic':
+                        font_style = wx.FONTSTYLE_ITALIC
+                    elif fi.endswith('px'):
+                        font_size = float(fi[0:-2])
+                    elif fi in ['serif','sans-serif','monospace','bookman']:
+                        svg_font_family = fi
+
             font_family = svg_to_wx_font_family.get(svg_font_family)
             if font_family is None:
                 font_family = wx.FONTFAMILY_DEFAULT
                 font_face = svg_font_family # 1.3.6.4 [JWDJ] if font family is not known then assume it is a font face
 
             ##print repr(text), font_face, attr.get('font-size'), attr.get('font-weight')
-            wxfont = wx.Font(font_size, font_family, style, weight, False, font_face, wx.FONTENCODING_DEFAULT)
+            wxfont = wx.Font(font_size, font_family, font_style, weight, False, font_face, wx.FONTENCODING_DEFAULT)
             if wx.VERSION >= (3, 0) or '__WXMSW__' in wx.PlatformInfo:
                 wxfont.SetPixelSize(wx.Size(0, font_size))
                 y += 1
