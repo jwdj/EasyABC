@@ -30,6 +30,11 @@ import math
 from simple_abc_parser import get_best_key_for_midi_notes, get_accidentals_for_key
 from io import StringIO
 
+PY3 = sys.version_info.major > 2
+if PY3:
+    def unicode(s):
+        return s
+
 num_quarter_notes_per_bar = 3
 bars_per_line = 4
 
