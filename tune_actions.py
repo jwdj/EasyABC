@@ -1333,17 +1333,44 @@ class NewTuneAction(AbcAction):
         last_tune_id = context.get_last_tune_id()
         new_tune_id = last_tune_id + 1
         text = u'X:%d' % new_tune_id
-        text += os.linesep + 'T:' + _('Untitled') + '%d' % new_tune_id
+        text += os.linesep + 'T:' + _('Untitled') + ' %d' % new_tune_id
         text += os.linesep + 'C:' + _('Unknown composer')
         text += os.linesep + 'M:4/4'
         text += os.linesep + 'L:1/4'
-        text += os.linesep + 'K:C' + os.linesep
+        text += os.linesep + 'Q:1/4=120'
+        text += os.linesep + self.key_and_body()
 
         if not context.contains_text:
-            text = '%abc-2.1' + os.linesep + os.linesep + text
+            text = r'%abc-2.1' + os.linesep + os.linesep + text
         elif context.previous_line and not context.previous_line.isspace():
             text = os.linesep + text
         context.insert_text(text)
+
+    def key_and_body(self):
+        return 'K:C' + os.linesep
+
+
+class NewMultiVoiceTuneAction(NewTuneAction):
+    def __init__(self):
+        super(NewTuneAction, self).__init__('new_multivoice_tune', display_name=_('New tune with multiple voices'))
+
+    def key_and_body(self):
+        text =               'V:S clef=treble name=S'
+        text += os.linesep + 'V:A clef=treble name=A'
+        text += os.linesep + 'V:T clef=treble name=T'
+        text += os.linesep + 'V:B clef=treble name=B'
+        text += os.linesep + r'%%score [ (S A) (T B) ]'
+        text += os.linesep + 'K:C'
+        text += os.linesep + r'% ' + _('below the notes for each voice')
+        text += os.linesep + 'V:S'
+        text += os.linesep + 'c'
+        text += os.linesep + 'V:A'
+        text += os.linesep + 'G'
+        text += os.linesep + 'V:T'
+        text += os.linesep + 'E'
+        text += os.linesep + 'V:B'
+        text += os.linesep + 'C'
+        return text
 
 
 class NewVoiceAction(AbcAction):
@@ -1788,6 +1815,7 @@ class AbcActionHandlers(object):
         self.registered_actions = {}
         self.register_actions([
             NewTuneAction(),
+            NewMultiVoiceTuneAction(),
             NewNoteOrRestAction(),
             NewLineAction(),
             RemoveAction(),
@@ -1843,10 +1871,10 @@ class AbcActionHandlers(object):
         ])
 
         self.action_handlers = {
-            'empty_document'         : self.create_handler(['new_tune']),
+            'empty_document'         : self.create_handler(['new_tune', 'new_multivoice_tune']),
             'abcversion'             : self.create_handler(['lookup_abc_standard']),
-            'empty_line'             : self.create_handler(['new_tune']),
-            'empty_line_file_header' : self.create_handler(['new_tune']),
+            'empty_line'             : self.create_handler(['new_tune', 'new_multivoice_tune']),
+            'empty_line_file_header' : self.create_handler(['new_tune', 'new_multivoice_tune']),
             'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'insert_field_on_empty_line']),
             'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
             'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
