@@ -160,10 +160,7 @@ def align_bars(bars, align_inside_bars_too=True):
 
 def align_bar_separators(bar_seps):
     bar_seps = [' %s ' % bs.strip() for bs in bar_seps]
-    if any(':|' in bs for bs in bar_seps):
-        just_func = string.rjust
-    else:
-        just_func = string.ljust
+    use_rjust = any(':|' in bs for bs in bar_seps)
 
     if any('|' in bs for bs in bar_seps):
         # try to center around the last occurance of '|'
@@ -176,7 +173,10 @@ def align_bar_separators(bar_seps):
         return [b.ljust(max_len) for b in bar_seps]
     else:
         max_len = max(len(b) for b in bar_seps)
-        return [just_func(b, max_len) for b in bar_seps]
+        if use_rjust:
+            return [b.rjust(max_len) for b in bar_seps]
+        else:
+            return [b.ljust(max_len) for b in bar_seps]
 
 def split_line_into_parts(line):
     parts = bar_sep.split(line)
