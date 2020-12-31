@@ -1,6 +1,6 @@
 #
 
-program_name = 'EasyABC 1.3.7.8 2020-10-10'
+program_name = 'EasyABC 1.3.7.9 2020-12-31'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2020 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -16,7 +16,7 @@ program_name = 'EasyABC 1.3.7.8 2020-10-10'
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
 # V1.3.7.8
@@ -448,7 +448,7 @@ def upload_tune(tune, author):
     text = '(:music:)\n%s\n(:musicend:)\n' % tune.strip()
     if not browser:
         browser = mechanize.Browser()
-    response = browser.open('http://www.folkwiki.se/Meta/Nyl%c3%a5t?n=Meta.Nyl%c3%a5t&base=Musik.Musik&action=newnumbered')
+    response = browser.open('https://www.folkwiki.se/Meta/Nyl%c3%a5t?n=Meta.Nyl%c3%a5t&base=Musik.Musik&action=newnumbered')
     response = response.read()
     import pdb; pdb.set_trace()
     m = re.search(r"img src='(.*?action=captchaimage.*?)'", response)
@@ -543,7 +543,7 @@ def copy_bar_symbols_from_first_voice(abc):
     return abc
 
 def process_MCM(abc):
-    """ Processes sticky rhythm feature of mcmusiceditor http://www.mcmusiceditor.com/download/sticky-rhythm.pdf
+    """ Processes sticky rhythm feature of mcmusiceditor https://www.mcmusiceditor.com/download/sticky-rhythm.pdf
     :param abc: abc possibly containing sticky rhythm
     :return: abc-compliant
     """
@@ -1181,7 +1181,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         per the instructions in the ABC Settings/abc2midi and voices. If the tune already contains these instructions, eg. %%MIDI program,
         %%MIDI chordprog, etc. then the function avoids changing these assignments by suppressing the output of the additional commands.
         Note that these assignments can also be embedded in the body of the tune using the instruction [I: MIDI = program 10] for
-        examples see http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html and click link [I:MIDI=...].
+        examples see https://abcmidi.sourceforge.io/ and click link [I:MIDI=...].
     '''
     global execmessages
     #print traceback.extract_stack(None, 5)
@@ -3690,7 +3690,7 @@ class MainFrame(wx.Frame):
             default_soundfont_path = os.environ.get('HOMEPATH', 'C:') + "\\SoundFonts\\FluidR3_GM.sf2"
         else:
             default_soundfont_path = '/usr/share/sounds/sf2/FluidR3_GM.sf2'
-        
+
         soundfont_path = settings.get('soundfont_path', default_soundfont_path)
 
         if fluidsynth_available and soundfont_path and os.path.exists(soundfont_path):
@@ -3853,7 +3853,7 @@ class MainFrame(wx.Frame):
 
         # 1.3.6.3 [SS] 2015-05-04
         self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
-        execmessages = _('You are running {0} on {1}\nYou can get the latest version on http://sourceforge.net/projects/easyabc/\n'.format(program_name, wx.Platform))
+        execmessages = _('You are running {0} on {1}\nYou can get the latest version on https://sourceforge.net/projects/easyabc/\n'.format(program_name, wx.Platform))
 
     def update_controls_using_settings(self):
         # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
@@ -5617,7 +5617,7 @@ class MainFrame(wx.Frame):
                 lines.append(line)
 
         # if there are more than two lines to align
-        if 2 <= len(lines) < 100:
+        if len(lines) >= 2:
             # align the lines
             lines = align_lines(tune.abc, lines, True)
 
@@ -6037,24 +6037,24 @@ class MainFrame(wx.Frame):
         show_in_browser('https://sourceforge.net/projects/easyabc/files/EasyABC/')
 
     def OnEasyABCHelp(self, evt):
-        show_in_browser('http://www.nilsliberg.se/ksp/easyabc/')
+        show_in_browser('https://www.nilsliberg.se/ksp/easyabc/')
 
     def OnABCStandard(self, evt):
-        show_in_browser('http://abcnotation.com/wiki/abc:standard:v2.1')
+        show_in_browser('https://abcnotation.com/wiki/abc:standard:v2.1')
 
     def OnABCLearn(self, evt):
-        show_in_browser('http://abcnotation.com/learn')
+        show_in_browser('https://abcnotation.com/learn')
 
     # 1.3.6.1 [SS] 2015-01-28
     def OnAbcm2psHelp(self, evt):
-        show_in_browser('http://moinejf.free.fr/abcm2ps-doc/')
+        show_in_browser('https://moinejf.free.fr/abcm2ps-doc/')
 
     # 1.3.6.1 [SS] 2015-01-28
     def OnAbc2midiHelp(self, evt):
-        show_in_browser('http://ifdo.ca/~seymour/runabc/abcguide/abc2midi_guide.html')
+        show_in_browser('https://abcmidi.sourceforge.io/')
 
     def OnAbcCheatSheet(self, evt):
-        show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
+        show_in_browser('https://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
 
     def OnClearCache(self, evt):
         # make sure that any currently played/loaded midi file is released by the media control
@@ -8112,8 +8112,8 @@ class AboutFrame(wx.Dialog):
 <center><img src="img/abclogo.png"/>
 </center>
 <p><b>{0}</b><br/>
-an open source ABC editor for Windows, OSX and Linux. It is published under the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU Public License</a>. </p>
-<p><center><a href="http://www.nilsliberg.se/ksp/easyabc/">http://www.nilsliberg.se/ksp/easyabc/</a></center></p>
+an open source ABC editor for Windows, OSX and Linux. It is published under the <a href="https://www.gnu.org/licenses/gpl-2.0.html">GNU Public License</a>. </p>
+<p><center><a href="https://www.nilsliberg.se/ksp/easyabc/">https://www.nilsliberg.se/ksp/easyabc/</a></center></p>
 <p><u>Features</u>:</p>
 <ul style="line-height: 150%; margin-top: 3px;">
   <li> Good ABC standard coverage thanks to internal use of abcm2ps and abc2midi
@@ -8139,15 +8139,15 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <p><b>EasyABC</b> is brought to you by <b>Nils Liberg</b>, Copyright &copy; 2010-2012.</p>
 <p><b>Credits</b> - software components used by EasyABC:</p>
 <ul class="nicelist">
-<li><a href="http://moinejf.free.fr/">abcm2ps</a> for converting ABC code to note images (developed/maintained by Jean-Fran&ccedil;ois Moine)</li>
-<li><a href="http://abc.sourceforge.net/abcMIDI/">abc2midi</a> for converting ABC code to midi (by James Allwright, maintained by Seymour Shlien)</li>
-<li><a href="http://wim.vree.org/svgParse/xml2abc.html">xml2abc</a> for converting from MusicXML to ABC (by Willem Vree)</li>
-<li><a href="http://sites.google.com/site/juria90/nwc">nwc2xml</a> for converting from Noteworthy Composer format to ABC via XML (by James Lee)</li>
-<li><a href="http://www.wxpython.org/">wxPython</a> cross-platform user-interface framework</li>
-<li><a href="http://www.scintilla.org/">scintilla</a> for the text editor used for ABC code</li>
-<li><a href="http://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
-<li><a href="http://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="http://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
-<li><a href="http://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python by <a href="https://wim.vree.org/svgParse/index.html">Willem Vree</a>)</li>
+<li><a href="https://moinejf.free.fr/">abcm2ps</a> for converting ABC code to note images (developed/maintained by Jean-Fran&ccedil;ois Moine)</li>
+<li><a href="https://abc.sourceforge.net/abcMIDI/">abc2midi</a> for converting ABC code to midi (by James Allwright, maintained by Seymour Shlien)</li>
+<li><a href="https://wim.vree.org/svgParse/xml2abc.html">xml2abc</a> for converting from MusicXML to ABC (by Willem Vree)</li>
+<li><a href="https://sites.google.com/site/juria90/nwc">nwc2xml</a> for converting from Noteworthy Composer format to ABC via XML (by James Lee)</li>
+<li><a href="https://www.wxpython.org/">wxPython</a> cross-platform user-interface framework</li>
+<li><a href="https://www.scintilla.org/">scintilla</a> for the text editor used for ABC code</li>
+<li><a href="https://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
+<li><a href="https://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="https://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
+<li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python by <a href="https://wim.vree.org/svgParse/index.html">Willem Vree</a>)</li>
 <li>Thanks to Guido Gonzato for providing the fields and command reference.
 <li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german) and Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch).</li>
 <li>Universal binaries of abcm2ps and abc2midi for OSX are available thanks to Chuck&nbsp;Boody.</li>
@@ -8155,12 +8155,12 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 
 <p><b>Links</b></p>
 <ul class="nicelist">
-<li><a href="http://abcnotation.com/">abcnotation.com</a></li>
-<li><a href="http://abcplus.sourceforge.net/">abcplus.sourceforge.net</a></li>
-<li><a href="http://moinejf.free.fr/">Jef Moine's abcm2ps page</a></li>
-<li><a href="http://ifdo.ca/~seymour/runabc/top.html">Seymour Shlien's abcMIDI page</a></li>
-<li><a href="http://www.folkinfo.org/">folkinfo.org</a> (uses code from EasyABC to support MusicXML to ABC conversion)</li>
-<li><a href="http://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (my involvement here is the reason why I implemented the program)</li>
+<li><a href="https://abcnotation.com/">abcnotation.com</a></li>
+<li><a href="https://abcplus.sourceforge.net/">abcplus.sourceforge.net</a></li>
+<li><a href="https://moinejf.free.fr/">Jef Moine's abcm2ps page</a></li>
+<li><a href="https://abcmidi.sourceforge.io/">Seymour Shlien's abcMIDI page</a></li>
+<li><a href="https://www.folkinfo.org/">folkinfo.org</a> (uses code from EasyABC to support MusicXML to ABC conversion)</li>
+<li><a href="https://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (my involvement here is the reason why I implemented the program)</li>
 </ul>
 </body>
 </html>
