@@ -1,6 +1,7 @@
 #
 
-program_name = 'EasyABC 1.3.7.9 2020-12-31'
+=======
+program_name = 'EasyABC 1.3.7.9 2021-01-01'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2020 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -4296,6 +4297,7 @@ class MainFrame(wx.Frame):
             if midi_in_device_ID is not None:
                 metre_1, metre_2 = list(map(int, self.settings['record_metre'].split('/')))
                 self.record_thread = RecordThread(self, midi_in_device_ID, midi_out_device_ID, metre_1, metre_2, bpm = self.settings['record_bpm'])
+                self.record_thread.daemon = True
                 self.record_thread.start()
 
     def OnToolStop(self, evt):
@@ -4444,6 +4446,9 @@ class MainFrame(wx.Frame):
         self.follow_score_check.Show(state)
         self.UpdateTimingSliderVisibility()
         self.toolbar.Realize()
+        if wx.Platform == "__WXMAC__": #FAU: 23.12.2020: Added as issue in toolbar display when play and stop button are used
+            self.manager.Update()
+
 
     def show_toolbar_panel(self, panel, visible):
         #for sizer_item in panel.Sizer.Children:
@@ -6862,12 +6867,22 @@ class MainFrame(wx.Frame):
             return
 
         wx.GetApp().UnRegisterFrame(self)
-
+        '''FAU 20201229: Need to stop the timer otherwise they could call back a routine that was destroyed and cause a segmentation fault on Mac'''
+        self.play_timer.Stop()
+        self.timer.Stop()
+        '''FAU 20201228: TODO: is it really what we want to do when multiple window?'''
         if wx.TheClipboard.Open():
             wx.TheClipboard.Flush()  # the text on the clipboard should be available after the app has closed
             wx.TheClipboard.Close()
 
         self.music_update_thread.abort()
+        if self.play_music_thread != None:
+            self.play_music_thread.abort()
+            self.play_music_thread = None
+        if self.record_thread != None:
+            self.record_thread.abort()
+            self.record_thread = None
+
         self.svg_tunes.cleanup()
         self.midi_tunes.cleanup()
         self.settings['is_maximized'] = self.IsMaximized()
@@ -6877,6 +6892,17 @@ class MainFrame(wx.Frame):
         self.save_settings()
         self.is_closed = True
         self.manager.UnInit()
+        #if wx.Platform != "__WXMAC__":
+        #    '''FAU 20201228: Destroying will either freeze or crash Python with a seg fault on Mac.
+        #    Seems like there are still events or resources not closed that ask to access after.
+        #    Using wx.CallAfter(100, self.Destroy) leads to an assertion saying not a callable object)
+        #    self.DestroyLater() does not fix either
+        #    So for now just not destroy on Mac'''
+        #    '''FAU 20201229: Seems that it was due to the timer that were not closed.
+        #    self.Destroy()
+        #else:
+            #wx.CallAfter(100, self.Destroy)
+            #self.DestroyLater()
         self.Destroy()
 
     # 1.3.6.3 [JWDJ] DetermineMidiPlayRange is not used anymore
