@@ -188,7 +188,7 @@ def note_to_string(note, duration, default_len, key_accidentals, cur_accidentals
         if octave >= 1:
             n = n.lower()
         if octave > 1:
-            n = n + "'" * (octave - 1)
+            n = n + "'" * int(octave - 1)
     elif octave < 0:
         if abs(octave) >= 1:
             n = n + "," * abs(octave)
