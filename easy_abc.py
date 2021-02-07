@@ -1,6 +1,5 @@
 #
 
-=======
 program_name = 'EasyABC 1.3.7.9 2021-01-01'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
