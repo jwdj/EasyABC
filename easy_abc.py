@@ -39,6 +39,9 @@ program_name = 'EasyABC 1.3.7.9 2021-01-01'
 import sys
 PY3 = sys.version_info.major > 2
 
+import logging
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 import codecs
 utf8_byte_order_mark = codecs.BOM_UTF8  # chr(0xef) + chr(0xbb) + chr(0xbf) #'\xef\xbb\xbf'
@@ -2767,7 +2770,15 @@ class MidiSettingsFrame(wx.Dialog):
 
         sizer.Add(self.inputDevice, wx.GBPosition(0, 1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         sizer.Add(self.outputDevice, wx.GBPosition(1, 1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(box, wx.GBPosition(2, 0), (1, 2), flag=0 | wx.ALL | wx.ALIGN_RIGHT, border=border)
+
+        sizer.Add(wx.StaticText(self, -1, _('Audio driver (restart needed)')),
+                  wx.GBPosition(2, 0), border=border,
+                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.audio_driver = wx.TextCtrl(self)
+        self.audio_driver.SetValue(self.settings.get('audio_driver',''))
+        sizer.Add(self.audio_driver, wx.GBPosition(2, 1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+
+        sizer.Add(box, wx.GBPosition(3, 0), (1, 2), flag=0 | wx.ALL | wx.ALIGN_RIGHT, border=border)
         self.ok.SetDefault()
 
         self.SetSizer(sizer)
@@ -2781,6 +2792,13 @@ class MidiSettingsFrame(wx.Dialog):
     def OnOk(self, evt):
         self.settings['midi_device_in'] = self.inputDeviceIDs[self.inputDevice.GetSelection()]
         self.settings['midi_device_out'] = self.outputDeviceIDs[self.outputDevice.GetSelection()]
+        if (self.audio_driver.IsModified()):
+            logging.debug('audio_driver old: %s new:%s',self.settings.get('audio_driver','<empty>'),
+                          self.audio_driver.GetValue())
+            if (self.audio_driver.GetValue()==""):
+                self.settings.pop('audio_driver')
+            else:
+                self.settings['audio_driver'] = self.audio_driver.GetValue()
         self.EndModal(wx.ID_OK)
 
     def OnCancel(self, evt):
@@ -3688,14 +3706,17 @@ class MainFrame(wx.Frame):
 
         if platform.system() == 'Windows':
             default_soundfont_path = os.environ.get('HOMEPATH', 'C:') + "\\SoundFonts\\FluidR3_GM.sf2"
+            default_audioDriver=None
         else:
             default_soundfont_path = '/usr/share/sounds/sf2/FluidR3_GM.sf2'
+            default_audio_driver='pulseaudio'
 
         soundfont_path = settings.get('soundfont_path', default_soundfont_path)
+        audio_driver = settings.get('audio_driver', default_audio_driver)
 
         if fluidsynth_available and soundfont_path and os.path.exists(soundfont_path):
             try:
-                self.mc = FluidSynthPlayer(soundfont_path)
+                self.mc = FluidSynthPlayer(soundfont_path, **{"gain":0.7, "bsize":2048, "audio.driver":audio_driver})
             except Exception as e:
                 error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])) + os.linesep + os.linesep.join(errors)
                 self.mc = None

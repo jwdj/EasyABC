@@ -10,9 +10,9 @@ from midiplayer import MidiPlayer
 import fluidsynth as F
 
 class FluidSynthPlayer(MidiPlayer):
-    def __init__(self, sf2_path):
+    def __init__(self, sf2_path, **kwargs):
         super(FluidSynthPlayer, self).__init__()
-        self.fs = F.Synth(gain=0.7, bsize=2048) # make a synth
+        self.fs = F.Synth(**kwargs) # make a synth
         self.fs.start()  # set default output driver and start clock
         self.sfid = self.fs.sfload(sf2_path)
         self.fs.program_select(0, self.sfid, 0, 0)

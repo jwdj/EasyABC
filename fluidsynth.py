@@ -46,14 +46,25 @@ except:
 
 
 class Synth:            # interface for the FluidSynth synthesizer
-    def __init__(self, gain=0.2, samplerate=44100.0, bsize=64):
+    def __init__(self, gain=0.2, samplerate=44100.0, bsize=64, **kwargs):
         self.settings = F.new_fluid_settings()
         self.setting_setnum('synth.gain', gain)
         # self.setting_setnum('synth.sample-rate', samplerate)
         # self.setting_setint('audio.period-size', bsize)
         # self.setting_setint('audio.periods', 2)
+        for opt,val in kwargs.items():
+            self.setting(opt, val)
         self.synth = F.new_fluid_synth(self.settings)
         self.audio_driver = None
+
+    def setting(self, opt, val):
+        """change an arbitrary synth setting, type-smart"""
+        if isinstance(val, (str, bytes)):
+            F.fluid_settings_setstr(self.settings, opt.encode(), val.encode())
+        elif isinstance(val, int):
+            F.fluid_settings_setint(self.settings, opt.encode(), val)
+        elif isinstance(val, float):
+            F.fluid_settings_setnum(self.settings, opt.encode(), c_double(val))
 
     def setting_setstr(self, name, value):
         F.fluid_settings_setstr(self.settings, c_char_p(b(name)), c_char_p(b(value)))
