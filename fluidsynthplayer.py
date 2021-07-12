@@ -9,11 +9,18 @@ PY3 = sys.version_info.major > 2
 from midiplayer import MidiPlayer
 import fluidsynth as F
 
+is_linux = sys.platform.startswith('linux')
+
 class FluidSynthPlayer(MidiPlayer):
     def __init__(self, sf2_path):
         super(FluidSynthPlayer, self).__init__()
         self.fs = F.Synth(gain=0.7, bsize=2048) # make a synth
-        self.fs.start()  # set default output driver and start clock
+
+        driver = None
+        if is_linux:
+            driver = 'pulseaudio'
+
+        self.fs.start(driver)  # set default output driver and start clock
         self.sfid = self.fs.sfload(sf2_path)
         self.fs.program_select(0, self.sfid, 0, 0)
         self.p = F.Player(self.fs)   # make a new player
