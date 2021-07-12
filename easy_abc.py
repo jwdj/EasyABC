@@ -887,11 +887,10 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     stderr_value = os.linesep.join([x for x in stderr_value.splitlines()
                                     if not x.startswith('abcm2ps-') and not x.startswith('File ') and not x.startswith('Output written on ')])
     stderr_value = stderr_value.strip()
-    if not os.path.exists(svg_file_first) or 'svg: ' in stderr_value:
-        return ([], stderr_value)
-    else:
+    if os.path.exists(svg_file_first):
         return (GetSvgFileList(svg_file_first), stderr_value)
-
+    else:
+        return ([], stderr_value)
 
 
 def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):

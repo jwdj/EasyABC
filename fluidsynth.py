@@ -32,10 +32,15 @@ revmods = { revModels [0]: (0.2, 0.0, 0.5, 0.9), revModels [1]: (0.4, 0.2, 0.5, 
 
 if platform.system() == 'Windows':
     script_path = os.path.dirname(os.path.abspath(__file__))
+    import struct
+    bytesPerPointer = struct.calcsize("P")
     fluidsynth_lib_path = script_path + '\\bin\\fluidsynth'
+    if (bytesPerPointer == 4):
+        fluidsynth_lib_path += '\\X86'
+
     envpath = os.environ.get('PATH', '')
     os.environ['PATH'] = fluidsynth_lib_path + ';' + envpath
-    lib = 'libfluidsynth-2.dll'
+    lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
 else:
     lib = 'libfluidsynth.so.2'
 
