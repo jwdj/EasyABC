@@ -171,6 +171,9 @@ class NWCConversionException(Exception): pass
 
 from abc_tune import AbcTune
 
+dialog_background_colour = wx.Colour(245, 244, 235)
+control_margin = 6
+
 def ensure_file_name_does_not_exist(file_path):
     if not os.path.exists(file_path):
         return file_path
@@ -1967,21 +1970,21 @@ class FieldReferenceTree(htl.HyperTreeList):
 class IncipitsFrame(wx.Dialog):
     def __init__(self, parent, settings):
         self.settings = settings
-        wx.Dialog.__init__(self, parent, -1, _('Generate incipits file...'), wx.DefaultPosition, wx.Size(530, 260))
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 4
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, _('Generate incipits file...'), wx.DefaultPosition, wx.Size(530, 260))
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
         sizer = box1 = rcs.RowColSizer()
-        lb1 = wx.StaticText(self, -1, _('Number of bars to extract:'))
-        lb2 = wx.StaticText(self, -1, _('Maximum number of repeats to extract:'))
-        lb3 = wx.StaticText(self, -1, _('Maximum number of titles/subtitles to extract:'))
-        lb4 = wx.StaticText(self, -1, _('Fields to sort by (eg. T):'))
-        lb5 = wx.StaticText(self, -1, _('Number of rows per column:'))
-        self.edNumBars       = wx.SpinCtrl(self, -1, "", min=1, max=10, initial=self.settings.get('incipits_numbars', 2))
-        self.edNumRepeats    = wx.SpinCtrl(self, -1, "", min=1, max=10, initial=self.settings.get('incipits_numrepeats', 1))
-        self.edNumTitles     = wx.SpinCtrl(self, -1, "", min=0, max=10, initial=self.settings.get('incipits_numtitles', 1))
-        self.edSortFields    = wx.TextCtrl(self, -1, self.settings.get('incipits_sortfields', ''))
-        self.chkTwoColumns   = wx.CheckBox(self, -1, _('&Two column output'))
-        self.edNumRows       = wx.SpinCtrl(self, -1, "", min=1, max=40, initial=self.settings.get('incipits_rows', 10))
+        lb1 = wx.StaticText(self, wx.ID_ANY, _('Number of bars to extract:'))
+        lb2 = wx.StaticText(self, wx.ID_ANY, _('Maximum number of repeats to extract:'))
+        lb3 = wx.StaticText(self, wx.ID_ANY, _('Maximum number of titles/subtitles to extract:'))
+        lb4 = wx.StaticText(self, wx.ID_ANY, _('Fields to sort by (eg. T):'))
+        lb5 = wx.StaticText(self, wx.ID_ANY, _('Number of rows per column:'))
+        self.edNumBars       = wx.SpinCtrl(self, wx.ID_ANY, "", min=1, max=10, initial=self.settings.get('incipits_numbars', 2))
+        self.edNumRepeats    = wx.SpinCtrl(self, wx.ID_ANY, "", min=1, max=10, initial=self.settings.get('incipits_numrepeats', 1))
+        self.edNumTitles     = wx.SpinCtrl(self, wx.ID_ANY, "", min=0, max=10, initial=self.settings.get('incipits_numtitles', 1))
+        self.edSortFields    = wx.TextCtrl(self, wx.ID_ANY, self.settings.get('incipits_sortfields', ''))
+        self.chkTwoColumns   = wx.CheckBox(self, wx.ID_ANY, _('&Two column output'))
+        self.edNumRows       = wx.SpinCtrl(self, wx.ID_ANY, "", min=1, max=40, initial=self.settings.get('incipits_rows', 10))
         self.chkTwoColumns.SetValue(self.settings.get('incipits_twocolumns', True))
         for c in [self.edNumBars, self.edNumRepeats, self.edNumTitles, self.edNumRows, self.edSortFields]:
             c.SetValue(c.GetValue()) # this seems to be needed on OSX
@@ -1999,8 +2002,8 @@ class IncipitsFrame(wx.Dialog):
         sizer.Add(self.edNumRows,       row=5, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # ok, cancel buttons
-        self.ok = wx.Button(self, -1, _('&Ok'))
-        self.cancel = wx.Button(self, -1, _('&Cancel'))
+        self.ok = wx.Button(self, wx.ID_ANY, _('&Ok'))
+        self.cancel = wx.Button(self, wx.ID_ANY, _('&Cancel'))
         self.ok.SetDefault()
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
         if WX4:
@@ -2086,8 +2089,8 @@ class AbcFileSettingsFrame(wx.Panel):
         # -1, _('ABC settings'), wx.DefaultPosition, wx.Size(530, 500))
         self.settings = settings
         self.statusbar = statusbar
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 4
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
 
         PathEntry = namedtuple('PathEntry', 'name display_name tooltip add_default wildcard')
 
@@ -2110,17 +2113,17 @@ class AbcFileSettingsFrame(wx.Panel):
         else:
             self.exe_file_mask = '*'
 
-        self.restore_settings = wx.Button(self, -1, _('Restore settings')) # 1.3.6.3 [JWDJ] 2015-04-25 renamed
+        self.restore_settings = wx.Button(self, wx.ID_ANY, _('Restore settings')) # 1.3.6.3 [JWDJ] 2015-04-25 renamed
         check_toolTip = _('Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when blank')
         self.restore_settings.SetToolTip(wx.ToolTip(check_toolTip))
 
         # 1.3.6.3 [SS] 2015-04-29
-        extraplayerparam = wx.StaticText(self, -1, _("Extra MIDI player parameters"))
-        self.extras = wx.TextCtrl(self, -1, size=(200, 22))
+        extraplayerparam = wx.StaticText(self, wx.ID_ANY, _("Extra MIDI player parameters"))
+        self.extras = wx.TextCtrl(self, wx.ID_ANY, size=(200, 22))
 
         sizer = rcs.RowColSizer()
         if wx.Platform == "__WXMAC__":
-            sizer.Add(wx.StaticText(self, -1, _('File paths to required executables') + ':'), row=0, col=0, colspan=2, flag=wx.ALL, border=border)
+            sizer.Add(wx.StaticText(self, wx.ID_ANY, _('File paths to required executables') + ':'), row=0, col=0, colspan=2, flag=wx.ALL, border=border)
             r = 1
         else:
             r = 0
@@ -2140,7 +2143,7 @@ class AbcFileSettingsFrame(wx.Panel):
             path_choices = self.append_exe(current_path, path_choices)
             if entry.add_default:
                 path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
-            control = wx.ComboBox(self, -1, choices=path_choices, style=wx.CB_DROPDOWN)
+            control = wx.ComboBox(self, wx.ID_ANY, choices=path_choices, style=wx.CB_DROPDOWN)
             # [SS] 1.3.6.4 2015-12-23
             if current_path:
                 control.SetValue(current_path)
@@ -2150,10 +2153,10 @@ class AbcFileSettingsFrame(wx.Panel):
             if entry.tooltip:
                 control.SetToolTip(wx.ToolTip(entry.tooltip))
 
-            browse_button = wx.Button(self, -1, _('Browse...'))
+            browse_button = wx.Button(self, wx.ID_ANY, _('Browse...'))
             self.browsebutton_to_control[browse_button] = control
             self.browsebutton_to_wildcard[browse_button] = entry.wildcard
-            sizer.Add(wx.StaticText(self, -1, entry.display_name), row=r, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            sizer.Add(wx.StaticText(self, wx.ID_ANY, entry.display_name), row=r, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
             sizer.Add(control, row=r, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
             sizer.Add(browse_button, row=r, col=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
@@ -2166,28 +2169,22 @@ class AbcFileSettingsFrame(wx.Panel):
         if wx.Platform == "__WXMAC__":
             box2 = sizer
         else:
-            box2 = wx.StaticBoxSizer(wx.StaticBox(self, -1, _("File paths to required executables")), wx.VERTICAL)
+            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, _("File paths to required executables")), wx.VERTICAL)
             box2.Add(sizer, flag=wx.ALL | wx.EXPAND)
 
-        sizer = wx.GridBagSizer(5, 5)
-        font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
+        self.chkIncludeHeader = wx.CheckBox(self, wx.ID_ANY, _('Include file header when rendering tunes'))
 
-        # [SS] 1.3.6.3 2015-04-29
-        self.gridsizer = wx.FlexGridSizer(0, 4, 2, 2)
-        self.gridsizer.Add(extraplayerparam, 0, 0, 0, 0)
-        self.gridsizer.Add(self.extras, 0, 0, 0, 0)
-
-        self.chkIncludeHeader = wx.CheckBox(self, -1, _('Include file header when rendering tunes'))
-
-
+        midiplayer_params_sizer = rcs.RowColSizer()
+        midiplayer_params_sizer.Add(self.chkIncludeHeader, row=0, col=0, colspan=2, flag=wx.ALL, border=border)
+        midiplayer_params_sizer.Add(extraplayerparam, row=1, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midiplayer_params_sizer.Add(self.extras, row=1, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # build settings dialog with the previously defined box
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(box2, flag=wx.ALL | wx.EXPAND, border=10)
         # 1.3.6.1 [SS] 2015-01-28
         #self.sizer.Add(box1, flag=wx.ALL | wx.EXPAND, border=10)
-        self.sizer.Add(self.chkIncludeHeader, flag=wx.ALL | wx.EXPAND, border=10)
-        self.sizer.Add(self.gridsizer, flag=wx.ALL | wx.EXPAND, border=10)
+        self.sizer.Add(midiplayer_params_sizer, flag=wx.ALL | wx.EXPAND, border=border)
         self.sizer.Add(self.restore_settings, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
         self.SetSizer(self.sizer)
@@ -2298,19 +2295,19 @@ class AbcFileSettingsFrame(wx.Panel):
 class MyChordPlayPage (wx.Panel):
     def __init__(self, parent, settings):
         wx.Panel.__init__(self, parent)
-        self.SetBackgroundColour(wx.Colour(245, 244, 235)) # 1.3.6.3 [JWDJ] 2014-04-28 same background for all tabs
+        self.SetBackgroundColour(dialog_background_colour) # 1.3.6.3 [JWDJ] 2014-04-28 same background for all tabs
         gridsizer = wx.FlexGridSizer(20, 4, 2, 2)
         #self.program = ''
         # midi_box to set default instrument for playback
         midi_box = rcs.RowColSizer()
-        border = 4
+        border = control_margin
         self.settings = settings
 
         # 1.3.6.4 [SS] 2015-05-28 shrunk width from 250 to 200
-        self.chkPlayChords = wx.CheckBox(self, -1, _('Play chords'))
-        self.cmbMidiProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.cmbMidiChordProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.cmbMidiBassProgram = wx.ComboBox(self, -1, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.chkPlayChords = wx.CheckBox(self, wx.ID_ANY, _('Play chords'))
+        self.cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiChordProgram = wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiBassProgram = wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
         #1.3.6 [SS] 2014-11-15
 
         #1.3.6.4 [SS] 2015-06-10
@@ -2320,58 +2317,58 @@ class MyChordPlayPage (wx.Panel):
                                 size=(80, -1), style=wx.SL_HORIZONTAL)
         self.slidertuning = wx.Slider(self, value=440, minValue=415, maxValue=466,
                                 size=(80, -1), style=wx.SL_HORIZONTAL)
-        self.beatsperminutetxt = wx.StaticText(self, -1, " ")
-        self.transposetxt      = wx.StaticText(self, -1, " ")
-        self.tuningtxt         = wx.StaticText(self, -1, " ")
+        self.beatsperminutetxt = wx.StaticText(self, wx.ID_ANY, " ")
+        self.transposetxt      = wx.StaticText(self, wx.ID_ANY, " ")
+        self.tuningtxt         = wx.StaticText(self, wx.ID_ANY, " ")
 
         #1.3.6.4 [SS] 2015-07-08
         self.sliderVol = wx.Slider(self, value=96, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
-        self.Voltxt = wx.StaticText(self, -1, " ")
+        self.Voltxt = wx.StaticText(self, wx.ID_ANY, " ")
         #1.3.6.4 [SS] 2015-06-07
         self.sliderChordVol = wx.Slider(self, value=96, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
-        self.ChordVoltxt = wx.StaticText(self, -1, " ")
+        self.ChordVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
         self.sliderBassVol = wx.Slider(self, value=96, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
-        self.BassVoltxt = wx.StaticText(self, -1, " ")
+        self.BassVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
 
 
         #1.3.6 [SS] 2014-11-21
-        self.nodynamics = wx.CheckBox(self, -1, _('Ignore Dynamics'))
-        self.nofermatas = wx.CheckBox(self, -1, _('Ignore Fermatas'))
-        self.nograce    = wx.CheckBox(self, -1, _('No Grace Notes'))
-        self.barfly     = wx.CheckBox(self, -1, _('Barfly Mode'))
-        self.midi_intro = wx.CheckBox(self, -1, _('Count in'))
+        self.nodynamics = wx.CheckBox(self, wx.ID_ANY, _('Ignore Dynamics'))
+        self.nofermatas = wx.CheckBox(self, wx.ID_ANY, _('Ignore Fermatas'))
+        self.nograce    = wx.CheckBox(self, wx.ID_ANY, _('No Grace Notes'))
+        self.barfly     = wx.CheckBox(self, wx.ID_ANY, _('Barfly Mode'))
+        self.midi_intro = wx.CheckBox(self, wx.ID_ANY, _('Count in'))
 
         #1.3.6 [SS] 2014-11-26
-        gchordtxt = wx.StaticText(self, -1, _("gchord pattern"))
-        self.gchordcombo = wx.ComboBox(self, -1, 'default', (-1, -1), (128, -1), [], wx.CB_DROPDOWN)
+        gchordtxt = wx.StaticText(self, wx.ID_ANY, _("gchord pattern"))
+        self.gchordcombo = wx.ComboBox(self, wx.ID_ANY, 'default', (-1, -1), (128, -1), [], wx.CB_DROPDOWN)
         gchordchoices = ['default', 'f', 'fzfz', 'gi', 'gihi', 'f4c2', 'ghihgh', 'g2hg2h']
         self.SetGchordChoices(gchordchoices)
 
 
-        midi_box.Add(wx.StaticText(self, -1, _('Instrument for playback: ')), row=0, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Instrument for playback: ')), row=0, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderVol, row=0, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.Voltxt, row=0, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiProgram, row=0, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, -1, _("Instrument for chord's playback: ")), row=1, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for chord's playback: ")), row=1, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiChordProgram, row=1, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderChordVol, row=1, col=2, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.ChordVoltxt, row=1, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, -1, _("Instrument for bass chord's playback: ")), row=2, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for bass chord's playback: ")), row=2, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiBassProgram, row=2, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderBassVol, row=2, col=2, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.BassVoltxt, row=2, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # 1.3.6.4 [SS] 2015-06-10
-        midi_box.Add(wx.StaticText(self, -1, _("Default Tempo: ")), row=3, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Default Tempo: ")), row=3, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderbeatsperminute, row=3, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.beatsperminutetxt, row=3, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, -1, _("Transposition: ")), row=4, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Transposition: ")), row=4, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.slidertranspose, row=4, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.transposetxt, row=4, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, -1, _("Tuning: ")), row=5, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Tuning: ")), row=5, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.slidertuning, row=5, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.tuningtxt, row=5, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
@@ -2565,8 +2562,8 @@ class MyVoicePage(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.settings = settings
 
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 4
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
         channel = 1
 
         # definition of box for voice 1 to 16 (MIDI is limited to 16 channels)
@@ -2577,25 +2574,25 @@ class MyVoicePage(wx.Panel):
         self.sldMidiControlPanCh_list = {}
         self.textValueMidiControlPanCh_list = {}
         midi_box = rcs.RowColSizer()
-        midi_box.Add(wx.StaticText(self, -1, _('Default instrument:')), row=0, col=1, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
-        midi_box.Add(wx.StaticText(self, -1, _('Main Volume:')), row=0, col=3, colspan=2, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
-        midi_box.Add(wx.StaticText(self, -1, _('L/R Balance:')), row=0, col=6, colspan=2, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Default instrument:')), row=0, col=1, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Main Volume:')), row=0, col=3, colspan=2, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('L/R Balance:')), row=0, col=6, colspan=2, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
 
         # For each of the 16th voice, instrument, volume and balance can be set separately
         for channel in range(1, 16+1):
-            self.cmbMidiProgramCh_list[channel]=wx.ComboBox(self, -1, choices=general_midi_instruments, size=(200, 26),
+            self.cmbMidiProgramCh_list[channel]=wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26),
                                                             style=wx.CB_READONLY) #wx.CB_DROPDOWN |
             self.sldMidiControlVolumeCh_list[channel]=wx.Slider(self, value=64, minValue=0, maxValue=127,
                                                                 size=(80, -1), style=wx.SL_HORIZONTAL) # | wx.SL_LABELS
             # A text field is added to show value of slider as activating option SL_LABELS will show to many information
-            self.textValueMidiControlVolumeCh_list[channel]=wx.StaticText(self, -1, '64', style=wx.ALIGN_RIGHT |
+            self.textValueMidiControlVolumeCh_list[channel]=wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
                                                                 wx.ST_NO_AUTORESIZE, size=(30, 20))
             self.sldMidiControlPanCh_list[channel]=wx.Slider(self, value=64, minValue=0, maxValue=127,
                                                                 size=(80, -1), style=wx.SL_HORIZONTAL) # | wx.SL_LABELS
             # A text field is added to show value of slider as activating option SL_LABELS will show to many information
-            self.textValueMidiControlPanCh_list[channel]=wx.StaticText(self, -1, '64', style=wx.ALIGN_RIGHT |
+            self.textValueMidiControlPanCh_list[channel]=wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
                                                                 wx.ST_NO_AUTORESIZE, size=(30, 20))
-            midi_box.Add(wx.StaticText(self, -1, _('Voice n.%d: ') % channel), row=channel, col=0,
+            midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Voice n.%d: ') % channel), row=channel, col=0,
                          flag=wx.ALIGN_CENTER_VERTICAL, border=border)
             midi_box.Add(self.cmbMidiProgramCh_list[channel], row=channel, col=1, flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
             #3rd column (col=2) is unused on purpose to leave some space (maybe replaced with some other spacer option later on)
@@ -2622,7 +2619,7 @@ class MyVoicePage(wx.Panel):
         midi_box.AddGrowableCol(1)
 
         # reset buttons box
-        self.reset = wx.Button(self, -1, _('&Reset'))
+        self.reset = wx.Button(self, wx.ID_ANY, _('&Reset'))
         if WX4:
             btn_box = wx.BoxSizer()
             btn_box.Add(self.reset)
@@ -2716,13 +2713,13 @@ class MyVoicePage(wx.Panel):
 
 class MidiSettingsFrame(wx.Dialog):
     def __init__(self, parent, settings):
-        wx.Dialog.__init__(self, parent, -1, _('Midi device settings'), wx.DefaultPosition, wx.Size(130, 80))
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, _('Midi device settings'), wx.DefaultPosition, wx.Size(130, 80))
         self.settings = settings
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 4
-        sizer = wx.GridBagSizer(5, 5)
-        sizer.Add(wx.StaticText(self, -1, _('Input device')), wx.GBPosition(0, 0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('Output device')), wx.GBPosition(1, 0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
+        sizer = wx.GridBagSizer(0, 0)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, _('Input device')), wx.GBPosition(0, 0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, _('Output device')), wx.GBPosition(1, 0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         inputDevices = [_('None')]
         inputDeviceIDs = [None]
@@ -2743,8 +2740,8 @@ class MidiSettingsFrame(wx.Dialog):
         self.inputDeviceIDs = inputDeviceIDs
         self.outputDeviceIDs = outputDeviceIDs
 
-        self.inputDevice = wx.ComboBox(self, -1, size=(250, 22), choices=inputDevices, style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.outputDevice = wx.ComboBox(self, -1, size=(250, 22), choices=outputDevices, style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.inputDevice = wx.ComboBox(self, wx.ID_ANY, size=(250, 22), choices=inputDevices, style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.outputDevice = wx.ComboBox(self, wx.ID_ANY, size=(250, 22), choices=outputDevices, style=wx.CB_DROPDOWN | wx.CB_READONLY)
         self.inputDevice.SetSelection(0)
         self.outputDevice.SetSelection(0)
         if settings.get('midi_device_in', None) in inputDeviceIDs:
@@ -2752,8 +2749,8 @@ class MidiSettingsFrame(wx.Dialog):
         if settings.get('midi_device_out', None) in outputDeviceIDs:
             self.outputDevice.SetSelection(outputDeviceIDs.index(settings.get('midi_device_out', None)))
 
-        self.ok = wx.Button(self, -1, _('&Ok'))
-        self.cancel = wx.Button(self, -1, _('&Cancel'))
+        self.ok = wx.Button(self, wx.ID_ANY, _('&Ok'))
+        self.cancel = wx.Button(self, wx.ID_ANY, _('&Cancel'))
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
         if WX4:
             box = wx.BoxSizer()
@@ -2795,52 +2792,52 @@ class MyAbcm2psPage(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.settings = settings
         self.abcsettingspage = abcsettingspage
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 4
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
         headingtxt = _('The options in this page controls how the music score is displayed.\n\n')
-        heading = wx.StaticText(self, -1, headingtxt)
+        heading = wx.StaticText(self, wx.ID_ANY, headingtxt)
 
 
-        clean      = wx.StaticText(self, -1, _("No page settings"))
-        defaults   = wx.StaticText(self, -1, _("EasyABC defaults"))
-        numberbars = wx.StaticText(self, -1, _("Include bar numbers"))
-        refnumbers = wx.StaticText(self, -1, _("Add X reference number"))
-        nolyrics   = wx.StaticText(self, -1, _("Suppress lyrics"))
-        linends    = wx.StaticText(self, -1, _("Ignore line ends"))
-        leftmarg   = wx.StaticText(self, -1, _("Left margin (cm)"))
-        rightmarg  = wx.StaticText(self, -1, _("Right margin (cm)"))
-        topmarg    = wx.StaticText(self, -1, _("Top margin (cm)"))
-        botmarg = wx.StaticText(self, -1, _("Bottom margin (cm)"))
+        clean      = wx.StaticText(self, wx.ID_ANY, _("No page settings"))
+        defaults   = wx.StaticText(self, wx.ID_ANY, _("EasyABC defaults"))
+        numberbars = wx.StaticText(self, wx.ID_ANY, _("Include bar numbers"))
+        refnumbers = wx.StaticText(self, wx.ID_ANY, _("Add X reference number"))
+        nolyrics   = wx.StaticText(self, wx.ID_ANY, _("Suppress lyrics"))
+        linends    = wx.StaticText(self, wx.ID_ANY, _("Ignore line ends"))
+        leftmarg   = wx.StaticText(self, wx.ID_ANY, _("Left margin (cm)"))
+        rightmarg  = wx.StaticText(self, wx.ID_ANY, _("Right margin (cm)"))
+        topmarg    = wx.StaticText(self, wx.ID_ANY, _("Top margin (cm)"))
+        botmarg = wx.StaticText(self, wx.ID_ANY, _("Bottom margin (cm)"))
         # 1.3.6.1 [SS] 2015-01-28
-        pagewidth = wx.StaticText(self, -1, _("Page width (cm)"))
-        pageheight = wx.StaticText(self, -1, _("Page height (cm)"))
+        pagewidth = wx.StaticText(self, wx.ID_ANY, _("Page width (cm)"))
+        pageheight = wx.StaticText(self, wx.ID_ANY, _("Page height (cm)"))
 
-        extras = wx.StaticText(self, -1, _("Extra parameters"))
-        self.extras = wx.TextCtrl(self, -1, size=(350, 22))
-        formatf = wx.StaticText(self, -1, _("Format file"))
+        extras = wx.StaticText(self, wx.ID_ANY, _("Extra parameters"))
+        self.extras = wx.TextCtrl(self, wx.ID_ANY, size=(350, 22))
+        formatf = wx.StaticText(self, wx.ID_ANY, _("Format file"))
         # 1.3.6.4 [SS] 2015-09-11 2015-09-21
         try:
             self.format_choices = self.settings.get('abcm2ps_format_choices', '').split('|')
         except:
             self.format_choices = []
         # 1.3.6.4 [SS] 2015-09-11
-        self.formatf  = wx.ComboBox(self, -1, choices=self.format_choices, size = (350, -1), style=wx.CB_DROPDOWN)
+        self.formatf  = wx.ComboBox(self, wx.ID_ANY, choices=self.format_choices, size = (350, -1), style=wx.CB_DROPDOWN)
 
-        self.browsef = wx.Button(self, -1, _('Browse...'), size = (-1, 22))
+        self.browsef = wx.Button(self, wx.ID_ANY, _('Browse...'), size = (-1, 22))
 
-        scalefact  = wx.StaticText(self, -1, _("Scale factor (eg. 0.8)"))
-        self.chkm2psclean = wx.CheckBox(self, -1, '')
-        self.chkm2psdef   = wx.CheckBox(self, -1, '')
-        self.chkm2psbar = wx.CheckBox(self, -1, '')
-        self.chkm2psref = wx.CheckBox(self, -1, '')
-        self.chkm2pslyr = wx.CheckBox(self, -1, '')
-        self.chkm2psend = wx.CheckBox(self, -1, '')
-        self.leftmargin  = wx.TextCtrl(self, -1, size=(55, 22))
-        self.rightmargin = wx.TextCtrl(self, -1, size=(55, 22))
-        self.topmargin = wx.TextCtrl(self, -1, size=(55, 22))
-        self.botmargin = wx.TextCtrl(self, -1, size=(55, 22))
-        self.pagewidth = wx.TextCtrl(self, -1, size=(55, 22))
-        self.pageheight =wx.TextCtrl(self, -1, size=(55, 22))
+        scalefact  = wx.StaticText(self, wx.ID_ANY, _("Scale factor (eg. 0.8)"))
+        self.chkm2psclean = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psdef   = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psbar = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psref = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2pslyr = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psend = wx.CheckBox(self, wx.ID_ANY, '')
+        self.leftmargin  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.rightmargin = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.topmargin = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.botmargin = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.pagewidth = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.pageheight =wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
 
         # 1.3.6.1 [SS] 2015-12-28
         pagewidth_toolTip = _('The default is {0}').format('21.59')
@@ -2881,7 +2878,6 @@ class MyAbcm2psPage(wx.Panel):
         self.extras.SetValue(self.settings.get('abcm2ps_extra_params', ''))
         self.formatf.SetValue(self.settings.get('abcm2ps_format_path', ''))
 
-
         self.chkm2psclean.Bind(wx.EVT_CHECKBOX, self.OnAbcm2psClean)
         self.chkm2psdef.Bind(wx.EVT_CHECKBOX, self.OnAbcm2psDefaults)
         self.chkm2psbar.Bind(wx.EVT_CHECKBOX, self.OnAbcm2psBar)
@@ -2904,7 +2900,7 @@ class MyAbcm2psPage(wx.Panel):
         # 1.3.6 [SS] 2014-12-16
         # 1.3.6.3 [SS] 2015-03-15
         #fval = self.settings.get('abcm2ps_scale',0.9)
-        self.scaleval = wx.TextCtrl(self, -1, size=(50,22))
+        self.scaleval = wx.TextCtrl(self, wx.ID_ANY, size=(50,22))
         self.scaleval.SetValue(self.settings.get('abcm2ps_scale',0.9))
         self.scaleval.SetToolTip(wx.ToolTip(_('Scales the separation between staff lines. Recommended value is {0}.'.format('0.80'))))
 
@@ -3127,33 +3123,33 @@ class MusicXmlPage(wx.Panel):
     def __init__(self, parent, settings):
         wx.Panel.__init__(self,parent)
         self.settings = settings
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 4
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
 
         headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\nYou find these functions under Files/export and import. Hovering the mouse over\none of the checkboxes will provide more explanation. Further documentation can be found\nin the Readme.txt files which come with the abc2xml.py-??.zip and xml2abc.py-??.zip\ndistributions available from the Wim Vree's web site.\n\n")
 
-        heading    = wx.StaticText(self, -1, headingtxt)
-        abc2xml    = wx.StaticText(self, -1, _("abc2xml options"))
-        compressed = wx.StaticText(self, -1, _('Compressed xml'))
-        xmlpage    = wx.StaticText(self, -1, _('Page settings'))
-        unfold     = wx.StaticText(self, -1, _('Unfold Repeats'))
-        mididata   = wx.StaticText(self, -1, _('Midi Data'))
-        volta      = wx.StaticText(self, -1, _('Volta type setting'))
-        xml2abc    = wx.StaticText(self, -1, _('xml2abc option'))
-        numchar    = wx.StaticText(self, -1, _('characters/line'))
-        numbars    = wx.StaticText(self, -1, _('bars per line'))
-        credit     = wx.StaticText(self, -1, _('credit filter'))
-        ulength    = wx.StaticText(self, -1, _('unit length'))
+        heading    = wx.StaticText(self, wx.ID_ANY, headingtxt)
+        abc2xml    = wx.StaticText(self, wx.ID_ANY, _("abc2xml options"))
+        compressed = wx.StaticText(self, wx.ID_ANY, _('Compressed xml'))
+        xmlpage    = wx.StaticText(self, wx.ID_ANY, _('Page settings'))
+        unfold     = wx.StaticText(self, wx.ID_ANY, _('Unfold Repeats'))
+        mididata   = wx.StaticText(self, wx.ID_ANY, _('Midi Data'))
+        volta      = wx.StaticText(self, wx.ID_ANY, _('Volta type setting'))
+        xml2abc    = wx.StaticText(self, wx.ID_ANY, _('xml2abc option'))
+        numchar    = wx.StaticText(self, wx.ID_ANY, _('characters/line'))
+        numbars    = wx.StaticText(self, wx.ID_ANY, _('bars per line'))
+        credit     = wx.StaticText(self, wx.ID_ANY, _('credit filter'))
+        ulength    = wx.StaticText(self, wx.ID_ANY, _('unit length'))
 
-        self.XmlPage = wx.TextCtrl(self, -1, size=(300,20))
-        self.maxchars = wx.TextCtrl(self, -1, size=(40,20))
-        self.maxbars  = wx.TextCtrl(self, -1, size=(40,20))
-        self.voltaval = wx.TextCtrl(self, -1, size=(40,20))
-        self.creditval = wx.TextCtrl(self, -1, size=(40,20))
-        self.unitval  = wx.TextCtrl(self, -1, size=(40,20))
-        self.chkXmlCompressed = wx.CheckBox(self, -1, '')
-        self.chkXmlUnfold = wx.CheckBox(self, -1, '')
-        self.chkXmlMidi = wx.CheckBox(self, -1, '')
+        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY, size=(300,20))
+        self.maxchars = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
+        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
+        self.voltaval = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
+        self.creditval = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
+        self.unitval  = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
+        self.chkXmlCompressed = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkXmlUnfold = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkXmlMidi = wx.CheckBox(self, wx.ID_ANY, '')
 
         self.chkXmlCompressed.SetValue(self.settings.get('xmlcompressed',False))
         self.chkXmlUnfold.SetValue(self.settings.get('xmlunfold',False))
@@ -3280,29 +3276,29 @@ class MidiOptionsFrame(wx.Dialog):
     def __init__(self, parent, ID=-1, title='', key='', metre='3/4', default_len='1/16'):
         wx.Dialog.__init__(self, parent, ID, _('ABC Options'), wx.DefaultPosition, wx.Size(300, 80))
 
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
-        border = 10
-        sizer = wx.GridBagSizer(5, 5)
-        sizer.Add(wx.StaticText(self, -1, u'K: ' + _('Key signature')), wx.GBPosition(0, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, u'M: ' + _('Metre')), wx.GBPosition(1, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, u'L: ' + _('Default note length')), wx.GBPosition(2, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, u'T: ' + _('Title')), wx.GBPosition(3, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('Bars per line')), wx.GBPosition(4, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
-        sizer.Add(wx.StaticText(self, -1, _('Numbers of notes in anacrusis')), wx.GBPosition(5, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
+        sizer = wx.GridBagSizer(control_margin, control_margin)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, u'K: ' + _('Key signature')), wx.GBPosition(0, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, u'M: ' + _('Metre')), wx.GBPosition(1, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, u'L: ' + _('Default note length')), wx.GBPosition(2, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, u'T: ' + _('Title')), wx.GBPosition(3, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, _('Bars per line')), wx.GBPosition(4, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, _('Numbers of notes in anacrusis')), wx.GBPosition(5, 0), flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=border)
 
-        self.key = wx.TextCtrl(self, -1, size=(150, 22))
-        self.metre = wx.TextCtrl(self, -1, size=(150, 22))
-        self.default_len = wx.TextCtrl(self, -1, size=(150, 22))
-        self.title = wx.TextCtrl(self, -1, size=(150, 22))
-        self.bpl = wx.TextCtrl(self, -1, size=(150, 22))
-        self.num_notes_in_anacrusis = wx.TextCtrl(self, -1, size=(150, 22))
-        self.triplet_detection = wx.CheckBox(self, -1, _('Detect triplets'))
-        self.broken_rythm_detection = wx.CheckBox(self, -1, _('Detect broken rythms'))
-        self.slur_triplets = wx.CheckBox(self, -1, _('Use slurs on triplets'))
-        self.slur_8ths = wx.CheckBox(self, -1, _('Use slurs on eights (useful for some waltzes)'))
-        self.slur_16ths = wx.CheckBox(self, -1, _('Use slurs on first pair of sixteenth (useful for some 16th polskas)'))
-        self.ok = wx.Button(self, -1, _('&Ok'))
-        self.cancel = wx.Button(self, -1, _('&Cancel'))
+        self.key = wx.TextCtrl(self, wx.ID_ANY, size=(150, 22))
+        self.metre = wx.TextCtrl(self, wx.ID_ANY, size=(150, 22))
+        self.default_len = wx.TextCtrl(self, wx.ID_ANY, size=(150, 22))
+        self.title = wx.TextCtrl(self, wx.ID_ANY, size=(150, 22))
+        self.bpl = wx.TextCtrl(self, wx.ID_ANY, size=(150, 22))
+        self.num_notes_in_anacrusis = wx.TextCtrl(self, wx.ID_ANY, size=(150, 22))
+        self.triplet_detection = wx.CheckBox(self, wx.ID_ANY, _('Detect triplets'))
+        self.broken_rythm_detection = wx.CheckBox(self, wx.ID_ANY, _('Detect broken rythms'))
+        self.slur_triplets = wx.CheckBox(self, wx.ID_ANY, _('Use slurs on triplets'))
+        self.slur_8ths = wx.CheckBox(self, wx.ID_ANY, _('Use slurs on eights (useful for some waltzes)'))
+        self.slur_16ths = wx.CheckBox(self, wx.ID_ANY, _('Use slurs on first pair of sixteenth (useful for some 16th polskas)'))
+        self.ok = wx.Button(self, wx.ID_ANY, _('&Ok'))
+        self.cancel = wx.Button(self, wx.ID_ANY, _('&Cancel'))
         #box.AddStretchSpacer()
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
         if WX4:
@@ -3356,18 +3352,18 @@ class MidiOptionsFrame(wx.Dialog):
 
 class ErrorFrame(wx.Dialog):
     def __init__(self, parent, error_msg):
-        wx.Dialog.__init__(self, parent, -1, _('Errors'), wx.DefaultPosition, wx.Size(700, 80))
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, _('Errors'), wx.DefaultPosition, wx.Size(700, 80))
         border = 10
-        self.SetBackgroundColour(wx.Colour(245, 244, 235))
+        self.SetBackgroundColour(dialog_background_colour)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
         font = wx.Font(font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New")
-        self.error = wx.TextCtrl(self, -1, error_msg, size=(700, 300), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER|wx.HSCROLL)
+        self.error = wx.TextCtrl(self, wx.ID_ANY, error_msg, size=(700, 300), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER|wx.HSCROLL)
         self.error.SetFont(font)
 
-        self.ok = wx.Button(self, -1, _('&Ok'))
-        self.cancel = wx.Button(self, -1, _('&Cancel'))
+        self.ok = wx.Button(self, wx.ID_ANY, _('&Ok'))
+        self.cancel = wx.Button(self, wx.ID_ANY, _('&Cancel'))
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
         if WX4:
             box = wx.BoxSizer()
@@ -3407,7 +3403,7 @@ class ErrorFrame(wx.Dialog):
 class ProgressFrame(wx.Frame):
     def __init__(self, parent, ID, title=_('Converting...')):
         wx.Frame.__init__(self, parent, ID, title, wx.DefaultPosition, wx.Size(500, 80))
-        self.gauge = wx.Gauge(self, -1, 100, (0, 0), (500, 80))
+        self.gauge = wx.Gauge(self, wx.ID_ANY, 100, (0, 0), (500, 80))
         self.Centre()
     def SetPercent(self, percent):
         self.gauge.SetValue(percent)
@@ -3475,17 +3471,18 @@ class MySearchFrame(wx.Frame):
         wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Search files"), style=wx.DEFAULT_FRAME_STYLE, name='searcher')
         # Add a panel so it looks the correct on all platforms
         if WX4:
-            wx.Frame.SetSize(self, -1, -1, 380,400)
+            self.SetSize(-1, -1, 380, 400)
         else:
-            wx.Frame.SetDimensions(self, -1, -1, 380,400)
+            self.SetDimensions(-1, -1, 380, 400)
+
         self.searchdata = ''
-        searchfold = wx.StaticText(self, -1, _("Folder"))
+        searchfold = wx.StaticText(self, wx.ID_ANY, _("Folder"))
         self.frame = parent
-        self.searchfoldtxt = wx.TextCtrl(self, -1, settings['searchfolder'],(-1, -1),(200,-1))
-        self.browsebut = wx.Button(self, -1, _('Browse'), size=(-1, 26))
-        searchlab = wx.StaticText(self, -1, _('Text'))
-        self.searchstring = wx.TextCtrl(self, -1, self.searchdata,(-1, -1),(200,-1))
-        self.startbut = wx.Button(self, -1, _('Search'), size = (-1, 26))
+        self.searchfoldtxt = wx.TextCtrl(self, wx.ID_ANY, settings['searchfolder'], (-1,-1), (200,-1))
+        self.browsebut = wx.Button(self, wx.ID_ANY, _('Browse'), size=(-1,26))
+        searchlab = wx.StaticText(self, wx.ID_ANY, _('Text'))
+        self.searchstring = wx.TextCtrl(self, wx.ID_ANY, self.searchdata, (-1,-1), (200,-1))
+        self.startbut = wx.Button(self, wx.ID_ANY, _('Search'), size = (-1, 26))
         self.list_ctrl = wx.ListCtrl(self, size=(380,360), style=wx.LC_REPORT |wx.BORDER_SUNKEN|wx.LC_SINGLE_SEL)
         self.list_ctrl.InsertColumn(0, _('Title'), width=400)
 
@@ -3719,7 +3716,7 @@ class MainFrame(wx.Frame):
         self.play_music_thread = None
 
         # 1.3.7.3 [JWDJ] Removed wx.LC_SINGLE_SEL to enable multiselect tunes
-        self.tune_list = FlexibleListCtrl(self, -1, style=wx.LC_REPORT) #wx.LC_NO_HEADER)
+        self.tune_list = FlexibleListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT) #wx.LC_NO_HEADER)
 
         self.tune_list.InsertColumn(0, _('No.'), wx.LIST_FORMAT_RIGHT)
         self.tune_list.InsertColumn(1, _('Title'))
@@ -3742,7 +3739,7 @@ class MainFrame(wx.Frame):
         self.music_pane.OnNoteSelectionChangedDesc = self.OnNoteSelectionChangedDesc
 
         error_font_size = get_normal_fontsize() # 1.3.6.3 [JWDJ] one function to set font size
-        self.error_msg = wx.TextCtrl(self, -1, '', size=(200, 100), style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER | wx.TE_READONLY | wx.TE_DONTWRAP)
+        self.error_msg = wx.TextCtrl(self, wx.ID_ANY, '', size=(200, 100), style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER | wx.TE_READONLY | wx.TE_DONTWRAP)
         self.error_msg.SetFont(wx.Font(error_font_size, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Courier New"))
         self.error_pane = aui.AuiPaneInfo().Name("error message").Caption(_("ABC errors")).CloseButton(True).BestSize((160, 80)).Bottom()
         self.error_pane.Hide()
@@ -4454,7 +4451,7 @@ class MainFrame(wx.Frame):
         panel.Show(visible)
 
     def setup_toolbar(self):
-        self.toolbar = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize)#, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
+        self.toolbar = aui.AuiToolBar(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)#, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
         try:
             self.toolbar.SetAGWWindowStyleFlag(aui.AUI_TB_PLAIN_BACKGROUND)
         except:
@@ -4563,9 +4560,9 @@ class MainFrame(wx.Frame):
 
     def add_slider_to_toolbar(self, label_text, show_value, *args, **kwargs):
         panel = wx.Panel(self.toolbar, -1)
-        controls = [wx.Slider(panel, -1, *args, **kwargs)]
+        controls = [wx.Slider(panel, wx.ID_ANY, *args, **kwargs)]
         if show_value:
-            controls.append(wx.StaticText(panel, -1, str(kwargs['value'])))
+            controls.append(wx.StaticText(panel, wx.ID_ANY, str(kwargs['value'])))
         self.add_label_and_controls_to_panel(panel, label_text, controls)
         self.toolbar.AddControl(panel)
         if len(controls) == 1:
@@ -4575,7 +4572,7 @@ class MainFrame(wx.Frame):
 
     def add_combobox_to_toolbar(self, label_text, *args, **kwargs):
         panel = wx.Panel(self.toolbar, -1)
-        control = wx.ComboBox(panel, -1, *args, **kwargs)
+        control = wx.ComboBox(panel, wx.ID_ANY, *args, **kwargs)
         self.add_label_and_controls_to_panel(panel, label_text, [control])
         self.toolbar.AddControl(panel)
         return control
@@ -4584,7 +4581,7 @@ class MainFrame(wx.Frame):
     def add_label_and_controls_to_panel(panel, label_text, controls):
         box = wx.BoxSizer(wx.HORIZONTAL)
         if label_text:
-            box.Add(wx.StaticText(panel, -1, u'{0}: '.format(label_text)), flag=wx.ALIGN_CENTER_VERTICAL)
+            box.Add(wx.StaticText(panel, wx.ID_ANY, u'{0}: '.format(label_text)), flag=wx.ALIGN_CENTER_VERTICAL)
         for control in controls:
             box.Add(control, flag=wx.ALIGN_CENTER_VERTICAL)
         box.AddSpacer(20)
@@ -4592,7 +4589,7 @@ class MainFrame(wx.Frame):
         panel.SetAutoLayout(True)
 
     def add_checkbox_to_toolbar(self, *args, **kwargs):
-        control = wx.CheckBox(self.toolbar, -1, *args, **kwargs)
+        control = wx.CheckBox(self.toolbar, wx.ID_ANY, *args, **kwargs)
         self.toolbar.AddControl(control)
         return control
 
@@ -6132,7 +6129,7 @@ class MainFrame(wx.Frame):
 
     def OnViewFieldReference(self, evt):
         if not self.field_reference_frame:
-            self.field_reference_frame = frame = wx.Frame(self, -1, _('ABC fields and commands reference'), wx.DefaultPosition, (700, 500),
+            self.field_reference_frame = frame = wx.Frame(self, wx.ID_ANY, _('ABC fields and commands reference'), wx.DefaultPosition, (700, 500),
                                                           style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.FRAME_TOOL_WINDOW | wx.CAPTION | wx.FRAME_FLOAT_ON_PARENT | wx.SYSTEM_MENU  )
             tree = FieldReferenceTree(frame, -1)
             sizer = wx.GridSizer(1, 1, 0, 0)
@@ -8191,7 +8188,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 '''.format(program_name)
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, _('About EasyABC'), size=(900, 600) )
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, _('About EasyABC'), size=(900, 600) )
         os.chdir(cwd)
         about_html = wx.html.HtmlWindow(self, -1)
         about_html.SetPage(self.htmlpage)
@@ -8234,7 +8231,7 @@ class MyInfoFrame(wx.Frame):
         wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Messages"),style=wx.DEFAULT_FRAME_STYLE,name='infoframe',size=(600,240))
         # Add a panel so it looks the correct on all platforms
         self.panel = ScrolledPanel(self)
-        self.basicText = wx.TextCtrl(self.panel,-1, "",style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.basicText = wx.TextCtrl(self.panel, wx.ID_ANY, "",style=wx.TE_MULTILINE | wx.TE_READONLY)
         # 1.3.6.3 [JWDJ] changed to fixed font so Abcm2ps-messages with a ^ make sense
         font = wx.Font(10, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.basicText.SetFont(font)
@@ -8261,7 +8258,7 @@ class MyAbcFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Processed Abc Tune"),style=wx.DEFAULT_FRAME_STYLE,name='abctuneframe')
         # 1.3.6.3 [JWdJ] 2015-04-22 bugfix: resizing processed abc tune page now works correctly
-        self.basicText = stc.StyledTextCtrl(self, -1, (-1, -1), (600, 450))
+        self.basicText = stc.StyledTextCtrl(self, wx.ID_ANY, (-1, -1), (600, 450))
         self.basicText.SetMarginLeft(15)
         self.basicText.SetMarginWidth(1, 40)
         self.basicText.SetMarginType(1, stc.STC_MARGIN_NUMBER)
