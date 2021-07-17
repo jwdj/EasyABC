@@ -2066,20 +2066,27 @@ class MyNoteBook(wx.Frame):
         # 1.3.6.4 [SS] 2015-05-26 added statusbar
         abcsettings = AbcFileSettingsFrame(nb, settings, statusbar)
         chordpage = MyChordPlayPage(nb, settings)
-        voicepage = MyVoicePage(nb, settings)
+        self.voicepage = MyVoicePage(nb, settings)
         # 1.3.6.1 [SS] 2015-02-02
         abcm2pspage = MyAbcm2psPage(nb, settings, abcsettings)
         xmlpage    = MusicXmlPage(nb, settings)
         nb.AddPage(abcm2pspage, _("Abcm2ps"))
         nb.AddPage(chordpage, _("Abc2midi"))
-        nb.AddPage(voicepage, _("Voices"))
+        self.voicepage_id = nb.PageCount
+        nb.AddPage(self.voicepage, _("Voices"))
         nb.AddPage(xmlpage, _("Xml"))
         nb.AddPage(abcsettings, _("File Settings"))
+        nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
 
         sizer = wx.BoxSizer()
         sizer.Add(nb, 1, wx.ALL|wx.EXPAND)
         p.SetSizer(sizer)
         sizer.Fit(self)
+
+    def OnPageChanged(self, event):
+        if event.GetSelection() == self.voicepage_id:
+            self.voicepage.FillControls()
+        event.Skip()
 
 
 class AbcFileSettingsFrame(wx.Panel):
@@ -2561,62 +2568,68 @@ class MyVoicePage(wx.Panel):
     def __init__(self, parent, settings):
         wx.Panel.__init__(self, parent)
         self.settings = settings
-
         self.SetBackgroundColour(dialog_background_colour)
         border = control_margin
         channel = 1
+        self.controls_initialized = False
 
         # definition of box for voice 1 to 16 (MIDI is limited to 16 channels)
-        midi_box_ch_list = {}
         self.cmbMidiProgramCh_list = {}
         self.sldMidiControlVolumeCh_list = {}
         self.textValueMidiControlVolumeCh_list = {}
         self.sldMidiControlPanCh_list = {}
         self.textValueMidiControlPanCh_list = {}
         midi_box = rcs.RowColSizer()
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Default instrument:')), row=0, col=1, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Main Volume:')), row=0, col=3, colspan=2, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('L/R Balance:')), row=0, col=6, colspan=2, flag=wx.ALIGN_CENTER_VERTICAL, border=10)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Default instrument:')), row=0, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Main Volume:')), row=0, col=3, colspan=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('L/R Balance:')), row=0, col=6, colspan=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # For each of the 16th voice, instrument, volume and balance can be set separately
         for channel in range(1, 16+1):
-            self.cmbMidiProgramCh_list[channel]=wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26),
-                                                            style=wx.CB_READONLY) #wx.CB_DROPDOWN |
-            self.sldMidiControlVolumeCh_list[channel]=wx.Slider(self, value=64, minValue=0, maxValue=127,
-                                                                size=(80, -1), style=wx.SL_HORIZONTAL) # | wx.SL_LABELS
+            cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26),
+                                                            style=wx.CB_READONLY)
+            self.cmbMidiProgramCh_list[channel] = cmbMidiProgram
+            volumeSlider = wx.Slider(self, value=64, minValue=0, maxValue=127,
+                                                                size=(80, -1), style=wx.SL_HORIZONTAL)
             # A text field is added to show value of slider as activating option SL_LABELS will show to many information
-            self.textValueMidiControlVolumeCh_list[channel]=wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
+            self.sldMidiControlVolumeCh_list[channel] = volumeSlider
+
+            volumeText = wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
                                                                 wx.ST_NO_AUTORESIZE, size=(30, 20))
-            self.sldMidiControlPanCh_list[channel]=wx.Slider(self, value=64, minValue=0, maxValue=127,
-                                                                size=(80, -1), style=wx.SL_HORIZONTAL) # | wx.SL_LABELS
+            self.textValueMidiControlVolumeCh_list[channel] = volumeText
+
+            panSlider = wx.Slider(self, value=64, minValue=0, maxValue=127,
+                                                                size=(80, -1), style=wx.SL_HORIZONTAL)
+            self.sldMidiControlPanCh_list[channel] = panSlider
+
             # A text field is added to show value of slider as activating option SL_LABELS will show to many information
-            self.textValueMidiControlPanCh_list[channel]=wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
+            panText = wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
                                                                 wx.ST_NO_AUTORESIZE, size=(30, 20))
+            self.textValueMidiControlPanCh_list[channel] = panText
+
             midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Voice n.%d: ') % channel), row=channel, col=0,
                          flag=wx.ALIGN_CENTER_VERTICAL, border=border)
-            midi_box.Add(self.cmbMidiProgramCh_list[channel], row=channel, col=1, flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+            midi_box.Add(cmbMidiProgram, row=channel, col=1, flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
             #3rd column (col=2) is unused on purpose to leave some space (maybe replaced with some other spacer option later on)
-            midi_box.Add(self.sldMidiControlVolumeCh_list[channel], row=channel, col=3,
+            midi_box.Add(volumeSlider, row=channel, col=3,
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-            midi_box.Add(self.textValueMidiControlVolumeCh_list[channel], row=channel, col=4,
+            midi_box.Add(volumeText, row=channel, col=4,
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
             #6th column (col=5) is unused on purpose to leave some space (maybe replaced with some other spacer option later on)
-            midi_box.Add(self.sldMidiControlPanCh_list[channel], row=channel, col=6,
+            midi_box.Add(panSlider, row=channel, col=6,
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-            midi_box.Add(self.textValueMidiControlPanCh_list[channel], row=channel, col=7,
+            midi_box.Add(panText, row=channel, col=7,
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
             #Some properties are added to the slider to be able to update the associated text field with value when slider is moved
-            self.sldMidiControlVolumeCh_list[channel].infotype="Volume"
-            self.sldMidiControlVolumeCh_list[channel].currentchannel=channel
-            self.sldMidiControlVolumeCh_list[channel].Bind(wx.EVT_SCROLL, self.OnSliderScroll)
-            self.sldMidiControlPanCh_list[channel].infotype="Pan"
-            self.sldMidiControlPanCh_list[channel].currentchannel=channel
-            self.sldMidiControlPanCh_list[channel].Bind(wx.EVT_SCROLL, self.OnSliderScroll)
+            volumeSlider.currentchannel=channel
+            volumeSlider.Bind(wx.EVT_SCROLL, self.OnVolumeSliderScroll)
+            panSlider.currentchannel=channel
+            panSlider.Bind(wx.EVT_SCROLL, self.OnPanSliderScroll)
             # Binding
-            self.cmbMidiProgramCh_list[channel].currentchannel=channel
-            self.cmbMidiProgramCh_list[channel].Bind(wx.EVT_COMBOBOX, self.OnProgramSelection)
+            cmbMidiProgram.currentchannel=channel
+            cmbMidiProgram.Bind(wx.EVT_COMBOBOX, self.OnProgramSelection)
 
-        midi_box.AddGrowableCol(1)
+        midi_box.AddGrowableCol(1)  # JWDJ: does this still have a purpose?
 
         # reset buttons box
         self.reset = wx.Button(self, wx.ID_ANY, _('&Reset'))
@@ -2629,6 +2642,7 @@ class MyVoicePage(wx.Panel):
 
         reset_toolTip = _('The instrument for all voices is set to the default midi program. The volume and pan are set to 96/64.')
         self.reset.SetToolTip(wx.ToolTip(reset_toolTip))
+        self.reset.Bind(wx.EVT_BUTTON, self.OnResetDefault)
 
         # add all box to the dialog to be displayed
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2636,53 +2650,58 @@ class MyVoicePage(wx.Panel):
         self.sizer.Add(btn_box, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
         self.SetSizer(self.sizer)
-        self.SetAutoLayout(True)
-        self.Centre()
-        self.sizer.Fit(self)
 
         # try to set selection on previously defined instrument or default one or Piano
         self.midi_program_ch_list = ['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
                                    'midi_program_ch5', 'midi_program_ch6', 'midi_program_ch7', 'midi_program_ch8',
                                    'midi_program_ch9', 'midi_program_ch10', 'midi_program_ch11', 'midi_program_ch12',
                                    'midi_program_ch13', 'midi_program_ch14', 'midi_program_ch15', 'midi_program_ch16']
-        try:
-            for channel in range(1, 16+1):
-                if self.settings.get(self.midi_program_ch_list[channel-1]):
-                    midi_info = self.settings.get(self.midi_program_ch_list[channel-1])
-                else:
+
+    def FillControls(self):
+        if self.controls_initialized:
+            return
+
+        instruments = general_midi_instruments
+        for channel in range(1, 16+1):
+            self.cmbMidiProgramCh_list[channel].Append(instruments)
+            try:
+                setting_name = self.midi_program_ch_list[channel-1]
+                midi_info = self.settings.get(setting_name)
+                if midi_info is None:
                     midi_info = [self.settings.get('midi_program', 1), 96, 64]
                 self.cmbMidiProgramCh_list[channel].Select(midi_info[0])
                 self.sldMidiControlVolumeCh_list[channel].SetValue(midi_info[1])
                 self.textValueMidiControlVolumeCh_list[channel].SetLabel("%d" % midi_info[1])
                 self.sldMidiControlPanCh_list[channel].SetValue(midi_info[2])
                 self.textValueMidiControlPanCh_list[channel].SetLabel("%d" % midi_info[2])
-        except:
-            pass
+            except:
+                pass
 
-        self.reset.Bind(wx.EVT_BUTTON, self.OnResetDefault)
+        self.controls_initialized = True
 
     def OnProgramSelection(self, evt):
         obj = evt.GetEventObject()
-        val = obj.GetValue()
-        #print obj.currentchannel
-        #print val
-        currentchannel = obj.currentchannel
-        self.settings[self.midi_program_ch_list[currentchannel-1]] = [self.cmbMidiProgramCh_list[currentchannel].GetSelection(),
-                                                               self.sldMidiControlVolumeCh_list[currentchannel].GetValue(),
-                                                               self.sldMidiControlPanCh_list[currentchannel].GetValue()]
+        self.update_setting_for_channel(obj.currentchannel)
 
-    def OnSliderScroll(self, evt):
+    def OnVolumeSliderScroll(self, evt):
         obj = evt.GetEventObject()
         val = obj.GetValue()
+        channel = obj.currentchannel
+        self.textValueMidiControlVolumeCh_list[channel].SetLabel("%d" % val)
+        self.update_setting_for_channel(channel)
 
-        if obj.infotype=="Volume":
-            self.textValueMidiControlVolumeCh_list[obj.currentchannel].SetLabel("%d" % val)
-        if obj.infotype=="Pan":
-            self.textValueMidiControlPanCh_list[obj.currentchannel].SetLabel("%d" % val)
-        currentchannel = obj.currentchannel
-        self.settings[self.midi_program_ch_list[currentchannel-1]] = [self.cmbMidiProgramCh_list[currentchannel].GetSelection(),
-                                                               self.sldMidiControlVolumeCh_list[currentchannel].GetValue(),
-                                                               self.sldMidiControlPanCh_list[currentchannel].GetValue()]
+    def OnPanSliderScroll(self, evt):
+        obj = evt.GetEventObject()
+        val = obj.GetValue()
+        channel = obj.currentchannel
+        self.textValueMidiControlPanCh_list[channel].SetLabel("%d" % val)
+        self.update_setting_for_channel(channel)
+
+    def update_setting_for_channel(self, channel):
+        self.settings[self.midi_program_ch_list[channel-1]] = [self.cmbMidiProgramCh_list[channel].GetSelection(),
+                                                               self.sldMidiControlVolumeCh_list[channel].GetValue(),
+                                                               self.sldMidiControlPanCh_list[channel].GetValue()]
+
 
     def OnResetDefault(self, evt):
         try:
@@ -2693,17 +2712,9 @@ class MyVoicePage(wx.Panel):
                 self.sldMidiControlPanCh_list[channel].SetValue(64)
                 self.textValueMidiControlPanCh_list[channel].SetLabel("64")
 
-                # 1.3.6 [SS] 2014-11-16
-                #if (self.cmbMidiProgramCh_list[channel].GetSelection()!=self.settings.get('midi_program', 1) or
-                    #self.sldMidiControlVolumeCh_list[channel].GetValue()!=64 or
-                    #self.sldMidiControlPanCh_list[channel].GetValue()!=64):
-
                 self.settings[self.midi_program_ch_list[channel-1]] = [self.cmbMidiProgramCh_list[channel].GetSelection(),
                                                                        self.sldMidiControlVolumeCh_list[channel].GetValue(),
                                                                        self.sldMidiControlPanCh_list[channel].GetValue()]
-                # 1.3.6 [SS] 2014-11-16
-                #else:
-                    #if self.midi_program_ch_list[channel-1] in self.settings: del self.settings[self.midi_program_ch_list[channel-1]]
         except:
             pass
 
@@ -6111,6 +6122,10 @@ class MainFrame(wx.Frame):
 
     #p09 revised to use MyNoteBook
     def OnAbcSettings(self, evt):
+        # import cProfile
+        # profiler = cProfile.Profile()
+        # profiler.enable()
+
         # 1.3.6.4 [SS] 2015-07-07
         win = wx.FindWindowByName('settingsbook')
         if win is None:
@@ -6119,6 +6134,9 @@ class MainFrame(wx.Frame):
         else:
             self.settingsbook.Iconize(False)
             self.settingsbook.Raise()
+
+        # profiler.disable()
+        # profiler.print_stats()
 
     def OnChangeFont(self, evt):
         font = wx.GetFontFromUser(self, self.editor.GetFont(), _('Select a font for the ABC editor'))
