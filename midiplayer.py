@@ -27,7 +27,7 @@ class EventHook(object):
             handler(*args, **keywargs)
 
     def clearObjectHandlers(self, obj):
-        self.__handlers = [h for h in self.__handlers if getattr(h, 'im_self', False) != obj] 
+        self.__handlers = [h for h in self.__handlers if getattr(h, '__self__', False) != obj]
 
 
 class MidiPlayer(object):
@@ -35,6 +35,7 @@ class MidiPlayer(object):
         super(MidiPlayer, self).__init__()
         self.OnAfterStop = EventHook()
         self.OnAfterLoad = EventHook()
+        self.loop_midi_playback = False
 
     @property
     def is_playing(self):
@@ -43,6 +44,10 @@ class MidiPlayer(object):
     @property
     def is_paused(self):
         return False
+
+    @property
+    def is_looping(self):
+        return self.loop_midi_playback
 
     @property
     def supports_tempo_change_while_playing(self):

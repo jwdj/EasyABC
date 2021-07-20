@@ -1,6 +1,6 @@
 #
 
-program_name = 'EasyABC 1.3.7.9 2021-01-01'
+program_name = 'EasyABC 1.3.7.9 2021-07-20'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2020 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -4220,6 +4220,10 @@ class MainFrame(wx.Frame):
         self.bpm_slider.Enabled = True
         self.update_playback_rate() # 1.3.6.4 [JWDJ]
 
+    def OnChangeLoopPlayback(self, event):
+        loop = event.Selection != 0
+        self.loop_midi_playback = loop
+
     def OnChangeFollowScore(self, event):
         enabled = event.Selection != 0
         self.settings['follow_score'] = enabled
@@ -4536,6 +4540,7 @@ class MainFrame(wx.Frame):
         self.progress_slider = self.add_slider_to_toolbar(_('Play position'), False, 0, 0, 100, (-1, -1), (130, 22))
 
         self.loop_check = self.add_checkbox_to_toolbar(_('Loop'))
+        self.loop_check.Bind(wx.EVT_CHECKBOX, self.OnChangeLoopPlayback)
 
         self.follow_score_check = self.add_checkbox_to_toolbar(_('Follow score'))
         self.follow_score_check.Bind(wx.EVT_CHECKBOX, self.OnChangeFollowScore)
@@ -5271,11 +5276,12 @@ class MainFrame(wx.Frame):
 
     @property
     def loop_midi_playback(self):
-        return self.loop_check.GetValue()
+        return self.mc.loop_midi_playback
 
     @loop_midi_playback.setter
     def loop_midi_playback(self, value):
         self.loop_check.SetValue(value)
+        self.mc.loop_midi_playback = value
 
     def OnToolPlayLoop(self, evt):
         if self.settings['midiplayer_path']:
