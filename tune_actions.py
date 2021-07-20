@@ -1048,7 +1048,7 @@ class ClefChangeAction(ValueChangeAction):
 
     def is_current_value(self, context, value):
         match = self.get_match(context)
-        return match and value == match.group('clefname')
+        return value == (match.group('clefname') or '')
 
 
 class StaffTransposeChangeAction(ValueChangeAction):
@@ -1364,23 +1364,21 @@ class NewMultiVoiceTuneAction(NewTuneAction):
         super(NewTuneAction, self).__init__('new_multivoice_tune', display_name=_('New tune with multiple voices'))
 
     def key_and_body(self):
-        text =               'V:S clef=treble name=S'
-        text += os.linesep + 'V:A clef=treble name=A'
-        text += os.linesep + 'V:T clef=treble name=T'
-        text += os.linesep + 'V:B clef=treble name=B'
-        text += os.linesep + r'%%score [ (S A) (T B) ]'
-        text += os.linesep + 'K:C'
-        text += os.linesep + r'% ' + _('below the notes for each voice')
-        text += os.linesep + 'V:S'
-        text += os.linesep + 'c'
-        text += os.linesep + 'V:A'
-        text += os.linesep + 'G'
-        text += os.linesep + 'V:T'
-        text += os.linesep + 'E'
-        text += os.linesep + 'V:B'
-        text += os.linesep + 'C'
-        return text
-
+        return '''V:S clef=treble name=S
+V:A clef=treble name=A
+V:T clef=bass name=T
+V:B clef=bass name=B
+%%score [ (S A) (T B) ]
+K:C
+V:S
+c
+V:A
+G
+V:T
+G,
+V:B
+C,
+'''
 
 class NewVoiceAction(AbcAction):
     voice_re = re.compile(r'(?m)^V:\s*(\d+)')
