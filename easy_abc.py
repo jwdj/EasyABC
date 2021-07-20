@@ -57,15 +57,16 @@ import os, os.path
 import wx
 WX4 = wx.version().startswith('4')
 
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+
 if os.getenv('EASYABCDIR'):
     cwd = os.getenv('EASYABCDIR')
 else:
-    cwd = os.getcwd()
-    if os.path.isabs(sys.argv[0]):
-        cwd = os.path.dirname(sys.argv[0])
-        # 1.3.6.3 [JWDJ] 2015-04-27 On Windows replace forward slashes with backslashes
-        if wx.Platform == "__WXMSW__":
-            cwd = cwd.replace('/', '\\')
+    cwd = application_path
+
 sys.path.append(cwd)
 
 import re
@@ -4495,14 +4496,14 @@ class MainFrame(wx.Frame):
         append_submenu(record_popup, _('Metre'), metre_menu)
 
         button_style = platebtn.PB_STYLE_DEFAULT | platebtn.PB_STYLE_NOBG
-
-        self.play_bitmap = wx.Image(os.path.join(cwd, 'img', 'toolbar_play.png')).ConvertToBitmap()
-        self.pause_bitmap = wx.Image(os.path.join(cwd, 'img', 'toolbar_pause.png')).ConvertToBitmap()
+        image_path = self.get_image_path()
+        self.play_bitmap = wx.Image(os.path.join(image_path, 'toolbar_play.png')).ConvertToBitmap()
+        self.pause_bitmap = wx.Image(os.path.join(image_path, 'toolbar_pause.png')).ConvertToBitmap()
         self.play_button = play = platebtn.PlateButton(self.toolbar, self.id_play, "", self.play_bitmap, style=button_style)
-        self.stop_button = stop = platebtn.PlateButton(self.toolbar, self.id_stop, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_stop.png')).ConvertToBitmap(), style=button_style)
-        self.record_btn = record = platebtn.PlateButton(self.toolbar, self.id_record, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_record.png')).ConvertToBitmap(), style=button_style)
-        ##self.refresh = refresh = platebtn.PlateButton(self.toolbar, self.id_refresh, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_refresh.png')).ConvertToBitmap(), style=button_style)
-        #add_tune = platebtn.PlateButton(self.toolbar, self.id_add_tune, "", wx.Image(os.path.join(cwd, 'img', 'new.gif')).ConvertToBitmap(), style=button_style)
+        self.stop_button = stop = platebtn.PlateButton(self.toolbar, self.id_stop, "", wx.Image(os.path.join(image_path, 'toolbar_stop.png')).ConvertToBitmap(), style=button_style)
+        self.record_btn = record = platebtn.PlateButton(self.toolbar, self.id_record, "", wx.Image(os.path.join(image_path, 'toolbar_record.png')).ConvertToBitmap(), style=button_style)
+        ##self.refresh = refresh = platebtn.PlateButton(self.toolbar, self.id_refresh, "", wx.Image(os.path.join(image_path, 'toolbar_refresh.png')).ConvertToBitmap(), style=button_style)
+        #add_tune = platebtn.PlateButton(self.toolbar, self.id_add_tune, "", wx.Image(os.path.join(image_path, 'new.gif')).ConvertToBitmap(), style=button_style)
 
         play.SetHelpText('Play (F6)')
         record.SetMenu(record_popup)
@@ -4513,15 +4514,15 @@ class MainFrame(wx.Frame):
         self.toolbar.AddSeparator()
 
         # 1.3.6.3 [JWdJ] 2015-04-26 turned off abc assist for it is not finished yet
-        abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(cwd, 'img', 'bulb.png')).ConvertToBitmap(), style=button_style)
+        abc_assist = platebtn.PlateButton(self.toolbar, self.id_abc_assist, "", wx.Image(os.path.join(image_path, 'bulb.png')).ConvertToBitmap(), style=button_style)
         abc_assist.SetHelpText(_('ABC assist'))
         abc_assist.SetToolTip(wx.ToolTip(_('ABC assist'))) # 1.3.7.0 [JWdJ] 2015-12
         self.toolbar.AddControl(abc_assist, label=_('ABC assist'))
         self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
 
-        ornamentations = self.toolbar.AddSimpleTool(self.id_ornamentations, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_ornamentations.png')).ConvertToBitmap(), _('Note ornaments'))
-        dynamics = self.toolbar.AddSimpleTool(self.id_dynamics, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_dynamics.png')).ConvertToBitmap(), _('Dynamics'))
-        directions = self.toolbar.AddSimpleTool(self.id_directions, "", wx.Image(os.path.join(cwd, 'img', 'toolbar_directions.png')).ConvertToBitmap(), _('Directions'))
+        ornamentations = self.toolbar.AddSimpleTool(self.id_ornamentations, "", wx.Image(os.path.join(image_path, 'toolbar_ornamentations.png')).ConvertToBitmap(), _('Note ornaments'))
+        dynamics = self.toolbar.AddSimpleTool(self.id_dynamics, "", wx.Image(os.path.join(image_path, 'toolbar_dynamics.png')).ConvertToBitmap(), _('Dynamics'))
+        directions = self.toolbar.AddSimpleTool(self.id_directions, "", wx.Image(os.path.join(image_path, 'toolbar_directions.png')).ConvertToBitmap(), _('Directions'))
         self.toolbar.AddSeparator()
 
         self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, 1000, 500, 3000, (30, 60), (130, 22))
@@ -5650,13 +5651,18 @@ class MainFrame(wx.Frame):
             self.editor.SetSelection(self.editor.PositionFromLine(line_numbers[0]),
                                      self.editor.GetLineEndPosition(line_numbers[-1]))
 
+    @staticmethod
+    def get_image_path():
+        return os.path.join(application_path, 'img')
+
     def create_symbols_popup_menu(self, symbols):
         menu = create_menu([], parent=self)
+        image_path = self.get_image_path()
         for symbol in symbols:
             if symbol == '-':
                 menu.AppendSeparator()
             else:
-                img_file = os.path.join(cwd, 'img', symbol + '.png')
+                img_file = os.path.join(image_path, symbol + '.png')
                 description = ('!%s!' % symbol).replace('!pralltriller!', 'P').replace('!accent!', '!>!').replace('!staccato!', '.').replace('!u!', 'u').replace('!v!', 'v').replace('!repeat_left!', '|:').replace('!repeat_right!', ':|').replace('!repeat_both!', '::').replace('!barline!', ' | ').replace('!repeat1!', '|1 ').replace('!repeat2!', ':|2 ')
                 image = wx.Image(img_file)
                 append_menu_item(menu, ' ', description, self.OnInsertSymbol, bitmap=image.ConvertToBitmap())
