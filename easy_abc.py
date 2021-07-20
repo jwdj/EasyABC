@@ -4222,7 +4222,7 @@ class MainFrame(wx.Frame):
 
     def OnChangeLoopPlayback(self, event):
         loop = event.Selection != 0
-        self.loop_midi_playback = loop
+        self.set_loop_midi_playback(loop)
 
     def OnChangeFollowScore(self, event):
         enabled = event.Selection != 0
@@ -4311,7 +4311,7 @@ class MainFrame(wx.Frame):
                 self.record_thread.start()
 
     def OnToolStop(self, evt):
-        self.loop_midi_playback = False
+        self.set_loop_midi_playback(False)
         self.stop_playing()
         # 1.3.6.3 [SS] 2015-04-03
         #self.play_panel.Show(False)
@@ -4346,6 +4346,7 @@ class MainFrame(wx.Frame):
             if offset >= self.progress_slider.Max:
                 length = self.mc.Length()
                 self.progress_slider.SetRange(0, length)
+
             if self.settings.get('follow_score', False):
                 self.queue_number_follow_score += 1
                 queue_number = self.queue_number_follow_score
@@ -5278,16 +5279,15 @@ class MainFrame(wx.Frame):
     def loop_midi_playback(self):
         return self.mc.loop_midi_playback
 
-    @loop_midi_playback.setter
-    def loop_midi_playback(self, value):
+    def set_loop_midi_playback(self, value):
         self.loop_check.SetValue(value)
-        self.mc.loop_midi_playback = value
+        self.mc.set_loop_midi_playback(value)
 
     def OnToolPlayLoop(self, evt):
         if self.settings['midiplayer_path']:
             wx.MessageBox(_('Looping is not possible when using an external midi player. Empty the midiplayer path in Settings -> ABC Settings -> File Settings to regain the looping ability when you double click the play button'), _('Looping unavailable'), wx.OK | wx.ICON_INFORMATION)
         else:
-            self.loop_midi_playback = True
+            self.set_loop_midi_playback(True)
         if not self.mc.is_playing:
             self.OnToolPlay(evt)
 
@@ -6905,23 +6905,11 @@ class MainFrame(wx.Frame):
         self.svg_tunes.cleanup()
         self.midi_tunes.cleanup()
         self.settings['is_maximized'] = self.IsMaximized()
-        #self.error_pane.Show()
         self.Hide()
         self.Iconize(False)  # the x,y pos of the window is not properly saved if it's minimized
         self.save_settings()
         self.is_closed = True
         self.manager.UnInit()
-        #if wx.Platform != "__WXMAC__":
-        #    '''FAU 20201228: Destroying will either freeze or crash Python with a seg fault on Mac.
-        #    Seems like there are still events or resources not closed that ask to access after.
-        #    Using wx.CallAfter(100, self.Destroy) leads to an assertion saying not a callable object)
-        #    self.DestroyLater() does not fix either
-        #    So for now just not destroy on Mac'''
-        #    '''FAU 20201229: Seems that it was due to the timer that were not closed.
-        #    self.Destroy()
-        #else:
-            #wx.CallAfter(100, self.Destroy)
-            #self.DestroyLater()
         self.Destroy()
 
     # 1.3.6.3 [JWDJ] DetermineMidiPlayRange is not used anymore

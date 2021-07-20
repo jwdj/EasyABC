@@ -35,7 +35,7 @@ class MidiPlayer(object):
         super(MidiPlayer, self).__init__()
         self.OnAfterStop = EventHook()
         self.OnAfterLoad = EventHook()
-        self.loop_midi_playback = False
+        self._loop_midi_playback = False
 
     @property
     def is_playing(self):
@@ -46,8 +46,11 @@ class MidiPlayer(object):
         return False
 
     @property
-    def is_looping(self):
-        return self.loop_midi_playback
+    def loop_midi_playback(self):
+        return self._loop_midi_playback
+
+    def set_loop_midi_playback(self, value):
+        self._loop_midi_playback = value
 
     @property
     def supports_tempo_change_while_playing(self):

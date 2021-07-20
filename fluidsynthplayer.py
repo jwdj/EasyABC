@@ -24,7 +24,7 @@ class FluidSynthPlayer(MidiPlayer):
         self.sfid = self.fs.sfload(sf2_path)
         self.fs.program_select(0, self.sfid, 0, 0)
         self.p = F.Player(self.fs)   # make a new player
-        self.duration_in_ticks = 0               # length of midi file
+        self.duration_in_ticks = 0   # length of midi file
         self.pause_time = 0        # time in midi ticks where player stopped
 
     def set_soundfont(self, sf2_path):         # load another sound font
@@ -42,11 +42,7 @@ class FluidSynthPlayer(MidiPlayer):
         self.pause_time  = 0       # resume playing at time == 0
         if os.path.exists(path):
             success = self.p.add(path)           # add file to playlist
-            #self.p.seek(0)
             self.p.play()
-            #self.duration_in_ticks = self.p.get_length()
-            #if self.p.get_status() == 2:  # not a midi file
-            #    return False
             self.OnAfterLoad.fire()
             return True
         return False
@@ -54,10 +50,12 @@ class FluidSynthPlayer(MidiPlayer):
     def reset(self):              # the only way to empty the playlist ...
         self.p.delete()           # delete player
         self.p = F.Player(self.fs)   # make a new one
+        self.set_loop_midi_playback(self.loop_midi_playback)
 
     def Play(self):
         if self.is_playing:
             return
+
         self.p.play(self.pause_time)
         self.duration_in_ticks = self.p.get_length()
 
@@ -68,7 +66,6 @@ class FluidSynthPlayer(MidiPlayer):
     def Stop(self):
         if self.is_playing:
             self.p.stop()
-            self.OnAfterStop.fire()
         self.pause_time = 0
 
     def Seek(self, time):         # go to time (in midi ticks)
@@ -79,7 +76,8 @@ class FluidSynthPlayer(MidiPlayer):
         return ticks
 
     def Tell(self):
-        return self.p.get_ticks() # get play position in midi ticks
+        ticks = self.p.get_ticks() # get play position in midi ticks
+        return ticks
 
     def dispose(self):             # free some memory
         self.p.delete()
@@ -90,6 +88,10 @@ class FluidSynthPlayer(MidiPlayer):
         return self.p.get_status() == 1  # 0 = ready, 1 = playing, 2 = finished
 
     @property
+    def is_finished(self):
+        return self.p.get_status() == 2  # 0 = ready, 1 = playing, 2 = finished
+
+    @property
     def is_paused(self):
         return self.pause_time > 0
 
@@ -97,10 +99,22 @@ class FluidSynthPlayer(MidiPlayer):
         self.p.set_gain(gain)
 
     def Length(self):
-        # if self.duration_in_ticks == 0:
         self.duration_in_ticks = self.p.get_length()
         return self.duration_in_ticks
 
     @property
     def unit_is_midi_tick(self):
         return True
+
+    @property
+    def loop_midi_playback(self):
+        return self._loop_midi_playback
+
+    def set_loop_midi_playback(self, value):
+        self._loop_midi_playback = value
+        if value:
+            self.p.set_loop()
+        elif self.is_playing:
+            self.p.set_loop(0)
+        else:
+            self.p.set_loop(1)
