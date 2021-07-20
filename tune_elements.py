@@ -224,7 +224,9 @@ decoration_to_description = {
     '!fine!'           : _('the word "fine"'),
     '!shortphrase!'    : _('vertical line on the upper part of the staff'),
     '!mediumphrase!'   : _('vertical line on the upper part of the staff, extending down to the centre line'),
-    '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down')
+    '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down'),
+    '!ped!'            : _('sustain pedal down'),
+    '!ped-up!'         : _('sustain pedal up'),
 }
 
 ABC_TUNE_HEADER_NO = 0
@@ -791,6 +793,8 @@ class AbcArticulationDecoration(AbcDecoration):
         '!open!',
         '!thumb!',
         '!breath!',
+        '!ped!',
+        '!ped-up!',
     ]
     def __init__(self):
         super(AbcArticulationDecoration, self).__init__('Articulation', AbcArticulationDecoration.values, display_name=_('Articulation'))
