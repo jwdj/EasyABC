@@ -14,7 +14,7 @@ class StringFile(object):
     def write(self, s):
         if PY3:
             if type (s) is bytes:
-                s = s.decode ('utf-8', 'replace') 
+                s = s.decode ('utf-8', 'replace')
         else:
             s = unicode(s, 'utf-8')
         self.parts.append(s)
@@ -58,7 +58,7 @@ def abc_to_xml(abc, output_filepath, mxl=False, pageFormat=None, info_messages=N
 
     path, filename = os.path.split (output_filepath)
     basename, extension = os.path.splitext (filename)
-    abc2xml.convert (path, basename, abc, mxl, False)
+    abc2xml.convert(path, basename, abc, mxl, rOpt=False, bOpt=True)
 
 # compatible with xml2abc.py version 54 and higher [WV] 2014-12-05
 # info_messages should be a (empty) list, defined outside by the caller. After return this list contains all info messages of abc2xml
