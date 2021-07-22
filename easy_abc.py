@@ -5933,26 +5933,24 @@ class MainFrame(wx.Frame):
     def OnSelectAll(self, evt): self.do_command(stc.STC_CMD_SELECTALL)
 
     def OnFind(self, evt):
-        if self.find_dialog:
-            self.find_dialog.Raise()
-            return
-        if self.replace_dialog:
-            self.replace_dialog.Close()
-            self.replace_dialog.Destroy()
-            self.replace_dialog = None
+        self.close_existing_find_and_replace_dialogs()
         self.find_dialog = wx.FindReplaceDialog(self, self.find_data, _("Find"))
         wx.CallLater(1, self.find_dialog.Show, True)
 
     def OnReplace(self, evt):
-        if self.replace_dialog:
-            self.replace_dialog.Raise()
-            return
+        self.close_existing_find_and_replace_dialogs()
+        self.replace_dialog = wx.FindReplaceDialog(self, self.find_data, _("Find & Replace"), wx.FR_REPLACEDIALOG)
+        wx.CallLater(1, self.replace_dialog.Show, True)
+
+    def close_existing_find_and_replace_dialogs(self):
         if self.find_dialog:
             self.find_dialog.Close()
             self.find_dialog.Destroy()
             self.find_dialog = None
-        self.replace_dialog = wx.FindReplaceDialog(self, self.find_data, _("Find & Replace"), wx.FR_REPLACEDIALOG)
-        wx.CallLater(1, self.replace_dialog.Show, True)
+        if self.replace_dialog:
+            self.replace_dialog.Close()
+            self.replace_dialog.Destroy()
+            self.replace_dialog = None
 
     def OnFindClose(self, evt):
         evt.GetDialog().Destroy()
