@@ -7666,10 +7666,10 @@ class MainFrame(wx.Frame):
         global execmessages, visible_abc_code
         info_messages = []
         # [SS] 2014-12-18
-        options = namedtuple ('Options', 'u m c d n b v x p j t v1 ped s')                     # emulate the options object
+        options = namedtuple ('Options', 'u m c d n b v x p j t v1 ped s stm')                     # emulate the options object
         options.m = 0; options.j = 0; options.p = []; options.b = 0; options.d = 0  # unused options
         options.n = 0; options.v = 0; options.u = 0; options.c = 0; options.x = 0   # but all may be used if needed
-        options.t = 0; options.v1 = False; options.ped = True; options.s = 0
+        options.t = 0; options.v1 = False; options.ped = True; options.s = 0; options.stm = 0
         if self.settings['xmlunfold']:
             options.u = 1
         if self.settings['xmlmidi']:
