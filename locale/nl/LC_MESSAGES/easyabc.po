@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2016-08-20 12:39+0200\n"
-"PO-Revision-Date: 2016-08-20 19:40+0200\n"
+"PO-Revision-Date: 2021-08-09 19:50+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -2105,7 +2105,7 @@ msgstr "Dorisch"
 
 #: tune_actions.py:969
 msgid "Mixolydian"
-msgstr "Frygisch"
+msgstr "Mixolydisch"
 
 #: tune_actions.py:970
 msgid "Phrygian"
