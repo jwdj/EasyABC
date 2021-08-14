@@ -794,9 +794,9 @@ class RestDurationAction(DurationAction):
 
 class ChangeAnnotationAction(ValueChangeAction):
     values = [
-        ValueDescription('"<(\u266f)"', _('Optional sharp')),
-        ValueDescription('"<(\u266e)"', _('Optional natural')),
-        ValueDescription('"<(\u266d)"', _('Optional flat')),
+        ValueDescription('"<(\\u266f)"', _('Optional sharp')),
+        ValueDescription('"<(\\u266e)"', _('Optional natural')),
+        ValueDescription('"<(\\u266d)"', _('Optional flat')),
         ValueDescription('"^rit."', _('Ritenuto')),
     ]
     def __init__(self):
@@ -1252,6 +1252,24 @@ class RedefinableSymbolChangeAction(ValueChangeAction):
         return values
 
 
+class MidiInstrumentChangeAction(ValueChangeAction):
+    def __init__(self):
+        super(MidiInstrumentChangeAction, self).__init__('change_midi_instrument', self.get_instrument_values(), matchgroup='instrument', display_name=_('Change instrument'), use_inner_match=False)
+
+    @staticmethod
+    def get_instrument_values():
+        from generalmidi import general_midi_instruments
+        return [ValueDescription(u' ' + str(index), value) for index, value in enumerate(general_midi_instruments)]
+
+
+class MidiChannelChangeAction(ValueChangeAction):
+    def __init__(self):
+        super(MidiChannelChangeAction, self).__init__('change_midi_channel', self.get_channel_values(), matchgroup='channel', display_name=_('Change channel'), use_inner_match=False)
+
+    @staticmethod
+    def get_channel_values():
+        return [ValueDescription(' ' + str(channel), str(channel)) for channel in range(1, 16 + 1)]
+
 ##################################################################################################
 #  URL ACTIONS
 ##################################################################################################
@@ -1263,7 +1281,7 @@ class UrlAction(AbcAction):
         self.url = url
 
     def can_execute(self, context, params=None):
-        return True
+        return self.get_url(context) is not None
 
     def execute(self, context, params=None):
         url = self.get_url(context)
@@ -1291,15 +1309,33 @@ class UrlAction(AbcAction):
 
 
 class Abcm2psUrlAction(UrlAction):
-    def __init__(self, keyword):
-        url = 'http://moinejf.free.fr/abcm2ps-doc/{0}.xhtml'.format(urllib.parse.quote(keyword))
-        super(UrlAction, self).__init__('lookup_abcm2ps', url)
+    def __init__(self):
+        super(UrlAction, self).__init__('lookup_abcm2ps')
+
+    def get_url(self, context):
+        keyword = self.get_keyword_from_context(context)
+        if keyword:
+            url = 'http://moinejf.free.fr/abcm2ps-doc/{0}.xhtml'.format(quote(keyword))
+            return url
+        return None
+
+    def get_keyword_from_context(self, context):
+        return context.inner_text.strip().split(' ', 1)[0]
+
 
 class Abc2MidiUrlAction(UrlAction):
-    def __init__(self, keyword):
-        url = 'https://abcmidi.sourceforge.io/#{0}'.format(urllib.parse.quote(keyword))
-        super(UrlAction, self).__init__('lookup_abc2midi', url)
+    def __init__(self):
+        super(UrlAction, self).__init__('lookup_abc2midi')
 
+    def get_url(self, context):
+        keyword = self.get_keyword_from_context(context)
+        if keyword:
+            url = 'https://abcmidi.sourceforge.io/#{0}'.format(quote(keyword))
+            return url
+        return None
+
+    def get_keyword_from_context(self, context):
+        return context.inner_text[len('MIDI '):].strip().split(' ', 1)[0]
 
 class AbcStandardUrlAction(UrlAction):
     def __init__(self):
@@ -1694,6 +1730,70 @@ class InsertDirectiveAction(InsertValueAction):
         super(InsertDirectiveAction, self).__init__('insert_directive', InsertDirectiveAction.values, display_name=_('Insert directive'))
 
 
+class InsertMidiDirectiveAction(InsertValueAction):
+    values = [
+        ValueDescription(' channel', _('Set channel')),
+        ValueDescription(' program', _('Set instrument')),
+        ValueDescription(' vol', _('Set volume')),
+    ]
+    def __init__(self):
+        super(InsertMidiDirectiveAction, self).__init__('insert_midi_directive', InsertMidiDirectiveAction.values, display_name=_('Insert MIDI action'))
+
+
+class ChangeMidiDrumInstrument(ValueChangeAction):
+    values = [
+        ValueDescription('35', _('Acoustic Bass Drum')),
+        ValueDescription('36', _('Bass Drum 1')),
+        ValueDescription('37', _('Side Stick')),
+        ValueDescription('38', _('Acoustic Snare')),
+        ValueDescription('39', _('Hand Clap')),
+        ValueDescription('40', _('Electric Snare')),
+        ValueDescription('41', _('Low Floor Tom')),
+        ValueDescription('42', _('Closed Hi Hat')),
+        ValueDescription('43', _('High Floor Tom')),
+        ValueDescription('44', _('Pedal Hi-Hat')),
+        ValueDescription('45', _('Low Tom')),
+        ValueDescription('46', _('Open Hi-Hat')),
+        ValueDescription('47', _('Low-Mid Tom')),
+        ValueDescription('48', _('Hi Mid Tom')),
+        ValueDescription('49', _('Crash Cymbal 1')),
+        ValueDescription('50', _('High Tom')),
+        ValueDescription('51', _('Ride Cymbal 1')),
+        ValueDescription('52', _('Chinese Cymbal')),
+        ValueDescription('53', _('Ride Bell')),
+        ValueDescription('54', _('Tambourine')),
+        ValueDescription('55', _('Splash Cymbal')),
+        ValueDescription('56', _('Cowbell')),
+        ValueDescription('57', _('Crash Cymbal 2')),
+        ValueDescription('58', _('Vibraslap')),
+        ValueDescription('59', _('Ride Cymbal 2')),
+        ValueDescription('60', _('Hi Bongo')),
+        ValueDescription('61', _('Low Bongo')),
+        ValueDescription('62', _('Mute Hi Conga')),
+        ValueDescription('63', _('Open Hi Conga')),
+        ValueDescription('64', _('Low Conga')),
+        ValueDescription('65', _('High Timbale')),
+        ValueDescription('66', _('Low Timbale')),
+        ValueDescription('67', _('High Agogo')),
+        ValueDescription('68', _('Low Agogo')),
+        ValueDescription('69', _('Cabasa')),
+        ValueDescription('70', _('Maracas')),
+        ValueDescription('71', _('Short Whistle')),
+        ValueDescription('72', _('Long Whistle')),
+        ValueDescription('73', _('Short Guiro')),
+        ValueDescription('74', _('Long Guiro')),
+        ValueDescription('75', _('Claves')),
+        ValueDescription('76', _('Hi Wood Block')),
+        ValueDescription('77', _('Low Wood Block')),
+        ValueDescription('78', _('Mute Cuica')),
+        ValueDescription('79', _('Open Cuica')),
+        ValueDescription('80', _('Mute Triangle')),
+        ValueDescription('81', _('Open Triangle')),
+    ]
+    def __init__(self):
+        super(ChangeMidiDrumInstrument, self).__init__('change_midi_drum_instrument', ChangeMidiDrumInstrument.values, valid_sections=AbcSection.TuneHeader, display_name=_('Change drum instrument'))
+
+
 class InsertTextAlignSymbolAction(InsertValueAction):
     values = [
         CodeDescription('-', _('break between syllables within a word')),
@@ -1833,6 +1933,8 @@ class AbcActionHandlers(object):
             InsertFieldAction(),
             InsertFieldActionEmptyLineAction(),
             AbcStandardUrlAction(),
+            Abcm2psUrlAction(),
+            Abc2MidiUrlAction(),
             AccidentalChangeAction(),
             PitchAction(),
             BarChangeAction(),
@@ -1875,6 +1977,10 @@ class AbcActionHandlers(object):
             ChordNameChangeAction(),
             ChordBaseNoteChangeAction(),
             ActionSeparator(),
+            MidiInstrumentChangeAction(),
+            MidiChannelChangeAction(),
+            InsertDirectiveAction(),
+            InsertMidiDirectiveAction(),
         ])
 
         self.action_handlers = {
@@ -1902,14 +2008,19 @@ class AbcActionHandlers(object):
             'Redefinable symbol'     : self.create_handler(['change_redefinable_symbol']),
             'Chord or annotation'    : self.create_handler(['change_chord_note', 'convert_to_annotation', 'remove']),
             'Slur'                   : self.create_handler(['change_slur']),
-            #'Stylesheet directive'  self.create_handler: self.create_handler([InsertDirectiveAction()]),
+            'Stylesheet directive'   : self.create_handler(['insert_directive']),
             'w:'                     : self.create_handler(['insert_text_align_symbol']),
             's:'                     : self.create_handler(['insert_decoration', 'insert_annotation_or_chord', 'insert_align_symbol']),
             'K:'                     : self.create_handler(['change_key_signature', 'change_key_mode']),
             'L:'                     : self.create_handler(['change_unit_note_length']),
             'M:'                     : self.create_handler(['change_meter']),
             'Q:'                     : self.create_handler(['change_tempo_notation', 'change_tempo_name', 'change_tempo_note1_length', 'change_tempo_note2_length']),
-            '%'                      : self.create_handler(['fix_characters'])
+            '%'                      : self.create_handler(['fix_characters']),
+            'MIDI_program'           : self.create_handler(['change_midi_instrument', 'change_midi_channel']),
+            'MIDI_chordprog'         : self.create_handler(['change_midi_instrument']),
+            'MIDI_bassprog'          : self.create_handler(['change_midi_instrument']),
+            'MIDI_channel'           : self.create_handler(['change_midi_channel']),
+            'MIDI'                   : self.create_handler(['insert_midi_directive']),
         }
 
         for key in ['V:', 'K:']:

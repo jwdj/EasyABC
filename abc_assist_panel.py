@@ -138,6 +138,7 @@ class AbcAssistPanel(wx.Panel):
             self.context.current_element = element
             if element is not None:
                 self.context.set_current_match(match, element.tune_scope)
+                element = element.get_inner_element(self.context)
 
             html = self.html_header
             if element is not None:
