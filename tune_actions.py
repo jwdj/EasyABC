@@ -1270,6 +1270,61 @@ class MidiChannelChangeAction(ValueChangeAction):
     def get_channel_values():
         return [ValueDescription(' ' + str(channel), str(channel)) for channel in range(1, 16 + 1)]
 
+
+class MidiDrumInstrumentChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('35', _('Acoustic Bass Drum')),
+        ValueDescription('36', _('Bass Drum 1')),
+        ValueDescription('37', _('Side Stick')),
+        ValueDescription('38', _('Acoustic Snare')),
+        ValueDescription('39', _('Hand Clap')),
+        ValueDescription('40', _('Electric Snare')),
+        ValueDescription('41', _('Low Floor Tom')),
+        ValueDescription('42', _('Closed Hi Hat')),
+        ValueDescription('43', _('High Floor Tom')),
+        ValueDescription('44', _('Pedal Hi-Hat')),
+        ValueDescription('45', _('Low Tom')),
+        ValueDescription('46', _('Open Hi-Hat')),
+        ValueDescription('47', _('Low-Mid Tom')),
+        ValueDescription('48', _('Hi Mid Tom')),
+        ValueDescription('49', _('Crash Cymbal 1')),
+        ValueDescription('50', _('High Tom')),
+        ValueDescription('51', _('Ride Cymbal 1')),
+        ValueDescription('52', _('Chinese Cymbal')),
+        ValueDescription('53', _('Ride Bell')),
+        ValueDescription('54', _('Tambourine')),
+        ValueDescription('55', _('Splash Cymbal')),
+        ValueDescription('56', _('Cowbell')),
+        ValueDescription('57', _('Crash Cymbal 2')),
+        ValueDescription('58', _('Vibraslap')),
+        ValueDescription('59', _('Ride Cymbal 2')),
+        ValueDescription('60', _('Hi Bongo')),
+        ValueDescription('61', _('Low Bongo')),
+        ValueDescription('62', _('Mute Hi Conga')),
+        ValueDescription('63', _('Open Hi Conga')),
+        ValueDescription('64', _('Low Conga')),
+        ValueDescription('65', _('High Timbale')),
+        ValueDescription('66', _('Low Timbale')),
+        ValueDescription('67', _('High Agogo')),
+        ValueDescription('68', _('Low Agogo')),
+        ValueDescription('69', _('Cabasa')),
+        ValueDescription('70', _('Maracas')),
+        ValueDescription('71', _('Short Whistle')),
+        ValueDescription('72', _('Long Whistle')),
+        ValueDescription('73', _('Short Guiro')),
+        ValueDescription('74', _('Long Guiro')),
+        ValueDescription('75', _('Claves')),
+        ValueDescription('76', _('Hi Wood Block')),
+        ValueDescription('77', _('Low Wood Block')),
+        ValueDescription('78', _('Mute Cuica')),
+        ValueDescription('79', _('Open Cuica')),
+        ValueDescription('80', _('Mute Triangle')),
+        ValueDescription('81', _('Open Triangle')),
+    ]
+    def __init__(self):
+        super(MidiDrumInstrumentChangeAction, self).__init__('change_midi_drum_instrument', MidiDrumInstrumentChangeAction.values, matchgroup='druminstrument', display_name=_('Change percussion instrument'))
+
+
 ##################################################################################################
 #  URL ACTIONS
 ##################################################################################################
@@ -1415,6 +1470,27 @@ G,
 V:B
 C,
 '''
+
+
+class NewDrumTuneAction(NewTuneAction):
+    def __init__(self):
+        super(NewTuneAction, self).__init__('new_drum_tune', display_name=_('New drum score'))
+
+    def key_and_body(self):
+        return '''%%score (1 2)
+K:C clef=perc
+%%MIDI drummap ^a 57
+%%MIDI drummap ^g 42
+%%MIDI drummap c 38
+%%MIDI drummap F 35
+V:1
+%%MIDI channel 10
+^a^g[c^g]^g | ^g^g[c^g]^g | ^a^g[c^g]^g | ^g/c/^g c/^a3/ ||
+V:2
+%%MIDI channel 10
+FF/F/ z3/{/F}F/ | zF/F/ z/F3/ | FF/F/ z3/F/ | z3/F/ z/F3/ ||
+'''
+
 
 class NewVoiceAction(AbcAction):
     voice_re = re.compile(r'(?m)^V:\s*(\d+)')
@@ -1740,60 +1816,6 @@ class InsertMidiDirectiveAction(InsertValueAction):
         super(InsertMidiDirectiveAction, self).__init__('insert_midi_directive', InsertMidiDirectiveAction.values, display_name=_('Insert MIDI action'))
 
 
-class ChangeMidiDrumInstrument(ValueChangeAction):
-    values = [
-        ValueDescription('35', _('Acoustic Bass Drum')),
-        ValueDescription('36', _('Bass Drum 1')),
-        ValueDescription('37', _('Side Stick')),
-        ValueDescription('38', _('Acoustic Snare')),
-        ValueDescription('39', _('Hand Clap')),
-        ValueDescription('40', _('Electric Snare')),
-        ValueDescription('41', _('Low Floor Tom')),
-        ValueDescription('42', _('Closed Hi Hat')),
-        ValueDescription('43', _('High Floor Tom')),
-        ValueDescription('44', _('Pedal Hi-Hat')),
-        ValueDescription('45', _('Low Tom')),
-        ValueDescription('46', _('Open Hi-Hat')),
-        ValueDescription('47', _('Low-Mid Tom')),
-        ValueDescription('48', _('Hi Mid Tom')),
-        ValueDescription('49', _('Crash Cymbal 1')),
-        ValueDescription('50', _('High Tom')),
-        ValueDescription('51', _('Ride Cymbal 1')),
-        ValueDescription('52', _('Chinese Cymbal')),
-        ValueDescription('53', _('Ride Bell')),
-        ValueDescription('54', _('Tambourine')),
-        ValueDescription('55', _('Splash Cymbal')),
-        ValueDescription('56', _('Cowbell')),
-        ValueDescription('57', _('Crash Cymbal 2')),
-        ValueDescription('58', _('Vibraslap')),
-        ValueDescription('59', _('Ride Cymbal 2')),
-        ValueDescription('60', _('Hi Bongo')),
-        ValueDescription('61', _('Low Bongo')),
-        ValueDescription('62', _('Mute Hi Conga')),
-        ValueDescription('63', _('Open Hi Conga')),
-        ValueDescription('64', _('Low Conga')),
-        ValueDescription('65', _('High Timbale')),
-        ValueDescription('66', _('Low Timbale')),
-        ValueDescription('67', _('High Agogo')),
-        ValueDescription('68', _('Low Agogo')),
-        ValueDescription('69', _('Cabasa')),
-        ValueDescription('70', _('Maracas')),
-        ValueDescription('71', _('Short Whistle')),
-        ValueDescription('72', _('Long Whistle')),
-        ValueDescription('73', _('Short Guiro')),
-        ValueDescription('74', _('Long Guiro')),
-        ValueDescription('75', _('Claves')),
-        ValueDescription('76', _('Hi Wood Block')),
-        ValueDescription('77', _('Low Wood Block')),
-        ValueDescription('78', _('Mute Cuica')),
-        ValueDescription('79', _('Open Cuica')),
-        ValueDescription('80', _('Mute Triangle')),
-        ValueDescription('81', _('Open Triangle')),
-    ]
-    def __init__(self):
-        super(ChangeMidiDrumInstrument, self).__init__('change_midi_drum_instrument', ChangeMidiDrumInstrument.values, valid_sections=AbcSection.TuneHeader, display_name=_('Change drum instrument'))
-
-
 class InsertTextAlignSymbolAction(InsertValueAction):
     values = [
         CodeDescription('-', _('break between syllables within a word')),
@@ -1923,6 +1945,7 @@ class AbcActionHandlers(object):
         self.register_actions([
             NewTuneAction(),
             NewMultiVoiceTuneAction(),
+            NewDrumTuneAction(),
             NewNoteOrRestAction(),
             NewLineAction(),
             RemoveAction(),
@@ -1979,15 +2002,16 @@ class AbcActionHandlers(object):
             ActionSeparator(),
             MidiInstrumentChangeAction(),
             MidiChannelChangeAction(),
+            MidiDrumInstrumentChangeAction(),
             InsertDirectiveAction(),
             InsertMidiDirectiveAction(),
         ])
 
         self.action_handlers = {
-            'empty_document'         : self.create_handler(['new_tune', 'new_multivoice_tune']),
             'abcversion'             : self.create_handler(['lookup_abc_standard']),
-            'empty_line'             : self.create_handler(['new_tune', 'new_multivoice_tune']),
-            'empty_line_file_header' : self.create_handler(['new_tune', 'new_multivoice_tune']),
+            'empty_document'         : self.create_handler(['new_tune', 'new_multivoice_tune', 'new_drum_tune']),
+            'empty_line'             : self.create_handler(['new_tune', 'new_multivoice_tune', 'new_drum_tune']),
+            'empty_line_file_header' : self.create_handler(['new_tune', 'new_multivoice_tune', 'new_drum_tune']),
             'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'insert_field_on_empty_line']),
             'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
             'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
@@ -2020,6 +2044,7 @@ class AbcActionHandlers(object):
             'MIDI_chordprog'         : self.create_handler(['change_midi_instrument']),
             'MIDI_bassprog'          : self.create_handler(['change_midi_instrument']),
             'MIDI_channel'           : self.create_handler(['change_midi_channel']),
+            'MIDI_drummap'           : self.create_handler(['change_midi_drum_instrument']),
             'MIDI'                   : self.create_handler(['insert_midi_directive']),
         }
 

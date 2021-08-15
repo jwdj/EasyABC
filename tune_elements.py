@@ -602,6 +602,14 @@ class AbcMidiChannelDirective(AbcElement):
             self._search_pattern[section] = AbcMidiChannelDirective.pattern
 
 
+class AbcMidiDrumMapDirective(AbcElement):
+    pattern = r"(?m)^%%MIDI drummap (?P<note>[^_]*\w[,']*) (?P<druminstrument>\d+)"
+    def __init__(self):
+        super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiDrumMapDirective.pattern
+
+
 class Abcm2psDirective(AbcElement):
     """ Elements defined by abcm2ps """
     anchor_replacement = (re.compile('<a (?:href|name)="[^"]*">|</a>', re.IGNORECASE), '')
@@ -1089,6 +1097,7 @@ class AbcStructure(object):
             AbcMidiChordProgramDirective(),
             AbcMidiBaseProgramDirective(),
             AbcMidiChannelDirective(),
+            AbcMidiDrumMapDirective(),
             directive,
             AbcComment(),
             AbcBackslash(),
