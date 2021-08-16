@@ -603,7 +603,7 @@ class AbcMidiChannelDirective(AbcElement):
 
 
 class AbcMidiDrumMapDirective(AbcElement):
-    pattern = r"(?m)^%%MIDI drummap (?P<note>[^_]*\w[,']*) (?P<druminstrument>\d+)"
+    pattern = r"(?m)^%%MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)"
     def __init__(self):
         super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
         for section in ABC_SECTIONS:

@@ -1479,13 +1479,14 @@ class NewDrumTuneAction(NewTuneAction):
     def key_and_body(self):
         return '''%%score (1 2)
 K:C clef=perc
-%%MIDI drummap ^a 57
+%%MIDI drummap ^a 49
 %%MIDI drummap ^g 42
+%%MIDI drummap _g 46
 %%MIDI drummap c 38
 %%MIDI drummap F 35
 V:1
 %%MIDI channel 10
-^a^g[c^g]^g | ^g^g[c^g]^g | ^a^g[c^g]^g | ^g/c/^g c/^a3/ ||
+^a^g[c^g]^g | ^g^g[c^g]_g | ^a^g[c^g]^g | ^g/c/^g c/^a3/ ||
 V:2
 %%MIDI channel 10
 FF/F/ z3/{/F}F/ | zF/F/ z/F3/ | FF/F/ z3/F/ | z3/F/ z/F3/ ||
