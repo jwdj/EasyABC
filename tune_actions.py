@@ -154,6 +154,7 @@ class ValueChangeAction(AbcAction):
         self.valid_sections = valid_sections
         self.relative_selection = None
         self.show_non_common = False
+        self.show_current_value = False
 
     def can_execute(self, context, params=None):
         show_non_common = params.get('show_non_common')
@@ -162,7 +163,7 @@ class ValueChangeAction(AbcAction):
         value = params.get('value', '')
         return not self.is_current_value(context, value)
 
-    def is_current_value(self, context, value):
+    def get_current_value(self, context):
         current_value = None
         if self.matchgroup:
             match = self.get_match(context)
@@ -172,6 +173,10 @@ class ValueChangeAction(AbcAction):
             current_value = context.inner_text
         else:
             current_value = context.match_text
+        return current_value
+
+    def is_current_value(self, context, value):
+        current_value = self.get_current_value(context)
         return value == current_value
 
     def get_match(self, context):
@@ -227,6 +232,19 @@ class ValueChangeAction(AbcAction):
         if not self.is_action_allowed(context):
             return result
         rows = []
+        if self.show_current_value:
+            current_value = self.get_current_value(context)
+            if current_value:
+                descriptions = [v.description for v in self.get_values(context) if v.value == current_value]
+                if descriptions:
+                    text = descriptions[0]
+                else:
+                    text = current_value
+
+                row = u'\u25BA ' + escape(text)
+                rows.append(row)
+                rows.append('<br>')
+
         if self.display_name:
             row = html_enclose('b', escape(self.display_name))
             row = self.add_options(row)
@@ -1255,6 +1273,7 @@ class RedefinableSymbolChangeAction(ValueChangeAction):
 class MidiInstrumentChangeAction(ValueChangeAction):
     def __init__(self):
         super(MidiInstrumentChangeAction, self).__init__('change_midi_instrument', self.get_instrument_values(), matchgroup='instrument', display_name=_('Change instrument'), use_inner_match=False)
+        self.show_current_value = True
 
     @staticmethod
     def get_instrument_values():
@@ -1323,6 +1342,20 @@ class MidiDrumInstrumentChangeAction(ValueChangeAction):
     ]
     def __init__(self):
         super(MidiDrumInstrumentChangeAction, self).__init__('change_midi_drum_instrument', MidiDrumInstrumentChangeAction.values, matchgroup='druminstrument', display_name=_('Change percussion instrument'))
+        self.show_current_value = True
+
+
+##################################################################################################
+#  COSMETIC ACTIONS
+##################################################################################################
+
+
+class Space(AbcAction):
+    def __init__(self):
+        super(Space, self).__init__('')
+
+    def get_action_html(self, context):
+        return u'<br>'
 
 
 ##################################################################################################
@@ -1944,6 +1977,7 @@ class AbcActionHandlers(object):
         self.default_action_handler = AbcActionHandler()
         self.registered_actions = {}
         self.register_actions([
+            Space(),
             NewTuneAction(),
             NewMultiVoiceTuneAction(),
             NewDrumTuneAction(),
@@ -2008,12 +2042,13 @@ class AbcActionHandlers(object):
             InsertMidiDirectiveAction(),
         ])
 
+        new_tune_actions = ['new_tune', '', 'new_multivoice_tune', '', 'new_drum_tune']
         self.action_handlers = {
             'abcversion'             : self.create_handler(['lookup_abc_standard']),
-            'empty_document'         : self.create_handler(['new_tune', 'new_multivoice_tune', 'new_drum_tune']),
-            'empty_line'             : self.create_handler(['new_tune', 'new_multivoice_tune', 'new_drum_tune']),
-            'empty_line_file_header' : self.create_handler(['new_tune', 'new_multivoice_tune', 'new_drum_tune']),
-            'empty_line_tune'        : self.create_handler(['new_tune', 'new_note', 'insert_field_on_empty_line']),
+            'empty_document'         : self.create_handler(new_tune_actions),
+            'empty_line'             : self.create_handler(new_tune_actions),
+            'empty_line_file_header' : self.create_handler(new_tune_actions),
+            'empty_line_tune'        : self.create_handler(['new_note', 'insert_field_on_empty_line']),
             'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
             'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
