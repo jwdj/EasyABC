@@ -173,6 +173,7 @@ class NWCConversionException(Exception): pass
 from abc_tune import AbcTune
 
 dialog_background_colour = wx.Colour(245, 244, 235)
+default_note_highlight_color = '#FF7F3F'
 control_margin = 6
 
 def ensure_file_name_does_not_exist(file_path):
@@ -1582,7 +1583,7 @@ class MusicPrintout(wx.Printout):
         #new versions of abcm2ps adds a suffix 'in' to width and height
         #new versions of abcm2ps adds a suffix 'px' to width and height
         # 1.3.7.3 [JWDJ] use svg renderer to calculate width and height
-        renderer = SvgRenderer(self.can_draw_sharps_and_flats)
+        renderer = SvgRenderer(self.can_draw_sharps_and_flats, highlight_color='#000000')
         try:
             page = renderer.svg_to_page(svg)
 
@@ -2071,12 +2072,14 @@ class MyNoteBook(wx.Frame):
         # 1.3.6.1 [SS] 2015-02-02
         abcm2pspage = MyAbcm2psPage(nb, settings, abcsettings)
         xmlpage    = MusicXmlPage(nb, settings)
+        colorsettings = ColorSettingsFrame(nb, settings)
         nb.AddPage(abcm2pspage, _("Abcm2ps"))
         nb.AddPage(chordpage, _("Abc2midi"))
         self.voicepage_id = nb.PageCount
         nb.AddPage(self.voicepage, _("Voices"))
         nb.AddPage(xmlpage, _("Xml"))
         nb.AddPage(abcsettings, _("File Settings"))
+        nb.AddPage(colorsettings, _("Colors"))
         nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
 
         sizer = wx.BoxSizer()
@@ -2355,7 +2358,6 @@ class MyChordPlayPage (wx.Panel):
         gchordchoices = ['default', 'f', 'fzfz', 'gi', 'gihi', 'f4c2', 'ghihgh', 'g2hg2h']
         self.SetGchordChoices(gchordchoices)
 
-
         midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Instrument for playback: ')), row=0, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderVol, row=0, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.Voltxt, row=0, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
@@ -2386,7 +2388,7 @@ class MyChordPlayPage (wx.Panel):
         midi_box.Add(self.nograce, row=7, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.barfly, row=8, col=0, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.midi_intro, row=8, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(gchordtxt, row=9, col=0, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(gchordtxt, row=9, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.gchordcombo, row=9, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         self.chkPlayChords.SetValue(self.settings.get('play_chords', False))
@@ -2470,7 +2472,6 @@ class MyChordPlayPage (wx.Panel):
         self.gchordcombo.Bind(wx.EVT_COMBOBOX, self.OnGchordSelection, self.gchordcombo)
         self.gchordcombo.Bind(wx.EVT_TEXT, self.OnGchordSelection, self.gchordcombo)
         self.gchordcombo.SetToolTip(wx.ToolTip(_('for chord C:\nf --> C,,  c -> [C,E,G] z --> rest\ng --> C, h --> E, i --> G, j--> B,\nG --> C,, H --> E,, I --> G,,\nJ --> B,')))
-
 
         #1.3.6 [SS] 2014-11-15
         self.cmbMidiProgram.Bind(wx.EVT_COMBOBOX, self.OnMidi_Program)
@@ -3129,6 +3130,39 @@ class MyAbcm2psPage(wx.Panel):
         self.settings['abcm2ps_format_path'] = path
         self.Parent.Parent.Parent.Parent.refresh_tunes()
 
+
+class ColorSettingsFrame(wx.Panel):
+    def __init__(self, parent, settings):
+        wx.Panel.__init__(self, parent)
+        self.settings = settings
+        self.SetBackgroundColour(dialog_background_colour)
+        border = control_margin
+
+        grid_sizer = rcs.RowColSizer()
+
+        note_highlight_color = self.settings.get('note_highlight_color', default_note_highlight_color)
+        note_highlight_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color"))
+        self.note_highlight_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(note_highlight_color))
+
+        grid_sizer.Add(note_highlight_color_label, row=0, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(self.note_highlight_color_picker, row=0, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+
+        note_highlight_color_tooltip = _('Color of selected note or currently playing note')
+        self.note_highlight_color_picker.SetToolTip(wx.ToolTip(note_highlight_color_tooltip))
+        self.note_highlight_color_picker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnNoteHighlightColorChanged)
+
+        self.SetSizer(grid_sizer)
+        self.SetAutoLayout(True)
+        self.Fit()
+        self.Layout()
+
+    def OnNoteHighlightColorChanged(self, evt):
+        wxcolor = self.note_highlight_color_picker.GetColour()
+        color = wxcolor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.settings['note_highlight_color'] = color
+        self.Parent.Parent.Parent.Parent.renderer.highlight_color = color
+
+
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
 class MusicXmlPage(wx.Panel):
@@ -3745,7 +3779,7 @@ class MainFrame(wx.Frame):
         self.editor.SetMarginType(1,stc.STC_MARGIN_NUMBER)
 
         # 1.3.6.2 [JWdJ] 2015-02
-        self.renderer = SvgRenderer(self.settings['can_draw_sharps_and_flats'])
+        self.renderer = SvgRenderer(self.settings['can_draw_sharps_and_flats'], self.settings.get('note_highlight_color', default_note_highlight_color))
         self.music_pane = MusicScorePanel(self, self.renderer)
         self.music_pane.SetBackgroundColour((255, 255, 255))
         self.music_pane.OnNoteSelectionChangedDesc = self.OnNoteSelectionChangedDesc
