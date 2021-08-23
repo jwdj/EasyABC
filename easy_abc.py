@@ -1804,6 +1804,18 @@ class RecordThread(threading.Thread):
     def beat_duration(self):
         return 1000000 * 60 / self.bpm  # unit is microseconds
 
+    @property
+    def midi_in_poll(self):
+        if wx.Platform == "__WXMAC__":
+            return self.midi_in.poll()
+        else:
+            return self.midi_in.Poll()
+
+    def number_to_note(self, number):
+        notes = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b']
+        return notes[number%12]
+
+
     def run(self):
         self.is_running = True
         NOTE_ON = 0x09
@@ -1816,35 +1828,53 @@ class RecordThread(threading.Thread):
         time.sleep(0.002)
         try:
             while not self._want_abort:
-                while not self.midi_in.Poll() and not self._want_abort:
+                while not self.midi_in_poll and not self._want_abort:
                     time.sleep(0.00025)
                     if self.timedelta_microseconds(datetime.now() - start_time) / self.beat_duration > i:
                         last_tick = datetime.now()
-                        i += 1
                         if i % self.metre_1 == 0:
                             wx.CallAfter(self.tick1.Play)
                         else:
                             wx.CallAfter(self.tick2.Play)
+                        i += 1 #FAU: 20210102: One tick was missing the first time so incrementing i after the tick
+                        
                 time_offset = self.timedelta_microseconds(datetime.now() - start_time)
-                if self.midi_in.Poll():
-                    data = self.midi_in.Read(1) # read only 1 message at a time
+                if self.midi_in_poll:
+                    if wx.Platform == "__WXMAC__":
+                        data = self.midi_in.read(1)
+                    else:
+                        data = self.midi_in.Read(1) # read only 1 message at a time
                     if self.midi_out is not None:
-                        self.midi_out.Write(data)
+                        if wx.Platform == "__WXMAC__":
+                            self.midi_out.write(data)
+                        else:
+                            self.midi_out.Write(data)
                     cmd = data[0][0][0] >> 4
                     midi_note = data[0][0][1]
-                    if cmd == NOTE_ON:
+                    midi_note_velocity = data[0][0][2]
+                    #print(self.number_to_note(midi_note), midi_note_velocity)
+                    if cmd == NOTE_ON and midi_note_velocity > 0:
                         noteon_time[midi_note] = time_offset
-                        ##print 'note-on', midi_note, float(time_offset)/beat_duration
-                    elif cmd == NOTE_OFF and midi_note in noteon_time:
+                        #print('note-on', midi_note, float(time_offset)/self.beat_duration)
+                    elif (cmd == NOTE_OFF or midi_note_velocity ==0) and midi_note in noteon_time:
                         start = float(noteon_time[midi_note]) / self.beat_duration
                         end = float(time_offset) / self.beat_duration
                         self.notes.append([midi_note, start, end])
-                        ##print 'note-off', midi_note, float(time_offset)/beat_duration
+                        #print('note-off', midi_note, float(time_offset)/self.beat_duration)
+                        
 
         finally:
-            self.midi_in.Close()
+            #print('FAU: closing')
+            #print(self.notes)
+            if wx.Platform == "__WXMAC__":
+                self.midi_in.close()
+            else:
+                self.midi_in.Close()
             if self.midi_out is not None:
-                self.midi_out.Close()
+                if wx.Platform == "__WXMAC__":
+                    self.midi_out.close()
+                else:
+                    self.midi_out.Close()
             self.is_running = False
         self.quantize()
         wx.PostEvent(self._notify_window, RecordStopEvent(-1, self.notes))
@@ -2739,11 +2769,21 @@ class MidiSettingsFrame(wx.Dialog):
         outputDevices = [_('None')]
         outputDeviceIDs = [None]
         if 'pypm' in globals():
-            n = pypm.CountDevices()
+            if wx.Platform == "__WXMAC__":
+                n = pypm.get_count()
+            else:
+                n = pypm.CountDevices()
         else:
             n = 0
         for i in range(n):
-            interface, name, input, output, opened = pypm.GetDeviceInfo(i)
+            if wx.Platform == "__WXMAC__":
+                interface, name, input, output, opened = pypm.get_device_info(i)
+                try:
+                    name = str(name,'utf-8')
+                except:
+                    name = str(name,'mac_roman')
+            else:
+                interface, name, input, output, opened = pypm.GetDeviceInfo(i)
             if input:
                 inputDevices.append(name)
                 inputDeviceIDs.append(i)
@@ -4473,14 +4513,15 @@ class MainFrame(wx.Frame):
     def OnRecordBpmSelected(self, evt):
         menu = evt.EventObject
         item = menu.FindItemById(evt.GetId())
-        self.settings['record_bpm'] = int(item.GetText())
+        self.settings['record_bpm'] = int(item.GetItemLabelText())
         if self.record_thread:
             self.record_thread.bpm = self.settings['record_bpm']
 
     def OnRecordMetreSelected(self, evt):
         menu = evt.EventObject
         item = menu.FindItemById(evt.GetId())
-        self.settings['record_metre'] = item.GetText()
+        self.settings['record_metre'] = item.GetItemLabelText()
+        
 
     # 1.3.6.3 [SS] 2015-05-03
     def flip_tempobox(self, state):
