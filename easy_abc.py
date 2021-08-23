@@ -8449,7 +8449,10 @@ class MyApp(wx.App):
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
         if len(sys.argv) > 1:
-            path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
+            if sys.version_info >= (3,0,0): #FAU 20210101: In Python3 there isn't anymore the decode.
+                path = os.path.abspath(sys.argv[1])
+            else:
+                path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
             self.frame.load_or_import(path)
         return True
 
