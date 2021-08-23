@@ -290,7 +290,7 @@ class SvgPage(object):
 
 
 class SvgRenderer(object):
-    def __init__(self, can_draw_sharps_and_flats):
+    def __init__(self, can_draw_sharps_and_flats, highlight_color):
         self.can_draw_sharps_and_flats = can_draw_sharps_and_flats
         self.path_cache = {}
         self.fill_cache = {}
@@ -312,7 +312,7 @@ class SvgRenderer(object):
         self.empty_page = SvgPage(self, None)
         self.buffer = None
         # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
-        self.highlight_color = '#009900'  # '#ee0000'
+        self.highlight_color = highlight_color
         self.default_transform = None
         #self.update_buffer(self.empty_page)
         if wx.Platform == "__WXMAC__":

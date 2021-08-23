@@ -33,9 +33,15 @@ revmods = { revModels [0]: (0.2, 0.0, 0.5, 0.9), revModels [1]: (0.4, 0.2, 0.5, 
 if platform.system() == 'Windows':
     script_path = os.path.dirname(os.path.abspath(__file__))
     fluidsynth_lib_path = script_path + '\\bin\\fluidsynth'
+
+    import struct
+    bytesPerPointer = struct.calcsize("P")
+    if (bytesPerPointer == 4):
+        fluidsynth_lib_path += '\\X86'
+
     envpath = os.environ.get('PATH', '')
     os.environ['PATH'] = fluidsynth_lib_path + ';' + envpath
-    lib = 'libfluidsynth-2.dll'
+    lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
 else:
     lib = 'libfluidsynth.so.2'
 
@@ -125,6 +131,8 @@ class Synth:            # interface for the FluidSynth synthesizer
 
 
 class Player:               # interface for the FluidSynth internal midi player
+    LOOP_INFINITELY = -1
+
     def __init__(self, flsynth):
         self.flsynth = flsynth # an instance of class Synth
         self.player = F.new_fluid_player(self.flsynth.synth)
@@ -133,9 +141,11 @@ class Player:               # interface for the FluidSynth internal midi player
         return F.fluid_player_add(self.player, c_char_p(b(midifile))) == 0
 
     def play(self, offset=0): # start playing at time == offset in midi ticks
-        ticks = self.seek(offset)
+        self.seek(offset)
         F.fluid_player_play(self.player)
-        #~ print 'cur ticks at play', ticks
+
+    def set_loop(self, loops = LOOP_INFINITELY):
+        F.fluid_player_set_loop(self.player, loops)
 
     def stop(self):           # stop playing and return position in midi ticks
         F.fluid_player_stop(self.player)
@@ -159,8 +169,7 @@ class Player:               # interface for the FluidSynth internal midi player
         return ticks
 
     def seekW(self, ticks_p): # go to position ticks_p (in midi ticks) and wait until seeked
-        F.fluid_synth_all_notes_off(self.flsynth.synth, -1)   # -1 == all channels
-        ticks = F.fluid_player_seek(self.player, ticks_p)
+        ticks = self.seek(ticks_p)
         n = 0
         while abs(ticks - ticks_p) > 100 and n < 100:
             time.sleep(0.01)

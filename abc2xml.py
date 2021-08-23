@@ -3,7 +3,7 @@
 '''
 Copyright (C) 2012-2018: Willem G. Vree
 Contributions: Nils Liberg, Nicolas Froment, Norman Schmidt, Reinier Maliepaard, Martin Tarenskeen,
-               Paul Villiger, Alexander Scheutzow, Herbert Schneider, David Randolph
+               Paul Villiger, Alexander Scheutzow, Herbert Schneider, David Randolph, Michael Strasser
 
 This program is free software; you can redistribute it and/or modify it under the terms of the
 Lesser GNU General Public License as published by the Free Software Foundation;
@@ -22,7 +22,7 @@ try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import types, sys, os, re, datetime
 
-VERSION = 228
+VERSION = 231
 
 python3 = sys.version_info[0] > 2
 lmap = lambda f, xs: list (map (f, xs))   # eager map for python 3
@@ -152,13 +152,14 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     text_expression  = Optional (oneOf ('^ _ < > @'), '^') + Optional (CharsNotIn ('"'), "")
     chord_accidental = oneOf ('# b =')
     triad            = oneOf ('ma Maj maj M mi min m aug dim o + -')
-    seventh          = oneOf ('7 ma7 Maj7 M7 maj7 mi7 m7 dim7 o7 -7 aug7 +7 m7b5 mi7b5')
-    sixth            = oneOf ('6 ma6 M6 m6 mi6')
-    ninth            = oneOf ('9 ma9 M9 maj9 Maj9 mi9 m9')
-    elevn            = oneOf ('11 ma11 M11 maj11 Maj11 mi11 m11')
+    seventh          = oneOf ('7 ma7 Maj7 M7 maj7 mi7 min7 m7 dim7 o7 -7 aug7 +7 m7b5 mi7b5')
+    sixth            = oneOf ('6 ma6 M6 mi6 min6 m6')
+    ninth            = oneOf ('9 ma9 M9 maj9 Maj9 mi9 min9 m9')
+    elevn            = oneOf ('11 ma11 M11 maj11 Maj11 mi11 min11 m11')
+    thirt            = oneOf ('13 ma13 M13 maj13 Maj13 mi13 min13 m13')
     suspended        = oneOf ('sus sus2 sus4')
     chord_degree     = Combine (Optional (chord_accidental) + oneOf ('2 4 5 6 7 9 11 13'))
-    chord_kind       = Optional (seventh | sixth | ninth | elevn | triad, '_') + Optional (suspended)
+    chord_kind       = Optional (seventh | sixth | ninth | elevn | thirt | triad) + Optional (suspended)
     chord_root       = oneOf ('C D E F G A B') + Optional (chord_accidental)
     chord_bass       = oneOf ('C D E F G A B') + Optional (chord_accidental) # needs a different parse action
     chordsym         = chord_root + chord_kind + ZeroOrMore (chord_degree) + Optional (Suppress ('/') + chord_bass)
@@ -413,14 +414,16 @@ def doGrace (t):        # t is a Group() result -> the grace sequence is in t[0]
 #----------------------------------
 
 def compChordTab ():    # avoid some typing work: returns mapping constant {ABC chordsyms -> musicXML kind}
-    maj, min, aug, dim, dom, ch7, ch6, ch9, ch11, hd = 'major minor augmented diminished dominant -seventh -sixth -ninth -11th half-diminished'.split ()
+    maj, min, aug, dim, dom, ch7, ch6, ch9, ch11, ch13, hd = 'major minor augmented diminished dominant -seventh -sixth -ninth -11th -13th half-diminished'.split ()
     triad   = zip ('ma Maj maj M mi min m aug dim o + -'.split (), [maj, maj, maj, maj, min, min, min, aug, dim, dim, aug, min])
-    seventh = zip ('7 ma7 Maj7 M7 maj7 mi7 m7 dim7 o7 -7 aug7 +7 m7b5 mi7b5'.split (),
-                   [dom, maj+ch7, maj+ch7, maj+ch7, maj+ch7, min+ch7, min+ch7, dim+ch7, dim+ch7, min+ch7, aug+ch7, aug+ch7, hd, hd])
-    sixth   = zip ('6 ma6 M6 mi6 m6'.split (), [maj+ch6, maj+ch6, maj+ch6, min+ch6, min+ch6])
-    ninth   = zip ('9 ma9 M9 maj9 Maj9 mi9 m9'.split (), [dom+ch9, maj+ch9, maj+ch9, maj+ch9, maj+ch9, min+ch9, min+ch9])
-    elevn   = zip ('11 ma11 M11 maj11 Maj11 mi11 m11'.split (), [dom+ch11, maj+ch11, maj+ch11, maj+ch11, maj+ch11, min+ch11, min+ch11])
-    return dict (list (triad) + list (seventh) + list (sixth) + list (ninth) + list (elevn))
+    seventh = zip ('7 ma7 Maj7 M7 maj7 mi7 min7 m7 dim7 o7 -7 aug7 +7 m7b5 mi7b5'.split (),
+                   [dom, maj+ch7, maj+ch7, maj+ch7, maj+ch7, min+ch7, min+ch7, min+ch7, dim+ch7, dim+ch7, min+ch7, aug+ch7, aug+ch7, hd, hd])
+    sixth   = zip ('6 ma6 M6 mi6 min6 m6'.split (), [maj+ch6, maj+ch6, maj+ch6, min+ch6, min+ch6, min+ch6])
+    ninth   = zip ('9 ma9 M9 maj9 Maj9 mi9 min9 m9'.split (), [dom+ch9, maj+ch9, maj+ch9, maj+ch9, maj+ch9, min+ch9, min+ch9, min+ch9])
+    elevn   = zip ('11 ma11 M11 maj11 Maj11 mi11 min11 m11'.split (), [dom+ch11, maj+ch11, maj+ch11, maj+ch11, maj+ch11, min+ch11, min+ch11, min+ch11])
+    thirt   = zip ('13 ma13 M13 maj13 Maj13 mi13 min13 m13'.split (), [dom+ch13, maj+ch13, maj+ch13, maj+ch13, maj+ch13, min+ch13, min+ch13, min+ch13])
+    sus     = zip ('sus sus4 sus2'.split (), ['suspended-fourth', 'suspended-fourth', 'suspended-second'])
+    return dict (list (triad) + list (seventh) + list (sixth) + list (ninth) + list (elevn) + list (thirt) + list (sus))
 
 def addElem (parent, child, level):
     indent = 2
@@ -844,6 +847,7 @@ class MusicXml:
         s.lyrdash = {}      # {lyric number -> 1 if dash between syllables}
         s.usrSyms = s.uSyms # user defined symbols
         s.prevNote = None   # xml element of previous beamed note to correct beams (start, continue)
+        s.prevLyric = {}    # xml element of previous lyric to add/correct extend type (start, continue)
         s.grcbbrk = False   # remember any bbrk in a grace sequence
         s.linebrk = 0       # 1 if next measure should start with a line break
         s.nextdecos = []    # decorations for the next note
@@ -1035,6 +1039,7 @@ class MusicXml:
         if hasStem: s.doBeams (n, nt, den, lev + 1)   # no stems -> no beams in a tab staff
         s.doNotations (n, decos, ptup, alter, tupnotation, tstop, nt, lev + 1)
         if n.objs: s.doLyr (n, nt, lev + 1)
+        else: s.prevLyric = {}   # clear on note without lyrics
         return nt
 
     def cmpNormType (s, rdvs, lev): # compute the normal-type of a tuplet (only needed for Finale)
@@ -1198,21 +1203,33 @@ class MusicXml:
 
     def doLyr (s, n, nt, lev):
         for i, lyrobj in enumerate (n.objs):
-            if lyrobj.name != 'syl': continue
-            dash = len (lyrobj.t) == 2
-            if dash:
-                if i in s.lyrdash:  type = 'middle'
-                else:               type = 'begin'; s.lyrdash [i] = 1
-            else:
-                if i in s.lyrdash:  type = 'end';   del s.lyrdash [i]
-                else:               type = 'single'
             lyrel = E.Element ('lyric', number = str (i + 1))
+            if lyrobj.name == 'syl':
+                dash = len (lyrobj.t) == 2
+                if dash:
+                    if i in s.lyrdash:  type = 'middle'
+                    else:               type = 'begin'; s.lyrdash [i] = 1
+                else:
+                    if i in s.lyrdash:  type = 'end';   del s.lyrdash [i]
+                    else:               type = 'single'
+                addElemT (lyrel, 'syllabic', type, lev + 1)
+                txt = lyrobj.t[0]                       # the syllabe
+                txt = re.sub (r'(?<!\\)~', ' ', txt)    # replace ~ by space when not escaped (preceded by \)
+                txt = re.sub (r'\\(.)', r'\1', txt)     # replace all escaped characters by themselves (for the time being)
+                addElemT (lyrel, 'text', txt, lev + 1)
+            elif lyrobj.name == 'ext' and i in s.prevLyric:
+                pext = s.prevLyric [i].find ('extend')  # identify previous extend
+                if pext == None:
+                    ext = E.Element ('extend', type = 'start')
+                    addElem (s.prevLyric [i], ext, lev + 1)
+                elif pext.get('type') == 'stop':        # subsequent extend: stop -> continue
+                    pext.set ('type', 'continue')
+                ext = E.Element ('extend', type = 'stop')   # always stop on current extend
+                addElem (lyrel, ext, lev + 1)
+            elif lyrobj.name == 'ext': info ('lyric extend error'); continue
+            else: continue          # skip other lyric elements or errors
             addElem (nt, lyrel, lev)
-            addElemT (lyrel, 'syllabic', type, lev + 1)
-            txt = lyrobj.t[0]                       # the syllabe
-            txt = re.sub (r'(?<!\\)~', ' ', txt)    # replace ~ by space when not escaped (preceded by \)
-            txt = re.sub (r'\\(.)', r'\1', txt)     # replace all escaped characters by themselves (for the time being)
-            addElemT (lyrel, 'text', txt, lev + 1)
+            s.prevLyric [i] = lyrel # for extension (melisma) on the next note
 
     def doBeams (s, n, nt, den, lev):
         if hasattr (n, 'chord') or hasattr (n, 'grace'):
@@ -1535,7 +1552,7 @@ class MusicXml:
         addElem (chord, root, lev + 1)
         addElemT (root, 'root-step', rnt[0], lev + 2)
         if len (rnt) == 2: addElemT (root, 'root-alter', alterMap [rnt[1]], lev + 2)
-        kind = s.chordTab.get (sym.kind.t[0], 'major')
+        kind = s.chordTab.get (sym.kind.t[0], 'major') if sym.kind.t else 'major'
         addElemT (chord, 'kind', kind, lev + 1)
         if hasattr (sym, 'bass'):
             bnt = sym.bass.t

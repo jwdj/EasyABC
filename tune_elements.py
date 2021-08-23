@@ -221,10 +221,16 @@ decoration_to_description = {
     '!D.C.!'           : _('the letters D.C. (=either Da Coda or Da Capo)'),
     '!dacoda!'         : _('the word "Da" followed by a Coda sign'),
     '!dacapo!'         : _('the words "Da Capo"'),
+    '!D.C.alcoda!'     : _('the words "D.C. al Coda"'),
+    '!D.C.alfine!'     : _('the words "D.C. al Fine"'),
+    '!D.S.alcoda!'     : _('the words "D.S. al Coda"'),
+    '!D.S.alfine!'     : _('the words "D.S. al Fine"'),
     '!fine!'           : _('the word "fine"'),
     '!shortphrase!'    : _('vertical line on the upper part of the staff'),
     '!mediumphrase!'   : _('vertical line on the upper part of the staff, extending down to the centre line'),
-    '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down')
+    '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down'),
+    '!ped!'            : _('sustain pedal down'),
+    '!ped-up!'         : _('sustain pedal up'),
 }
 
 ABC_TUNE_HEADER_NO = 0
@@ -440,6 +446,9 @@ class AbcElement(object):
             #        result += '<code>%s</code><br>' % escape(matchtext)
         return result
 
+    def get_inner_element(self, context):
+        return self
+
 
 class CompositeElement(AbcElement):
     def __init__(self, name, keyword=None, display_name=None, description=None):
@@ -459,8 +468,17 @@ class CompositeElement(AbcElement):
         inner_text = context.current_match.group(1)
         if inner_text is None:
             inner_text = context.current_match.group(2)
-        keyword = inner_text.split(' ', 1)[0]
-        return self._elements.get(keyword)
+        return self.get_element_from_inner_text(inner_text)
+
+    def get_element_from_inner_text(self, inner_text):
+        parts = inner_text.split(' ', 1)
+        keyword = parts[0]
+        result = self._elements.get(keyword)
+        if isinstance(result, CompositeElement) and len(parts) > 1:
+            subelement = result.get_element_from_inner_text(parts[1])
+            if subelement is not None:
+                result = subelement
+        return result
 
     def get_header_text(self, context):
         element = self.get_element_from_context(context)
@@ -473,6 +491,9 @@ class CompositeElement(AbcElement):
         if element:
             return element.get_description_text(context)
         return super(CompositeElement, self).get_description_text(context)
+
+    def get_inner_element(self, context):
+        return self.get_element_from_context(context) or self
 
 
 class AbcUnknown(AbcElement):
@@ -549,18 +570,44 @@ class AbcInstructionField(AbcInformationField):
 class AbcMidiDirective(CompositeElement):
     def __init__(self):
         super(AbcMidiDirective, self).__init__('MIDI directive', 'MIDI', display_name=_('MIDI directive'), description=_('A directive that gives instructions to player programs.'))
-        # pattern = re.escape('<a name="%s"></a>' % name) + '(.*?)' + re.escape('<a name=')
-        # self.html_re = re.compile(pattern, re.MULTILINE or re.IGNORECASE)
 
-    # def get_description_url(self):
-    #     return 'http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_body.html#%s' % urllib.quote(self.name)
 
-    # def get_description_html(self, context):
-    #     html = super(AbcMidiDirective, self).get_description_html(context)
-    #     m = self.html_re.search(html)
-    #     if m:
-    #         html = m.groups(1)
-    #     return html
+class AbcMidiProgramDirective(AbcElement):
+    pattern = r'(?m)^%%MIDI program(?P<channel>(?:\s+\d+(?=\s+\d))?)(?:(?P<instrument>\s*\d*))?'
+    def __init__(self):
+        super(AbcMidiProgramDirective, self).__init__('MIDI_program', display_name=_('Instrument'), description=_('Sets the instrument for a MIDI channel.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiProgramDirective.pattern
+
+class AbcMidiChordProgramDirective(AbcElement):
+    pattern = r'(?m)^%%MIDI chordprog(?:(?P<instrument>\s*\d*))?'
+    def __init__(self):
+        super(AbcMidiChordProgramDirective, self).__init__('MIDI_chordprog', display_name=_('Chord instrument'), description=_('Sets the instrument for playing chords.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiChordProgramDirective.pattern
+
+class AbcMidiBaseProgramDirective(AbcElement):
+    pattern = r'(?m)^%%MIDI bassprog(?:(?P<instrument>\s*\d*))?'
+    def __init__(self):
+        super(AbcMidiBaseProgramDirective, self).__init__('MIDI_bassprog', display_name=_('Bass instrument'), description=_('Sets the instrument for the base.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiBaseProgramDirective.pattern
+
+
+class AbcMidiChannelDirective(AbcElement):
+    pattern = r'(?m)^%%MIDI channel(?P<channel>\s*\d*)'
+    def __init__(self):
+        super(AbcMidiChannelDirective, self).__init__('MIDI_channel', display_name=_('Channel'), description=_('Sets the MIDI channel for the current voice.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiChannelDirective.pattern
+
+
+class AbcMidiDrumMapDirective(AbcElement):
+    pattern = r"(?m)^%%MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)"
+    def __init__(self):
+        super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiDrumMapDirective.pattern
 
 
 class Abcm2psDirective(AbcElement):
@@ -769,6 +816,10 @@ class AbcDirectionDecoration(AbcDecoration):
         '!D.C.!',
         '!dacoda!',
         '!dacapo!',
+        '!D.C.alcoda!',
+        '!D.C.alfine!',
+        '!D.S.alcoda!',
+        '!D.S.alfine!',
         '!fine!'
     ]
     def __init__(self):
@@ -791,6 +842,8 @@ class AbcArticulationDecoration(AbcDecoration):
         '!open!',
         '!thumb!',
         '!breath!',
+        '!ped!',
+        '!ped-up!',
     ]
     def __init__(self):
         super(AbcArticulationDecoration, self).__init__('Articulation', AbcArticulationDecoration.values, display_name=_('Articulation'))
@@ -1040,6 +1093,11 @@ class AbcStructure(object):
             AbcEmptyLineWithinFileHeader(),
             AbcEmptyLine(),
             AbcVersionDirective(),
+            AbcMidiProgramDirective(),
+            AbcMidiChordProgramDirective(),
+            AbcMidiBaseProgramDirective(),
+            AbcMidiChannelDirective(),
+            AbcMidiDrumMapDirective(),
             directive,
             AbcComment(),
             AbcBackslash(),
