@@ -1,9 +1,9 @@
 #
 
-program_name = 'EasyABC 1.3.7.9 2021-07-20'
+program_name = 'EasyABC 1.3.7.9 2021-08-25'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015-2020 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
+# Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,7 @@ program_name = 'EasyABC 1.3.7.9 2021-07-20'
 #     pass
 
 import sys
-PY3 = sys.version_info.major > 2
+PY3 = sys.version_info >= (3,0,0)
 
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 import codecs
@@ -73,7 +73,7 @@ import re
 import subprocess
 import hashlib
 
-if PY3:
+if sys.version_info >= (3,0,0):
     from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
     from urllib.request import urlopen, Request, urlretrieve
     from urllib.error import HTTPError, URLError
@@ -132,8 +132,9 @@ from svgrenderer import SvgRenderer
 import itertools
 from aligner import align_lines, extract_incipit, bar_sep, bar_sep_without_space, get_bar_length, bar_and_voice_overlay_sep
 ##from midi_processing import humanize_midi
-if PY3:
+if sys.version_info >= (3,0,0):
     from queue import Queue # 1.3.6.2 [JWdJ] 2015-02
+    Empty = Queue.Empty
 else:
     from Queue import Queue # 1.3.6.2 [JWdJ] 2015-02
 
@@ -317,6 +318,12 @@ visible_abc_code = u''
 line_end_re = re.compile('\r\n|\r|\n')
 tune_index_re = re.compile(r'^X:\s*(\d+)')
 
+def note_to_index(abc_note):
+    try:
+        return all_notes.index(abc_note)
+    except ValueError:
+        return None
+
 def text_to_lines(text):
     return line_end_re.split(text)
 
@@ -411,7 +418,7 @@ def get_ghostscript_path():
         This function may not see the 64-bit ghostscript installations, especially
         if Python was compiled as a 32-bit application.
     '''
-    if PY3:
+    if sys.version_info >= (3,0,0):
         import winreg
     else:
         import _winreg as winreg
@@ -1837,7 +1844,7 @@ class RecordThread(threading.Thread):
                         else:
                             wx.CallAfter(self.tick2.Play)
                         i += 1 #FAU: 20210102: One tick was missing the first time so incrementing i after the tick
-                        
+
                 time_offset = self.timedelta_microseconds(datetime.now() - start_time)
                 if self.midi_in_poll:
                     if wx.Platform == "__WXMAC__":
@@ -1861,7 +1868,7 @@ class RecordThread(threading.Thread):
                         end = float(time_offset) / self.beat_duration
                         self.notes.append([midi_note, start, end])
                         #print('note-off', midi_note, float(time_offset)/self.beat_duration)
-                        
+
 
         finally:
             #print('FAU: closing')
@@ -3779,7 +3786,7 @@ class MainFrame(wx.Frame):
             try:
                 self.mc = FluidSynthPlayer(soundfont_path)
             except Exception as e:
-                error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])) + os.linesep + os.linesep.join(errors)
+                error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
                 self.mc = None
 
         if self.mc is None:
@@ -3794,7 +3801,8 @@ class MainFrame(wx.Frame):
                         backend = wx.media.MEDIABACKEND_WMP10
                 self.mc = WxMediaPlayer(self, backend)
             except NotImplementedError:
-              self.mc = DummyMidiPlayer()  # if media player not supported on this platform
+                from midiplayer import DummyMidiPlayer
+                self.mc = DummyMidiPlayer()  # if media player not supported on this platform
 
         self.mc.OnAfterLoad += self.OnMediaLoaded
         self.mc.OnAfterStop += self.OnAfterStop
@@ -4263,8 +4271,7 @@ class MainFrame(wx.Frame):
 
     def play(self):
         if self.settings.get('follow_score', False) and self.current_page_index != 0:
-            self.current_page_index = 0
-            self.UpdateMusicPane()
+            self.select_page(0)
         wx.CallAfter(self.mc.Play)
 
     def stop_playing(self):
@@ -4485,8 +4492,7 @@ class MainFrame(wx.Frame):
         if future_time_slice is not None:
             try:
                 if future_time_slice.page != self.current_page_index:
-                    self.current_page_index = future_time_slice.page
-                    self.UpdateMusicPane()
+                    self.select_page(future_time_slice.page)
                     self.scroll_to_notes(self.music_pane.current_page, future_time_slice.indices)
                 elif future_time_slice.svg_row != self.last_played_svg_row and future_time_slice.indices:
                     self.last_played_svg_row = future_time_slice.svg_row
@@ -4521,7 +4527,7 @@ class MainFrame(wx.Frame):
         menu = evt.EventObject
         item = menu.FindItemById(evt.GetId())
         self.settings['record_metre'] = item.GetItemLabelText()
-        
+
 
     # 1.3.6.3 [SS] 2015-05-03
     def flip_tempobox(self, state):
@@ -5055,19 +5061,6 @@ class MainFrame(wx.Frame):
 
     def OnExportAllHTML(self, evt):
         self.export_tunes(_('HTML file'), '.html', self.export_html, only_selected=False, single_file=True)
-
-    def createArchive(self, rootDir, outputPath):
-        cwd = os.getcwd()
-        os.chdir(rootDir)
-        fout.write('mimetype', compress_type = zipfile.ZIP_STORED)
-        fileList = [os.path.join('META-INF', 'container.xml'), os.path.join('OEBPS', 'content.opf')]
-        for itemPath in EpubBook.__listManifestItems(os.path.join('OEBPS', 'content.opf')):
-            fileList.append(os.path.join('OEBPS', itemPath))
-        for filePath in fileList:
-            fout.write(filePath, compress_type = zipfile.ZIP_DEFLATED)
-        fout.close()
-        os.chdir(cwd)
-
 
     def OnExportAllEpub(self, evt):
         tunes = []
@@ -6306,8 +6299,7 @@ class MainFrame(wx.Frame):
                             break
 
                     if new_page_index is not None and new_page_index != self.current_page_index:
-                        self.current_page_index = new_page_index
-                        self.UpdateMusicPane()
+                        self.select_page(new_page_index)
 
         closest_xy = None
         closest_col = -9999
@@ -6409,7 +6401,7 @@ class MainFrame(wx.Frame):
                 if matches:
                     K = matches[-1]
                     doremi_index = doremi_prefixes.index(char)
-                    base_note_index = all_notes.index(K.upper())
+                    base_note_index = note_to_index(K.upper())
                     note = all_notes[base_note_index + doremi_index]
                     if char == char.upper():
                         return note[0].upper()
@@ -6418,8 +6410,7 @@ class MainFrame(wx.Frame):
         return char
 
     def OnCharEvent(self, evt):
-        style = self.editor.GetStyleAt(self.editor.GetCurrentPos())
-        is_default_style = (style in [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE])
+        in_music_code = self.position_is_music_code(self.editor.GetCurrentPos())
 
         # 1.3.7 [JWdJ] 2016-01-06
         if self.current_svg_tune and evt.KeyCode in [wx.WXK_PAGEDOWN, wx.WXK_PAGEUP, wx.WXK_HOME, wx.WXK_END]:
@@ -6435,8 +6426,7 @@ class MainFrame(wx.Frame):
                 new_page = self.current_page_index - 1
 
             if 0 <= new_page < self.current_svg_tune.page_count and new_page != self.current_page_index:
-                self.current_page_index = new_page
-                self.UpdateMusicPane()
+                self.select_page(new_page)
                 evt.Skip()
                 return
 
@@ -6452,7 +6442,8 @@ class MainFrame(wx.Frame):
 
         at_end_of_line = not self.editor.GetTextRange(self.editor.GetCurrentPos(), self.editor.GetLineEndPosition(self.editor.GetCurrentLine())).strip('| : ] [')
 
-        if self.mni_TA_active.IsChecked() and not is_inside_field and is_default_style:
+        use_typing_assist = self.mni_TA_active.IsChecked()
+        if use_typing_assist and not is_inside_field and in_music_code:
             if c == ' ':
                 try:
                     self.FixNoteDurations()
@@ -6486,7 +6477,7 @@ class MainFrame(wx.Frame):
             if (line.rstrip(), caret) == (u'X', 1):
                 wx.CallAfter(self.AutoInsertXNum)
 
-        elif c == '3' and p1 == p2 and self.editor.GetTextRange(p1-1, p1+1) == '()' and is_default_style:
+        elif c == '3' and p1 == p2 and self.editor.GetTextRange(p1-1, p1+1) == '()' and in_music_code:
             # if the user writes ( which is auto-completed to () and then writes 3, he/she probably
             # wants to start a triplet so we delete the right parenthesis
             self.editor.BeginUndoAction()
@@ -6494,7 +6485,7 @@ class MainFrame(wx.Frame):
             self.editor.ReplaceSelection(c)
             self.editor.EndUndoAction()
 
-        elif (c in ']}' and self.editor.GetTextRange(p1, p1+1) == c and is_default_style) or \
+        elif (c in ']}' and self.editor.GetTextRange(p1, p1+1) == c and in_music_code) or \
                 (c == '"'  and self.editor.GetTextRange(p1, p1+1) == c and self.editor.GetTextRange(p1-1, p1) != '\\'):
             (text,pos) = self.editor.GetCurLine()
             # unless this is not a field line
@@ -6537,7 +6528,7 @@ class MainFrame(wx.Frame):
                 self.editor.InsertText(p2+1, end)
                 self.editor.SetSelection(p1+1, p2+1)
                 self.editor.EndUndoAction()
-            elif is_default_style and (self.mni_TA_active.IsChecked() and self.mni_TA_add_right.IsChecked()):
+            elif in_music_code and use_typing_assist and self.mni_TA_add_right.IsChecked():
                 line, _ = self.editor.GetCurLine()
                 if c == '"' and line.count('"') % 2 == 1 or \
                         c != '"' and line.count(end) > line.count(start):
@@ -6593,7 +6584,7 @@ class MainFrame(wx.Frame):
                 self.editor.SetSelection(p1, p2+total_offset)
             finally:
                 self.editor.EndUndoAction()
-        elif self.keyboard_input_mode and is_default_style:
+        elif self.keyboard_input_mode and in_music_code:
             keys = u'asdfghjkl\xf6\xe4'
             sharp_keys = '' #u'\x00wertyuiop\xe5\x00'
             flat_keys = '' #u'<zxcvbnm,.-'
@@ -6615,7 +6606,7 @@ class MainFrame(wx.Frame):
                     self.editor.ReplaceSelection(accidental + note)
 
         # automatically select uppercase/lowercase - choose the one that will make this note be closest to the previous note
-        elif p1 == p2 and at_end_of_line and is_default_style and (self.mni_TA_active.IsChecked() and self.mni_TA_auto_case.IsChecked()) and \
+        elif p1 == p2 and at_end_of_line and in_music_code and (use_typing_assist and self.mni_TA_auto_case.IsChecked()) and \
                  (not self.mni_TA_do_re_mi.IsChecked() and c in 'abcdefgABCDEFG' or \
                   self.mni_TA_do_re_mi.IsChecked() and c in doremi_prefixes):
             last_note_number = None
@@ -6632,10 +6623,10 @@ class MainFrame(wx.Frame):
 
             # go backwards (to the left from the cursor) and look for the first note
             for i in range(len(text)-1):
-                if p-i >= 1 and self.editor.GetStyleAt(p-i-1) in [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE]:
-                    m = re.match(r"([A-Ga-g])[,']?", text[len(text)-1-i:len(text)-1-i+2])
+                if p-i >= 1 and self.position_is_music_code(p-i-1):
+                    m = re.match(r"([A-Ga-g][,']?)", text[len(text)-1-i : len(text)-1-i+2])
                     if m:
-                        last_note_number = all_notes.index(m.group(0))
+                        last_note_number = note_to_index(m.group(0))
                         break
 
             if last_note_number is None:
@@ -6660,7 +6651,7 @@ class MainFrame(wx.Frame):
                 else:
                     evt.Skip()
 
-        elif self.mni_TA_active.IsChecked() and self.mni_TA_do_re_mi.IsChecked() and is_default_style:
+        elif use_typing_assist and self.mni_TA_do_re_mi.IsChecked() and in_music_code:
             if c in doremi_prefixes:
                 c = self.DoReMiToNote(c)
                 self.editor.AddText(c)
@@ -6813,6 +6804,9 @@ class MainFrame(wx.Frame):
         self.editor.ReplaceSelection(text)
         self.editor.EndUndoAction()
 
+    def position_is_music_code(self, position):
+        return self.editor.GetStyleAt(position) in [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE]
+
     def OnKeyDownEvent(self, evt):
         # temporary work-around for what seems to be a scintilla bug on Mac:
         if wx.Platform == "__WXMAC__" and evt.GetRawKeyCode() == 7683:
@@ -6828,13 +6822,13 @@ class MainFrame(wx.Frame):
 
         line, caret = self.editor.GetCurLine()
         is_inside_field = len(line)>=2 and line[1] == ':' and re.match(r'[A-Za-z]', line[0]) or line.startswith('%')
-        is_default_style = (self.editor.GetStyleAt(self.editor.GetCurrentPos()) in
-                               [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE])
+        in_music_code = self.position_is_music_code(self.editor.GetCurrentPos())
 
+        use_typing_assist = self.mni_TA_active.IsChecked()
         if evt.GetKeyCode() == wx.WXK_RETURN:
             line = self.editor.GetCurrentLine()
             # 1.3.7.2 [JWDJ] 2016-03-17
-            if self.mni_TA_active.IsChecked() and self.mni_TA_add_bar_auto.IsChecked() and not is_inside_field and is_default_style:
+            if use_typing_assist and self.mni_TA_add_bar_auto.IsChecked() and not is_inside_field and in_music_code:
                 self.add_bar_if_needed()
 
             # 1.3.6.3 [JWDJ] 2015-04-21 Added line continuation
@@ -6877,7 +6871,7 @@ class MainFrame(wx.Frame):
         if notes:
             self.keyboard_input_mode = True
             m = re.match(r"([_=^]?)(?P<note>[A-Ga-gz][,']*)", notes[-1][-1])
-            self.keyboard_input_base_note = all_notes.index(m.group('note'))
+            self.keyboard_input_base_note = note_to_index(m.group('note'))
             self.keyboard_input_base_key = None
             if self.keyboard_input_base_note == -1:
                 self.keyboard_input_mode = False
@@ -7374,8 +7368,10 @@ class MainFrame(wx.Frame):
             self.editor.ScrollToLine(self.editor.LineFromPosition(self.editor.GetCurrentPos()))
 
     def OnPageSelected(self, evt):
-        # 1.3.6.2 [JWdJ] 2015-02
-        self.current_page_index = self.cur_page_combo.GetSelection()
+        self.select_page(self.cur_page_combo.GetSelection())
+
+    def select_page(self, page_index):
+        self.current_page_index = page_index
         self.UpdateMusicPane()
 
     def UpdateMusicPane(self):

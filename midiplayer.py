@@ -1,13 +1,4 @@
 from __future__ import unicode_literals
-import re
-import os
-import io
-import os.path
-import wx
-import wx.media
-import time
-import sys
-PY3 = sys.version_info.major > 2
 
 
 class EventHook(object):

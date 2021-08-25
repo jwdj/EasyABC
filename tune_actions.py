@@ -1519,7 +1519,7 @@ K:C clef=perc
 %%MIDI drummap F 35
 V:1
 %%MIDI channel 10
-^a^g[c^g]^g | ^g^g[c^g]_g | ^a^g[c^g]^g | ^g/c/^g c/^a3/ ||
+^a^g[c^g]^g | ^g^g[c^g]_g | ^g^g[c^g]^g | ^g/c/^g c/^a3/ ||
 V:2
 %%MIDI channel 10
 FF/F/ z3/{/F}F/ | zF/F/ z/F3/ | FF/F/ z3/F/ | z3/F/ z/F3/ ||

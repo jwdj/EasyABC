@@ -83,7 +83,6 @@ class ABCStyler:
 
         char_count = 0
         for i in xrange(i, end):
-            # chNext = chr(get_char_at(i+1))
             try:
                 chNext = next_buffer[buffer_pos]
                 buffer_pos += 1
@@ -166,7 +165,7 @@ class ABCStyler:
             #elif state not in [STYLE_LYRICS, STYLE_BAR, STYLE_COMMENT_NORMAL, STYLE_COMMENT_SPECIAL, STYLE_FIELD_INDEX]:
             #    state = STYLE_DEFAULT  # force to go back to STYLE_DEFAULT if in none of the previous case
 
-            if old_state != state: # and char_count > 0:
+            if old_state != state:
                 set_styling(char_count, old_state)
                 char_count = 0
                 old_state = state
