@@ -134,7 +134,6 @@ from aligner import align_lines, extract_incipit, bar_sep, bar_sep_without_space
 ##from midi_processing import humanize_midi
 if sys.version_info >= (3,0,0):
     from queue import Queue # 1.3.6.2 [JWdJ] 2015-02
-    Empty = Queue.Empty
 else:
     from Queue import Queue # 1.3.6.2 [JWdJ] 2015-02
 
