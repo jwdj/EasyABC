@@ -1,6 +1,6 @@
 #
 
-program_name = 'EasyABC 1.3.7.9 2021-08-25'
+program_name = 'EasyABC 1.3.7.9 2021-08-26'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -1632,7 +1632,10 @@ class MusicPrintout(wx.Printout):
                 dc.SetUserScale(actualScale/self.zoom, actualScale/self.zoom)
                 renderer.zoom = self.zoom
                 renderer.update_buffer(page)
-                renderer.draw(page)
+                if self.painted_on_screen:
+                    renderer.draw(page)
+                else:
+                    renderer.draw(page, dc=dc)
                 dc.DrawBitmap(renderer.buffer, 0, 0)
             else:
                 renderer.zoom = 1.0
@@ -3999,8 +4002,11 @@ class MainFrame(wx.Frame):
 
     def OnPageSetup(self, evt):
         psdd = wx.PageSetupDialogData(self.printData)
-        psdd.CalculatePaperSizeFromId()
-        psdd.EnableMargins(False)
+        if not WX4:
+            psdd.CalculatePaperSizeFromId()
+        if platform.system() == 'Windows':
+            psdd.EnableMargins(False)
+
         dlg = wx.PageSetupDialog(self, psdd)
         try:
             dlg.ShowModal()
@@ -7471,9 +7477,12 @@ class MainFrame(wx.Frame):
 
     def selected_tune_iterator(self):
         i = self.tune_list.GetFirstSelected()
-        while i >= 0:
-            yield i
-            i = self.tune_list.GetNextSelected(i)
+        if i >= 0:
+            while i >= 0:
+                yield i
+                i = self.tune_list.GetNextSelected(i)
+        elif self.tune_list.ItemCount > 0:
+            yield 0
 
     def GetSelectedTunes(self, add_file_header=True):
         return [self.GetTune(i, add_file_header) for i in self.selected_tune_iterator()]
