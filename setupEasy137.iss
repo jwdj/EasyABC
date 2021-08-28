@@ -31,7 +31,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 LicenseFile={#MyBuildFolder}\gpl-license.txt
-OutputBaseFilename=setupEasy137
+OutputBaseFilename=EasyABC-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 

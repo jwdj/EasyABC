@@ -21,6 +21,7 @@ else:
 
 import os
 import platform
+from utils import *
 
 revModels = ['Model 1','Model 2', 'Model 3','Model 4','Model 5']
 # room size (0.0-1.2), damping (0.0-1.0), width (0.0-100.0), level (0.0-1.0)
@@ -31,16 +32,11 @@ revmods = { revModels [0]: (0.2, 0.0, 0.5, 0.9), revModels [1]: (0.4, 0.2, 0.5, 
 # F = CDLL (..) makes all API functions avalable as F.<api-function>
 
 if platform.system() == 'Windows':
-    script_path = os.path.dirname(os.path.abspath(__file__))
-    fluidsynth_lib_path = script_path + '\\bin\\fluidsynth'
-
-    import struct
-    bytesPerPointer = struct.calcsize("P")
-    if (bytesPerPointer == 4):
+    fluidsynth_lib_path = get_application_path() + '\\bin\\fluidsynth'
+    if is_running_32bit():
         fluidsynth_lib_path += '\\X86'
 
-    envpath = os.environ.get('PATH', '')
-    os.environ['PATH'] = fluidsynth_lib_path + ';' + envpath
+    append_to_envpath(fluidsynth_lib_path)
     lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
 else:
     lib = 'libfluidsynth.so.2'
@@ -48,7 +44,7 @@ else:
 try:
     F = CDLL(lib)
 except:
-    raise ImportError("Couldn't find the FluidSynth library.")
+    raise ImportError("Couldn't find the FluidSynth library: " + lib)
 
 
 class Synth:            # interface for the FluidSynth synthesizer

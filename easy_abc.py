@@ -1,6 +1,6 @@
 #
 
-program_name = 'EasyABC 1.3.7.9 2021-08-26'
+program_name = 'EasyABC 1.3.7.9'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -57,14 +57,12 @@ import os, os.path
 import wx
 WX4 = wx.version().startswith('4')
 
-if getattr(sys, 'frozen', False):
-    application_path = os.path.dirname(sys.executable)
-elif __file__:
-    application_path = os.path.dirname(__file__)
+from utils import *
 
-if os.getenv('EASYABCDIR'):
-    cwd = os.getenv('EASYABCDIR')
-else:
+application_path = get_application_path()
+
+cwd = os.getenv('EASYABCDIR')
+if not cwd:
     cwd = application_path
 
 sys.path.append(cwd)
@@ -114,6 +112,9 @@ try:
     from fluidsynthplayer import *
     fluidsynth_available = True
 except ImportError:
+    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.')
+    # error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+    # sys.stderr.write(error_msg)
     fluidsynth_available = False
 
 from wxmediaplayer import *
@@ -2154,7 +2155,7 @@ class AbcFileSettingsFrame(wx.Panel):
             PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False, None),
             PathEntry('nwc2xml', _('nwc2xml executable:'), _('For NoteWorthy Composer - Windows only'), False, None),
             PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False, None),
-            PathEntry('soundfont', _('soundfont:'), _('Your preferred Sound Font (.sf2)'), False, 'SoundFont (*.sf2)|*.sf2')
+            PathEntry('soundfont', _('SoundFont:'), _('Your preferred SoundFont (.sf2)'), False, 'SoundFont (*.sf2)|*.sf2')
         ]
 
 
@@ -2626,8 +2627,13 @@ class MyVoicePage(wx.Panel):
         midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('L/R Balance:')), row=0, col=6, colspan=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # For each of the 16th voice, instrument, volume and balance can be set separately
+        if PY3:
+            instrument_choices = []  # instruments fill be filled when tab is selected to speed up ABC settings
+        else:
+            instrument_choices = general_midi_instruments
+
         for channel in range(1, 16+1):
-            cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26),
+            cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=instrument_choices, size=(200, 26),
                                                             style=wx.CB_READONLY)
             self.cmbMidiProgramCh_list[channel] = cmbMidiProgram
             volumeSlider = wx.Slider(self, value=64, minValue=0, maxValue=127,
@@ -2704,7 +2710,8 @@ class MyVoicePage(wx.Panel):
 
         instruments = general_midi_instruments
         for channel in range(1, 16+1):
-            self.cmbMidiProgramCh_list[channel].Append(instruments)
+            if PY3:
+                self.cmbMidiProgramCh_list[channel].Append(instruments)
             try:
                 setting_name = self.midi_program_ch_list[channel-1]
                 midi_info = self.settings.get(setting_name)
@@ -3191,7 +3198,13 @@ class ColorSettingsFrame(wx.Panel):
 
         note_highlight_color = self.settings.get('note_highlight_color', default_note_highlight_color)
         note_highlight_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color"))
-        self.note_highlight_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(note_highlight_color))
+        if PY3:
+            self.note_highlight_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(note_highlight_color))
+        else:
+            r = int(note_highlight_color[1:3], 16)
+            g = int(note_highlight_color[3:5], 16)
+            b = int(note_highlight_color[5:7], 16)
+            self.note_highlight_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, wx.Colour(r, g, b))
 
         grid_sizer.Add(note_highlight_color_label, row=0, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         grid_sizer.Add(self.note_highlight_color_picker, row=0, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
@@ -3945,7 +3958,8 @@ class MainFrame(wx.Frame):
 
         # 1.3.6.3 [SS] 2015-05-04
         self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
-        execmessages = _('You are running {0} on {1}\nYou can get the latest version on https://sourceforge.net/projects/easyabc/\n'.format(program_name, wx.Platform))
+        execmessages = _('You are running {0} on {1}').format(program_name, wx.Platform)
+        execmessages += '\n' + _('You can get the latest version on') + ' https://sourceforge.net/projects/easyabc/'
 
     def update_controls_using_settings(self):
         # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
@@ -6141,14 +6155,14 @@ class MainFrame(wx.Frame):
 
     # 1.3.6.1 [SS] 2015-01-28
     def OnAbcm2psHelp(self, evt):
-        show_in_browser('https://moinejf.free.fr/abcm2ps-doc/')
+        show_in_browser('http://moinejf.free.fr/abcm2ps-doc/')
 
     # 1.3.6.1 [SS] 2015-01-28
     def OnAbc2midiHelp(self, evt):
         show_in_browser('https://abcmidi.sourceforge.io/')
 
     def OnAbcCheatSheet(self, evt):
-        show_in_browser('https://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
+        show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
 
     def OnClearCache(self, evt):
         # make sure that any currently played/loaded midi file is released by the media control
@@ -6399,13 +6413,13 @@ class MainFrame(wx.Frame):
         editor.EndUndoAction()
 
     def DoReMiToNote(self, char):
-        if char in doremi_prefixes:
+        doremi_index = doremi_prefixes.find(char)
+        if doremi_index >= 0:
             tune = self.GetSelectedTune()
             if tune:
                 matches = re.findall(r'(?<=[\r\n\[])K: *([A-Ga-g])', self.editor.GetTextRange(tune.offset_start, self.editor.GetCurrentPos()))
                 if matches:
                     K = matches[-1]
-                    doremi_index = doremi_prefixes.index(char)
                     base_note_index = note_to_index(K.upper())
                     note = all_notes[base_note_index + doremi_index]
                     if char == char.upper():
@@ -8255,8 +8269,8 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <p><b>EasyABC</b> is brought to you by <b>Nils Liberg</b>, Copyright &copy; 2010-2012.</p>
 <p><b>Credits</b> - software components used by EasyABC:</p>
 <ul class="nicelist">
-<li><a href="https://moinejf.free.fr/">abcm2ps</a> for converting ABC code to note images (developed/maintained by Jean-Fran&ccedil;ois Moine)</li>
-<li><a href="https://abc.sourceforge.net/abcMIDI/">abc2midi</a> for converting ABC code to midi (by James Allwright, maintained by Seymour Shlien)</li>
+<li><a href="http://moinejf.free.fr/">abcm2ps</a> for converting ABC code to note images (developed/maintained by Jean-Fran&ccedil;ois Moine)</li>
+<li><a href="http://abc.sourceforge.net/abcMIDI/">abc2midi</a> for converting ABC code to midi (by James Allwright, maintained by Seymour Shlien)</li>
 <li><a href="https://wim.vree.org/svgParse/xml2abc.html">xml2abc</a> for converting from MusicXML to ABC (by Willem Vree)</li>
 <li><a href="https://sites.google.com/site/juria90/nwc">nwc2xml</a> for converting from Noteworthy Composer format to ABC via XML (by James Lee)</li>
 <li><a href="https://www.wxpython.org/">wxPython</a> cross-platform user-interface framework</li>
@@ -8272,11 +8286,10 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <p><b>Links</b></p>
 <ul class="nicelist">
 <li><a href="https://abcnotation.com/">abcnotation.com</a></li>
-<li><a href="https://abcplus.sourceforge.net/">abcplus.sourceforge.net</a></li>
-<li><a href="https://moinejf.free.fr/">Jef Moine's abcm2ps page</a></li>
+<li><a href="http://abcplus.sourceforge.net/">abcplus.sourceforge.net</a></li>
+<li><a href="http://moinejf.free.fr/">Jef Moine's abcm2ps page</a></li>
 <li><a href="https://abcmidi.sourceforge.io/">Seymour Shlien's abcMIDI page</a></li>
-<li><a href="https://www.folkinfo.org/">folkinfo.org</a> (uses code from EasyABC to support MusicXML to ABC conversion)</li>
-<li><a href="https://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (my involvement here is the reason why I implemented the program)</li>
+<li><a href="http://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (my involvement here is the reason why I implemented the program)</li>
 </ul>
 </body>
 </html>
@@ -8284,7 +8297,6 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, _('About EasyABC'), size=(900, 600) )
-        os.chdir(cwd)
         about_html = wx.html.HtmlWindow(self, -1)
         about_html.SetPage(self.htmlpage)
         button = wx.Button(self, wx.ID_OK, _('&Ok'))
