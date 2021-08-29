@@ -1530,13 +1530,15 @@ class NewDrumTuneAction(NewTuneAction):
         super(NewTuneAction, self).__init__('new_drum_tune', display_name=_('New drum score'))
 
     def key_and_body(self):
-        return '''%%score (1 2)
-K:C clef=perc
-%%MIDI drummap ^a 49
+        return '''%%MIDI drummap ^a 49
 %%MIDI drummap ^g 42
 %%MIDI drummap _g 46
 %%MIDI drummap c 38
 %%MIDI drummap F 35
+V:1
+V:2
+%%score ( 1 2 )
+K:C clef=perc
 V:1
 %%MIDI channel 10
 ^a^g[c^g]^g | ^g^g[c^g]_g | ^g^g[c^g]^g | ^g/c/^g c/^a3/ ||
@@ -1636,7 +1638,7 @@ class NewNoteOrRestAction(InsertValueAction):
         values = super(NewNoteOrRestAction, self).get_values(context)
         if self.is_outside_chord(context):
             values = [values[0] + ['z']]
-            if not isinstance(context.current_element, AbcEmptyLineWithinTune):
+            if not isinstance(context.current_element, AbcEmptyLineWithinTuneBody):
                 values = [values[0] + [ValueImageDescription(os.linesep, 'enter', description='')]]
         return values
 
@@ -1669,6 +1671,7 @@ class InsertDecorationAction(InsertValueAction):
         ValueImageDescription('!trill!', 'trill', _('Ornament')),
         ValueImageDescription('!fermata!', 'fermata', _('Articulation')),
         ValueImageDescription('!segno!', 'segno', _('Direction')),
+        ValueImageDescription('P', 'pralltriller', _('Shortcut symbol'), common=False),
         ValueImageDescription('!5!', '5', _('Fingering'), common=False)
     ]
     def __init__(self, name='insert_decoration', matchgroup=None):
@@ -1793,7 +1796,7 @@ class ShowSingleVoiceAction(ValueChangeAction):
         context.replace_match_text(new_text, tune_scope=TuneScope.InnerText)
 
     def is_action_allowed(self, context):
-        if self.get_values(context):
+        if len(self.get_values(context)) > 1:
             return True
 
     def get_current_value(self, context):
@@ -2062,7 +2065,7 @@ class InsertAlignSymbolAction(InsertValueAction):
 class InsertFieldAction(InsertValueAction):
     values = [
         ValueDescription('K:', _('Key / clef')),
-        ValueDescription('M:', name_to_display_text['meter']),
+        ValueDescription('M:4/4', name_to_display_text['meter']),
         ValueDescription('Q:', name_to_display_text['tempo']),
     ]
     def __init__(self):
@@ -2079,21 +2082,64 @@ class InsertFieldAction(InsertValueAction):
                 context.insert_text(value)
 
 
-class InsertFieldActionEmptyLineAction(InsertFieldAction):
+class InsertFieldInHeaderAction(InsertValueAction):
     values = [
-        ValueDescription('K:', _('Key / clef')),
-        ValueDescription('M:', name_to_display_text['meter']),
+        ValueDescription('T:' + _('Untitled'), name_to_display_text['tune title']),
+        ValueDescription('C:', name_to_display_text['composer']),
+        ValueDescription('M:4/4', name_to_display_text['meter']),
+        ValueDescription('L:1/4', name_to_display_text['unit note length']),
         ValueDescription('Q:', name_to_display_text['tempo']),
-        ValueDescription('L:', name_to_display_text['unit note length'], common=False),
-        ValueDescription('V:', name_to_display_text['voice'], common=False),
-        ValueDescription('w:', name_to_display_text['words (note aligned)'], common=False),
-        ValueDescription('W:', name_to_display_text['words (at the end)'], common=False),
+        ValueDescription('V:', name_to_display_text['voice']),
+        ValueDescription(r'%%', name_to_display_text['instruction']),
+        ValueDescription('I:', name_to_display_text['instruction'], common=False),
+        ValueDescription('O:', name_to_display_text['origin'], common=False),
+        ValueDescription('R:', name_to_display_text['rhythm'], common=False),
+        ValueDescription('r:', name_to_display_text['remark'], common=False),
+        ValueDescription('U:', name_to_display_text['user defined'], common=False),
+        ValueDescription('Z:', name_to_display_text['transcription'], common=False),
+        ValueDescription('K:', _('Key / clef')),
     ]
     def __init__(self):
-        super(InsertFieldAction, self).__init__('insert_field_on_empty_line', InsertFieldActionEmptyLineAction.values, display_name=_('Change...'))
+        super(InsertFieldInHeaderAction, self).__init__('insert_field_in_header', InsertFieldInHeaderAction.values, display_name=_('Add...'))
+
+    def get_values(self, context):
+        tune_header = context.tune_header
+        return [vd for vd in self.supported_values if vd.value in [r'%%', 'V:'] or vd.value not in tune_header]
+
+
+    # def execute(self, context, params=None):
+    #     value = params.get('value')
+    #     # if value == 'V:':
+    #     #     params['value'] = 'V:xxx'
+    #     super(InsertFieldActionEmptyLineAction, self).execute(context, params)
+
+
+class InsertChangeFieldActionEmptyLineAction(InsertValueAction):
+    values = [
+        ValueDescription('K:', _('Key / clef')),
+        ValueDescription('M:4/4', name_to_display_text['meter']),
+        ValueDescription('Q:', name_to_display_text['tempo']),
+        ValueDescription('L:1/4', name_to_display_text['unit note length'], common=False),
+        ValueDescription('V:', name_to_display_text['voice'], common=False),
+    ]
+    def __init__(self):
+        super(InsertChangeFieldActionEmptyLineAction, self).__init__('insert_change_field_on_empty_line', InsertChangeFieldActionEmptyLineAction.values, display_name=_('Change...'))
 
     def is_action_allowed(self, context):
-        return super(InsertFieldActionEmptyLineAction, self).is_action_allowed(context) and context.tune_body != ''
+        return context.tune_body.strip() != '' and super(InsertChangeFieldActionEmptyLineAction, self).is_action_allowed(context)
+
+
+class InsertAppendFieldActionEmptyLineAction(InsertValueAction):
+    values = [
+        ValueDescription('w:', name_to_display_text['words (note aligned)']),
+        ValueDescription('W:', name_to_display_text['words (at the end)'], common=False),
+        ValueDescription('s:', name_to_display_text['symbol line'], common=False),
+    ]
+    def __init__(self):
+        super(InsertAppendFieldActionEmptyLineAction, self).__init__('insert_append_field_on_empty_line', InsertAppendFieldActionEmptyLineAction.values, display_name=_('Add...'))
+
+    def is_action_allowed(self, context):
+        return context.tune_body.strip() != '' and super(InsertAppendFieldActionEmptyLineAction, self).is_action_allowed(context)
 
 
 class ActionSeparator(AbcAction):
@@ -2176,7 +2222,9 @@ class AbcActionHandlers(object):
             MakeTripletsAction(),
             CombineUsingBeamAction(),
             InsertFieldAction(),
-            InsertFieldActionEmptyLineAction(),
+            InsertFieldInHeaderAction(),
+            InsertChangeFieldActionEmptyLineAction(),
+            InsertAppendFieldActionEmptyLineAction(),
             AbcStandardUrlAction(),
             Abcm2psUrlAction(),
             Abc2MidiUrlAction(),
@@ -2245,7 +2293,8 @@ class AbcActionHandlers(object):
             'empty_document'         : self.create_handler(new_tune_actions),
             'empty_line'             : self.create_handler(new_tune_actions),
             'empty_line_file_header' : self.create_handler(new_tune_actions),
-            'empty_line_tune'        : self.create_handler(['new_note', 'insert_field_on_empty_line']),
+            'empty_line_header'      : self.create_handler(['new_note', 'insert_field_in_header']),
+            'empty_line_tune'        : self.create_handler(['new_note', 'insert_change_field_on_empty_line', 'insert_append_field_on_empty_line']),
             'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
             'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),

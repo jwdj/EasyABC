@@ -575,21 +575,21 @@ class AbcMidiDirective(CompositeElement):
 
 
 class AbcMidiProgramDirective(AbcElement):
-    pattern = r'(?m)^%%MIDI program(?P<channel>(?:\s+\d+(?=\s+\d))?)(?:(?P<instrument>\s*\d*))?'
+    pattern = r'(?m)^(?:%%|I:)MIDI program(?P<channel>(?:\s+\d+(?=\s+\d))?)(?:(?P<instrument>\s*\d*))?'
     def __init__(self):
         super(AbcMidiProgramDirective, self).__init__('MIDI_program', display_name=_('Instrument'), description=_('Sets the instrument for a MIDI channel.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiProgramDirective.pattern
 
 class AbcMidiChordProgramDirective(AbcElement):
-    pattern = r'(?m)^%%MIDI chordprog(?:(?P<instrument>\s*\d*))?'
+    pattern = r'(?m)^(?:%%|I:)MIDI chordprog(?:(?P<instrument>\s*\d*))?'
     def __init__(self):
         super(AbcMidiChordProgramDirective, self).__init__('MIDI_chordprog', display_name=_('Chord instrument'), description=_('Sets the instrument for playing chords.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiChordProgramDirective.pattern
 
 class AbcMidiBaseProgramDirective(AbcElement):
-    pattern = r'(?m)^%%MIDI bassprog(?:(?P<instrument>\s*\d*))?'
+    pattern = r'(?m)^(?:%%|I:)MIDI bassprog(?:(?P<instrument>\s*\d*))?'
     def __init__(self):
         super(AbcMidiBaseProgramDirective, self).__init__('MIDI_bassprog', display_name=_('Bass instrument'), description=_('Sets the instrument for the base.'))
         for section in ABC_SECTIONS:
@@ -597,7 +597,7 @@ class AbcMidiBaseProgramDirective(AbcElement):
 
 
 class AbcMidiChannelDirective(AbcElement):
-    pattern = r'(?m)^%%MIDI channel(?P<channel>\s*\d*)'
+    pattern = r'(?m)^(?:%%|I:)MIDI channel(?P<channel>\s*\d*)'
     def __init__(self):
         super(AbcMidiChannelDirective, self).__init__('MIDI_channel', display_name=_('Channel'), description=_('Sets the MIDI channel for the current voice.'))
         for section in ABC_SECTIONS:
@@ -605,7 +605,7 @@ class AbcMidiChannelDirective(AbcElement):
 
 
 class AbcMidiDrumMapDirective(AbcElement):
-    pattern = r"(?m)^%%MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)"
+    pattern = r"(?m)^(?:%%|I:)MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)"
     def __init__(self):
         super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
         for section in ABC_SECTIONS:
@@ -613,7 +613,7 @@ class AbcMidiDrumMapDirective(AbcElement):
 
 
 class AbcMidiVolumeDirective(AbcElement):
-    pattern = r"(?m)^%%MIDI control 7 (?P<volume>\d*)"
+    pattern = r"(?m)^(?:%%|I:)MIDI control 7 (?P<volume>\d*)"
     def __init__(self):
         super(AbcMidiVolumeDirective, self).__init__('MIDI_volume', display_name=_('Volume'), description=_('Volume for current voice.'))
         for section in ABC_SECTIONS:
@@ -621,7 +621,7 @@ class AbcMidiVolumeDirective(AbcElement):
 
 
 class ScoreDirective(AbcElement):
-    pattern = r"(?m)^%%(?:score|staves)\b"+ AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)(?:score|staves)\b"+ AbcElement.rest_of_line_pattern
     def __init__(self):
         super(ScoreDirective, self).__init__('score', display_name=_('Score layout'), description=_('Defines which staves are displayed.'))
         for section in ABC_SECTIONS:
@@ -629,7 +629,7 @@ class ScoreDirective(AbcElement):
 
 
 class MeasureNumberDirective(AbcElement):
-    pattern = r"(?m)^%%measurenb (?P<interval>-?\d*)"+ AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)measurenb (?P<interval>-?\d*)"+ AbcElement.rest_of_line_pattern
     def __init__(self):
         super(MeasureNumberDirective, self).__init__('measurenb', display_name=_('Measure numbering'), description=_('Defines if and how measures are numbered.'))
         for section in ABC_SECTIONS:
@@ -671,7 +671,6 @@ class AbcComment(AbcElement):
         super(AbcComment, self).__init__('Comment', '%', display_name=_('Comment'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcComment.pattern
-        self._search_pattern[AbcSection.TuneBody] += '|`+'
         self.visible_match_group = 1
 
     def get_header_text(self, context):
@@ -688,6 +687,13 @@ class AbcComment(AbcElement):
 
     def remove_comments(self, abc):
         return self._search_re[AbcSection.TuneBody].sub('', abc)
+
+
+class AbcBeam(AbcElement):
+    pattern = r'`+'
+    def __init__(self):
+        super(AbcBeam, self).__init__('Beam', '`', display_name=_('Beam'), description=_('Back quotes ` may be used freely between notes to be beamed, to increase legibility.'))
+        self._search_pattern[AbcSection.TuneBody] = AbcBeam.pattern
 
 
 class AbcEmptyDocument(AbcElement):
@@ -715,9 +721,15 @@ class AbcEmptyLine(AbcElement):
             self._search_pattern[section] = AbcEmptyLine.pattern
 
 
-class AbcEmptyLineWithinTune(AbcElement):
+class AbcEmptyLineWithinTuneHeader(AbcElement):
     def __init__(self):
-        super(AbcEmptyLineWithinTune, self).__init__('empty_line_tune', display_name=_('Empty line'), description=_('Notes, rests, or directives can be added.'))
+        super(AbcEmptyLineWithinTuneHeader, self).__init__('empty_line_header', display_name=_('Empty line in header'), description=_('More directives can be added here in the tune header. After K: the music code begins.'))
+        self._search_pattern[AbcSection.TuneHeader] = AbcEmptyLine.pattern
+
+
+class AbcEmptyLineWithinTuneBody(AbcElement):
+    def __init__(self):
+        super(AbcEmptyLineWithinTuneBody, self).__init__('empty_line_tune', display_name=_('Empty line'), description=_('Notes, rests, or directives can be added.'))
         self._search_pattern[AbcSection.TuneBody] = AbcEmptyLine.pattern
 
 
@@ -1115,7 +1127,8 @@ class AbcStructure(object):
         # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result = [
             AbcEmptyDocument(),
-            AbcEmptyLineWithinTune(),
+            AbcEmptyLineWithinTuneHeader(),
+            AbcEmptyLineWithinTuneBody(),
             AbcEmptyLineWithinFileHeader(),
             AbcEmptyLine(),
             AbcVersionDirective(),
@@ -1129,6 +1142,7 @@ class AbcStructure(object):
             MeasureNumberDirective(),
             directive,
             AbcComment(),
+            AbcBeam(),
             AbcBackslash(),
         ]
 

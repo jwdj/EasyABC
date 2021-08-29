@@ -156,6 +156,10 @@ class AbcContext(object):
         return self.get_scope_info(TuneScope.PreviousCharacter).text
 
     @property
+    def tune_header(self):
+        return self.get_scope_info(TuneScope.TuneHeader).text
+
+    @property
     def tune_body(self):
         return self.get_scope_info(TuneScope.TuneBody).text
 

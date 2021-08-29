@@ -37,7 +37,9 @@ if platform.system() == 'Windows':
         fluidsynth_lib_path += '\\X86'
 
     append_to_envpath(fluidsynth_lib_path)
-    lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
+    lib = fluidsynth_lib_path + '\\libfluidsynth-3.dll'
+    if not os.path.isfile(lib):
+        lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
 else:
     lib = 'libfluidsynth.so.2'
 

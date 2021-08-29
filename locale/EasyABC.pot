@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2021-08-28 15:53+0200\n"
+"POT-Creation-Date: 2021-08-29 20:49+0200\n"
 "PO-Revision-Date: 2016-09-06 09:44+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -382,7 +382,7 @@ msgid "Output device"
 msgstr ""
 
 #: easy_abc.py:2783 easy_abc.py:2785 tune_actions.py:925 tune_actions.py:1045
-#: tune_actions.py:1961
+#: tune_actions.py:1964
 msgid "None"
 msgstr ""
 
@@ -708,6 +708,7 @@ msgid "Remaining time"
 msgstr ""
 
 #: easy_abc.py:3734 easy_abc.py:3978 easy_abc.py:5199 tune_actions.py:1485
+#: tune_actions.py:2087
 msgid "Untitled"
 msgstr ""
 
@@ -776,7 +777,7 @@ msgstr ""
 msgid "Note ornaments"
 msgstr ""
 
-#: easy_abc.py:4624 easy_abc.py:5889 tune_actions.py:1668 tune_elements.py:810
+#: easy_abc.py:4624 easy_abc.py:5889 tune_actions.py:1670 tune_elements.py:822
 msgid "Dynamics"
 msgstr ""
 
@@ -1889,15 +1890,15 @@ msgstr ""
 msgid "Whole measure"
 msgstr ""
 
-#: tune_actions.py:818 tune_actions.py:1652
+#: tune_actions.py:818 tune_actions.py:1654
 msgid "Optional sharp"
 msgstr ""
 
-#: tune_actions.py:819 tune_actions.py:1653
+#: tune_actions.py:819 tune_actions.py:1655
 msgid "Optional natural"
 msgstr ""
 
-#: tune_actions.py:820 tune_actions.py:1654
+#: tune_actions.py:820 tune_actions.py:1656
 msgid "Optional flat"
 msgstr ""
 
@@ -1973,7 +1974,7 @@ msgstr ""
 msgid "Both end and start of repetition"
 msgstr ""
 
-#: tune_actions.py:852 tune_elements.py:913
+#: tune_actions.py:852 tune_elements.py:925
 msgid "Voice overlay"
 msgstr ""
 
@@ -2282,7 +2283,7 @@ msgstr ""
 msgid "Change bass note"
 msgstr ""
 
-#: tune_actions.py:1243 tune_actions.py:1973
+#: tune_actions.py:1243 tune_actions.py:1976
 msgid "Normal"
 msgstr ""
 
@@ -2535,323 +2536,331 @@ msgstr ""
 msgid "New drum score"
 msgstr ""
 
-#: tune_actions.py:1552
+#: tune_actions.py:1554
 msgid "Add voice"
 msgstr ""
 
-#: tune_actions.py:1568
+#: tune_actions.py:1570
 msgid "Replace invalid characters"
 msgstr ""
 
-#: tune_actions.py:1590
+#: tune_actions.py:1592
 msgid "New line"
 msgstr ""
 
-#: tune_actions.py:1605
+#: tune_actions.py:1607
 msgid "Space"
 msgstr ""
 
-#: tune_actions.py:1621
+#: tune_actions.py:1623
 msgid "New note/rest"
 msgstr ""
 
-#: tune_actions.py:1650 tune_elements.py:927 tune_elements.py:993
+#: tune_actions.py:1652 tune_elements.py:939 tune_elements.py:1005
 msgid "Chord symbol"
 msgstr ""
 
-#: tune_actions.py:1651
+#: tune_actions.py:1653
 msgid "Between parenthesis"
 msgstr ""
 
-#: tune_actions.py:1657
+#: tune_actions.py:1659
 msgid "Insert annotation or chord"
 msgstr ""
 
-#: tune_actions.py:1669 tune_elements.py:834
+#: tune_actions.py:1671 tune_elements.py:846
 msgid "Ornament"
 msgstr ""
 
-#: tune_actions.py:1670 tune_elements.py:875
+#: tune_actions.py:1672 tune_elements.py:887
 msgid "Articulation"
 msgstr ""
 
-#: tune_actions.py:1671 tune_elements.py:852
+#: tune_actions.py:1673 tune_elements.py:864
 msgid "Direction"
 msgstr ""
 
-#: tune_actions.py:1672 tune_elements.py:816
+#: tune_actions.py:1674
+msgid "Shortcut symbol"
+msgstr ""
+
+#: tune_actions.py:1675 tune_elements.py:828
 msgid "Fingering"
 msgstr ""
 
-#: tune_actions.py:1675
+#: tune_actions.py:1678
 msgid "Insert decoration"
 msgstr ""
 
-#: tune_actions.py:1686
+#: tune_actions.py:1689
 msgid "Add slur"
 msgstr ""
 
-#: tune_actions.py:1697
+#: tune_actions.py:1700
 msgid "Add bar"
 msgstr ""
 
-#: tune_actions.py:1739
+#: tune_actions.py:1742
 msgid "Combine using beam"
 msgstr ""
 
-#: tune_actions.py:1751
+#: tune_actions.py:1754
 msgid "Combine to chord"
 msgstr ""
 
-#: tune_actions.py:1763
+#: tune_actions.py:1766
 msgid "Make triplets"
 msgstr ""
 
-#: tune_actions.py:1775
+#: tune_actions.py:1778
 msgid "Show single voice"
 msgstr ""
 
-#: tune_actions.py:1809
+#: tune_actions.py:1812
 msgid "Show all voices"
 msgstr ""
 
-#: tune_actions.py:1828
+#: tune_actions.py:1831
 msgid "Show additional voice"
 msgstr ""
 
-#: tune_actions.py:1860
+#: tune_actions.py:1863
 msgid "Hide voice"
 msgstr ""
 
-#: tune_actions.py:1898
+#: tune_actions.py:1901
 msgid "Group together on same stave"
 msgstr ""
 
-#: tune_actions.py:1911
+#: tune_actions.py:1914
 msgid "Brace together"
 msgstr ""
 
-#: tune_actions.py:1924
+#: tune_actions.py:1927
 msgid "Bracket together"
 msgstr ""
 
-#: tune_actions.py:1929
+#: tune_actions.py:1932
 msgid "Toggle continued bar lines"
 msgstr ""
 
-#: tune_actions.py:1946 tune_actions.py:1950 tune_actions.py:1951
+#: tune_actions.py:1949 tune_actions.py:1953 tune_actions.py:1954
 msgid "Page width"
 msgstr ""
 
-#: tune_actions.py:1947
+#: tune_actions.py:1950
 msgid "Page height"
 msgstr ""
 
-#: tune_actions.py:1948
+#: tune_actions.py:1951
 msgid "Top margin"
 msgstr ""
 
-#: tune_actions.py:1949
+#: tune_actions.py:1952
 msgid "Bottom margin"
 msgstr ""
 
-#: tune_actions.py:1952
+#: tune_actions.py:1955
 msgid "Staff width"
 msgstr ""
 
-#: tune_actions.py:1953
+#: tune_actions.py:1956
 msgid "Page orientation"
 msgstr ""
 
-#: tune_actions.py:1956
+#: tune_actions.py:1959
 msgid "Change page format"
 msgstr ""
 
-#: tune_actions.py:1962
+#: tune_actions.py:1965
 msgid "Start of every line"
 msgstr ""
 
-#: tune_actions.py:1963
+#: tune_actions.py:1966
 msgid "Every measure"
 msgstr ""
 
-#: tune_actions.py:1964
+#: tune_actions.py:1967
 msgid "Every 4 measures"
 msgstr ""
 
-#: tune_actions.py:1965
+#: tune_actions.py:1968
 msgid "Every 5 measures"
 msgstr ""
 
-#: tune_actions.py:1968
+#: tune_actions.py:1971
 msgid "Show measure numbers"
 msgstr ""
 
-#: tune_actions.py:1974
+#: tune_actions.py:1977
 msgid "Boxed"
 msgstr ""
 
-#: tune_actions.py:1977
+#: tune_actions.py:1980
 msgid "Show measure box"
 msgstr ""
 
-#: tune_actions.py:1982
+#: tune_actions.py:1985
 msgid "Zero"
 msgstr ""
 
-#: tune_actions.py:1983
+#: tune_actions.py:1986
 msgid "One"
 msgstr ""
 
-#: tune_actions.py:1986
+#: tune_actions.py:1989
 msgid "First measure number"
 msgstr ""
 
-#: tune_actions.py:1991
+#: tune_actions.py:1994
 msgid "Title font"
 msgstr ""
 
-#: tune_actions.py:1992
+#: tune_actions.py:1995
 msgid "Subtitle font"
 msgstr ""
 
-#: tune_actions.py:1993
+#: tune_actions.py:1996
 msgid "Composer font"
 msgstr ""
 
-#: tune_actions.py:1994
+#: tune_actions.py:1997
 msgid "Parts font"
 msgstr ""
 
-#: tune_actions.py:1995
+#: tune_actions.py:1998
 msgid "Tempo font"
 msgstr ""
 
-#: tune_actions.py:1996
+#: tune_actions.py:1999
 msgid "Guitar chord font"
 msgstr ""
 
-#: tune_actions.py:1997
+#: tune_actions.py:2000
 msgid "Annotation font"
 msgstr ""
 
-#: tune_actions.py:1998
+#: tune_actions.py:2001
 msgid "Info font"
 msgstr ""
 
-#: tune_actions.py:1999
+#: tune_actions.py:2002
 msgid "Text font"
 msgstr ""
 
-#: tune_actions.py:2000
+#: tune_actions.py:2003
 msgid "Vocal font"
 msgstr ""
 
-#: tune_actions.py:2001
+#: tune_actions.py:2004
 msgid "Words font"
 msgstr ""
 
-#: tune_actions.py:2002
+#: tune_actions.py:2005
 msgid "Custom font 1"
 msgstr ""
 
-#: tune_actions.py:2003
+#: tune_actions.py:2006
 msgid "Custom font 2"
 msgstr ""
 
-#: tune_actions.py:2004
+#: tune_actions.py:2007
 msgid "Custom font 3"
 msgstr ""
 
-#: tune_actions.py:2005
+#: tune_actions.py:2008
 msgid "Custom font 4"
 msgstr ""
 
-#: tune_actions.py:2008
+#: tune_actions.py:2011
 msgid "Change font directive"
 msgstr ""
 
-#: tune_actions.py:2013 tune_actions.py:2023
+#: tune_actions.py:2016 tune_actions.py:2026
 msgid "Page scale factor"
 msgstr ""
 
-#: tune_actions.py:2014
+#: tune_actions.py:2017
 msgid "Staff scale factor"
 msgstr ""
 
-#: tune_actions.py:2017
+#: tune_actions.py:2020
 msgid "Change scale directive"
 msgstr ""
 
-#: tune_actions.py:2022 tune_elements.py:626
+#: tune_actions.py:2025 tune_elements.py:626
 msgid "Score layout"
 msgstr ""
 
-#: tune_actions.py:2024 tune_elements.py:634
+#: tune_actions.py:2027 tune_elements.py:634
 msgid "Measure numbering"
 msgstr ""
 
-#: tune_actions.py:2025
+#: tune_actions.py:2028
 msgid "Playback"
 msgstr ""
 
-#: tune_actions.py:2028
+#: tune_actions.py:2031
 msgid "Insert directive"
 msgstr ""
 
-#: tune_actions.py:2033
+#: tune_actions.py:2036
 msgid "Set instrument"
 msgstr ""
 
-#: tune_actions.py:2034
+#: tune_actions.py:2037
 msgid "Set volume"
 msgstr ""
 
-#: tune_actions.py:2037
+#: tune_actions.py:2040
 msgid "Insert playback directive"
 msgstr ""
 
-#: tune_actions.py:2042
+#: tune_actions.py:2045
 msgid "break between syllables within a word"
 msgstr ""
 
-#: tune_actions.py:2043
+#: tune_actions.py:2046
 msgid "previous syllable is to be held for an extra note"
 msgstr ""
 
-#: tune_actions.py:2044
+#: tune_actions.py:2047
 msgid "one note is skipped (* is equivalent to a blank syllable)"
 msgstr ""
 
-#: tune_actions.py:2045
+#: tune_actions.py:2048
 msgid "appears as a space; aligns multiple words under one note"
 msgstr ""
 
-#: tune_actions.py:2046
+#: tune_actions.py:2049
 msgid "appears as hyphen; aligns multiple syllables under one note"
 msgstr ""
 
-#: tune_actions.py:2047 tune_actions.py:2056
+#: tune_actions.py:2050 tune_actions.py:2059
 msgid "advances to the next bar"
 msgstr ""
 
-#: tune_actions.py:2050 tune_actions.py:2059
+#: tune_actions.py:2053 tune_actions.py:2062
 msgid "Insert align symbol"
 msgstr ""
 
-#: tune_actions.py:2055
+#: tune_actions.py:2058
 msgid "one note is skipped"
 msgstr ""
 
-#: tune_actions.py:2064 tune_actions.py:2084
+#: tune_actions.py:2067 tune_actions.py:2100 tune_actions.py:2119
 msgid "Key / clef"
 msgstr ""
 
-#: tune_actions.py:2069 tune_actions.py:2093
+#: tune_actions.py:2072 tune_actions.py:2126
 msgid "Change..."
 msgstr ""
 
-#: tune_actions.py:2114
+#: tune_actions.py:2103 tune_actions.py:2139
+msgid "Add..."
+msgstr ""
+
+#: tune_actions.py:2160
 msgid "Remove"
 msgstr ""
 
@@ -3239,11 +3248,11 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: tune_elements.py:556 tune_elements.py:679
+#: tune_elements.py:556 tune_elements.py:678
 msgid "Stylesheet directive"
 msgstr ""
 
-#: tune_elements.py:556 tune_elements.py:685
+#: tune_elements.py:556 tune_elements.py:684
 #, python-format
 msgid ""
 "A stylesheet directive is a line that starts with %%, followed by a "
@@ -3327,112 +3336,132 @@ msgstr ""
 msgid "Comment"
 msgstr ""
 
-#: tune_elements.py:696
+#: tune_elements.py:695
+msgid "Beam"
+msgstr ""
+
+#: tune_elements.py:695
+msgid ""
+"Back quotes ` may be used freely between notes to be beamed, to increase "
+"legibility."
+msgstr ""
+
+#: tune_elements.py:702
 msgid "Welcome to EasyABC"
 msgstr ""
 
-#: tune_elements.py:697
+#: tune_elements.py:703
 msgid ""
 "Creating an abc-file from scratch can be difficult. This assist panel tries "
 "to help by providing hints and actions. But remember, typing is usually "
 "faster."
 msgstr ""
 
-#: tune_elements.py:713 tune_elements.py:720
+#: tune_elements.py:719 tune_elements.py:732
 msgid "Empty line"
 msgstr ""
 
-#: tune_elements.py:713
+#: tune_elements.py:719
 msgid "An empty line separates tunes."
 msgstr ""
 
-#: tune_elements.py:720
+#: tune_elements.py:726
+msgid "Empty line in header"
+msgstr ""
+
+#: tune_elements.py:726
+msgid ""
+"More directives can be added here in the tune header. After K: the music "
+"code begins."
+msgstr ""
+
+#: tune_elements.py:732
 msgid "Notes, rests, or directives can be added."
 msgstr ""
 
-#: tune_elements.py:726
+#: tune_elements.py:738
 msgid "File header"
 msgstr ""
 
-#: tune_elements.py:726
+#: tune_elements.py:738
 msgid ""
 "Everything above the first X: is the file header. The directives here apply "
 "to all the tunes that follow."
 msgstr ""
 
-#: tune_elements.py:740
+#: tune_elements.py:752
 msgid "Whitespace"
 msgstr ""
 
-#: tune_elements.py:740
+#: tune_elements.py:752
 msgid ""
 "Space is used to improve legibility and to prevent notes from sharing the "
 "same beam."
 msgstr ""
 
-#: tune_elements.py:746 tune_elements.py:994
+#: tune_elements.py:758 tune_elements.py:1006
 msgid "Annotation"
 msgstr ""
 
-#: tune_elements.py:753
+#: tune_elements.py:765
 msgid "Chord symbol or annotation"
 msgstr ""
 
-#: tune_elements.py:759
+#: tune_elements.py:771
 msgid "Slur"
 msgstr ""
 
-#: tune_elements.py:765
+#: tune_elements.py:777
 msgid "Typesetting extra space"
 msgstr ""
 
-#: tune_elements.py:765
+#: tune_elements.py:777
 msgid ""
 "y can be used to add extra space between the surrounding notes; moreover, "
 "chord symbols and decorations can be attached to it, to separate them from "
 "notes."
 msgstr ""
 
-#: tune_elements.py:771
+#: tune_elements.py:783
 msgid "Redefinable symbol"
 msgstr ""
 
-#: tune_elements.py:771
+#: tune_elements.py:783
 msgid ""
 "The letters H-W and h-w and the symbol ~ can be assigned with the U: field "
 "to provide a shortcut for the !symbol! syntax. For example, to assign the "
 "letter T to represent the trill, you can write: U: T = !trill!"
 msgstr ""
 
-#: tune_elements.py:796
+#: tune_elements.py:808
 msgid "Unknown symbol"
 msgstr ""
 
-#: tune_elements.py:895
+#: tune_elements.py:907
 msgid "Tuplet"
 msgstr ""
 
-#: tune_elements.py:895
+#: tune_elements.py:907
 msgid "Duplets, triplets, quadruplets, etc."
 msgstr ""
 
-#: tune_elements.py:901
+#: tune_elements.py:913
 msgid "Bar"
 msgstr ""
 
-#: tune_elements.py:901
+#: tune_elements.py:913
 msgid "Separates measures."
 msgstr ""
 
-#: tune_elements.py:907
+#: tune_elements.py:919
 msgid "Variant ending"
 msgstr ""
 
-#: tune_elements.py:907
+#: tune_elements.py:919
 msgid "To play a different ending each time"
 msgstr ""
 
-#: tune_elements.py:913
+#: tune_elements.py:925
 msgid ""
 "The & operator may be used to temporarily overlay several voices within one "
 "measure. Each & operator sets the time point of the music back by one bar "
@@ -3441,55 +3470,55 @@ msgid ""
 "music for each &. "
 msgstr ""
 
-#: tune_elements.py:919
+#: tune_elements.py:931
 msgid "Invalid character"
 msgstr ""
 
-#: tune_elements.py:919
+#: tune_elements.py:931
 msgid "This character is not allowed within the body of an abc tune."
 msgstr ""
 
-#: tune_elements.py:953 tune_elements.py:992
+#: tune_elements.py:965 tune_elements.py:1004
 msgid "Grace notes"
 msgstr ""
 
-#: tune_elements.py:969
+#: tune_elements.py:981
 msgid "Note group"
 msgstr ""
 
-#: tune_elements.py:977
+#: tune_elements.py:989
 msgid "Note or chord"
 msgstr ""
 
-#: tune_elements.py:983
+#: tune_elements.py:995
 msgid "Chord"
 msgstr ""
 
-#: tune_elements.py:990
+#: tune_elements.py:1002
 msgid "Note"
 msgstr ""
 
-#: tune_elements.py:1002
+#: tune_elements.py:1014
 msgid "Rest"
 msgstr ""
 
-#: tune_elements.py:1009
+#: tune_elements.py:1021
 msgid "Measure rest"
 msgstr ""
 
-#: tune_elements.py:1016
+#: tune_elements.py:1028
 msgid "Multiple notes/chords"
 msgstr ""
 
-#: tune_elements.py:1023
+#: tune_elements.py:1035
 msgid "Multiple notes"
 msgstr ""
 
-#: tune_elements.py:1030
+#: tune_elements.py:1042
 msgid "Backslash"
 msgstr ""
 
-#: tune_elements.py:1030
+#: tune_elements.py:1042
 msgid ""
 "In abc music code, by default, line-breaks in the code generate line-breaks "
 "in the typeset score and these can be suppressed by using a backslash."
