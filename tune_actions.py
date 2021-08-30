@@ -2013,7 +2013,7 @@ class FontDirectiveChangeAction(ValueChangeAction):
 
 class ScaleDirectiveChangeAction(ValueChangeAction):
     values = [
-        ValueDescription('scale', _('Page scale factor')),
+        ValueDescription('pagescale', _('Page scale factor')),
         ValueDescription('staffscale', _('Staff scale factor'))
     ]
     def __init__(self):
@@ -2023,12 +2023,15 @@ class ScaleDirectiveChangeAction(ValueChangeAction):
 class InsertDirectiveAction(InsertValueAction):
     values = [
         ValueDescription('score', _('Score layout')),
-        ValueDescription('scale 0.7', _('Page scale factor')),
+        ValueDescription('pagescale 1.0', _('Page scale factor')),
         ValueDescription('measurenb 0', _('Measure numbering')),
         ValueDescription('MIDI', _('Playback')),
     ]
     def __init__(self):
         super(InsertDirectiveAction, self).__init__('insert_directive', InsertDirectiveAction.values, display_name=_('Insert directive'))
+
+    def is_action_allowed(self, context):
+        return context.inner_text == ''
 
 
 class InsertMidiDirectiveAction(InsertValueAction):
