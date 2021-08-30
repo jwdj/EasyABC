@@ -113,7 +113,7 @@ def enum(*sequential, **named):
     else:
         return type(b'Enum', (), enums)
 
-TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'TuneUpToSelection', 'BodyUpToSelection', 'BodyAfterSelection', 'LineUpToSelection', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText', 'PreviousCharacter', 'NextCharacter')
+TuneScope = enum('FullText', 'SelectedText', 'SelectedLines', 'TuneHeader', 'TuneBody', 'Tune', 'TuneUpToSelection', 'BodyUpToSelection', 'BodyAfterSelection', 'LineUpToSelection', 'FileHeader', 'PreviousLine', 'MatchText', 'InnerText', 'PreviousCharacter', 'NextCharacter')
 TuneScopeInfo = namedtuple('TuneScopeInfo', 'text start stop encoded_text')
 InnerMatch = namedtuple('InnerMatch', 'match offset')
 
@@ -221,10 +221,16 @@ decoration_to_description = {
     '!D.C.!'           : _('the letters D.C. (=either Da Coda or Da Capo)'),
     '!dacoda!'         : _('the word "Da" followed by a Coda sign'),
     '!dacapo!'         : _('the words "Da Capo"'),
+    '!D.C.alcoda!'     : _('the words "D.C. al Coda"'),
+    '!D.C.alfine!'     : _('the words "D.C. al Fine"'),
+    '!D.S.alcoda!'     : _('the words "D.S. al Coda"'),
+    '!D.S.alfine!'     : _('the words "D.S. al Fine"'),
     '!fine!'           : _('the word "fine"'),
     '!shortphrase!'    : _('vertical line on the upper part of the staff'),
     '!mediumphrase!'   : _('vertical line on the upper part of the staff, extending down to the centre line'),
-    '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down')
+    '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down'),
+    '!ped!'            : _('sustain pedal down'),
+    '!ped-up!'         : _('sustain pedal up'),
 }
 
 ABC_TUNE_HEADER_NO = 0
@@ -321,6 +327,8 @@ class AbcElement(object):
     """
     Base class for each element in abc-code where element is a piece of structured abc-code
     """
+    rest_of_line_pattern = r'(?P<inner>.*?)(?:(?<!\\)%.*)?$'
+
     def __init__(self, name, keyword=None, display_name=None, description=None, validation_pattern=None):
         self.name = name
         self.keyword = keyword
@@ -331,7 +339,7 @@ class AbcElement(object):
         self.description = description
         self.mandatory = False
         self.default = None
-        self.rest_of_line_pattern = r'(?P<inner>.*?)(?:(?<!\\)%.*)?$'
+        self.rest_of_line_pattern = AbcElement.rest_of_line_pattern
         self._search_pattern = {}
         self._search_re = {} # compiled regex
         self.params = []
@@ -440,6 +448,9 @@ class AbcElement(object):
             #        result += '<code>%s</code><br>' % escape(matchtext)
         return result
 
+    def get_inner_element(self, context):
+        return self
+
 
 class CompositeElement(AbcElement):
     def __init__(self, name, keyword=None, display_name=None, description=None):
@@ -459,8 +470,17 @@ class CompositeElement(AbcElement):
         inner_text = context.current_match.group(1)
         if inner_text is None:
             inner_text = context.current_match.group(2)
-        keyword = inner_text.split(' ', 1)[0]
-        return self._elements.get(keyword)
+        return self.get_element_from_inner_text(inner_text)
+
+    def get_element_from_inner_text(self, inner_text):
+        parts = inner_text.split(' ', 1)
+        keyword = parts[0]
+        result = self._elements.get(keyword)
+        if isinstance(result, CompositeElement) and len(parts) > 1:
+            subelement = result.get_element_from_inner_text(parts[1])
+            if subelement is not None:
+                result = subelement
+        return result
 
     def get_header_text(self, context):
         element = self.get_element_from_context(context)
@@ -473,6 +493,9 @@ class CompositeElement(AbcElement):
         if element:
             return element.get_description_text(context)
         return super(CompositeElement, self).get_description_text(context)
+
+    def get_inner_element(self, context):
+        return self.get_element_from_context(context) or self
 
 
 class AbcUnknown(AbcElement):
@@ -549,18 +572,68 @@ class AbcInstructionField(AbcInformationField):
 class AbcMidiDirective(CompositeElement):
     def __init__(self):
         super(AbcMidiDirective, self).__init__('MIDI directive', 'MIDI', display_name=_('MIDI directive'), description=_('A directive that gives instructions to player programs.'))
-        # pattern = re.escape('<a name="%s"></a>' % name) + '(.*?)' + re.escape('<a name=')
-        # self.html_re = re.compile(pattern, re.MULTILINE or re.IGNORECASE)
 
-    # def get_description_url(self):
-    #     return 'http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_body.html#%s' % urllib.quote(self.name)
 
-    # def get_description_html(self, context):
-    #     html = super(AbcMidiDirective, self).get_description_html(context)
-    #     m = self.html_re.search(html)
-    #     if m:
-    #         html = m.groups(1)
-    #     return html
+class AbcMidiProgramDirective(AbcElement):
+    pattern = r'(?m)^(?:%%|I:)MIDI program(?P<channel>(?:\s+\d+(?=\s+\d))?)(?:(?P<instrument>\s*\d*))?'
+    def __init__(self):
+        super(AbcMidiProgramDirective, self).__init__('MIDI_program', display_name=_('Instrument'), description=_('Sets the instrument for a MIDI channel.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiProgramDirective.pattern
+
+class AbcMidiChordProgramDirective(AbcElement):
+    pattern = r'(?m)^(?:%%|I:)MIDI chordprog(?:(?P<instrument>\s*\d*))?'
+    def __init__(self):
+        super(AbcMidiChordProgramDirective, self).__init__('MIDI_chordprog', display_name=_('Chord instrument'), description=_('Sets the instrument for playing chords.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiChordProgramDirective.pattern
+
+class AbcMidiBaseProgramDirective(AbcElement):
+    pattern = r'(?m)^(?:%%|I:)MIDI bassprog(?:(?P<instrument>\s*\d*))?'
+    def __init__(self):
+        super(AbcMidiBaseProgramDirective, self).__init__('MIDI_bassprog', display_name=_('Bass instrument'), description=_('Sets the instrument for the base.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiBaseProgramDirective.pattern
+
+
+class AbcMidiChannelDirective(AbcElement):
+    pattern = r'(?m)^(?:%%|I:)MIDI channel(?P<channel>\s*\d*)'
+    def __init__(self):
+        super(AbcMidiChannelDirective, self).__init__('MIDI_channel', display_name=_('Channel'), description=_('Sets the MIDI channel for the current voice.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiChannelDirective.pattern
+
+
+class AbcMidiDrumMapDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)"
+    def __init__(self):
+        super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiDrumMapDirective.pattern
+
+
+class AbcMidiVolumeDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)MIDI control 7 (?P<volume>\d*)"
+    def __init__(self):
+        super(AbcMidiVolumeDirective, self).__init__('MIDI_volume', display_name=_('Volume'), description=_('Volume for current voice.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiVolumeDirective.pattern
+
+
+class ScoreDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)(?:score|staves)\b"+ AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(ScoreDirective, self).__init__('score', display_name=_('Score layout'), description=_('Defines which staves are displayed.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = ScoreDirective.pattern
+
+
+class MeasureNumberDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)measurenb (?P<interval>-?\d*)"+ AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(MeasureNumberDirective, self).__init__('measurenb', display_name=_('Measure numbering'), description=_('Defines if and how measures are numbered.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = MeasureNumberDirective.pattern
 
 
 class Abcm2psDirective(AbcElement):
@@ -598,7 +671,6 @@ class AbcComment(AbcElement):
         super(AbcComment, self).__init__('Comment', '%', display_name=_('Comment'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcComment.pattern
-        self._search_pattern[AbcSection.TuneBody] += '|`+'
         self.visible_match_group = 1
 
     def get_header_text(self, context):
@@ -615,6 +687,13 @@ class AbcComment(AbcElement):
 
     def remove_comments(self, abc):
         return self._search_re[AbcSection.TuneBody].sub('', abc)
+
+
+class AbcBeam(AbcElement):
+    pattern = r'`+'
+    def __init__(self):
+        super(AbcBeam, self).__init__('Beam', '`', display_name=_('Beam'), description=_('Back quotes ` may be used freely between notes to be beamed, to increase legibility.'))
+        self._search_pattern[AbcSection.TuneBody] = AbcBeam.pattern
 
 
 class AbcEmptyDocument(AbcElement):
@@ -642,9 +721,15 @@ class AbcEmptyLine(AbcElement):
             self._search_pattern[section] = AbcEmptyLine.pattern
 
 
-class AbcEmptyLineWithinTune(AbcElement):
+class AbcEmptyLineWithinTuneHeader(AbcElement):
     def __init__(self):
-        super(AbcEmptyLineWithinTune, self).__init__('empty_line_tune', display_name=_('Empty line'), description=_('Notes, rests, or directives can be added.'))
+        super(AbcEmptyLineWithinTuneHeader, self).__init__('empty_line_header', display_name=_('Empty line in header'), description=_('More directives can be added here in the tune header. After K: the music code begins.'))
+        self._search_pattern[AbcSection.TuneHeader] = AbcEmptyLine.pattern
+
+
+class AbcEmptyLineWithinTuneBody(AbcElement):
+    def __init__(self):
+        super(AbcEmptyLineWithinTuneBody, self).__init__('empty_line_tune', display_name=_('Empty line'), description=_('Notes, rests, or directives can be added.'))
         self._search_pattern[AbcSection.TuneBody] = AbcEmptyLine.pattern
 
 
@@ -769,6 +854,10 @@ class AbcDirectionDecoration(AbcDecoration):
         '!D.C.!',
         '!dacoda!',
         '!dacapo!',
+        '!D.C.alcoda!',
+        '!D.C.alfine!',
+        '!D.S.alcoda!',
+        '!D.S.alfine!',
         '!fine!'
     ]
     def __init__(self):
@@ -791,6 +880,8 @@ class AbcArticulationDecoration(AbcDecoration):
         '!open!',
         '!thumb!',
         '!breath!',
+        '!ped!',
+        '!ped-up!',
     ]
     def __init__(self):
         super(AbcArticulationDecoration, self).__init__('Articulation', AbcArticulationDecoration.values, display_name=_('Articulation'))
@@ -1036,12 +1127,22 @@ class AbcStructure(object):
         # [JWDJ] the order of elements in result is very important, because they get evaluated first to last
         result = [
             AbcEmptyDocument(),
-            AbcEmptyLineWithinTune(),
+            AbcEmptyLineWithinTuneHeader(),
+            AbcEmptyLineWithinTuneBody(),
             AbcEmptyLineWithinFileHeader(),
             AbcEmptyLine(),
             AbcVersionDirective(),
+            AbcMidiProgramDirective(),
+            AbcMidiChordProgramDirective(),
+            AbcMidiBaseProgramDirective(),
+            AbcMidiChannelDirective(),
+            AbcMidiDrumMapDirective(),
+            AbcMidiVolumeDirective(),
+            ScoreDirective(),
+            MeasureNumberDirective(),
             directive,
             AbcComment(),
+            AbcBeam(),
             AbcBackslash(),
         ]
 

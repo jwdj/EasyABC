@@ -20,7 +20,6 @@ class WxMediaPlayer(MidiPlayer):
             self.mc = wx.media.MediaCtrl(parent_window)
         self.mc.Hide()
         self.is_really_playing = False
-        self.loop_midi_playback = False
 
         parent_window.Bind(wx.media.EVT_MEDIA_LOADED, self.OnMediaLoaded)
         # Bind other event to be sure to act on the first one that occurs (evenif they should be almost at the same time)

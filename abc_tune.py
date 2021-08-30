@@ -4,7 +4,7 @@ from abc_character_encoding import abc_text_to_unicode
 from collections import defaultdict
 import re
 import sys
-PY3 = sys.version_info.major > 2
+PY3 = sys.version_info.major >= 3
 if PY3:
     unicode = str
 
@@ -44,10 +44,7 @@ class AbcTune(object):
         self.__abc_per_voice = None
 
     def determine_abc_structure(self, abc_code):
-        abc_lines = abc_code.splitlines()
-        while len(abc_lines) > 0 and abc_lines[-1].strip() == '':
-            abc_lines = abc_lines[:-1]  # remove empty lines at bottom
-
+        abc_lines = abc_code.strip().splitlines()
         abc_lines_enum = enumerate(abc_lines)
 
         x_found = False
@@ -83,22 +80,25 @@ class AbcTune(object):
         self.abc_lines = abc_lines
         self.note_line_indices = note_line_indices
 
+    def get_voice_ids(self):
+        return [m.group('name') or m.group('inlinename') for m in voice_re.finditer(self.tune_header)]
+
     def get_abc_per_voice(self):
         if self.__abc_per_voice is None:
             if self.tune_body_start_line_index:
-                abc_body = '\n'.join(self.abc_lines[self.tune_body_start_line_index:])
+                abc_body = self.tune_body
                 voices = defaultdict(unicode)
-                last_voice_name = ''
+                last_voice_id = ''
                 start_index = 0
                 for m in voice_re.finditer(abc_body):
-                    name = m.group('name') or m.group('inlinename')
+                    voice_id = m.group('name') or m.group('inlinename')
                     abc = abc_body[start_index:m.start()]
-                    voices[last_voice_name] += abc
+                    voices[last_voice_id] += abc
                     start_index = m.end()
-                    last_voice_name = name
+                    last_voice_id = voice_id
 
                 abc = abc_body[start_index:]
-                voices[last_voice_name] += abc
+                voices[last_voice_id] += abc
                 self.__abc_per_voice = voices
             else:
                 self.__abc_per_voice = {}
@@ -110,6 +110,17 @@ class AbcTune(object):
         if self.__tune_id is None:
             self.__tune_id = uuid.uuid4()
         return self.__tune_id
+
+    @property
+    def tune_body(self):
+        return '\n'.join(self.abc_lines[self.tune_body_start_line_index:])
+
+    @property
+    def tune_header(self):
+        end_line = None
+        if self.tune_body_start_line_index is not None:
+            end_line = self.tune_body_start_line_index
+        return '\n'.join(self.abc_lines[self.tune_header_start_line_index:end_line])
 
     def get_metre_and_default_length(self):
         lines = self.abc_lines

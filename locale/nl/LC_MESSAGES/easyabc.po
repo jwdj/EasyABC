@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-08-20 12:39+0200\n"
-"PO-Revision-Date: 2016-08-20 19:40+0200\n"
+"POT-Creation-Date: 2021-08-29 20:50+0200\n"
+"PO-Revision-Date: 2021-08-29 20:50+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -16,16 +16,16 @@ msgstr ""
 "X-Poedit-SearchPath-1: tune_actions.py\n"
 "X-Poedit-SearchPath-2: tune_elements.py\n"
 
-#: easy_abc.py:1184 easy_abc.py:1216 easy_abc.py:1755 easy_abc.py:1839
+#: easy_abc.py:894 easy_abc.py:925 easy_abc.py:1463 easy_abc.py:1543
 #, python-format
 msgid "%(program)s exited abnormally (errorcode %(error)#8x)"
 msgstr "%(program)s is niet normaal geëindigd (foutcode %(error)#8x)"
 
-#: easy_abc.py:1236
+#: easy_abc.py:945
 msgid "Disassembled Midi File"
 msgstr "Midi-structuur"
 
-#: easy_abc.py:1242
+#: easy_abc.py:951
 msgid ""
 "Cannot find the executable midi2abc. Be sure it is in your bin folder and "
 "its path is defined in ABC Setup/File Settings."
@@ -33,160 +33,172 @@ msgstr ""
 "Midi2abc kon niet gevonden worden. In te stellen via Instellingen -> ABC "
 "instellingen -> Bestandspaden."
 
-#: easy_abc.py:1242 easy_abc.py:4524 easy_abc.py:6113 easy_abc.py:7916
+#: easy_abc.py:951 easy_abc.py:4374 easy_abc.py:5991 easy_abc.py:7832
 msgid "Error"
 msgstr "Fout"
 
-#: easy_abc.py:1468 easy_abc.py:7938
+#: easy_abc.py:1177 easy_abc.py:7854
 #, python-brace-format
 msgid "{0} reported some errors"
 msgstr "{0} rapporteerde enige fouten"
 
-#: easy_abc.py:1470 easy_abc.py:7940
+#: easy_abc.py:1179 easy_abc.py:7856
 #, python-brace-format
 msgid "{0} reported some warnings"
 msgstr "{0} rapporteerde enige waarschuwingen"
 
-#: easy_abc.py:1843
+#: easy_abc.py:1547
 #, python-format
 msgid "Error during conversion of %(filename)s: %(error)s"
 msgstr "Fout opgetreden bij de conversie van %(filename)s: %(error)s"
 
-#: easy_abc.py:1864
+#: easy_abc.py:1568
 msgid "EasyABC music"
 msgstr "EasyABC muziek"
 
-#: easy_abc.py:2252
+#: easy_abc.py:1989
 msgid "Field"
 msgstr "Veld"
 
-#: easy_abc.py:2253
+#: easy_abc.py:1990
 msgid "Description"
 msgstr "Omschrijving"
 
-#: easy_abc.py:2278
+#: easy_abc.py:2015
 msgid "Generate incipits file..."
 msgstr "Maak beginregelbestand"
 
-#: easy_abc.py:2282
+#: easy_abc.py:2019
 msgid "Number of bars to extract:"
 msgstr "Aantal maten:"
 
-#: easy_abc.py:2283
+#: easy_abc.py:2020
 msgid "Maximum number of repeats to extract:"
 msgstr "Maximaal aantal herhalingen:"
 
-#: easy_abc.py:2284
+#: easy_abc.py:2021
 msgid "Maximum number of titles/subtitles to extract:"
 msgstr "Maximaal aantal titels/subtitels:"
 
-#: easy_abc.py:2285
+#: easy_abc.py:2022
 msgid "Fields to sort by (eg. T):"
 msgstr "Sorteren op velden (bijv. T):"
 
-#: easy_abc.py:2286
+#: easy_abc.py:2023
 msgid "Number of rows per column:"
 msgstr "Aantal rijen per kolom:"
 
-#: easy_abc.py:2291
+#: easy_abc.py:2028
 msgid "&Two column output"
 msgstr "&Twee kolommen"
 
-#: easy_abc.py:2310 easy_abc.py:3047 easy_abc.py:3589 easy_abc.py:3648
-#: easy_abc.py:8378
+#: easy_abc.py:2047 easy_abc.py:2821 easy_abc.py:3408 easy_abc.py:3473
+#: easy_abc.py:8302
 msgid "&Ok"
 msgstr "&Doorgaan"
 
-#: easy_abc.py:2311 easy_abc.py:3048 easy_abc.py:3590 easy_abc.py:3649
+#: easy_abc.py:2048 easy_abc.py:2822 easy_abc.py:3409 easy_abc.py:3474
 msgid "&Cancel"
 msgstr "&Annuleren"
 
-#: easy_abc.py:2362
+#: easy_abc.py:2104
 msgid "Abc settings"
 msgstr "Abc instellingen"
 
-#: easy_abc.py:2373
+#: easy_abc.py:2116
 msgid "Abcm2ps"
 msgstr "Abcm2ps"
 
-#: easy_abc.py:2374
+#: easy_abc.py:2117
 msgid "Abc2midi"
 msgstr "Abc2midi"
 
-#: easy_abc.py:2375
+#: easy_abc.py:2119
 msgid "Voices"
 msgstr "Stemmen"
 
-#: easy_abc.py:2376
+#: easy_abc.py:2120
 msgid "Xml"
 msgstr "Xml"
 
-#: easy_abc.py:2377
+#: easy_abc.py:2121
 msgid "File Settings"
 msgstr "Bestandspaden"
 
-#: easy_abc.py:2399
+#: easy_abc.py:2122
+msgid "Colors"
+msgstr "Kleuren"
+
+#: easy_abc.py:2150
 msgid "abcm2ps executable:"
 msgstr "Abcm2ps:"
 
-#: easy_abc.py:2399
+#: easy_abc.py:2150
 msgid "This executable is used to display the music"
 msgstr "Deze toepassing is nodig om de bladmuziek te tonen"
 
-#: easy_abc.py:2400
+#: easy_abc.py:2151
 msgid "abc2midi executable:"
 msgstr "Abc2midi:"
 
-#: easy_abc.py:2400
+#: easy_abc.py:2151
 msgid "This executable is used to make the midi file"
 msgstr "Deze toepassing is nodig om een MIDI-bestand te maken"
 
-#: easy_abc.py:2401
+#: easy_abc.py:2152
 msgid "abc2abc executable:"
 msgstr "Abc2Abc:"
 
-#: easy_abc.py:2401
+#: easy_abc.py:2152
 msgid "This executable is used to transpose the music"
 msgstr "Deze toepassing wordt gebruikt om muziek te transponeren"
 
-#: easy_abc.py:2403
+#: easy_abc.py:2154
 msgid "midi2abc executable:"
 msgstr "Midi2abc:"
 
-#: easy_abc.py:2403
+#: easy_abc.py:2154
 msgid "This executable is used to disassemble the output midi file"
 msgstr ""
 "Deze toepassing wordt gebruikt om het gemaakte MIDI-bestand te ontleden"
 
-#: easy_abc.py:2404
+#: easy_abc.py:2155
 msgid "ghostscript executable:"
 msgstr "Ghostscript:"
 
-#: easy_abc.py:2404
+#: easy_abc.py:2155
 msgid "This executable is used to create PDF files"
 msgstr "Deze toepassing wordt gebruikt om PDF-bestanden te maken"
 
-#: easy_abc.py:2405
+#: easy_abc.py:2156
 msgid "nwc2xml executable:"
 msgstr "Nwc2xml:"
 
-#: easy_abc.py:2405
+#: easy_abc.py:2156
 msgid "For NoteWorthy Composer - Windows only"
 msgstr "Voor NoteWorthy Composer - alleen Windows "
 
-#: easy_abc.py:2406
+#: easy_abc.py:2157
 msgid "midiplayer:"
 msgstr "MIDI-speler:"
 
-#: easy_abc.py:2406
+#: easy_abc.py:2157
 msgid "Your preferred MIDI player"
 msgstr "Favoriete MIDI-speler"
 
-#: easy_abc.py:2414
+#: easy_abc.py:2158
+msgid "SoundFont:"
+msgstr "SoundFont:"
+
+#: easy_abc.py:2158
+msgid "Your preferred SoundFont (.sf2)"
+msgstr "Je favoriete SoundFont (.sf2)"
+
+#: easy_abc.py:2167
 msgid "Restore settings"
 msgstr "Instellingen herstellen"
 
-#: easy_abc.py:2415
+#: easy_abc.py:2168
 msgid ""
 "Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when "
 "blank"
@@ -194,29 +206,29 @@ msgstr ""
 "Herstel standaard bestandspaden voor abcm2ps, abc2midi, abc2abc, ghostscript "
 "indien leeg"
 
-#: easy_abc.py:2419
+#: easy_abc.py:2172
 msgid "Extra MIDI player parameters"
 msgstr "Extra MIDI-speler parameters"
 
-#: easy_abc.py:2424 easy_abc.py:2468
+#: easy_abc.py:2177 easy_abc.py:2223
 msgid "File paths to required executables"
 msgstr "Bestandspaden naar vereiste toepassingen"
 
-#: easy_abc.py:2453 easy_abc.py:3115
+#: easy_abc.py:2207 easy_abc.py:2895
 msgid "Browse..."
 msgstr "Zoeken..."
 
-#: easy_abc.py:2479
+#: easy_abc.py:2226
 msgid "Include file header when rendering tunes"
 msgstr ""
 "Ook de instructies voorafgaande aan de eerste compositie gebruiken "
 "(aanbevolen)"
 
-#: easy_abc.py:2513
+#: easy_abc.py:2264
 msgid "Choose a file"
 msgstr "Kies een bestand"
 
-#: easy_abc.py:2554
+#: easy_abc.py:2305
 msgid ""
 "This button will restore some of the paths to the executables (abcmp2s, "
 "abc2midi, etc.) to their defaults. In order that the program knows which "
@@ -229,75 +241,75 @@ msgstr ""
 "betreffende pad te selecteren, op control-A te drukken en op control-X om de "
 "waarde leeg te maken."
 
-#: easy_abc.py:2558 easy_abc.py:3369 easy_abc.py:6316
+#: easy_abc.py:2309 easy_abc.py:3148 easy_abc.py:6198
 msgid "Proceed?"
 msgstr "Doorgaan?"
 
-#: easy_abc.py:2607
+#: easy_abc.py:2358
 msgid "Play chords"
 msgstr "Akkoorden afspelen"
 
-#: easy_abc.py:2638
+#: easy_abc.py:2389
 msgid "Ignore Dynamics"
 msgstr "Dynamieksymbolen negeren"
 
-#: easy_abc.py:2639
+#: easy_abc.py:2390
 msgid "Ignore Fermatas"
 msgstr "Fermates negeren"
 
-#: easy_abc.py:2640
+#: easy_abc.py:2391
 msgid "No Grace Notes"
 msgstr "Geen voorslagnoten"
 
-#: easy_abc.py:2641
+#: easy_abc.py:2392
 msgid "Barfly Mode"
 msgstr "Barfly Mode"
 
-#: easy_abc.py:2642
+#: easy_abc.py:2393
 msgid "Count in"
 msgstr "Aftellen"
 
-#: easy_abc.py:2645
+#: easy_abc.py:2396
 msgid "gchord pattern"
 msgstr "gchord patroon"
 
-#: easy_abc.py:2651
+#: easy_abc.py:2401
 msgid "Instrument for playback: "
 msgstr "Instrument voor afspelen:"
 
-#: easy_abc.py:2655
+#: easy_abc.py:2405
 msgid "Instrument for chord's playback: "
 msgstr "Instrument voor afspelen akkoord:"
 
-#: easy_abc.py:2659
+#: easy_abc.py:2409
 msgid "Instrument for bass chord's playback: "
 msgstr "Instrument voor afspelen baspartij:"
 
-#: easy_abc.py:2665
+#: easy_abc.py:2415
 msgid "Default Tempo: "
 msgstr "Standaard tempo: "
 
-#: easy_abc.py:2668
+#: easy_abc.py:2418
 msgid "Transposition: "
 msgstr "Transponeren: "
 
-#: easy_abc.py:2671
+#: easy_abc.py:2421
 msgid "Tuning: "
 msgstr "Stemming:"
 
-#: easy_abc.py:2705
+#: easy_abc.py:2455
 msgid "Quarter notes per minute"
 msgstr "Kwartnoten per minuut"
 
-#: easy_abc.py:2706
+#: easy_abc.py:2456
 msgid "Volume level for chordal accompaniment"
 msgstr "Volumeniveau voor akkoordbegeleiding"
 
-#: easy_abc.py:2707
+#: easy_abc.py:2457
 msgid "Volume level for bass accompaniment"
 msgstr "Volumeniveau voor basbegeleiding"
 
-#: easy_abc.py:2708
+#: easy_abc.py:2458
 msgid ""
 "The Barfly stress model is enabled provided the rhythm designator (R:) is "
 "recognized"
@@ -305,37 +317,37 @@ msgstr ""
 "Benadrukmodel van Barfly wordt gebruikt indien het ritmeveld (R:) wordt "
 "gevonden."
 
-#: easy_abc.py:2709
+#: easy_abc.py:2459
 msgid "Dynamic markings like ff mp pp etc. are ignored if enabled"
 msgstr ""
 "Dynamiekaanduidingen zoals ff mp pp enzovoort worden genegeerd indien gekozen"
 
-#: easy_abc.py:2710
+#: easy_abc.py:2460
 msgid "Fermata markings are ignored if enabled"
 msgstr "Fermates worden genegeerd indien gekozen"
 
-#: easy_abc.py:2711
+#: easy_abc.py:2461
 msgid "Grace notes are ignored if enabled"
 msgstr "Voorslagen worden genegeerd indien gekozen"
 
-#: easy_abc.py:2712
+#: easy_abc.py:2462
 msgid "Transpose by the number of semitones"
 msgstr "Transponeren met aantal halve noten"
 
-#: easy_abc.py:2713
+#: easy_abc.py:2463
 msgid "Frequency of A in Hz"
 msgstr "Frequentie van A in Hz"
 
-#: easy_abc.py:2714
+#: easy_abc.py:2464
 msgid "Two rest bars before music starts"
 msgstr "Twee maten rust voordat de muziek begint"
 
-#: easy_abc.py:2715
+#: easy_abc.py:2465
 msgid "Volume of melody line if the tune does not have any voices"
 msgstr ""
 "Volume van de standaard melodielijn wanneer er geen andere partijen zijn."
 
-#: easy_abc.py:2764
+#: easy_abc.py:2514
 msgid ""
 "for chord C:\n"
 "f --> C,,  c -> [C,E,G] z --> rest\n"
@@ -349,28 +361,28 @@ msgstr ""
 "G --> C,, H --> E,, I --> G,,\n"
 "J --> B,"
 
-#: easy_abc.py:2877
+#: easy_abc.py:2625
 msgid "Default instrument:"
 msgstr "Standaard instrument:"
 
-#: easy_abc.py:2878
+#: easy_abc.py:2626
 msgid "Main Volume:"
 msgstr "Algemeen volume:"
 
-#: easy_abc.py:2879
+#: easy_abc.py:2627
 msgid "L/R Balance:"
 msgstr "L/R verhouding:"
 
-#: easy_abc.py:2895
+#: easy_abc.py:2657
 #, python-format
 msgid "Voice n.%d: "
 msgstr "Stem %d: "
 
-#: easy_abc.py:2922
+#: easy_abc.py:2682
 msgid "&Reset"
 msgstr "&Reset"
 
-#: easy_abc.py:2925
+#: easy_abc.py:2690
 msgid ""
 "The instrument for all voices is set to the default midi program. The volume "
 "and pan are set to 96/64."
@@ -378,126 +390,134 @@ msgstr ""
 "Het instrument voor alle stemmen wordt ingesteld op de standaardwaarde. "
 "Volume wordt gewijzigd naar 96."
 
-#: easy_abc.py:3011
+#: easy_abc.py:2775
 msgid "Midi device settings"
 msgstr "MIDI-apparaat instellingen"
 
-#: easy_abc.py:3016
+#: easy_abc.py:2780
 msgid "Input device"
 msgstr "Invoerapparaat"
 
-#: easy_abc.py:3017
+#: easy_abc.py:2781
 msgid "Output device"
 msgstr "Uitvoerapparaat"
 
-#: easy_abc.py:3019 easy_abc.py:3021 tune_actions.py:902 tune_actions.py:1022
-#: tune_actions.py:1590
+#: easy_abc.py:2783 easy_abc.py:2785 tune_actions.py:925 tune_actions.py:1045
+#: tune_actions.py:1964
 msgid "None"
 msgstr "Geen"
 
-#: easy_abc.py:3086
+#: easy_abc.py:2866
 msgid ""
 "The options in this page controls how the music score is displayed.\n"
 "\n"
 msgstr ""
 "De instellingen op deze pagina bepalen hoe de bladmuziek wordt getoond.\n"
 
-#: easy_abc.py:3090
+#: easy_abc.py:2870
 msgid "No page settings"
 msgstr "Geen pagina-instellingen"
 
-#: easy_abc.py:3091
+#: easy_abc.py:2871
 msgid "EasyABC defaults"
 msgstr "EasyABC standaardwaardes"
 
-#: easy_abc.py:3092
+#: easy_abc.py:2872
 msgid "Include bar numbers"
 msgstr "Inclusief maatnummers"
 
-#: easy_abc.py:3093
+#: easy_abc.py:2873
 msgid "Add X reference number"
 msgstr "X referentienummer toevoegen"
 
-#: easy_abc.py:3094
+#: easy_abc.py:2874
 msgid "Suppress lyrics"
 msgstr "Onderdruk songtekst"
 
-#: easy_abc.py:3095
+#: easy_abc.py:2875
 msgid "Ignore line ends"
 msgstr "Negeer regeleindes"
 
-#: easy_abc.py:3096
+#: easy_abc.py:2876
 msgid "Left margin (cm)"
 msgstr "Linker marge (cm)"
 
-#: easy_abc.py:3097
+#: easy_abc.py:2877
 msgid "Right margin (cm)"
 msgstr "Rechter marge (cm)"
 
-#: easy_abc.py:3098
+#: easy_abc.py:2878
 msgid "Top margin (cm)"
 msgstr "Bovenmarge (cm)"
 
-#: easy_abc.py:3099
+#: easy_abc.py:2879
 msgid "Bottom margin (cm)"
 msgstr "Ondermarge (cm)"
 
-#: easy_abc.py:3101
+#: easy_abc.py:2881
 msgid "Page width (cm)"
 msgstr "Pagina breedte (cm)"
 
-#: easy_abc.py:3102
+#: easy_abc.py:2882
 msgid "Page height (cm)"
 msgstr "Pagina hoogte (cm)"
 
-#: easy_abc.py:3104
+#: easy_abc.py:2884
 msgid "Extra parameters"
 msgstr "Extra parameters"
 
-#: easy_abc.py:3106
+#: easy_abc.py:2886
 msgid "Format file"
 msgstr "Formaat-bestand"
 
-#: easy_abc.py:3117
+#: easy_abc.py:2897
 msgid "Scale factor (eg. 0.8)"
 msgstr "Schalingsfactor (bijv. 0.8)"
 
-#: easy_abc.py:3132 easy_abc.py:3133 easy_abc.py:3134 easy_abc.py:3135
-#: easy_abc.py:3136 easy_abc.py:3137
+#: easy_abc.py:2912 easy_abc.py:2913 easy_abc.py:2914 easy_abc.py:2915
+#: easy_abc.py:2916 easy_abc.py:2917
 #, python-brace-format
 msgid "The default is {0}"
 msgstr "Standaardwaarde is {0}"
 
-#: easy_abc.py:3138
+#: easy_abc.py:2918
 msgid "Additional command line parameters to abcm2ps"
 msgstr "Extra parameters voor abcm2ps"
 
-#: easy_abc.py:3139
+#: easy_abc.py:2919
 msgid "Right click the mouse to remove all choices"
 msgstr "Klik op rechtermuisknop om alle keuzes weg te halen"
 
-#: easy_abc.py:3149
+#: easy_abc.py:2929
 msgid "Use the factory page settings of EasyABC"
 msgstr "Gebruik de fabrieksinstellingen van EasyABC"
 
-#: easy_abc.py:3151
+#: easy_abc.py:2931
 msgid "Do not add page settings"
 msgstr "Geen paginaindeling toevoegen"
 
-#: easy_abc.py:3195
+#: easy_abc.py:2974
 #, python-brace-format
 msgid "Scales the separation between staff lines. Recommended value is {0}."
 msgstr "Schaalt de scheiding tussen notenbalken. Aanbevolen waarde is {0}."
 
-#: easy_abc.py:3369
+#: easy_abc.py:3148
 msgid "This will remove the selections in the combobox."
 msgstr "Dit zal alle keuzes weghalen."
 
-#: easy_abc.py:3386
+#: easy_abc.py:3165
 msgid "Find PostScript format file"
 msgstr "Zoek PostScript-formaat-bestand"
 
-#: easy_abc.py:3418
+#: easy_abc.py:3200
+msgid "Note highlight color"
+msgstr "Kleur van geselecteerde noot"
+
+#: easy_abc.py:3212
+msgid "Color of selected note or currently playing note"
+msgstr "Kleur van geselecteerde noten of noten die gespeeld worden"
+
+#: easy_abc.py:3237
 msgid ""
 "The settings on this page control behaviour of the functions abc2xml and "
 "xml2abc.\n"
@@ -515,64 +535,64 @@ msgstr ""
 "bestanden.\n"
 "Verdere documentatie kan gevonden worden op de web site van Wim Vree.\n"
 
-#: easy_abc.py:3421
+#: easy_abc.py:3240
 msgid "abc2xml options"
 msgstr "Abc naar xml opties"
 
-#: easy_abc.py:3422
+#: easy_abc.py:3241
 msgid "Compressed xml"
 msgstr "Gecomprimeerde xml"
 
-#: easy_abc.py:3423
+#: easy_abc.py:3242
 msgid "Page settings"
 msgstr "Paginainstellingen"
 
-#: easy_abc.py:3424
+#: easy_abc.py:3243
 msgid "Unfold Repeats"
 msgstr "Herhalingen uitschrijven"
 
-#: easy_abc.py:3425
+#: easy_abc.py:3244
 msgid "Midi Data"
 msgstr "MIDI-gegevens"
 
-#: easy_abc.py:3426
+#: easy_abc.py:3245
 msgid "Volta type setting"
 msgstr "Opmaak herhalingstekens"
 
-#: easy_abc.py:3427
+#: easy_abc.py:3246
 msgid "xml2abc option"
 msgstr "Xml naar abc opties"
 
-#: easy_abc.py:3428
+#: easy_abc.py:3247
 msgid "characters/line"
 msgstr "Karakters per regel"
 
-#: easy_abc.py:3429
+#: easy_abc.py:3248
 msgid "bars per line"
 msgstr "Maten per regel"
 
-#: easy_abc.py:3430
+#: easy_abc.py:3249
 msgid "credit filter"
 msgstr "Titelfilter"
 
-#: easy_abc.py:3431
+#: easy_abc.py:3250
 msgid "unit length"
 msgstr "Eenheidlengte"
 
-#: easy_abc.py:3454
+#: easy_abc.py:3273
 msgid "When checked, abc2xml produces compressed xml files with extension mxl."
 msgstr ""
 "Indien aangevinkt zal abc2xml gecomprimeerde xml-bestanden genereren (met "
 "bestandsextensie mxl)"
 
-#: easy_abc.py:3456
+#: easy_abc.py:3275
 msgid ""
 "When checked, xml2abc turns off repeat translation and instead unfolds "
 "simple repeats."
 msgstr ""
 "Indien aangevinkt zal xml2abc herhalingen niet omzetten maar uitschrijven."
 
-#: easy_abc.py:3458
+#: easy_abc.py:3277
 msgid ""
 "When checked, xml2abc outputs commands for midi volume and panning and the "
 "channel number. These commands are output in addition to the midi program "
@@ -581,7 +601,7 @@ msgstr ""
 "Indien aangevinkt zal xml2abc midi-commando's toevoegen voor volume, "
 "stereoverdeling en kanaalnummer."
 
-#: easy_abc.py:3460
+#: easy_abc.py:3279
 msgid ""
 "The page format includes 6 numbers, eg. 0.7,25,15,1.2,1.2,1.2,1.2 which sets "
 "the scale to 0.7, the page height to 25 cm, the page width to 15 cm, and "
@@ -593,20 +613,20 @@ msgstr ""
 "paginabreedte 15 cm en linker-, rechter-, boven- en ondermarge 1.2 cm. "
 "Indien leeggelaten worden de standaardwaardes gebruikt."
 
-#: easy_abc.py:3462
+#: easy_abc.py:3281
 msgid ""
 "Unless CPL is 0, it sets the maximum length for ABC output to CPL "
 "characters. The default is 100 characters. An integer number of bars, at "
 "least one, is always output."
 msgstr ""
 
-#: easy_abc.py:3464
+#: easy_abc.py:3283
 msgid ""
 "When not zero, BPL sets the number of bars per line. If both CPL and BPL is "
 "given, only CPL is used."
 msgstr ""
 
-#: easy_abc.py:3466
+#: easy_abc.py:3285
 msgid ""
 "This filter tries to eliminate redundant T: fields. A higher level (up to 6) "
 "does less filtering. The default is 0 which filters as much as possible."
@@ -615,13 +635,13 @@ msgstr ""
 "(maximaal 6) filtert minder. Standaardwaarde is 0 waarbij zoveel mogelijk "
 "weggefilterd wordt."
 
-#: easy_abc.py:3468
+#: easy_abc.py:3287
 msgid ""
 "Unless D is 0, it sets the unit length for the output to abc field command "
 "L: 1/D. This overrides the computation of the optimal unit length."
 msgstr ""
 
-#: easy_abc.py:3470
+#: easy_abc.py:3289
 #, python-format
 msgid ""
 "The default (V=0) translates volta brackets in all voices. V=1 prevents "
@@ -633,148 +653,148 @@ msgid ""
 "suited for abc2midi."
 msgstr ""
 
-#: easy_abc.py:3566
+#: easy_abc.py:3385
 msgid "ABC Options"
 msgstr "ABC-instellingen"
 
-#: easy_abc.py:3571 tune_actions.py:905
+#: easy_abc.py:3390 tune_actions.py:928
 msgid "Key signature"
 msgstr "Voortekens"
 
-#: easy_abc.py:3572 easy_abc.py:4749
+#: easy_abc.py:3391 easy_abc.py:4596
 msgid "Metre"
 msgstr "Maatsoort"
 
-#: easy_abc.py:3573
+#: easy_abc.py:3392
 msgid "Default note length"
 msgstr "Standaard duur van een noot"
 
-#: easy_abc.py:3574 easy_abc.py:3760 easy_abc.py:3979
+#: easy_abc.py:3393 easy_abc.py:3595 easy_abc.py:3831
 msgid "Title"
 msgstr "Titel"
 
-#: easy_abc.py:3575
+#: easy_abc.py:3394
 msgid "Bars per line"
 msgstr "Maten per regel"
 
-#: easy_abc.py:3576
+#: easy_abc.py:3395
 msgid "Numbers of notes in anacrusis"
 msgstr "Aantal noten in opmaat"
 
-#: easy_abc.py:3584
+#: easy_abc.py:3403
 msgid "Detect triplets"
 msgstr "Triolen detecteren"
 
-#: easy_abc.py:3585
+#: easy_abc.py:3404
 msgid "Detect broken rythms"
 msgstr "Detecteer gebroken ritmes"
 
-#: easy_abc.py:3586
+#: easy_abc.py:3405
 msgid "Use slurs on triplets"
 msgstr "Gebruik legatobogen bij triolen"
 
-#: easy_abc.py:3587
+#: easy_abc.py:3406
 msgid "Use slurs on eights (useful for some waltzes)"
 msgstr "Gebruik legatobogen bij achtste noten (handig voor sommige walsen)"
 
-#: easy_abc.py:3588
+#: easy_abc.py:3407
 msgid "Use slurs on first pair of sixteenth (useful for some 16th polskas)"
 msgstr ""
 "Gebruik legatobogen eerste paar van zestiende noten (handig voor sommige "
 "polka's)"
 
-#: easy_abc.py:3638
+#: easy_abc.py:3463
 msgid "Errors"
 msgstr "Fouten"
 
-#: easy_abc.py:3681
+#: easy_abc.py:3512
 msgid "Converting..."
 msgstr "Bezig met converteren..."
 
-#: easy_abc.py:3748
+#: easy_abc.py:3579
 msgid "Search files"
 msgstr "Bestanden zoeken"
 
-#: easy_abc.py:3752
+#: easy_abc.py:3587
 msgid "Folder"
 msgstr "Map"
 
-#: easy_abc.py:3755
+#: easy_abc.py:3590
 msgid "Browse"
 msgstr "Zoeken"
 
-#: easy_abc.py:3756
+#: easy_abc.py:3591
 msgid "Text"
 msgstr "Tekst"
 
-#: easy_abc.py:3758
+#: easy_abc.py:3593
 msgid "Search"
 msgstr "Zoek"
 
-#: easy_abc.py:3790
+#: easy_abc.py:3625
 msgid "Open"
 msgstr "Open"
 
-#: easy_abc.py:3790
+#: easy_abc.py:3625
 msgid "Choose a folder"
 msgstr "Kies een map"
 
-#: easy_abc.py:3827
+#: easy_abc.py:3662
 msgid "Searching directory"
 msgstr "Bezig met doorzoeken van mappen"
 
-#: easy_abc.py:3827 easy_abc.py:5414
+#: easy_abc.py:3662 easy_abc.py:5253
 msgid "Remaining time"
 msgstr "Resterende tijd"
 
-#: easy_abc.py:3896 easy_abc.py:4122 easy_abc.py:5360 tune_actions.py:1336
+#: easy_abc.py:3734 easy_abc.py:3978 easy_abc.py:5199 tune_actions.py:1485
+#: tune_actions.py:2087
 msgid "Untitled"
 msgstr "Naamloos"
 
-#: easy_abc.py:3978
+#: easy_abc.py:3830
 msgid "No."
 msgstr "Nummer"
 
-#: easy_abc.py:4001 easy_abc.py:8057
+#: easy_abc.py:3853 easy_abc.py:7980
 msgid "ABC errors"
 msgstr "ABC fouten"
 
-#: easy_abc.py:4008 easy_abc.py:4771 easy_abc.py:4772 easy_abc.py:4773
-#: easy_abc.py:8058
+#: easy_abc.py:3860 easy_abc.py:4618 easy_abc.py:4619 easy_abc.py:4620
+#: easy_abc.py:7981
 msgid "ABC assist"
 msgstr "ABC assistent"
 
-#: easy_abc.py:4012 easy_abc.py:8055
+#: easy_abc.py:3864 easy_abc.py:7978
 msgid "Tune list"
 msgstr "Compositielijst"
 
-#: easy_abc.py:4013 easy_abc.py:8054
+#: easy_abc.py:3865 easy_abc.py:7977
 msgid "ABC code"
 msgstr "ABC-code"
 
-#: easy_abc.py:4014 easy_abc.py:8056
+#: easy_abc.py:3866 easy_abc.py:7979
 msgid "Musical score"
 msgstr "Bladmuziek"
 
-#: easy_abc.py:4105
+#: easy_abc.py:3960
 msgid "This is the status bar. Check it occasionally."
 msgstr "Dit is de statusbalk. Controleer deze af en toe."
 
-#: easy_abc.py:4106
+#: easy_abc.py:3961
 #, python-brace-format
-msgid ""
-"You are running {0} on {1}\n"
-"You can get the latest version on http://sourceforge.net/projects/easyabc/\n"
-msgstr ""
-"Je gebruikt nu {0} (op {1})\n"
-"De laatste versie kan gevonden worden op http://sourceforge.net/projects/"
-"easyabc/\n"
+msgid "You are running {0} on {1}"
+msgstr "U draait {0} op {1}"
 
-#: easy_abc.py:4220
+#: easy_abc.py:3962
+msgid "You can get the latest version on"
+msgstr "De laatste versie is te vinden op"
+
+#: easy_abc.py:4085
 msgid "EasyABC - print preview"
 msgstr "EasyABC - afdrukvoorbeeld"
 
-#: easy_abc.py:4232
+#: easy_abc.py:4097
 msgid ""
 "There was a problem printing.\n"
 "Perhaps your current printer is not set correctly?"
@@ -782,169 +802,187 @@ msgstr ""
 "Het afdrukken lukt niet.\n"
 "Is de printer misschien niet goed ingesteld?"
 
-#: easy_abc.py:4232
+#: easy_abc.py:4097
 msgid "Printing"
 msgstr "Bezig met afdrukken"
 
-#: easy_abc.py:4523
+#: easy_abc.py:4373
 #, python-format
 msgid "Unable to load %s: Unsupported format?"
 msgstr "Niet in staat om %s in te lezen: Niet ondersteund formaat?"
 
-#: easy_abc.py:4748
+#: easy_abc.py:4595
 msgid "Beats per minute"
 msgstr "Tikken per minuut"
 
-#: easy_abc.py:4781
+#: easy_abc.py:4623 easy_abc.py:5887
+msgid "Note ornaments"
+msgstr "Versieringen"
+
+#: easy_abc.py:4624 easy_abc.py:5889 tune_actions.py:1670 tune_elements.py:822
+msgid "Dynamics"
+msgstr "Dynamiek"
+
+#: easy_abc.py:4625 easy_abc.py:5888
+msgid "Directions"
+msgstr "Aanwijzingen"
+
+#: easy_abc.py:4628
 msgid "Zoom"
 msgstr "Inzoomen"
 
-#: easy_abc.py:4790
+#: easy_abc.py:4634
 msgid "Page"
 msgstr "Pagina"
 
-#: easy_abc.py:4795 tune_elements.py:95
+#: easy_abc.py:4639 tune_elements.py:95
 msgid "Tempo"
 msgstr "Tempo"
 
-#: easy_abc.py:4798
+#: easy_abc.py:4642
 msgid "Play position"
 msgstr "Afspeelpositie"
 
-#: easy_abc.py:4800
+#: easy_abc.py:4644
 msgid "Loop"
 msgstr "Herhalen"
 
-#: easy_abc.py:4802
+#: easy_abc.py:4647
 msgid "Follow score"
 msgstr "Bladmuziek volgen"
 
-#: easy_abc.py:4876 easy_abc.py:5918
+#: easy_abc.py:4721 easy_abc.py:5798
 msgid "&Do-re-mi mode"
 msgstr "&Do-re-mi mode"
 
-#: easy_abc.py:5007
+#: easy_abc.py:4852
 msgid "incipits"
 msgstr "incipits"
 
-#: easy_abc.py:5032 easy_abc.py:5609
+#: easy_abc.py:4877 easy_abc.py:5482
 msgid "Error: there was some trouble saving the file."
 msgstr "Fout: het bestand kon niet opgeslagen worden."
 
-#: easy_abc.py:5032 easy_abc.py:5609
+#: easy_abc.py:4877 easy_abc.py:5482
 msgid "File could not be saved properly"
 msgstr "Bestand kon niet worden opgeslagen"
 
-#: easy_abc.py:5038
+#: easy_abc.py:4883
 msgid "Which field(s) do you want to sort the tunes by? (eg. T for title)"
 msgstr ""
 "Op welke velden wilt u de liedjes sorteren? (bijvoorbeeld T voor titel)"
 
-#: easy_abc.py:5038
+#: easy_abc.py:4883
 msgid "Sort tunes"
 msgstr "Composities sorteren"
 
-#: easy_abc.py:5051
+#: easy_abc.py:4896
 msgid "Please specify the index of the first tune: "
 msgstr "Wat moet het nummer worden van de eerste compositie:"
 
-#: easy_abc.py:5051
+#: easy_abc.py:4896
 msgid "Renumber X: fields"
 msgstr "Hernummeren van X: velden"
 
-#: easy_abc.py:5084
+#: easy_abc.py:4929
 msgid ""
 "Please enter your full name (your FolkWiki entries will henceforth be "
 "associated with this name): "
 msgstr ""
 
-#: easy_abc.py:5084
+#: easy_abc.py:4929
 msgid "Enter your name"
 msgstr "Vul je naam in"
 
-#: easy_abc.py:5101 easy_abc.py:5105 easy_abc.py:5649
+#: easy_abc.py:4946 easy_abc.py:4950 easy_abc.py:5524
 msgid "Midi file"
 msgstr "MIDI-bestand"
 
-#: easy_abc.py:5147
+#: easy_abc.py:4993
+msgid ""
+"EasyABC needs an external program called GhostScript to generate PDFs. You "
+"can get it from https://www.ghostscript.com/download/"
+msgstr ""
+
+#: easy_abc.py:4993 easy_abc.py:4997 easy_abc.py:8034 easy_abc.py:8045
+#: easy_abc.py:8057 easy_abc.py:8069 easy_abc.py:8078 easy_abc.py:8109
+msgid "Warning"
+msgstr "Waarschuwing"
+
+#: easy_abc.py:4997
 msgid "ghostscript was not found here. Go to settings and indicate the path"
 msgstr ""
 "Ghostscript kon niet gevonden worden. Ga naar de instellingen om het pad aan "
 "te geven."
 
-#: easy_abc.py:5147 easy_abc.py:8111 easy_abc.py:8122 easy_abc.py:8134
-#: easy_abc.py:8146 easy_abc.py:8155 easy_abc.py:8184
-msgid "Warning"
-msgstr "Waarschuwing"
-
-#: easy_abc.py:5150
+#: easy_abc.py:5001
 msgid "PDF file"
 msgstr "PDF-bestand"
 
-#: easy_abc.py:5153
+#: easy_abc.py:5004
 msgid "SVG file"
 msgstr "SVG-bestand"
 
-#: easy_abc.py:5178 easy_abc.py:5650
+#: easy_abc.py:5029 easy_abc.py:5525
 msgid "MusicXML"
 msgstr "MusicXML"
 
-#: easy_abc.py:5181
+#: easy_abc.py:5032
 msgid "Compressed MusicXML"
 msgstr "Gecomprimeerde MusicXML"
 
-#: easy_abc.py:5196
+#: easy_abc.py:5047
 #, python-brace-format
 msgid "Error during conversion of X:{0} (\"{1}\"): {2}"
 msgstr "Fout opgetreden bij het converteren van X:{0} (\"{1}\"): {2}"
 
-#: easy_abc.py:5207 easy_abc.py:5231
+#: easy_abc.py:5058 easy_abc.py:5082
 msgid "HTML file"
 msgstr "HTML-bestand"
 
-#: easy_abc.py:5256
+#: easy_abc.py:5094
 msgid "Export all tunes as ..."
 msgstr "Alle composities exporteren als..."
 
-#: easy_abc.py:5256
+#: easy_abc.py:5094
 msgid "Epub file"
 msgstr "Epub-bestand"
 
-#: easy_abc.py:5317 easy_abc.py:5631 easy_abc.py:5648 easy_abc.py:5782
+#: easy_abc.py:5155 easy_abc.py:5506 easy_abc.py:5523 easy_abc.py:5657
 msgid "ABC file"
 msgstr "ABC-bestand"
 
-#: easy_abc.py:5339
+#: easy_abc.py:5177
 msgid "Export tune as ..."
 msgstr "Exporteer compositie..."
 
-#: easy_abc.py:5352
+#: easy_abc.py:5191
 #, python-brace-format
 msgid "{0} was written"
 msgstr "{0} opgeslagen"
 
-#: easy_abc.py:5396
+#: easy_abc.py:5235
 msgid "Choose a directory..."
 msgstr "Kies een bestandsmap..."
 
-#: easy_abc.py:5408
+#: easy_abc.py:5247
 #, python-brace-format
 msgid "{0} files to create"
 msgstr "{0} bestanden te creëeren"
 
-#: easy_abc.py:5414
+#: easy_abc.py:5253
 msgid "Exporting"
 msgstr "Exporteren"
 
-#: easy_abc.py:5438
+#: easy_abc.py:5277
 msgid "Export completed"
 msgstr "Exporteren afgerond"
 
-#: easy_abc.py:5440
+#: easy_abc.py:5279
 msgid "Export failed"
 msgstr "Exporteren mislukt"
 
-#: easy_abc.py:5503
+#: easy_abc.py:5376
 msgid ""
 "Looping is not possible when using an external midi player. Empty the "
 "midiplayer path in Settings -> ABC Settings -> File Settings to regain the "
@@ -954,31 +992,31 @@ msgstr ""
 "> ABC instellingen -> Bestandsinstellingen en haal de midi-speler weg om "
 "weer te kunnen herhalen wanneer op de afspeelknop gedubbelklikt wordt."
 
-#: easy_abc.py:5503
+#: easy_abc.py:5376
 msgid "Looping unavailable"
 msgstr "Herhalen niet beschikbaar"
 
-#: easy_abc.py:5632 easy_abc.py:5652
+#: easy_abc.py:5507 easy_abc.py:5527
 msgid "Any file"
 msgstr "Alle bestanden"
 
-#: easy_abc.py:5634
+#: easy_abc.py:5509
 msgid "Open ABC file"
 msgstr "ABC-bestand openen"
 
-#: easy_abc.py:5647
+#: easy_abc.py:5522
 msgid "Any music file"
 msgstr "Alle muziekbestanden"
 
-#: easy_abc.py:5651
+#: easy_abc.py:5526
 msgid "Noteworthy Composer file"
 msgstr "Noteworthy Composer bestand"
 
-#: easy_abc.py:5654
+#: easy_abc.py:5529
 msgid "Import and add tune"
 msgstr "Importeren en toevoegen"
 
-#: easy_abc.py:5706
+#: easy_abc.py:5581
 msgid ""
 "This ABC file seems to be encoded using UTF-8 but contains no indication of "
 "this fact. It is strongly recommended that an I:abc-charset field is added "
@@ -990,11 +1028,11 @@ msgstr ""
 "aan te geven (met I:abc-charset). Dan worden aanpassingen tenminste goed "
 "opgeslagen. Wilt u dat EasyABC dit automatisch voor u toevoegt?"
 
-#: easy_abc.py:5708
+#: easy_abc.py:5583
 msgid "Add abc-charset field?"
 msgstr "ABC-karakterset teovoegen?"
 
-#: easy_abc.py:5715
+#: easy_abc.py:5590
 msgid ""
 "Could not find file.\n"
 "It may have been moved or deleted. Choose File,Open to locate it."
@@ -1002,20 +1040,20 @@ msgstr ""
 "Het bestand kon niet gevonden worden.\n"
 "Het is mogelijk verplaatst of verwijderd."
 
-#: easy_abc.py:5715
+#: easy_abc.py:5590
 msgid "File not found"
 msgstr "Bestand niet gevonden"
 
-#: easy_abc.py:5741
+#: easy_abc.py:5616
 #, python-format
 msgid "Do you want to save your changes to %s?"
 msgstr "Wilt u de aanpassingen opslaan in %s?"
 
-#: easy_abc.py:5742
+#: easy_abc.py:5617
 msgid "Save changes?"
 msgstr "Veranderingen bewaren?"
 
-#: easy_abc.py:5762
+#: easy_abc.py:5637
 #, python-format
 msgid ""
 "This document contains characters (eg. %(ABC)s) that cannot be represented "
@@ -1028,166 +1066,174 @@ msgstr ""
 "naar UTF-8 als bestandscodering (aanbevolen)? (als u nee kiest dan worden "
 "sommige karakters vervangen met '?' wanneer er opgeslagen wordt)"
 
-#: easy_abc.py:5766
+#: easy_abc.py:5641
 msgid "Switch to UTF-8 encoding?"
 msgstr "Omzetten naar UTF-8 formaat?"
 
-#: easy_abc.py:5787
+#: easy_abc.py:5662
 #, python-format
 msgid "Save ABC file %s"
 msgstr "Bewaar ABC-bestand %s"
 
-#: easy_abc.py:5795
+#: easy_abc.py:5670
 msgid "The file already exists. Do you want to overwrite the existing file?"
 msgstr "Het bestand bestaat al. Wilt u het bestaande bestand overschrijven?"
 
-#: easy_abc.py:5796
+#: easy_abc.py:5671
 msgid "Overwrite existing file?"
 msgstr "Bestaand bestand overschrijven?"
 
-#: easy_abc.py:5820
+#: easy_abc.py:5695
 msgid "abc2abc error/warnings: "
 msgstr "abc2abc fouten/waarschuwingen: "
 
-#: easy_abc.py:5821
+#: easy_abc.py:5696
 msgid "Abc2abc error message"
 msgstr "Abc2abc foutmelding"
 
-#: easy_abc.py:5880
+#: easy_abc.py:5760
+msgid "Move up"
+msgstr "Omhoog"
+
+#: easy_abc.py:5761
+msgid "Move down"
+msgstr "Omlaag"
+
+#: easy_abc.py:5763
 msgid "Export to &MIDI..."
 msgstr "Exporteren naar &MIDI..."
 
-#: easy_abc.py:5881
+#: easy_abc.py:5764
 msgid "Export to &PDF..."
 msgstr "Exporteren naar &PDF..."
 
-#: easy_abc.py:5882
+#: easy_abc.py:5765
 msgid "Export to &one PDF..."
 msgstr "Exporteren naar &enkele PDF..."
 
-#: easy_abc.py:5883
+#: easy_abc.py:5766
 msgid "Export to &SVG..."
 msgstr "Exporteer naar &SVG..."
 
-#: easy_abc.py:5884
+#: easy_abc.py:5767
 msgid "Export to &HTML..."
 msgstr "Exporteren naar &HTML..."
 
-#: easy_abc.py:5885
+#: easy_abc.py:5768
 msgid "Export to Music&XML..."
 msgstr "Exporteren naar Music&XML..."
 
-#: easy_abc.py:5886
+#: easy_abc.py:5769
 msgid "Export to &ABC..."
 msgstr "Exporteren naar &ABC..."
 
-#: easy_abc.py:5892
+#: easy_abc.py:5775
 msgid "Upload tune to FolkWiki"
 msgstr ""
 
-#: easy_abc.py:5899
+#: easy_abc.py:5782
 msgid "Upload tune to Spillemandsportalen"
 msgstr ""
 
-#: easy_abc.py:5913
+#: easy_abc.py:5795
 msgid "&Active"
 msgstr "&Actief"
 
-#: easy_abc.py:5915
+#: easy_abc.py:5797
 msgid "Automatic uppercase/lowercase"
 msgstr "Automatisch hoofd/kleine letters"
 
-#: easy_abc.py:5920
+#: easy_abc.py:5799
 msgid "Add note &durations"
 msgstr "Nootlengte aanvullen"
 
-#: easy_abc.py:5923
+#: easy_abc.py:5802
 msgid "Disabled"
 msgstr "Uitgeschakeld"
 
-#: easy_abc.py:5924
+#: easy_abc.py:5803
 msgid "Using spacebar"
 msgstr "Met spatiebalk"
 
-#: easy_abc.py:5925
+#: easy_abc.py:5804
 msgid "Automatic"
 msgstr "Automatisch"
 
-#: easy_abc.py:5926
+#: easy_abc.py:5805
 msgid "Add &bar"
 msgstr "Maatstreep toevoegen"
 
-#: easy_abc.py:5928
+#: easy_abc.py:5807
 msgid "Add &matching right symbol: ), ], } and \""
 msgstr "Bijbehorend rechter sy&mbool toevoegen: ), ], } en \""
 
-#: easy_abc.py:5947
+#: easy_abc.py:5824
 #, python-format
 msgid "Down %d semitones"
 msgstr "%d halve noten verlagen"
 
-#: easy_abc.py:5951
+#: easy_abc.py:5828
 #, python-format
 msgid "Up %d semitones"
 msgstr "%d halve noten verhogen"
 
-#: easy_abc.py:5954
+#: easy_abc.py:5831
 msgid "&Refresh music"
 msgstr "Bladmuziek ve&rversen"
 
-#: easy_abc.py:5955
+#: easy_abc.py:5832
 msgid "&Automatically refresh music as I type"
 msgstr "&Automatisch bladmuziek verversen tijdens typen"
 
-#: easy_abc.py:5957
+#: easy_abc.py:5834
 msgid "&Use reduced margins when displaying tunes on screen"
 msgstr "&Toon minder marge bij bladmuziek op scherm"
 
-#: easy_abc.py:5958
+#: easy_abc.py:5835
 msgid "&Change editor font..."
 msgstr "&Ander lettertype"
 
-#: easy_abc.py:5959
+#: easy_abc.py:5836
 msgid "&Use default editor font"
 msgstr "&Gebruik standaard lettertype"
 
-#: easy_abc.py:5961
+#: easy_abc.py:5838
 msgid "&Reset window layout to default"
 msgstr "Te&rug naar oorspronkelijk vensterindeling"
 
-#: easy_abc.py:5967
+#: easy_abc.py:5844
 msgid "&File"
 msgstr "&Bestand"
 
-#: easy_abc.py:5968
+#: easy_abc.py:5845
 msgid "&New\tCtrl+N"
 msgstr "&Nieuw\tCtrl+N"
 
-#: easy_abc.py:5968
+#: easy_abc.py:5845
 msgid "Create a new file"
 msgstr "Nieuw bestand maken"
 
-#: easy_abc.py:5969
+#: easy_abc.py:5846
 msgid "&Open...\tCtrl+O"
 msgstr "&Openen...\tCtrl+O"
 
-#: easy_abc.py:5969
+#: easy_abc.py:5846
 msgid "Open an existing file"
 msgstr "Open een bestaand bestand"
 
-#: easy_abc.py:5970
+#: easy_abc.py:5847
 msgid "&Close"
 msgstr "&Sluiten"
 
-#: easy_abc.py:5970
+#: easy_abc.py:5847
 msgid "Close the current file"
 msgstr "Sluit het huidige bestand"
 
-#: easy_abc.py:5972
+#: easy_abc.py:5849
 msgid "&Import and add..."
 msgstr "&Importeren en aanvullen..."
 
-#: easy_abc.py:5972
+#: easy_abc.py:5849
 msgid ""
 "Import a song in ABC, Midi or MusicXML format and add it to the current "
 "document."
@@ -1195,366 +1241,362 @@ msgstr ""
 "Importeer een ABC-, MIDI- of MusicXML-bestand en voeg het toe aan het "
 "huidige bestand."
 
-#: easy_abc.py:5974
+#: easy_abc.py:5851
 msgid "&Export selected"
 msgstr "Exporteer geselecteerde"
 
-#: easy_abc.py:5975
+#: easy_abc.py:5852
 msgid "as &PDF..."
 msgstr "als &PDF..."
 
-#: easy_abc.py:5976
+#: easy_abc.py:5853
 msgid "as one &PDF..."
 msgstr "als enkele &PDF..."
 
-#: easy_abc.py:5977 easy_abc.py:5985
+#: easy_abc.py:5854 easy_abc.py:5862
 msgid "as &MIDI..."
 msgstr "als &MIDI..."
 
-#: easy_abc.py:5978
+#: easy_abc.py:5855
 msgid "as &SVG..."
 msgstr "als &SVG..."
 
-#: easy_abc.py:5979 easy_abc.py:5986
+#: easy_abc.py:5856 easy_abc.py:5863
 msgid "as &HTML..."
 msgstr "als &HTML..."
 
-#: easy_abc.py:5980 easy_abc.py:5988
+#: easy_abc.py:5857 easy_abc.py:5865
 msgid "as Music&XML..."
 msgstr "als Music&XML..."
 
-#: easy_abc.py:5981
+#: easy_abc.py:5858
 msgid "as A&BC..."
 msgstr "als A&BC..."
 
-#: easy_abc.py:5982
+#: easy_abc.py:5859
 msgid "Export &all"
 msgstr "&Alles exporteren"
 
-#: easy_abc.py:5983
+#: easy_abc.py:5860
 msgid "as a &PDF Book..."
 msgstr "als enkel &PDF-bestand..."
 
-#: easy_abc.py:5984
+#: easy_abc.py:5861
 msgid "as PDF &Files..."
 msgstr "als losse PD&F-bestanden..."
 
-#: easy_abc.py:5990
+#: easy_abc.py:5867
 msgid "&Save\tCtrl+S"
 msgstr "Op&slaan\tCtrl+S"
 
-#: easy_abc.py:5990
+#: easy_abc.py:5867
 msgid "Save the active file"
 msgstr "Huidig bestand opslaan"
 
-#: easy_abc.py:5991
+#: easy_abc.py:5868
 msgid "Save &As...\tShift+Ctrl+S"
 msgstr "Opslaan &als...\tShift+Ctrl+S"
 
-#: easy_abc.py:5991
+#: easy_abc.py:5868
 msgid "Save the active file with a new filename"
 msgstr "Huidig bestand opslaan onder een andere naam"
 
-#: easy_abc.py:5993
+#: easy_abc.py:5870
 msgid "&Print...\tCtrl+P"
 msgstr "&Afdrukken...\tCtrl+P"
 
-#: easy_abc.py:5993
+#: easy_abc.py:5870
 msgid "Print the selected tune"
 msgstr "Geselecteerde composities afdrukken"
 
-#: easy_abc.py:5994
+#: easy_abc.py:5871
 msgid "&Print preview\tCtrl+Shift+P"
 msgstr "&Afdrukvoorbeeld...\tCtrl+Shift+P"
 
-#: easy_abc.py:5995
+#: easy_abc.py:5872
 msgid "P&age Setup..."
 msgstr "Pagina-instellingen..."
 
-#: easy_abc.py:5995
+#: easy_abc.py:5872
 msgid "Change the printer and printing options"
 msgstr "Printer en printeropties aanpassen"
 
-#: easy_abc.py:5997
+#: easy_abc.py:5874
 msgid "&Recent files"
 msgstr "&Recente bestanden"
 
-#: easy_abc.py:5999
+#: easy_abc.py:5876
 msgid "&Quit\tCtrl+Q"
 msgstr "&Afsluiten\tCtrl+Q"
 
-#: easy_abc.py:5999
+#: easy_abc.py:5876
 msgid "Exit the application (prompt to save files)"
 msgstr "Afsluiten (en vragen om bestanden op te slaan)"
 
-#: easy_abc.py:6000
+#: easy_abc.py:5877
 msgid "&Edit"
 msgstr "B&ewerken"
 
-#: easy_abc.py:6001
+#: easy_abc.py:5878
 msgid "&Undo\tCtrl+Z"
 msgstr "&Ongedaan maken\tCtrl+Z"
 
-#: easy_abc.py:6001
+#: easy_abc.py:5878
 msgid "Undo the last action"
 msgstr "Laatste actie ongedaan maken"
 
-#: easy_abc.py:6002
+#: easy_abc.py:5879
 msgid "&Redo\tCtrl+Y"
 msgstr "&Opnieuw\tCtrl+Y"
 
-#: easy_abc.py:6002
+#: easy_abc.py:5879
 msgid "Redo the last action"
 msgstr "Laatste actie opnieuw doen"
 
-#: easy_abc.py:6004
+#: easy_abc.py:5881
 msgid "&Cut\tCtrl+X"
 msgstr "&Knippen\tCtrl+X"
 
-#: easy_abc.py:6004
+#: easy_abc.py:5881
 msgid "Cut the selection and put it on the clipboard"
 msgstr "Knip de selectie naar het klembord"
 
-#: easy_abc.py:6005
+#: easy_abc.py:5882
 msgid "&Copy\tCtrl+C"
 msgstr "&Kopiëren\tCtrl+C"
 
-#: easy_abc.py:6005
+#: easy_abc.py:5882
 msgid "Copy the selection and put it on the clipboard"
 msgstr "Kopieer selectie naar het klembord"
 
-#: easy_abc.py:6006
+#: easy_abc.py:5883
 msgid "&Paste\tCtrl+V"
 msgstr "&Plakken\tCtrl+V"
 
-#: easy_abc.py:6006
+#: easy_abc.py:5883
 msgid "Paste clipboard contents"
 msgstr "Klembord plakken"
 
-#: easy_abc.py:6007
+#: easy_abc.py:5884
 msgid "&Delete\tDel"
 msgstr "&Verwijderen\tDel"
 
-#: easy_abc.py:6007
+#: easy_abc.py:5884
 msgid "Delete the selection"
 msgstr "Selectie verwijderen"
 
-#: easy_abc.py:6009
+#: easy_abc.py:5886
 msgid "&Insert musical symbol"
 msgstr "Muzieksymbool &invoegen"
 
-#: easy_abc.py:6010
-msgid "Note ornaments"
-msgstr "Versieringen"
-
-#: easy_abc.py:6011
-msgid "Directions"
-msgstr "Aanwijzingen"
-
-#: easy_abc.py:6012 tune_actions.py:1468 tune_elements.py:737
-msgid "Dynamics"
-msgstr "Dynamiek"
-
-#: easy_abc.py:6014
+#: easy_abc.py:5891
 msgid "&Transpose"
 msgstr "&Transponeren"
 
-#: easy_abc.py:6015
+#: easy_abc.py:5892
 msgid "&Change note length"
 msgstr "Andere nootlengte"
 
-#: easy_abc.py:6016
+#: easy_abc.py:5893
 msgid "Double note lengths\tCtrl+Shift++"
 msgstr "Verdubbel nootduur\tCtrl+Shift++"
 
-#: easy_abc.py:6017
+#: easy_abc.py:5894
 msgid "Halve note lengths\tCtrl+Shift+-"
 msgstr "Halveer nootduur\tCtrl+Shift+-"
 
-#: easy_abc.py:6018
+#: easy_abc.py:5895
 msgid "A&lign bars\tCtrl+Shift+A"
 msgstr "Maatstrepen uit&lijnen\tCtrl+Shift+A"
 
-#: easy_abc.py:6020
+#: easy_abc.py:5897
 msgid "&Find...\tCtrl+F"
 msgstr "&Zoeken...\tCtrl+F"
 
-#: easy_abc.py:6021
+#: easy_abc.py:5898
 msgid "&Find Next\tF3"
 msgstr "&Volgende zoeken\tF3"
 
-#: easy_abc.py:6022
+#: easy_abc.py:5899
 msgid "&Replace...\tCtrl+H"
 msgstr "&Vervangen...\tCtrl+H"
 
-#: easy_abc.py:6024
+#: easy_abc.py:5901
 msgid "&Select all\tCtrl+A"
 msgstr "Alles &selecteren\tCtrl+A"
 
-#: easy_abc.py:6025
+#: easy_abc.py:5902
 msgid "&Settings"
 msgstr "In&stellingen"
 
-#: easy_abc.py:6026
+#: easy_abc.py:5903
 msgid "&ABC settings"
 msgstr "&ABC instellingen"
 
-#: easy_abc.py:6027
+#: easy_abc.py:5904
 msgid "&Midi device settings"
 msgstr "&MIDI-apparaat instellingen"
 
-#: easy_abc.py:6028
+#: easy_abc.py:5905
 msgid "ABC &typing assistance"
 msgstr "ABC typhulp"
 
-#: easy_abc.py:6030
+#: easy_abc.py:5907
 msgid "&Clear cache"
 msgstr "&Cache opruimen"
 
-#: easy_abc.py:6031
+#: easy_abc.py:5908
 msgid "Cold &restart"
 msgstr "Koud herstarten"
 
-#: easy_abc.py:6032
+#: easy_abc.py:5909
 msgid "&Tools"
 msgstr "&Hulpmiddelen"
 
-#: easy_abc.py:6033
+#: easy_abc.py:5910
 msgid "Generate &incipits file..."
 msgstr "Maak bestand met beginregels..."
 
-#: easy_abc.py:6034
+#: easy_abc.py:5911
 msgid "&View incipits..."
 msgstr "&Toon beginregels..."
 
-#: easy_abc.py:6036
+#: easy_abc.py:5913
 msgid "&Renumber X: fields..."
 msgstr "He&rnummeren van X: velden..."
 
-#: easy_abc.py:6037
+#: easy_abc.py:5914
 msgid "&Sort tunes..."
 msgstr "Composities &sorteren"
 
-#: easy_abc.py:6038
+#: easy_abc.py:5915
 msgid "Search directories..."
 msgstr "Mappen doorzoeken..."
 
-#: easy_abc.py:6039
+#: easy_abc.py:5916
 msgid "&View"
 msgstr "&Bekijken"
 
-#: easy_abc.py:6040
+#: easy_abc.py:5917
 msgid "&Internals"
 msgstr "&Intern"
 
-#: easy_abc.py:6041 easy_abc.py:8414
+#: easy_abc.py:5918 easy_abc.py:8338
 msgid "Messages"
 msgstr "Meldingen"
 
-#: easy_abc.py:6041
+#: easy_abc.py:5918
 msgid "Show warnings and errors"
 msgstr "Toon fouten en waarschuwingen"
 
-#: easy_abc.py:6042
+#: easy_abc.py:5919
 msgid "Input processed tune"
 msgstr "Uiteindelijke ABC-bestand"
 
-#: easy_abc.py:6043
+#: easy_abc.py:5920
 msgid "Output midi file"
 msgstr "Uiteindelijke MIDI-bestand"
 
-#: easy_abc.py:6044
+#: easy_abc.py:5921
 msgid "Show settings status"
 msgstr "Toon instellingen als tekst"
 
-#: easy_abc.py:6045
+#: easy_abc.py:5922
 msgid "&Help"
 msgstr "&Hulp"
 
-#: easy_abc.py:6046
+#: easy_abc.py:5923
 msgid "&Show fields and commands reference"
 msgstr "&Toon ABC-naslagwerk"
 
-#: easy_abc.py:6048
+#: easy_abc.py:5925
 msgid "&EasyABC Help"
 msgstr "&EasyABC handleiding"
 
-#: easy_abc.py:6048
+#: easy_abc.py:5925
 msgid "Link to EasyABC Website"
 msgstr "Link naar website EasyABC"
 
-#: easy_abc.py:6049
+#: easy_abc.py:5926
 msgid "&ABC Standard Version 2.1"
 msgstr "&ABC standaard versie 2.1"
 
-#: easy_abc.py:6049
+#: easy_abc.py:5926
 msgid "Link to the ABC Standard version 2.1"
 msgstr "Link naar ABC Standaard versie 2.1"
 
-#: easy_abc.py:6050
+#: easy_abc.py:5927
 msgid "&Learn ABC"
 msgstr "&Leer ABC"
 
-#: easy_abc.py:6050
+#: easy_abc.py:5927
 msgid "Link to the ABC notation website"
 msgstr "Link naar website ABC notatie"
 
-#: easy_abc.py:6051
+#: easy_abc.py:5928
 msgid "&Abcm2ps help"
 msgstr "&Abcm2ps handleiding"
 
-#: easy_abc.py:6051
+#: easy_abc.py:5928
 msgid "Link to the Abcm2ps website"
 msgstr "Link naar website Abcm2ps"
 
-#: easy_abc.py:6052
+#: easy_abc.py:5929
 msgid "&Abc2midi help"
 msgstr "&Abc2midi handleiding"
 
-#: easy_abc.py:6052
+#: easy_abc.py:5929
 msgid "Link to the Abc2midi website"
 msgstr "Link naar website Abc2midi"
 
-#: easy_abc.py:6054
+#: easy_abc.py:5930
+msgid "ABC &Quick Reference Card"
+msgstr "ABC &Quick Reference Card"
+
+#: easy_abc.py:5930
+msgid "Link to a PDF with the most common ABC commands"
+msgstr "Link naar PDF met de meest voorkomende ABC commando's"
+
+#: easy_abc.py:5932
 msgid "&Check for update..."
 msgstr "&Op updates controleren..."
 
-#: easy_abc.py:6054
+#: easy_abc.py:5932
 msgid "Link to EasyABC download page"
 msgstr "EasyABC downloadpagina"
 
-#: easy_abc.py:6056 easy_abc.py:8374
+#: easy_abc.py:5934 easy_abc.py:8299
 msgid "About EasyABC"
 msgstr "Over EasyABC"
 
-#: easy_abc.py:6113
+#: easy_abc.py:5991
 msgid "You need to create the midi file by playing the tune"
 msgstr ""
 "U moet eerst op afspelen drukken om de midistructuur te kunnen bekijken."
 
-#: easy_abc.py:6147 easy_abc.py:6221 easy_abc.py:6248
+#: easy_abc.py:6024 easy_abc.py:6101 easy_abc.py:6128
 msgid "Find"
 msgstr "Zoeken"
 
-#: easy_abc.py:6157
+#: easy_abc.py:6029
 msgid "Find & Replace"
 msgstr "Zoeken & vervangen"
 
-#: easy_abc.py:6195
+#: easy_abc.py:6076
 #, python-format
 msgid "%d occurrences successfully replaced."
 msgstr "%d voorkomens vervangen."
 
-#: easy_abc.py:6197 easy_abc.py:6221 easy_abc.py:6248
+#: easy_abc.py:6078 easy_abc.py:6101 easy_abc.py:6128
 #, python-format
 msgid "Cannot find \"%s\""
 msgstr "Kan \"%s\" niet vinden"
 
-#: easy_abc.py:6198
+#: easy_abc.py:6079
 msgid "Replace All"
 msgstr "Alles vervangen"
 
-#: easy_abc.py:6300
+#: easy_abc.py:6182
 #, python-format
 msgid ""
 "This will remove %(count)s temporary files stored in the directory %(dir)s "
@@ -1563,11 +1605,11 @@ msgstr ""
 "Dit zal %(count)s tijdelijke bestanden verwijderen uit de map %(dir)s welke "
 "in totaal %(size).2f MB hardeschijfruimte innemen. Doorgaan?"
 
-#: easy_abc.py:6301
+#: easy_abc.py:6183
 msgid "Clear cache?"
 msgstr "Cache leeg maken?"
 
-#: easy_abc.py:6314
+#: easy_abc.py:6196
 msgid ""
 "This will close EasyAbc and put it in a state so that it starts with default "
 "settings.i.e. the file settings1.3 will be deleted."
@@ -1575,23 +1617,23 @@ msgstr ""
 "Sluit EasyABC af en begint met standaard instellingen (verwijdert bestaande "
 "instellingen)"
 
-#: easy_abc.py:6350
+#: easy_abc.py:6239
 msgid "Select a font for the ABC editor"
 msgstr "Selecteer een lettertype voor het ABC-gedeelte"
 
-#: easy_abc.py:6358
+#: easy_abc.py:6247
 msgid "ABC fields and commands reference"
 msgstr "ABC naslagwerk"
 
-#: easy_abc.py:7894
+#: easy_abc.py:7810
 msgid "nwc2xml error"
 msgstr "nwc2xml fout"
 
-#: easy_abc.py:7955
+#: easy_abc.py:7871
 msgid "Name of tune"
 msgstr "Naam van de compositie"
 
-#: easy_abc.py:8111
+#: easy_abc.py:8034
 msgid ""
 "abcm2ps was not found here. You need it to view the music. Go to settings "
 "and indicate the path."
@@ -1599,7 +1641,7 @@ msgstr ""
 "Abcm2ps kon niet gevonden worden. Het is nodig om de bladmuziek te tonen. In "
 "te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
-#: easy_abc.py:8122
+#: easy_abc.py:8045
 msgid ""
 "abc2midi was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
@@ -1607,13 +1649,13 @@ msgstr ""
 "Abc2midi kon niet gevonden worden. Het is nodig om de muziek af te spelen. "
 "In te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
-#: easy_abc.py:8134
+#: easy_abc.py:8057
 msgid ""
 "midi2abc was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr "midi2abc kon niet gevonden worden."
 
-#: easy_abc.py:8146
+#: easy_abc.py:8069
 msgid ""
 "abc2abc was not found here. You need it to transpose the music. Go to "
 "settings and indicate the path."
@@ -1621,1023 +1663,1275 @@ msgstr ""
 "Abc2abc kon niet gevonden worden. Het is nodig om de muziek te transponeren. "
 "In te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
-#: easy_abc.py:8155
+#: easy_abc.py:8078
 msgid ""
 "The midiplayer was not found. You will not be able to play the MIDI file."
 msgstr "De MIDI-speler kon niet gevonden worden."
 
-#: easy_abc.py:8183
+#: easy_abc.py:8108
 #, python-format
 msgid "The executable %s could not be found"
 msgstr "De toepassing %s kon niet gevonden worden"
 
-#: easy_abc.py:8442
+#: easy_abc.py:8366
 msgid "Processed Abc Tune"
 msgstr "Uiteindelijke ABC-bestand"
 
-#: tune_actions.py:259
+#: tune_actions.py:280
 msgid "Less options"
 msgstr "Minder opties"
 
-#: tune_actions.py:261
+#: tune_actions.py:282
 msgid "More options"
 msgstr "Meer opties"
 
-#: tune_actions.py:396
+#: tune_actions.py:416
 msgid "Convert to annotation"
 msgstr "Omzetten naar annotatie"
 
-#: tune_actions.py:430
+#: tune_actions.py:450
 msgid "No accidental"
 msgstr "Geen voorteken"
 
-#: tune_actions.py:431
+#: tune_actions.py:451
 msgid "Natural"
 msgstr "Herstellingsteken"
 
-#: tune_actions.py:432
+#: tune_actions.py:452
 msgid "Sharp"
 msgstr "Kruis"
 
-#: tune_actions.py:433
+#: tune_actions.py:453
 msgid "Flat"
 msgstr "Mol"
 
-#: tune_actions.py:434
+#: tune_actions.py:454
 msgid "Double sharp"
 msgstr "Dubbelkruis"
 
-#: tune_actions.py:435
+#: tune_actions.py:455
 msgid "Double flat"
 msgstr "Dubbelmol"
 
-#: tune_actions.py:436
+#: tune_actions.py:456
 msgid "Half sharp"
 msgstr "Halve kruis"
 
-#: tune_actions.py:437
+#: tune_actions.py:457
 msgid "Half flat"
 msgstr "Halve mol"
 
-#: tune_actions.py:438
+#: tune_actions.py:458
 msgid "Sharp and a half"
 msgstr "Anderhalve kruis"
 
-#: tune_actions.py:439
+#: tune_actions.py:459
 msgid "Flat and a half"
 msgstr "Anderhalve mol"
 
-#: tune_actions.py:442
+#: tune_actions.py:462
 msgid "Change accidental"
 msgstr "Ander voorteken"
 
-#: tune_actions.py:447
+#: tune_actions.py:467
 msgid "Common time (4/4)"
 msgstr "Gewone maat (4/4)"
 
-#: tune_actions.py:448
+#: tune_actions.py:468
 msgid "Cut time (2/2)"
 msgstr "Alla breve"
 
-#: tune_actions.py:449
+#: tune_actions.py:469
 msgid "2/4"
 msgstr "Tweekwartsmaat"
 
-#: tune_actions.py:450
+#: tune_actions.py:470
 msgid "3/4"
 msgstr "Driekwartsmaat"
 
-#: tune_actions.py:451
+#: tune_actions.py:471
 msgid "4/4"
 msgstr "Vierkwartsmaat"
 
-#: tune_actions.py:452
+#: tune_actions.py:472
 msgid "6/4"
 msgstr "Zeskwartsmaat"
 
-#: tune_actions.py:453
+#: tune_actions.py:473
 msgid "6/8"
 msgstr "Zesachtste"
 
-#: tune_actions.py:454
+#: tune_actions.py:474
 msgid "9/8"
 msgstr "Negenachtste"
 
-#: tune_actions.py:455
+#: tune_actions.py:475
 msgid "12/8"
 msgstr "Twaalfachtste"
 
-#: tune_actions.py:458
+#: tune_actions.py:478
 msgid "Change meter"
 msgstr "Andere maatsoort"
 
-#: tune_actions.py:463 tune_actions.py:475
+#: tune_actions.py:483 tune_actions.py:495
 msgid "half note"
 msgstr "Halve noot"
 
-#: tune_actions.py:464 tune_actions.py:477
+#: tune_actions.py:484 tune_actions.py:497
 msgid "quarter note"
 msgstr "Kwartnoot"
 
-#: tune_actions.py:465 tune_actions.py:478
+#: tune_actions.py:485 tune_actions.py:498
 msgid "eighth note"
 msgstr "Achtste noot"
 
-#: tune_actions.py:466 tune_actions.py:479
+#: tune_actions.py:486 tune_actions.py:499
 msgid "sixteenth note"
 msgstr "Zestiende noot"
 
-#: tune_actions.py:469 tune_actions.py:482
+#: tune_actions.py:489 tune_actions.py:502
 msgid "Change note length"
 msgstr "Andere duur"
 
-#: tune_actions.py:474
+#: tune_actions.py:494
 msgid "three quarter note"
 msgstr "Driekwart noot"
 
-#: tune_actions.py:476
+#: tune_actions.py:496
 msgid "three eighth note"
 msgstr "Drieachtste noot"
 
-#: tune_actions.py:487
+#: tune_actions.py:507
 msgid "Change second note length"
 msgstr "Nootduur"
 
-#: tune_actions.py:492
+#: tune_actions.py:512
 msgid "Only name"
 msgstr "Alleen naam"
 
-#: tune_actions.py:493
+#: tune_actions.py:513
 msgid "Only speed"
 msgstr "Alleen snelheid"
 
-#: tune_actions.py:494
+#: tune_actions.py:514
 msgid "Name & speed"
 msgstr "Naam en snelheid"
 
-#: tune_actions.py:497
+#: tune_actions.py:517
 msgid "Change tempo notation"
 msgstr "Andere tempo-notatie"
 
-#: tune_actions.py:535
+#: tune_actions.py:555
 msgid "Larghissimo"
 msgstr "Heel erg langzaam (Larghissimo)"
 
-#: tune_actions.py:536
+#: tune_actions.py:556
 msgid "Grave"
 msgstr "Ernstig, drukkend (Grave)"
 
-#: tune_actions.py:537
+#: tune_actions.py:557
 msgid "Lento"
 msgstr "Slepend (Lento)"
 
-#: tune_actions.py:538
+#: tune_actions.py:558
 msgid "Largo"
 msgstr "Breed, ernstig (Largo)"
 
-#: tune_actions.py:539
+#: tune_actions.py:559
 msgid "Adagio"
 msgstr "Langzaam (Adagio)"
 
-#: tune_actions.py:540
+#: tune_actions.py:560
 msgid "Adagietto"
 msgstr "Nogal langzaam (Adagietto)"
 
-#: tune_actions.py:541
+#: tune_actions.py:561
 msgid "Andante"
 msgstr "Langzaam, gaande (Andante)"
 
-#: tune_actions.py:542
+#: tune_actions.py:562
 msgid "Andantino"
 msgstr "Iets minder gaande (Andantino)"
 
-#: tune_actions.py:543
+#: tune_actions.py:563
 msgid "Moderato"
 msgstr "Matig (Moderato)"
 
-#: tune_actions.py:544
+#: tune_actions.py:564
 msgid "Allegretto"
 msgstr "Enigszins levendig (Allegretto)"
 
-#: tune_actions.py:545
+#: tune_actions.py:565
 msgid "Allegro"
 msgstr "Levendig (Allegro)"
 
-#: tune_actions.py:546
+#: tune_actions.py:566
 msgid "Vivace"
 msgstr "Opgewekt (Vivace)"
 
-#: tune_actions.py:547
+#: tune_actions.py:567
 msgid "Presto"
 msgstr "Snel (Presto)"
 
-#: tune_actions.py:548
+#: tune_actions.py:568
 msgid "Prestissimo"
 msgstr "Heel snel (Prestissimo)"
 
-#: tune_actions.py:551
+#: tune_actions.py:571
 msgid "Change tempo name"
 msgstr "Andere tempo-naam"
 
-#: tune_actions.py:556
+#: tune_actions.py:576
 msgid "Note up"
 msgstr "Noot hoger"
 
-#: tune_actions.py:557
+#: tune_actions.py:577
 msgid "Note down"
 msgstr "Noot lager"
 
-#: tune_actions.py:558 tune_actions.py:1062 tune_actions.py:1072
+#: tune_actions.py:578 tune_actions.py:1088 tune_actions.py:1098
 msgid "Octave up"
 msgstr "Octaaf hoger"
 
-#: tune_actions.py:559 tune_actions.py:1063 tune_actions.py:1073
+#: tune_actions.py:579 tune_actions.py:1089 tune_actions.py:1099
 msgid "Octave down"
 msgstr "Octaaf lager"
 
-#: tune_actions.py:563
+#: tune_actions.py:583
 msgid "Change pitch"
 msgstr "Andere toonhoogte"
 
-#: tune_actions.py:627
+#: tune_actions.py:647
 msgid "Change duration"
 msgstr "Andere duur"
 
-#: tune_actions.py:754
+#: tune_actions.py:774
 msgid "One measure"
 msgstr "Enkele maat"
 
-#: tune_actions.py:755
+#: tune_actions.py:775
 msgid "Double measures"
 msgstr "Maten verdubbeld"
 
-#: tune_actions.py:756
+#: tune_actions.py:776
 msgid "Half measures"
 msgstr "Maten gehalveerd"
 
-#: tune_actions.py:757
+#: tune_actions.py:777
 msgid "Increase measures"
 msgstr "Maat meer"
 
-#: tune_actions.py:758
+#: tune_actions.py:778
 msgid "Decrease measures"
 msgstr "Maat minder"
 
-#: tune_actions.py:759
+#: tune_actions.py:779
 msgid "Normal rest"
 msgstr "Gewone rust"
 
-#: tune_actions.py:770 tune_actions.py:784
+#: tune_actions.py:790 tune_actions.py:804
 msgid "Default length"
 msgstr "Standaard duur"
 
-#: tune_actions.py:771 tune_actions.py:785
+#: tune_actions.py:791 tune_actions.py:805
 msgid "Halve note length"
 msgstr "Halveren"
 
-#: tune_actions.py:772 tune_actions.py:786
+#: tune_actions.py:792 tune_actions.py:806
 msgid "Double note length"
 msgstr "Verdubbelen"
 
-#: tune_actions.py:773 tune_actions.py:787
+#: tune_actions.py:793 tune_actions.py:807
 msgid "Dotted note"
 msgstr "Puncteren"
 
-#: tune_actions.py:774 tune_actions.py:788
+#: tune_actions.py:794 tune_actions.py:808
 msgid "This note dotted, next note halved"
 msgstr "Deze gepuncteerd, volgende gehalveerd"
 
-#: tune_actions.py:775 tune_actions.py:789
+#: tune_actions.py:795 tune_actions.py:809
 msgid "This note halved, next note dotted"
 msgstr "Deze gehalveerd, volgende gepuncteerd"
 
-#: tune_actions.py:776
+#: tune_actions.py:796
 msgid "Tie / untie"
 msgstr "Overbinding"
 
-#: tune_actions.py:790
+#: tune_actions.py:810
 msgid "Whole measure"
 msgstr "Hele maat"
 
-#: tune_actions.py:798 tune_actions.py:1452
+#: tune_actions.py:818 tune_actions.py:1654
 msgid "Optional sharp"
 msgstr "Optionele kruis"
 
-#: tune_actions.py:799 tune_actions.py:1453
+#: tune_actions.py:819 tune_actions.py:1655
 msgid "Optional natural"
 msgstr "Optioneel herstellingsteken"
 
-#: tune_actions.py:800 tune_actions.py:1454
+#: tune_actions.py:820 tune_actions.py:1656
 msgid "Optional flat"
 msgstr "Optionele mol"
 
-#: tune_actions.py:801
+#: tune_actions.py:821
 msgid "Ritenuto"
 msgstr "Ritenuto"
 
-#: tune_actions.py:804
+#: tune_actions.py:824
 msgid "Change annotation"
 msgstr "Verander annotatie"
 
-#: tune_actions.py:810
+#: tune_actions.py:830
 msgid "Above"
 msgstr "Boven"
 
-#: tune_actions.py:811
+#: tune_actions.py:831
 msgid "Below"
 msgstr "Onder"
 
-#: tune_actions.py:812
+#: tune_actions.py:832
 msgid "Left"
 msgstr "Links"
 
-#: tune_actions.py:813
+#: tune_actions.py:833
 msgid "Right"
 msgstr "Rechts"
 
-#: tune_actions.py:814
+#: tune_actions.py:834
 msgid "Auto"
 msgstr "Automatisch"
 
-#: tune_actions.py:817
+#: tune_actions.py:837
 msgid "Position"
 msgstr "Positie"
 
-#: tune_actions.py:822
+#: tune_actions.py:842
 msgid "Bar line"
 msgstr "Maatstreep"
 
-#: tune_actions.py:823
+#: tune_actions.py:843
 msgid "Double bar line"
 msgstr "Dubbele maatstreep"
 
-#: tune_actions.py:824
+#: tune_actions.py:844
 msgid "Thin-thick double bar line"
 msgstr "Eindstreep"
 
-#: tune_actions.py:825
+#: tune_actions.py:845
 msgid "Dotted bar"
 msgstr "Gestippelde maatstreep"
 
-#: tune_actions.py:826
+#: tune_actions.py:846
 msgid "Thick-thin double bar line"
 msgstr "Dik-dunne maatstreep"
 
-#: tune_actions.py:827
+#: tune_actions.py:847
 msgid "Start of repeated section"
 msgstr "Begin van herhaling"
 
-#: tune_actions.py:828
+#: tune_actions.py:848
 msgid "End of repeated section"
 msgstr "Einde herhaling"
 
-#: tune_actions.py:829
+#: tune_actions.py:849
 msgid "First ending"
 msgstr "Eerste einde"
 
-#: tune_actions.py:830
+#: tune_actions.py:850
 msgid "Second ending"
 msgstr "Tweede einde"
 
-#: tune_actions.py:831
+#: tune_actions.py:851
 msgid "Both end and start of repetition"
 msgstr "Zowel einde als begin van herhaling"
 
-#: tune_actions.py:832 tune_elements.py:834
+#: tune_actions.py:852 tune_elements.py:925
 msgid "Voice overlay"
 msgstr "Partij overlappen"
 
-#: tune_actions.py:833
+#: tune_actions.py:853
 msgid "Invisible bar"
 msgstr "Onzichtbare maatstreep"
 
-#: tune_actions.py:836
+#: tune_actions.py:856
 msgid "Change bar"
 msgstr "Andere maatstreep"
 
-#: tune_actions.py:841 tune_actions.py:850
+#: tune_actions.py:861 tune_actions.py:870
 msgid "Visible"
 msgstr "Zichtbaar"
 
-#: tune_actions.py:842 tune_actions.py:851
+#: tune_actions.py:862 tune_actions.py:871
 msgid "Hidden"
 msgstr "Verborgen"
 
-#: tune_actions.py:845 tune_actions.py:854
+#: tune_actions.py:865 tune_actions.py:874
 msgid "Visibility"
 msgstr "Zichtbaarheid"
 
-#: tune_actions.py:859
+#: tune_actions.py:879
 msgid "Appoggiatura"
 msgstr "Appogiatuur (abstraherende voorslag)"
 
-#: tune_actions.py:860
+#: tune_actions.py:880
 msgid "Acciaccatura"
 msgstr "Acciaccatura"
 
-#: tune_actions.py:863
+#: tune_actions.py:883
 msgid "Appoggiatura/acciaccatura"
 msgstr "Appoggiatura/acciaccatura"
 
-#: tune_actions.py:889
+#: tune_actions.py:912
 msgid "6 sharps"
 msgstr "6 kruisen"
 
-#: tune_actions.py:890
+#: tune_actions.py:913
 msgid "5 sharps"
 msgstr "5 kruisen"
 
-#: tune_actions.py:891
+#: tune_actions.py:914
 msgid "4 sharps"
 msgstr "4 kruisen"
 
-#: tune_actions.py:892
+#: tune_actions.py:915
 msgid "3 sharps"
 msgstr "3 kruisen"
 
-#: tune_actions.py:893
+#: tune_actions.py:916
 msgid "2 sharps"
 msgstr "2 kruisen"
 
-#: tune_actions.py:894
+#: tune_actions.py:917
 msgid "1 sharp"
 msgstr "1 kruis"
 
-#: tune_actions.py:895
+#: tune_actions.py:918
 msgid "0 sharps/flats"
 msgstr "Geen voortekens"
 
-#: tune_actions.py:896
+#: tune_actions.py:919
 msgid "1 flat"
 msgstr "1 mol"
 
-#: tune_actions.py:897
+#: tune_actions.py:920
 msgid "2 flats"
 msgstr "2 mollen"
 
-#: tune_actions.py:898
+#: tune_actions.py:921
 msgid "3 flats"
 msgstr "3 mollen"
 
-#: tune_actions.py:899
+#: tune_actions.py:922
 msgid "4 flats"
 msgstr "4 mollen"
 
-#: tune_actions.py:900
+#: tune_actions.py:923
 msgid "5 flats"
 msgstr "5 mollen"
 
-#: tune_actions.py:901
+#: tune_actions.py:924
 msgid "6 flats"
 msgstr "6 mollen"
 
-#: tune_actions.py:966
+#: tune_actions.py:989
 msgid "Major (Ionian)"
 msgstr "Majeur (Ionisch)"
 
-#: tune_actions.py:967
+#: tune_actions.py:990
 msgid "Minor (Aeolian)"
 msgstr "Mineur (Eolisch)"
 
-#: tune_actions.py:968
+#: tune_actions.py:991
 msgid "Dorian"
 msgstr "Dorisch"
 
-#: tune_actions.py:969
+#: tune_actions.py:992
 msgid "Mixolydian"
-msgstr "Frygisch"
+msgstr "Mixolydisch"
 
-#: tune_actions.py:970
+#: tune_actions.py:993
 msgid "Phrygian"
 msgstr "Frygisch"
 
-#: tune_actions.py:971
+#: tune_actions.py:994
 msgid "Lydian"
 msgstr "Lydisch"
 
-#: tune_actions.py:972
+#: tune_actions.py:995
 msgid "Locrian"
 msgstr "Locrisch"
 
-#: tune_actions.py:975
+#: tune_actions.py:998
 msgid "Mode"
 msgstr "Toonladder"
 
-#: tune_actions.py:1013 tune_actions.py:1051 tune_actions.py:1061
-#: tune_actions.py:1071
+#: tune_actions.py:1036 tune_actions.py:1077 tune_actions.py:1087
+#: tune_actions.py:1097
 msgid "Default"
 msgstr "Standaard"
 
-#: tune_actions.py:1014
+#: tune_actions.py:1037
 msgid "Treble clef"
 msgstr "Vioolsleutel"
 
-#: tune_actions.py:1015
+#: tune_actions.py:1038
 msgid "Bass clef"
 msgstr "Bassleutel"
 
-#: tune_actions.py:1016
+#: tune_actions.py:1039
 msgid "Tenor clef"
 msgstr "Tenorsleutel"
 
-#: tune_actions.py:1017
+#: tune_actions.py:1040
 msgid "Alto clef"
 msgstr "Altsleutel"
 
-#: tune_actions.py:1018
+#: tune_actions.py:1041
 msgid "Soprano clef"
 msgstr "Sopraansleutel"
 
-#: tune_actions.py:1019
+#: tune_actions.py:1042
 msgid "Mezzo-soprano clef"
 msgstr "Mezzosopraansleutel"
 
-#: tune_actions.py:1020
+#: tune_actions.py:1043
 msgid "Baritone clef"
 msgstr "Baritonsleutel"
 
-#: tune_actions.py:1021
+#: tune_actions.py:1044
 msgid "Percussion clef"
 msgstr "Percussiesleutel"
 
-#: tune_actions.py:1025
+#: tune_actions.py:1048
 msgid "Clef"
 msgstr "Sleutel"
 
-#: tune_actions.py:1052
+#: tune_actions.py:1078
 msgid "Octave higher (8va)"
 msgstr "Octaaf hoger (8va)"
 
-#: tune_actions.py:1053
+#: tune_actions.py:1079
 msgid "Octave lower (8va bassa)"
 msgstr "Octaaf lager (8va bassa)"
 
-#: tune_actions.py:1056
+#: tune_actions.py:1082
 msgid "Staff transpose"
 msgstr "Octaveringsteken"
 
-#: tune_actions.py:1066
+#: tune_actions.py:1092
 msgid "Playback transpose"
 msgstr "Transponeren bij afspelen"
 
-#: tune_actions.py:1076
+#: tune_actions.py:1102
 msgid "Octave shift"
 msgstr "Octaafverschuiving"
 
-#: tune_actions.py:1115
+#: tune_actions.py:1141
 msgid "Change dynamics mark"
 msgstr "Ander dynamiekteken"
 
-#: tune_actions.py:1120
+#: tune_actions.py:1146
 msgid "Change fingering"
 msgstr "Andere vingerzetting"
 
-#: tune_actions.py:1125
+#: tune_actions.py:1151
 msgid "Change ornament"
 msgstr "Ander versieringsteken"
 
-#: tune_actions.py:1130
+#: tune_actions.py:1156
 msgid "Change direction marker"
 msgstr "Ander aanwijzingsteken"
 
-#: tune_actions.py:1135
+#: tune_actions.py:1161
 msgid "Change articulation marker"
 msgstr "Andere articulatiemarkering"
 
-#: tune_actions.py:1140
+#: tune_actions.py:1166
 msgid "Change chord"
 msgstr "Ander akkoord"
 
-#: tune_actions.py:1163
+#: tune_actions.py:1189
 msgid "Major"
 msgstr "Majeur"
 
-#: tune_actions.py:1164
+#: tune_actions.py:1190
 msgid "Minor"
 msgstr "Mineur"
 
-#: tune_actions.py:1165
+#: tune_actions.py:1191
 msgid "Diminished"
 msgstr "Verminderd"
 
-#: tune_actions.py:1166
+#: tune_actions.py:1192
 msgid "Augmented"
 msgstr "Overmatig"
 
-#: tune_actions.py:1167
+#: tune_actions.py:1193
 msgid "Suspended"
 msgstr "Voorhouding"
 
-#: tune_actions.py:1168
+#: tune_actions.py:1194
 msgid "Suspended (2nd)"
 msgstr "Secunde in plaats van terts"
 
-#: tune_actions.py:1169
+#: tune_actions.py:1195
 msgid "Seventh"
 msgstr "Dominant septiem"
 
-#: tune_actions.py:1170
+#: tune_actions.py:1196
 msgid "Major seventh"
 msgstr "Majeur septiem"
 
-#: tune_actions.py:1172
+#: tune_actions.py:1198
 msgid "Minor seventh"
 msgstr "Mineur septiem"
 
-#: tune_actions.py:1174
+#: tune_actions.py:1200
 msgid "Augmented seventh"
 msgstr "Overmatige septiem"
 
-#: tune_actions.py:1175
+#: tune_actions.py:1201
 msgid "Diminished seventh"
 msgstr "Verminderde septiem"
 
-#: tune_actions.py:1176
+#: tune_actions.py:1202
 msgid "Major sixth"
 msgstr "Majeur met sext"
 
-#: tune_actions.py:1177
+#: tune_actions.py:1203
 msgid "Minor sixth"
 msgstr "Mineur met sext"
 
-#: tune_actions.py:1178
+#: tune_actions.py:1204
 msgid "Half-diminished seventh"
 msgstr "Half verminderde septiem"
 
-#: tune_actions.py:1180
+#: tune_actions.py:1206
 msgid "Power-chord (no third)"
 msgstr "Zonder terts (power chord)"
 
-#: tune_actions.py:1181
+#: tune_actions.py:1207
 msgid "Seventh suspended"
 msgstr "Septiem met voorhouding"
 
-#: tune_actions.py:1182
+#: tune_actions.py:1208
 msgid "Seventh suspended (2nd)"
 msgstr "Septiem met secunde i.p.v. terts"
 
-#: tune_actions.py:1183
+#: tune_actions.py:1209
 msgid "Dominant 9th"
 msgstr "Dominant met none"
 
-#: tune_actions.py:1185
+#: tune_actions.py:1211
 msgid "Major 9th"
 msgstr "None"
 
-#: tune_actions.py:1186
+#: tune_actions.py:1212
 msgid "Minor Dominant 9th"
 msgstr "Mineur dominant none"
 
-#: tune_actions.py:1193
+#: tune_actions.py:1219
 msgid "Dominant 11th"
 msgstr "Dominant undecime"
 
-#: tune_actions.py:1196
+#: tune_actions.py:1222
 msgid "Change chord name"
-msgstr "Verander akkoord"
+msgstr "Ander akkoord"
 
-#: tune_actions.py:1204
+#: tune_actions.py:1230
 msgid "Root position"
 msgstr "Grondligging"
 
-#: tune_actions.py:1205
+#: tune_actions.py:1231
 msgid "First inversion"
 msgstr "Eerste omkering"
 
-#: tune_actions.py:1206
+#: tune_actions.py:1232
 msgid "Second inversion"
 msgstr "Tweede omkering"
 
-#: tune_actions.py:1209
+#: tune_actions.py:1235
 msgid "Change bass note"
-msgstr "Verander basnoot"
+msgstr "Andere basnoot"
 
-#: tune_actions.py:1217 tune_actions.py:1605
+#: tune_actions.py:1243 tune_actions.py:1976
 msgid "Normal"
 msgstr "Normaal"
 
-#: tune_actions.py:1218
+#: tune_actions.py:1244
 msgid "Dashed"
 msgstr "Gestreept"
 
-#: tune_actions.py:1221
+#: tune_actions.py:1247
 msgid "Change slur"
 msgstr "Verander legatoboog"
 
-#: tune_actions.py:1226
+#: tune_actions.py:1252
 msgid "Change redefinable symbol"
 msgstr "Ander herdefinieerbaar symbool"
 
-#: tune_actions.py:1271
+#: tune_actions.py:1278
+msgid "Change instrument"
+msgstr "Ander instrument"
+
+#: tune_actions.py:1289
+msgid "Change channel"
+msgstr "Ander kanaal"
+
+#: tune_actions.py:1298
+msgid "Acoustic Bass Drum"
+msgstr ""
+
+#: tune_actions.py:1299
+msgid "Bass Drum 1"
+msgstr ""
+
+#: tune_actions.py:1300
+msgid "Side Stick"
+msgstr ""
+
+#: tune_actions.py:1301
+msgid "Acoustic Snare"
+msgstr ""
+
+#: tune_actions.py:1302
+msgid "Hand Clap"
+msgstr ""
+
+#: tune_actions.py:1303
+msgid "Electric Snare"
+msgstr ""
+
+#: tune_actions.py:1304
+msgid "Low Floor Tom"
+msgstr ""
+
+#: tune_actions.py:1305
+msgid "Closed Hi Hat"
+msgstr ""
+
+#: tune_actions.py:1306
+msgid "High Floor Tom"
+msgstr ""
+
+#: tune_actions.py:1307
+msgid "Pedal Hi-Hat"
+msgstr ""
+
+#: tune_actions.py:1308
+msgid "Low Tom"
+msgstr ""
+
+#: tune_actions.py:1309
+msgid "Open Hi-Hat"
+msgstr ""
+
+#: tune_actions.py:1310
+msgid "Low-Mid Tom"
+msgstr ""
+
+#: tune_actions.py:1311
+msgid "Hi Mid Tom"
+msgstr ""
+
+#: tune_actions.py:1312
+msgid "Crash Cymbal 1"
+msgstr ""
+
+#: tune_actions.py:1313
+msgid "High Tom"
+msgstr ""
+
+#: tune_actions.py:1314
+msgid "Ride Cymbal 1"
+msgstr ""
+
+#: tune_actions.py:1315
+msgid "Chinese Cymbal"
+msgstr ""
+
+#: tune_actions.py:1316
+msgid "Ride Bell"
+msgstr ""
+
+#: tune_actions.py:1317
+msgid "Tambourine"
+msgstr ""
+
+#: tune_actions.py:1318
+msgid "Splash Cymbal"
+msgstr ""
+
+#: tune_actions.py:1319
+msgid "Cowbell"
+msgstr ""
+
+#: tune_actions.py:1320
+msgid "Crash Cymbal 2"
+msgstr ""
+
+#: tune_actions.py:1321
+msgid "Vibraslap"
+msgstr ""
+
+#: tune_actions.py:1322
+msgid "Ride Cymbal 2"
+msgstr ""
+
+#: tune_actions.py:1323
+msgid "Hi Bongo"
+msgstr ""
+
+#: tune_actions.py:1324
+msgid "Low Bongo"
+msgstr ""
+
+#: tune_actions.py:1325
+msgid "Mute Hi Conga"
+msgstr ""
+
+#: tune_actions.py:1326
+msgid "Open Hi Conga"
+msgstr ""
+
+#: tune_actions.py:1327
+msgid "Low Conga"
+msgstr ""
+
+#: tune_actions.py:1328
+msgid "High Timbale"
+msgstr ""
+
+#: tune_actions.py:1329
+msgid "Low Timbale"
+msgstr ""
+
+#: tune_actions.py:1330
+msgid "High Agogo"
+msgstr ""
+
+#: tune_actions.py:1331
+msgid "Low Agogo"
+msgstr ""
+
+#: tune_actions.py:1332
+msgid "Cabasa"
+msgstr ""
+
+#: tune_actions.py:1333
+msgid "Maracas"
+msgstr ""
+
+#: tune_actions.py:1334
+msgid "Short Whistle"
+msgstr ""
+
+#: tune_actions.py:1335
+msgid "Long Whistle"
+msgstr ""
+
+#: tune_actions.py:1336
+msgid "Short Guiro"
+msgstr ""
+
+#: tune_actions.py:1337
+msgid "Long Guiro"
+msgstr ""
+
+#: tune_actions.py:1338
+msgid "Claves"
+msgstr ""
+
+#: tune_actions.py:1339
+msgid "Hi Wood Block"
+msgstr ""
+
+#: tune_actions.py:1340
+msgid "Low Wood Block"
+msgstr ""
+
+#: tune_actions.py:1341
+msgid "Mute Cuica"
+msgstr ""
+
+#: tune_actions.py:1342
+msgid "Open Cuica"
+msgstr ""
+
+#: tune_actions.py:1343
+msgid "Mute Triangle"
+msgstr ""
+
+#: tune_actions.py:1344
+msgid "Open Triangle"
+msgstr ""
+
+#: tune_actions.py:1347
+msgid "Change percussion instrument"
+msgstr "Ander percussie instrument"
+
+#: tune_actions.py:1353
+msgid "Muted"
+msgstr "Stil"
+
+#: tune_actions.py:1360
+msgid "Change volume"
+msgstr "Ander volume"
+
+#: tune_actions.py:1398
 #, python-brace-format
 msgid "Learn {0}..."
 msgstr "Leer {0}"
 
-#: tune_actions.py:1274
+#: tune_actions.py:1401
 msgid "more"
 msgstr "meer"
 
-#: tune_actions.py:1315
+#: tune_actions.py:1464
 msgid "Full ABC specification"
 msgstr "Volledige ABC-beschrijving (engels)"
 
-#: tune_actions.py:1327
+#: tune_actions.py:1476
 msgid "New tune"
 msgstr "Nieuwe compositie"
 
-#: tune_actions.py:1337
+#: tune_actions.py:1486
 msgid "Unknown composer"
 msgstr "Onbekende componist"
 
-#: tune_actions.py:1352
+#: tune_actions.py:1504
+msgid "New tune with multiple voices"
+msgstr "Nieuwe compositie met meerdere stemmen"
+
+#: tune_actions.py:1530
+msgid "New drum score"
+msgstr "Nieuwe drum compositie"
+
+#: tune_actions.py:1554
 msgid "Add voice"
 msgstr "Stem/partij toevoegen"
 
-#: tune_actions.py:1368
+#: tune_actions.py:1570
 msgid "Replace invalid characters"
 msgstr "Herstel ongeldige tekens"
 
-#: tune_actions.py:1390
+#: tune_actions.py:1592
 msgid "New line"
 msgstr "Nieuwe regel"
 
-#: tune_actions.py:1405
+#: tune_actions.py:1607
 msgid "Space"
 msgstr "Ruimte"
 
-#: tune_actions.py:1421
+#: tune_actions.py:1623
 msgid "New note/rest"
 msgstr "Noot/rust toevoegen"
 
-#: tune_actions.py:1450 tune_elements.py:848 tune_elements.py:914
+#: tune_actions.py:1652 tune_elements.py:939 tune_elements.py:1005
 msgid "Chord symbol"
 msgstr "Akkoordaanduiding"
 
-#: tune_actions.py:1451
+#: tune_actions.py:1653
 msgid "Between parenthesis"
 msgstr "Tussen haakjes"
 
-#: tune_actions.py:1457
+#: tune_actions.py:1659
 msgid "Insert annotation or chord"
 msgstr "Annotatie of akkoord"
 
-#: tune_actions.py:1469 tune_elements.py:761
+#: tune_actions.py:1671 tune_elements.py:846
 msgid "Ornament"
 msgstr "Versiering"
 
-#: tune_actions.py:1470 tune_elements.py:796
+#: tune_actions.py:1672 tune_elements.py:887
 msgid "Articulation"
 msgstr "Articulatie"
 
-#: tune_actions.py:1471 tune_elements.py:775
+#: tune_actions.py:1673 tune_elements.py:864
 msgid "Direction"
 msgstr "Aanwijzing"
 
-#: tune_actions.py:1472 tune_elements.py:743
+#: tune_actions.py:1674
+msgid "Shortcut symbol"
+msgstr "Snelsymbool"
+
+#: tune_actions.py:1675 tune_elements.py:828
 msgid "Fingering"
 msgstr "Vingerzetting"
 
-#: tune_actions.py:1475
+#: tune_actions.py:1678
 msgid "Insert decoration"
 msgstr "Versiering invoegen"
 
-#: tune_actions.py:1486
+#: tune_actions.py:1689
 msgid "Add slur"
 msgstr "Legatoboog toevoegen"
 
-#: tune_actions.py:1497
+#: tune_actions.py:1700
 msgid "Add bar"
 msgstr "Maatstreep toevoegen"
 
-#: tune_actions.py:1539
+#: tune_actions.py:1742
 msgid "Combine using beam"
 msgstr "Verbinden met waarderingsstreep"
 
-#: tune_actions.py:1551
+#: tune_actions.py:1754
 msgid "Combine to chord"
 msgstr "Combineren tot een akkoord"
 
-#: tune_actions.py:1563
+#: tune_actions.py:1766
 msgid "Make triplets"
 msgstr "Maak triolen"
 
-#: tune_actions.py:1575 tune_actions.py:1579 tune_actions.py:1580
+#: tune_actions.py:1778
+msgid "Show single voice"
+msgstr "Toon maar één stem"
+
+#: tune_actions.py:1812
+msgid "Show all voices"
+msgstr "Toon alle stemmen"
+
+#: tune_actions.py:1831
+msgid "Show additional voice"
+msgstr "Nog een stem tonen"
+
+#: tune_actions.py:1863
+msgid "Hide voice"
+msgstr "Stem verbergen"
+
+#: tune_actions.py:1901
+msgid "Group together on same stave"
+msgstr "Stemmen samenvoegen op enkele notenbalk"
+
+#: tune_actions.py:1914
+msgid "Brace together"
+msgstr "Samenvoegen met accolade"
+
+#: tune_actions.py:1927
+msgid "Bracket together"
+msgstr "Samenvoegen met blokhaak"
+
+#: tune_actions.py:1932
+msgid "Toggle continued bar lines"
+msgstr "Wisselen van doorgetrokken maatstrepen"
+
+#: tune_actions.py:1949 tune_actions.py:1953 tune_actions.py:1954
 msgid "Page width"
 msgstr "Paginabreedte"
 
-#: tune_actions.py:1576
+#: tune_actions.py:1950
 msgid "Page height"
 msgstr "Paginahoogte"
 
-#: tune_actions.py:1577
+#: tune_actions.py:1951
 msgid "Top margin"
 msgstr "Bovenmarge"
 
-#: tune_actions.py:1578
+#: tune_actions.py:1952
 msgid "Bottom margin"
 msgstr "Ondermarge"
 
-#: tune_actions.py:1581
+#: tune_actions.py:1955
 msgid "Staff width"
 msgstr "Breedte notenbalk"
 
-#: tune_actions.py:1582
+#: tune_actions.py:1956
 msgid "Page orientation"
 msgstr "Afdrukstand"
 
-#: tune_actions.py:1585
+#: tune_actions.py:1959
 msgid "Change page format"
 msgstr "Andere paginaindeling"
 
-#: tune_actions.py:1591
+#: tune_actions.py:1965
 msgid "Start of every line"
 msgstr "Begin van de regel"
 
-#: tune_actions.py:1592
+#: tune_actions.py:1966
 msgid "Every measure"
 msgstr "Elke maat"
 
-#: tune_actions.py:1593
-msgid "Every 2 measures"
-msgstr "Elke 2 maten"
-
-#: tune_actions.py:1594
+#: tune_actions.py:1967
 msgid "Every 4 measures"
 msgstr "Elke 4 maten"
 
-#: tune_actions.py:1595
+#: tune_actions.py:1968
 msgid "Every 5 measures"
 msgstr "Elke 5 maten"
 
-#: tune_actions.py:1596
-msgid "Every 8 measures"
-msgstr "Elke 8 maten"
-
-#: tune_actions.py:1597
-msgid "Every 10 measures"
-msgstr "Elke 10 maten"
-
-#: tune_actions.py:1600
+#: tune_actions.py:1971
 msgid "Show measure numbers"
 msgstr "Toon maatnummers"
 
-#: tune_actions.py:1606
+#: tune_actions.py:1977
 msgid "Boxed"
 msgstr "Omkaderd"
 
-#: tune_actions.py:1609
+#: tune_actions.py:1980
 msgid "Show measure box"
 msgstr "Toon maatnummer omkaderd"
 
-#: tune_actions.py:1614
+#: tune_actions.py:1985
 msgid "Zero"
 msgstr "Nul"
 
-#: tune_actions.py:1615
+#: tune_actions.py:1986
 msgid "One"
 msgstr "Eén"
 
-#: tune_actions.py:1618
+#: tune_actions.py:1989
 msgid "First measure number"
 msgstr "Eerste maatnummer"
 
-#: tune_actions.py:1623
+#: tune_actions.py:1994
 msgid "Title font"
 msgstr "Lettertype titel"
 
-#: tune_actions.py:1624
+#: tune_actions.py:1995
 msgid "Subtitle font"
 msgstr "Lettertype subtitel"
 
-#: tune_actions.py:1625
+#: tune_actions.py:1996
 msgid "Composer font"
 msgstr "Lettertype componist"
 
-#: tune_actions.py:1626
+#: tune_actions.py:1997
 msgid "Parts font"
 msgstr "Lettertype onderdelen"
 
-#: tune_actions.py:1627
+#: tune_actions.py:1998
 msgid "Tempo font"
 msgstr "Lettertype tempo-aanduiding"
 
-#: tune_actions.py:1628
+#: tune_actions.py:1999
 msgid "Guitar chord font"
 msgstr "Lettertype gitaarakkoorden"
 
-#: tune_actions.py:1629
+#: tune_actions.py:2000
 msgid "Annotation font"
 msgstr "Lettertype annotatie"
 
-#: tune_actions.py:1630
+#: tune_actions.py:2001
 msgid "Info font"
 msgstr "Lettertype voor informatie"
 
-#: tune_actions.py:1631
+#: tune_actions.py:2002
 msgid "Text font"
 msgstr "Lettertype voor tekst"
 
-#: tune_actions.py:1632
+#: tune_actions.py:2003
 msgid "Vocal font"
 msgstr "Lettertype voor zangstem"
 
-#: tune_actions.py:1633
+#: tune_actions.py:2004
 msgid "Words font"
 msgstr "Lettertype voor woorden"
 
-#: tune_actions.py:1634
+#: tune_actions.py:2005
 msgid "Custom font 1"
 msgstr ""
 
-#: tune_actions.py:1635
+#: tune_actions.py:2006
 msgid "Custom font 2"
 msgstr ""
 
-#: tune_actions.py:1636
+#: tune_actions.py:2007
 msgid "Custom font 3"
 msgstr ""
 
-#: tune_actions.py:1637
+#: tune_actions.py:2008
 msgid "Custom font 4"
 msgstr ""
 
-#: tune_actions.py:1640
+#: tune_actions.py:2011
 msgid "Change font directive"
 msgstr "Ander lettertype"
 
-#: tune_actions.py:1645
+#: tune_actions.py:2016 tune_actions.py:2026
 msgid "Page scale factor"
 msgstr "Schaal"
 
-#: tune_actions.py:1646
+#: tune_actions.py:2017
 msgid "Staff scale factor"
 msgstr "Notenbalkschaal"
 
-#: tune_actions.py:1649
+#: tune_actions.py:2020
 msgid "Change scale directive"
 msgstr "Andere schaal"
 
-#: tune_actions.py:1654
-msgid "MIDI"
-msgstr "MIDI"
+#: tune_actions.py:2025 tune_elements.py:626
+msgid "Score layout"
+msgstr "Notenbalkopmaak"
 
-#: tune_actions.py:1655
-msgid "Page layout"
-msgstr "Paginaopmaak"
+#: tune_actions.py:2027 tune_elements.py:634
+msgid "Measure numbering"
+msgstr "Maatnummering"
 
-#: tune_actions.py:1656
-msgid "Scale"
-msgstr "Schaal"
+#: tune_actions.py:2028
+msgid "Playback"
+msgstr "Afspelen"
 
-#: tune_actions.py:1657
-msgid "Font"
-msgstr "Lettertype"
-
-#: tune_actions.py:1660
+#: tune_actions.py:2031
 msgid "Insert directive"
-msgstr "Aanwijziging invoegen"
+msgstr "Instructie invoegen"
 
-#: tune_actions.py:1665
+#: tune_actions.py:2036
+msgid "Set instrument"
+msgstr "Instrument instellen"
+
+#: tune_actions.py:2037
+msgid "Set volume"
+msgstr "Volume instellen"
+
+#: tune_actions.py:2040
+msgid "Insert playback directive"
+msgstr "Afspeelinstructie toevoegen"
+
+#: tune_actions.py:2045
 msgid "break between syllables within a word"
 msgstr "Scheiding tussen lettergrepen"
 
-#: tune_actions.py:1666
+#: tune_actions.py:2046
 msgid "previous syllable is to be held for an extra note"
 msgstr "Vorige lettergreep aanhouden"
 
-#: tune_actions.py:1667
+#: tune_actions.py:2047
 msgid "one note is skipped (* is equivalent to a blank syllable)"
 msgstr "Noot overslaan"
 
-#: tune_actions.py:1668
+#: tune_actions.py:2048
 msgid "appears as a space; aligns multiple words under one note"
 msgstr "Getoond als spatie; meerdere woorden per noot"
 
-#: tune_actions.py:1669
+#: tune_actions.py:2049
 msgid "appears as hyphen; aligns multiple syllables under one note"
 msgstr "Verbindingstreepje; meerdere lettergrepen per noot"
 
-#: tune_actions.py:1670 tune_actions.py:1679
+#: tune_actions.py:2050 tune_actions.py:2059
 msgid "advances to the next bar"
 msgstr "Naar volgende maat"
 
-#: tune_actions.py:1673 tune_actions.py:1682
+#: tune_actions.py:2053 tune_actions.py:2062
 msgid "Insert align symbol"
 msgstr "Uitlijnsymbool invoegen"
 
-#: tune_actions.py:1678
+#: tune_actions.py:2058
 msgid "one note is skipped"
 msgstr "een noot wordt overgeslagen"
 
-#: tune_actions.py:1687 tune_actions.py:1707
+#: tune_actions.py:2067 tune_actions.py:2100 tune_actions.py:2119
 msgid "Key / clef"
 msgstr "Toonsoort / sleutel"
 
-#: tune_actions.py:1692 tune_actions.py:1716
+#: tune_actions.py:2072 tune_actions.py:2126
 msgid "Change..."
 msgstr "Verander..."
 
-#: tune_actions.py:1737
+#: tune_actions.py:2103 tune_actions.py:2139
+msgid "Add..."
+msgstr "Invoegen..."
+
+#: tune_actions.py:2160
 msgid "Remove"
 msgstr "Weghalen"
 
@@ -2663,7 +2957,7 @@ msgstr "Discografie"
 
 #: tune_elements.py:84
 msgid "File url"
-msgstr ""
+msgstr "Bestands-URL"
 
 #: tune_elements.py:85
 msgid "Group"
@@ -2695,7 +2989,7 @@ msgstr "Macro"
 
 #: tune_elements.py:92
 msgid "Notes"
-msgstr "Noten"
+msgstr "Notities"
 
 #: tune_elements.py:93
 msgid "Origin"
@@ -2979,67 +3273,159 @@ msgid "the words \"Da Capo\""
 msgstr "de woorden \"Da Capo\""
 
 #: tune_elements.py:224
+msgid "the words \"D.C. al Coda\""
+msgstr "D.C. al Coda"
+
+#: tune_elements.py:225
+msgid "the words \"D.C. al Fine\""
+msgstr "D.C. al Fine"
+
+#: tune_elements.py:226
+msgid "the words \"D.S. al Coda\""
+msgstr "D.S. al Coda"
+
+#: tune_elements.py:227
+msgid "the words \"D.S. al Fine\""
+msgstr "D.S. al Fine"
+
+#: tune_elements.py:228
 msgid "the word \"fine\""
 msgstr "fine"
 
-#: tune_elements.py:225
+#: tune_elements.py:229
 msgid "vertical line on the upper part of the staff"
 msgstr "Vertical lijn bovenkant notenbalk"
 
-#: tune_elements.py:226
+#: tune_elements.py:230
 msgid ""
 "vertical line on the upper part of the staff, extending down to the centre "
 "line"
 msgstr "Vertical lijn bovenkant notenbalk tot halverwege"
 
-#: tune_elements.py:227
+#: tune_elements.py:231
 msgid ""
 "vertical line on the upper part of the staff, extending 3/4 of the way down"
 msgstr "Vertical lijn bovenkant notenbalk tot 3/4"
 
-#: tune_elements.py:481
+#: tune_elements.py:232
+msgid "sustain pedal down"
+msgstr "sustain pedaal indrukken"
+
+#: tune_elements.py:233
+msgid "sustain pedal up"
+msgstr "sustain pedaal loslaten"
+
+#: tune_elements.py:504
 msgid "Unknown"
 msgstr "Onbekend"
 
-#: tune_elements.py:533 tune_elements.py:606
+#: tune_elements.py:556 tune_elements.py:678
 msgid "Stylesheet directive"
 msgstr "Opmaakinstructie"
 
-#: tune_elements.py:533 tune_elements.py:612
+#: tune_elements.py:556 tune_elements.py:684
 #, python-format
 msgid ""
 "A stylesheet directive is a line that starts with %%, followed by a "
 "directive that gives instructions to typesetting or player programs."
 msgstr ""
-"Een opmaakmodel-instructie is een regel die start met %% gevolgd door een "
-"opdracht voor opmaak- of afspeelprogramma's."
+"Een opmaakinstructie is een regel die start met %% gevolgd door een opdracht "
+"voor opmaak- of afspeelprogramma's."
 
-#: tune_elements.py:551
+#: tune_elements.py:574
 msgid "MIDI directive"
 msgstr "MIDI instructie"
 
-#: tune_elements.py:551
+#: tune_elements.py:574
 msgid "A directive that gives instructions to player programs."
 msgstr "Een instructie voor afspeelprogramma's"
 
-#: tune_elements.py:590
+#: tune_elements.py:580
+msgid "Instrument"
+msgstr "Instrument"
+
+#: tune_elements.py:580
+msgid "Sets the instrument for a MIDI channel."
+msgstr "Stelt het instrument in."
+
+#: tune_elements.py:587
+msgid "Chord instrument"
+msgstr "Begeleidingsinstrument"
+
+#: tune_elements.py:587
+msgid "Sets the instrument for playing chords."
+msgstr "Het instrument om akkoorden te spelen."
+
+#: tune_elements.py:594
+msgid "Bass instrument"
+msgstr "Bas instrument"
+
+#: tune_elements.py:594
+msgid "Sets the instrument for the base."
+msgstr "Het instrument om de bas te spelen"
+
+#: tune_elements.py:602
+msgid "Channel"
+msgstr "Kanaal"
+
+#: tune_elements.py:602
+msgid "Sets the MIDI channel for the current voice."
+msgstr "Selecteert het MIDI-kanaal voor de huidige stem."
+
+#: tune_elements.py:610
+msgid "Drum mapping"
+msgstr "Drum toewijzing"
+
+#: tune_elements.py:610
+msgid "Maps a note to an instrument."
+msgstr "Wijst een noot toe aan een instrument."
+
+#: tune_elements.py:618
+msgid "Volume"
+msgstr "Volume"
+
+#: tune_elements.py:618
+msgid "Volume for current voice."
+msgstr "Volume voor huidige stem."
+
+#: tune_elements.py:626
+msgid "Defines which staves are displayed."
+msgstr "Bepaalt hoe notenbalken getoond worden."
+
+#: tune_elements.py:634
+msgid "Defines if and how measures are numbered."
+msgstr "Bepaalt hoe maten genummerd worden."
+
+#: tune_elements.py:663
 msgid "ABC version"
 msgstr "ABC versie"
 
-#: tune_elements.py:590
+#: tune_elements.py:663
 msgid ""
 "It starts with the version of the ABC specification this file conforms to."
 msgstr "Het begint met de ABC-versie waaraan dit bestand voldoet."
 
-#: tune_elements.py:598
+#: tune_elements.py:671
 msgid "Comment"
 msgstr "Commentaar"
 
-#: tune_elements.py:623
+#: tune_elements.py:695
+msgid "Beam"
+msgstr "Nootverbinder"
+
+#: tune_elements.py:695
+msgid ""
+"Back quotes ` may be used freely between notes to be beamed, to increase "
+"legibility."
+msgstr ""
+"Backticks ` mogen gebruikt worden om noten te verbinden en de leesbaarheid "
+"te verbeteren."
+
+#: tune_elements.py:702
 msgid "Welcome to EasyABC"
 msgstr "Welkom bij EasyABC"
 
-#: tune_elements.py:624
+#: tune_elements.py:703
 msgid ""
 "Creating an abc-file from scratch can be difficult. This assist panel tries "
 "to help by providing hints and actions. But remember, typing is usually "
@@ -3049,23 +3435,34 @@ msgstr ""
 "probeert hulp te bieden. Typen is uiteindelijk wel sneller dan de muis "
 "gebruiken."
 
-#: tune_elements.py:640 tune_elements.py:647
+#: tune_elements.py:719 tune_elements.py:732
 msgid "Empty line"
 msgstr "Lege regel"
 
-#: tune_elements.py:640
+#: tune_elements.py:719
 msgid "An empty line separates tunes."
 msgstr "Een lege regel is de scheiding tussen composities."
 
-#: tune_elements.py:647
+#: tune_elements.py:726
+msgid "Empty line in header"
+msgstr "Lege regel"
+
+#: tune_elements.py:726
+msgid ""
+"More directives can be added here in the tune header. After K: the music "
+"code begins."
+msgstr ""
+"Meer instructies kunnen hier toegevoegd worden. Na K: begint de muziekcode."
+
+#: tune_elements.py:732
 msgid "Notes, rests, or directives can be added."
 msgstr "Typ hier noten, rusten of instructies."
 
-#: tune_elements.py:653
+#: tune_elements.py:738
 msgid "File header"
 msgstr "Beginstuk"
 
-#: tune_elements.py:653
+#: tune_elements.py:738
 msgid ""
 "Everything above the first X: is the file header. The directives here apply "
 "to all the tunes that follow."
@@ -3073,33 +3470,33 @@ msgstr ""
 "De instructies die boven de eerste X: voorkomen zijn van toepassing op alle "
 "composities die volgen."
 
-#: tune_elements.py:667
+#: tune_elements.py:752
 msgid "Whitespace"
 msgstr "Witruimte"
 
-#: tune_elements.py:667
+#: tune_elements.py:752
 msgid ""
 "Space is used to improve legibility and to prevent notes from sharing the "
 "same beam."
 msgstr "Om de leesbaarheid te verhogen en waardestreep te voorkomen."
 
-#: tune_elements.py:673 tune_elements.py:915
+#: tune_elements.py:758 tune_elements.py:1006
 msgid "Annotation"
 msgstr "Annotatie"
 
-#: tune_elements.py:680
+#: tune_elements.py:765
 msgid "Chord symbol or annotation"
 msgstr "Akkoordsymbool of annotatie"
 
-#: tune_elements.py:686
+#: tune_elements.py:771
 msgid "Slur"
 msgstr "Legatoboog"
 
-#: tune_elements.py:692
+#: tune_elements.py:777
 msgid "Typesetting extra space"
 msgstr "Extra ruimte"
 
-#: tune_elements.py:692
+#: tune_elements.py:777
 msgid ""
 "y can be used to add extra space between the surrounding notes; moreover, "
 "chord symbols and decorations can be attached to it, to separate them from "
@@ -3107,11 +3504,11 @@ msgid ""
 msgstr ""
 "Gebruik y om extra ruimte te maken tussen noten, akkoorden en versieringen."
 
-#: tune_elements.py:698
+#: tune_elements.py:783
 msgid "Redefinable symbol"
 msgstr "Herdefinieerbaar symbool"
 
-#: tune_elements.py:698
+#: tune_elements.py:783
 msgid ""
 "The letters H-W and h-w and the symbol ~ can be assigned with the U: field "
 "to provide a shortcut for the !symbol! syntax. For example, to assign the "
@@ -3122,35 +3519,35 @@ msgstr ""
 "Bijvoorbeeld om de letter T een triller te laten worden:\n"
 "U: T = !trill!"
 
-#: tune_elements.py:723
+#: tune_elements.py:808
 msgid "Unknown symbol"
 msgstr "Onbekend symbool"
 
-#: tune_elements.py:816
+#: tune_elements.py:907
 msgid "Tuplet"
 msgstr "Antimetrische figuur"
 
-#: tune_elements.py:816
+#: tune_elements.py:907
 msgid "Duplets, triplets, quadruplets, etc."
 msgstr "Triolen, duolen, etc."
 
-#: tune_elements.py:822
+#: tune_elements.py:913
 msgid "Bar"
 msgstr "Maatstreep"
 
-#: tune_elements.py:822
+#: tune_elements.py:913
 msgid "Separates measures."
 msgstr "Scheidingsteken tussen maten."
 
-#: tune_elements.py:828
+#: tune_elements.py:919
 msgid "Variant ending"
 msgstr "Variërend einde"
 
-#: tune_elements.py:828
+#: tune_elements.py:919
 msgid "To play a different ending each time"
 msgstr "Om bij een herhaling anders te eindigen."
 
-#: tune_elements.py:834
+#: tune_elements.py:925
 msgid ""
 "The & operator may be used to temporarily overlay several voices within one "
 "measure. Each & operator sets the time point of the music back by one bar "
@@ -3163,55 +3560,55 @@ msgstr ""
 "van de maat. De noten die volgen na & worden gecombineerd met de vorige "
 "noten. Dit geldt maar voor één maat."
 
-#: tune_elements.py:840
+#: tune_elements.py:931
 msgid "Invalid character"
 msgstr "Ongeldig teken"
 
-#: tune_elements.py:840
+#: tune_elements.py:931
 msgid "This character is not allowed within the body of an abc tune."
 msgstr "Dit karakter is niet toegestaan in een abc-bestand."
 
-#: tune_elements.py:874 tune_elements.py:913
+#: tune_elements.py:965 tune_elements.py:1004
 msgid "Grace notes"
 msgstr "Voorslag"
 
-#: tune_elements.py:890
+#: tune_elements.py:981
 msgid "Note group"
 msgstr "Nootgroep"
 
-#: tune_elements.py:898
+#: tune_elements.py:989
 msgid "Note or chord"
 msgstr "Noot of akkoord"
 
-#: tune_elements.py:904
+#: tune_elements.py:995
 msgid "Chord"
 msgstr "Akkoord"
 
-#: tune_elements.py:911
+#: tune_elements.py:1002
 msgid "Note"
 msgstr "Noot"
 
-#: tune_elements.py:923
+#: tune_elements.py:1014
 msgid "Rest"
 msgstr "Rust"
 
-#: tune_elements.py:930
+#: tune_elements.py:1021
 msgid "Measure rest"
 msgstr "Maatrust"
 
-#: tune_elements.py:937
+#: tune_elements.py:1028
 msgid "Multiple notes/chords"
 msgstr "Meerdere noten/akkoorden"
 
-#: tune_elements.py:944
+#: tune_elements.py:1035
 msgid "Multiple notes"
 msgstr "Meerdere noten"
 
-#: tune_elements.py:951
+#: tune_elements.py:1042
 msgid "Backslash"
 msgstr "Backslash"
 
-#: tune_elements.py:951
+#: tune_elements.py:1042
 msgid ""
 "In abc music code, by default, line-breaks in the code generate line-breaks "
 "in the typeset score and these can be suppressed by using a backslash."
@@ -3219,11 +3616,44 @@ msgstr ""
 "In abc-code een nieuwe regel in de code is ook een nieuwe regel in de "
 "bladmuziek. Een backslash voorkomt een nieuwe regel."
 
-#~ msgid "Change channel"
-#~ msgstr "Ander kanaal"
+#~ msgid "Directive"
+#~ msgstr "Instructie"
 
-#~ msgid "Change instrument"
-#~ msgstr "Ander instrument"
+#~ msgid "Every 2 measures"
+#~ msgstr "Elke 2 maten"
+
+#~ msgid "Every 8 measures"
+#~ msgstr "Elke 8 maten"
+
+#~ msgid "Every 10 measures"
+#~ msgstr "Elke 10 maten"
+
+#~ msgid "MIDI"
+#~ msgstr "MIDI"
+
+#~ msgid "Page layout"
+#~ msgstr "Paginaopmaak"
+
+#~ msgid "Scale"
+#~ msgstr "Schaal"
+
+#~ msgid "Font"
+#~ msgstr "Lettertype"
+
+#~ msgid "Set channel"
+#~ msgstr "Kanaal instellen"
+
+#~ msgid "Insert MIDI action"
+#~ msgstr "Afspeelactie invoegen"
+
+#~ msgid ""
+#~ "You are running {0} on {1}\n"
+#~ "You can get the latest version on http://sourceforge.net/projects/"
+#~ "easyabc/\n"
+#~ msgstr ""
+#~ "Je gebruikt nu {0} (op {1})\n"
+#~ "De laatste versie kan gevonden worden op http://sourceforge.net/projects/"
+#~ "easyabc/\n"
 
 #~ msgid "Change font"
 #~ msgstr "Wijzig lettertype"

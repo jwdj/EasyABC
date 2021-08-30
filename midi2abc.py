@@ -30,11 +30,6 @@ import math
 from simple_abc_parser import get_best_key_for_midi_notes, get_accidentals_for_key
 from io import StringIO
 
-PY3 = sys.version_info.major > 2
-if PY3:
-    def unicode(s):
-        return s
-
 num_quarter_notes_per_bar = 3
 bars_per_line = 4
 
@@ -176,7 +171,7 @@ def note_to_string(note, duration, default_len, key_accidentals, cur_accidentals
         accidental_string = {-1: '_', -2: '__',
                              0: '=', 1: '^', 2: '^^'}[accidental_num]
 
-    octave = (note - middle_C) / 12
+    octave = (note - middle_C) // 12
 
     # handle the border cases of Cb and B# to make sure that we use the right octave
     if octave_note == 11 and accidental_num == -1:
@@ -188,7 +183,7 @@ def note_to_string(note, duration, default_len, key_accidentals, cur_accidentals
         if octave >= 1:
             n = n.lower()
         if octave > 1:
-            n = n + "'" * (octave - 1)
+            n = n + "'" * int(octave - 1)
     elif octave < 0:
         if abs(octave) >= 1:
             n = n + "," * abs(octave)
@@ -359,7 +354,7 @@ def midi_to_abc(filename=None, notes=None, key=None, metre=Fraction(3, 4), defau
 
             # output broken rythm symbol if set
             if broken_rythm_symbol:
-                output.write(unicode(broken_rythm_symbol))
+                output.write(str(broken_rythm_symbol))
 
             # if a bow was previously started end it here
             if bow_started and not bow_started_here:

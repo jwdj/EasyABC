@@ -1,13 +1,4 @@
 from __future__ import unicode_literals
-import re
-import os
-import io
-import os.path
-import wx
-import wx.media
-import time
-import sys
-PY3 = sys.version_info.major > 2
 
 
 class EventHook(object):
@@ -27,7 +18,7 @@ class EventHook(object):
             handler(*args, **keywargs)
 
     def clearObjectHandlers(self, obj):
-        self.__handlers = [h for h in self.__handlers if getattr(h, 'im_self', False) != obj] 
+        self.__handlers = [h for h in self.__handlers if getattr(h, '__self__', False) != obj]
 
 
 class MidiPlayer(object):
@@ -35,6 +26,7 @@ class MidiPlayer(object):
         super(MidiPlayer, self).__init__()
         self.OnAfterStop = EventHook()
         self.OnAfterLoad = EventHook()
+        self._loop_midi_playback = False
 
     @property
     def is_playing(self):
@@ -43,6 +35,13 @@ class MidiPlayer(object):
     @property
     def is_paused(self):
         return False
+
+    @property
+    def loop_midi_playback(self):
+        return self._loop_midi_playback
+
+    def set_loop_midi_playback(self, value):
+        self._loop_midi_playback = value
 
     @property
     def supports_tempo_change_while_playing(self):

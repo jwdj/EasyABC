@@ -9,7 +9,7 @@
 ; Seymour Shlien
 
 #define MyAppName "EasyABC"
-#define MyAppVersion "1.3.7.8"
+#define MyAppVersion "1.3.7.9"
 #define MyAppPublisher "seymour shlien"
 #define MyAppURL "ifdo.ca/~seymour/easy/"
 #define MyAppExeName "easy_abc.exe"
@@ -31,7 +31,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 LicenseFile={#MyBuildFolder}\gpl-license.txt
-OutputBaseFilename=setupEasy137
+OutputBaseFilename=EasyABC-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 

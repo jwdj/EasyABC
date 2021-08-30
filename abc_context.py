@@ -23,6 +23,7 @@ class AbcContext(object):
             TuneScope.SelectedLines: self.get_scope_selected_lines,
             TuneScope.TuneHeader: self.get_scope_tune_header,
             TuneScope.TuneBody: self.get_scope_tune_body,
+            TuneScope.Tune: self.get_scope_tune,
             TuneScope.FileHeader: self.get_scope_file_header,
             TuneScope.BodyUpToSelection: self.get_scope_body_up_to_selection,
             TuneScope.BodyAfterSelection: self.get_scope_body_after_selection,
@@ -155,8 +156,16 @@ class AbcContext(object):
         return self.get_scope_info(TuneScope.PreviousCharacter).text
 
     @property
+    def tune_header(self):
+        return self.get_scope_info(TuneScope.TuneHeader).text
+
+    @property
     def tune_body(self):
         return self.get_scope_info(TuneScope.TuneBody).text
+
+    @property
+    def tune(self):
+        return self.get_scope_info(TuneScope.Tune).text
 
     @property
     def contains_text(self):
@@ -227,6 +236,17 @@ class AbcContext(object):
         else:
             start_pos = self._editor.PositionFromLine(self.body_start_line)
             end_pos = self._editor.PositionFromLine(self.body_end_line)
+            return self.create_scope(start_pos, end_pos)
+
+    def get_scope_tune(self):
+        if self.tune_start_line is None:
+            return self.get_empty_scope_info()
+        else:
+            start_pos = self._editor.PositionFromLine(self.tune_start_line)
+            if self.body_end_line is not None:
+                end_pos = self._editor.PositionFromLine(self.body_end_line)
+            else:
+                end_pos = self._editor.GetTextLength()
             return self.create_scope(start_pos, end_pos)
 
     def get_scope_tune_up_to_selection(self):
