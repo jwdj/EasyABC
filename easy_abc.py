@@ -113,8 +113,7 @@ try:
     fluidsynth_available = True
 except ImportError:
     sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.')
-    # error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
-    # sys.stderr.write(error_msg)
+    # sys.stderr.write(traceback.format_exc())
     fluidsynth_available = False
 
 from wxmediaplayer import *
@@ -1691,12 +1690,12 @@ class MusicUpdateThread(threading.Thread):
                 # wx.PostEvent(self.notify_window, MusicUpdateDoneEvent(-1, (svg_files, error)))
                 # time.sleep(10.0)
                 # continue
-                # error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                # error_msg = traceback.format_exc()
                 # print(error_msg)
                 pass
             except Exception as e:
                 svg_files, error = [], unicode(e)
-                # error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                # error_msg = traceback.format_exc()
                 # print(error_msg)
                 pass
             svg_tune = SvgTune(abc_tune, svg_files, error)
@@ -3801,7 +3800,7 @@ class MainFrame(wx.Frame):
             try:
                 self.mc = FluidSynthPlayer(soundfont_path)
             except Exception as e:
-                error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                error_msg = traceback.format_exc()
                 self.mc = None
 
         if self.mc is None:
@@ -5043,7 +5042,7 @@ class MainFrame(wx.Frame):
         try:
             abc_to_xml(tune.header + os.linesep + tune.abc, filepath, mxl, pageFormat, info_messages)
         except Exception as e:
-            error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])) + os.linesep + os.linesep.join(errors)
+            error_msg = traceback.format_exc() + os.linesep + os.linesep.join(errors)
             mdlg = ErrorFrame(self, _('Error during conversion of X:{0} ("{1}"): {2}').format(tune.xnum, tune.title, error_msg))
             result = mdlg.ShowModal()
             mdlg.Destroy()
@@ -5262,7 +5261,7 @@ class MainFrame(wx.Frame):
                 try:
                     success = self.export_tune(tune, file_type, extension, convert_func, path, show_save_dialog=individual_save_dialog)
                 except Exception as e:
-                    error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                    error_msg = traceback.format_exc()
                     print(error_msg)
                     success = False
 
@@ -7071,7 +7070,7 @@ class MainFrame(wx.Frame):
                     try:
                         self.played_notes_timeline = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
                     except Exception as e:
-                        error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+                        error_msg = traceback.format_exc()
                         execmessages += error_msg
                 self.do_load_media_file(midi_file)
 
@@ -7418,7 +7417,7 @@ class MainFrame(wx.Frame):
             self.music_pane.set_page(page)
             self.update_statusbar_and_messages()
         except Exception as e:
-            error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+            error_msg = traceback.format_exc()
             wx.CallLater(600, self.SetErrorMessage, u'Internal error when drawing svg: %s' % error_msg)
             self.music_pane.clear()
 
@@ -7828,7 +7827,7 @@ class MainFrame(wx.Frame):
         except AbortException:
             raise
         except:
-            error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+            error_msg = traceback.format_exc()
             dlg = wx.MessageDialog(self, error_msg, _('Error'), wx.OK | wx.CANCEL)
             dlg.ShowModal()
             dlg.Destroy()
