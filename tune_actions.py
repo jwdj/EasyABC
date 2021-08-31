@@ -1803,7 +1803,7 @@ class ShowSingleVoiceAction(ValueChangeAction):
         current_value = None
         shown_voices = get_words(context.inner_text)
         if shown_voices and len(shown_voices) == 1:
-            current_value = shown_voices[0] 
+            current_value = shown_voices[0]
         return current_value
 
 
@@ -1904,7 +1904,7 @@ class GroupTogetherAction(JoinTogetherInScoreAction):
         if super(GroupTogetherAction, self).can_execute(context, params):
             text = context.inner_text
             for c in '[\{\}]':
-                if c in text: 
+                if c in text:
                     return False
                 return True
 
@@ -1917,7 +1917,7 @@ class BraceTogetherAction(JoinTogetherInScoreAction):
         if super(BraceTogetherAction, self).can_execute(context, params):
             text = context.inner_text
             for c in r'[]':
-                if c in text: 
+                if c in text:
                     return False
                 return True
 
@@ -2036,8 +2036,8 @@ class InsertDirectiveAction(InsertValueAction):
 
 class InsertMidiDirectiveAction(InsertValueAction):
     values = [
-        ValueDescription(' program 0', _('Set instrument')),
-        ValueDescription(' control 7 127', _('Set volume')),
+        ValueDescription(' program 0       % ' + _('Instrument'), _('Set instrument')),
+        ValueDescription(' control 7 127   % ' + _('Volume'), _('Set volume')),
     ]
     def __init__(self):
         super(InsertMidiDirectiveAction, self).__init__('insert_midi_directive', InsertMidiDirectiveAction.values, display_name=_('Insert playback directive'))
@@ -2137,6 +2137,7 @@ class InsertAppendFieldActionEmptyLineAction(InsertValueAction):
         ValueDescription('w:', name_to_display_text['words (note aligned)']),
         ValueDescription('W:', name_to_display_text['words (at the end)'], common=False),
         ValueDescription('s:', name_to_display_text['symbol line'], common=False),
+        ValueDescription(r'%%', name_to_display_text['instruction'], common=False),
     ]
     def __init__(self):
         super(InsertAppendFieldActionEmptyLineAction, self).__init__('insert_append_field_on_empty_line', InsertAppendFieldActionEmptyLineAction.values, display_name=_('Add...'))
