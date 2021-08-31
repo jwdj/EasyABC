@@ -392,11 +392,13 @@ class SvgRenderer(object):
             return
         dc = dc or wx.MemoryDC(self.buffer)
         gc = wx.GraphicsContext.Create(dc)
+        transform = gc.SetTransform
+        if wx.Platform == "__WXGTK__":
+            transform = gc.ConcatTransform
         gc.PushState()
-        gc.Scale(self.zoom, self.zoom)
         for element_id, current_color, matrix in [page.note_draw_info[i] for i in note_indices]:
             gc.PushState()
-            gc.SetTransform(gc.CreateMatrix(*matrix))
+            transform(gc.CreateMatrix(*matrix))
             self.draw_svg_element(page, gc, page.id_to_element[element_id], highlight, current_color, {})
             gc.PopState()
         gc.PopState()
