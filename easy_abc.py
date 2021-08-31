@@ -2155,7 +2155,7 @@ class AbcFileSettingsFrame(wx.Panel):
             PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False, None),
             PathEntry('nwc2xml', _('nwc2xml executable:'), _('For NoteWorthy Composer - Windows only'), False, None),
             PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False, None),
-            PathEntry('soundfont', _('SoundFont:'), _('Your preferred SoundFont (.sf2)'), False, 'SoundFont (*.sf2)|*.sf2')
+            PathEntry('soundfont', _('SoundFont:'), _('Your preferred SoundFont (.sf2)'), False, 'SoundFont (*.sf2;*.sf3)|*.sf2;*.sf3')
         ]
 
 
