@@ -39,7 +39,7 @@ class FluidSynthPlayer(MidiPlayer):
 
     def Load(self, path):          # load a midi file
         self.reset()              # reset the player, empty the playlist
-        self.pause_time  = 0       # resume playing at time == 0
+        self.pause_time = 0       # resume playing at time == 0
         if os.path.exists(path):
             success = self.p.add(path)           # add file to playlist
             self.p.play()
@@ -57,6 +57,7 @@ class FluidSynthPlayer(MidiPlayer):
             return
 
         self.p.play(self.pause_time)
+        self.pause_time = 0
         self.duration_in_ticks = self.p.get_length()
 
     def Pause(self):

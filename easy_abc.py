@@ -1,6 +1,6 @@
 #
 
-program_name = 'EasyABC 1.3.7.9'
+program_name = 'EasyABC 1.3.8'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -3795,10 +3795,11 @@ class MainFrame(wx.Frame):
             default_soundfont_path = '/usr/share/sounds/sf2/FluidR3_GM.sf2'
 
         soundfont_path = settings.get('soundfont_path', default_soundfont_path)
-
+        self.uses_fluidsynth = False
         if fluidsynth_available and soundfont_path and os.path.exists(soundfont_path):
             try:
                 self.mc = FluidSynthPlayer(soundfont_path)
+                self.uses_fluidsynth = True
             except Exception as e:
                 error_msg = traceback.format_exc()
                 self.mc = None
@@ -4422,6 +4423,9 @@ class MainFrame(wx.Frame):
             self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
         if self.record_thread and self.record_thread.is_running:
             self.OnToolRecord(None)
+        if self.uses_fluidsynth:
+            self.OnAfterStop()
+            
 
     def OnSeek(self, evt):
         self.mc.Seek(self.progress_slider.GetValue())
@@ -4441,18 +4445,25 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def OnPlayTimer(self, evt):
-        if not self.is_closed and self.progress_slider.Parent.Shown and self.mc.is_playing:
-            offset = self.mc.Tell()
-            if offset >= self.progress_slider.Max:
-                length = self.mc.Length()
-                self.progress_slider.SetRange(0, length)
+        if not self.is_closed and self.progress_slider.Parent.Shown:
+            if self.mc.is_playing:
+                self.started_playing = True
+                        
+                offset = self.mc.Tell()
+                if offset >= self.progress_slider.Max:
+                    length = self.mc.Length()
+                    self.progress_slider.SetRange(0, length)
 
-            if self.settings.get('follow_score', False):
-                self.queue_number_follow_score += 1
-                queue_number = self.queue_number_follow_score
-                wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
+                if self.settings.get('follow_score', False):
+                    self.queue_number_follow_score += 1
+                    queue_number = self.queue_number_follow_score
+                    wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
 
-            self.progress_slider.SetValue(offset)
+                self.progress_slider.SetValue(offset)
+            elif self.started_playing and self.uses_fluidsynth and not self.mc.is_paused:
+                self.started_playing = False
+                self.OnToolStop(None)
+
 
     def FollowScore(self, offset, queue_number):
         if self.queue_number_follow_score != queue_number:
@@ -7066,6 +7077,7 @@ class MainFrame(wx.Frame):
                 # 1.3.6.3 [JWDJ] 2015-3 DetermineMidiPlayRange not used anymore
                 # self.DetermineMidiPlayRange(tune, midi_file)
                 self.played_notes_timeline = None
+                self.started_playing = False
                 if self.settings.get('follow_score', False):
                     try:
                         self.played_notes_timeline = self.extract_note_timings(self.current_midi_tune, self.current_svg_tune)
