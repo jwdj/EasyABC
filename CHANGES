@@ -9,7 +9,7 @@ later versions of abcm2ps. Thanks to Frederic Aupepin.
 
             #later versions of abcm2ps adds in suffix after width or height
             #self.svg_width, self.svg_height = float(self.svg.get('width')), \
-            #                                  float(self.svg.get('height'))        
+            #                                  float(self.svg.get('height'))
 
             if re.search('^\d+$', self.svg.get('width')):
                 self.svg_width = float(self.svg.get('width'))
@@ -48,7 +48,7 @@ by Frederic Aupepin.
         if line_width < 1:
             line_width = 1.0
         #End Patch
-   
+
 
 
 
@@ -181,7 +181,7 @@ changes were to add a few more features and to make
 the program more transparent and easier to maintain.
 
  The internals menu item was added in order to allow the user
-to see how the program interacts with the external executables such 
+to see how the program interacts with the external executables such
 as abc2midi and abcm2ps.
 
 The abc settings menu was expanded to a tabbed book instead
@@ -429,7 +429,7 @@ The Abc Assist function has been improved. Sliders to change the Bass
 and Chordal volumes for the accompaniment were introduced.
 
 Added an option to cue the music with two metronome bars before playing
-the tune. 
+the tune.
 
 Added in Internals, a function to view the generated MIDI file in
 text form.
@@ -454,7 +454,7 @@ of abcm2ps
 - Abc Assist can be docked or undocked (floating window). Other
 panes like the editor and musical score can no longer be docked to
 different panes. Tie/untie option added for notes. Broken rhythm
-( eg c>d or c<d), triplet, slur, and chord options was introduced.  
+( eg c>d or c<d), triplet, slur, and chord options was introduced.
 
 - Added shortcuts to navigate through pages (when an abc tune has multiple pages)
     Ctrl+Alt+PageDown: next page (Alt+PageDown also works)
@@ -536,3 +536,28 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Fix for 'Follow score' for notes spanning multiple pages
 - Import midi fixed
 - Fixed: Typing Z: appeared as Z |:
+
+1.3.7.8
+- made BPM slider sticky for looping [EPO]
+- fixed bug where tempo reset after loop [EPO]
+- fixed crash when trying to Select() empty combobox in MainFrame/@current_page_index.setter [EPO]
+
+1.3.7.9
+- ABC Assist now recognizes and supports:
+  - 2 new start templates: Multivoice score and drum score
+  - Adding and removing staves/voices when selecting %%score and %%staves
+  - Stylesheet directive: %% and I:
+  - Choosing MIDI instruments (%%MIDI program)
+  - Setting MIDI volume (%%MIDI control 7)
+  - Measure numbering (%%measurenb)
+- The default FluidSynth audio driver is now default pulseaudio (thanks louis-barman)
+- Printing sometimes resulted in empty pages.
+- MIDI recording fixes on macOS version (aupfred)
+- Python 3 fixes (Windows version still uses Python 2.7 though)
+
+1.3.8
+- The notes drawn using 'Follow score' where shifted up and left
+- The Stop-button had to be used even after the music ended. This was only an issue when playing music using a SoundFont.
+- Support for FluidSynth 2.1 in Windows version
+- ABC Assist improvements: more help on what to do on an empty line
+

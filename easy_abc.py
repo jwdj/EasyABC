@@ -3819,6 +3819,8 @@ class MainFrame(wx.Frame):
                 from midiplayer import DummyMidiPlayer
                 self.mc = DummyMidiPlayer()  # if media player not supported on this platform
 
+        self.started_playing = False
+
         self.mc.OnAfterLoad += self.OnMediaLoaded
         self.mc.OnAfterStop += self.OnAfterStop
         # self.media_file_loaded = False
@@ -4425,7 +4427,7 @@ class MainFrame(wx.Frame):
             self.OnToolRecord(None)
         if self.uses_fluidsynth:
             self.OnAfterStop()
-            
+
 
     def OnSeek(self, evt):
         self.mc.Seek(self.progress_slider.GetValue())
@@ -4448,7 +4450,7 @@ class MainFrame(wx.Frame):
         if not self.is_closed and self.progress_slider.Parent.Shown:
             if self.mc.is_playing:
                 self.started_playing = True
-                        
+
                 offset = self.mc.Tell()
                 if offset >= self.progress_slider.Max:
                     length = self.mc.Length()
