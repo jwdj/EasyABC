@@ -1,6 +1,6 @@
 #
 
-program_name = 'EasyABC 1.3.8'
+program_name = 'EasyABC 1.3.8.1'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -123,7 +123,7 @@ from midi2abc import midi_to_abc, Note, duration2abc
 from generalmidi import general_midi_instruments
 # from ps_parser import Abcm2psOutputParser # 1.3.6.3 [JWdJ] 2015-04-22
 from abc_styler import ABCStyler
-from abc_character_encoding import decode_abc, abc_text_to_unicode
+from abc_character_encoding import decode_abc, abc_text_to_unicode, get_encoding_abc
 # from abc_character_encoding import encode_abc # 1.3.7.3 [JWdJ] 2016-04-09
 from abc_search import abc_matches_iter
 from fractions import Fraction
@@ -380,14 +380,6 @@ def get_output_from_process(cmd, input=None, creationflags=None, cwd=None, bufsi
         output_encoding = encoding
     stdout_value, stderr_value = stdout_value.decode(output_encoding, errors), stderr_value.decode(output_encoding, errors)
     return stdout_value, stderr_value, returncode
-
-
-def read_text_if_file_exists(filepath):
-    ''' reads the contents of the given file if it exists, otherwise returns the empty string '''
-    if filepath and os.path.exists(filepath):
-        return open(filepath, 'rb').read()
-    else:
-        return ''
 
 
 def show_in_browser(url):
@@ -3571,141 +3563,102 @@ class FlexibleListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlA
             self.SelectItem(item, False)
             item = nextItem
 
-# 1.3.6 [SS] 2014-11-21
-class MySearchFrame(wx.Frame):
+
+class AbcSearchPanel(wx.Panel):
     ''' For searching a directory of abc files for tunes containing a string. '''
-    def __init__(self,parent,settings):
-        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Search files"), style=wx.DEFAULT_FRAME_STYLE, name='searcher')
-        # Add a panel so it looks the correct on all platforms
-        if WX4:
-            self.SetSize(-1, -1, 380, 400)
-        else:
-            self.SetDimensions(-1, -1, 380, 400)
-
-        self.searchdata = ''
-        searchfold = wx.StaticText(self, wx.ID_ANY, _("Folder"))
-        self.frame = parent
-        self.searchfoldtxt = wx.TextCtrl(self, wx.ID_ANY, settings['searchfolder'], (-1,-1), (200,-1))
-        self.browsebut = wx.Button(self, wx.ID_ANY, _('Browse'), size=(-1,26))
-        searchlab = wx.StaticText(self, wx.ID_ANY, _('Text'))
-        self.searchstring = wx.TextCtrl(self, wx.ID_ANY, self.searchdata, (-1,-1), (200,-1))
-        self.startbut = wx.Button(self, wx.ID_ANY, _('Search'), size = (-1, 26))
-        self.list_ctrl = wx.ListCtrl(self, size=(380,360), style=wx.LC_REPORT |wx.BORDER_SUNKEN|wx.LC_SINGLE_SEL)
-        self.list_ctrl.InsertColumn(0, _('Title'), width=400)
-
+    def __init__(self, parent, settings):
+        wx.Panel.__init__(self, parent)
         self.settings = settings
-        self.running = 0
-        self.searchlocator = {}
-        self.searchpaths = {}
-        self.count = 0
+        border = control_margin
 
+        find_what_label = wx.StaticText(self, wx.ID_ANY, _('Find what') + ':')
+        
+        self.find_what_ctrl = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER)
+        self.focus_find_what()
+
+        searchfolder_label = wx.StaticText(self, wx.ID_ANY, _("Look in") + ':')
+        self.searchfolder_ctrl = wx.TextCtrl(self, wx.ID_ANY, settings['searchfolder'], style=wx.TE_PROCESS_ENTER)
+        self.choose_search_folder_button = wx.Button(self, wx.ID_ANY, '...', size=(26, -1))
+
+        self.progress = wx.Gauge(self, wx.ID_ANY)
+        self.progress.Hide()
+
+        self.startbut = wx.Button(self, wx.ID_ANY, _('Find All'))
+        self.list_ctrl = wx.ListBox(self, style=wx.LB_SINGLE)
+
+        no_top_border = wx.BOTTOM | wx.LEFT | wx.RIGHT
+        no_bottom_border = wx.TOP | wx.LEFT | wx.RIGHT
         mainsizer = wx.BoxSizer(wx.VERTICAL)
-        sizer1   = wx.GridBagSizer(vgap=8,hgap=8)
-        sizer2   = wx.BoxSizer(wx.VERTICAL)
-        sizer1.Add(searchfold,(1,1))
-        sizer1.Add(self.searchfoldtxt,(1,2))
-        sizer1.Add(self.browsebut,(1,3))
-        sizer1.Add(searchlab,(2,1))
-        sizer1.Add(self.searchstring,(2,2))
-        sizer1.Add(self.startbut,(2,3))
-        sizer2.Add(self.list_ctrl,0, wx.ALL|wx.EXPAND)
-        mainsizer.Add(sizer1,0, wx.ALL|wx.EXPAND)
-        mainsizer.Add(sizer2,1, wx.ALL|wx.EXPAND)
-        mainsizer.SetMinSize((360,200))
+        mainsizer.Add(find_what_label, flag=no_bottom_border, border=border)
+        mainsizer.Add(self.find_what_ctrl, flag=no_top_border | wx.EXPAND, border=border)
+        
+        mainsizer.Add(searchfolder_label, flag=no_bottom_border, border=border)
+        folderSizer = wx.BoxSizer(wx.HORIZONTAL)
+        folderSizer.Add(self.searchfolder_ctrl, 1, flag=wx.EXPAND | wx.BOTTOM | wx.LEFT, border=border)
+        folderSizer.Add(self.choose_search_folder_button, 0, flag=no_top_border, border=border)
+
+        progressSizer = wx.BoxSizer(wx.HORIZONTAL)
+        progressSizer.Add(self.progress, 1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=border)
+        progressSizer.Add(self.startbut, 0, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
+
+        mainsizer.Add(folderSizer, 0, flag=wx.EXPAND)
+        mainsizer.Add(progressSizer, 0, flag=wx.EXPAND)
+        mainsizer.Add(self.list_ctrl, 1, flag=wx.EXPAND)
+
         self.SetSizer(mainsizer)
         self.Show()
 
-        self.Bind(wx.EVT_BUTTON, self.On_browse_abcsearch, self.browsebut)
+        self.Bind(wx.EVT_BUTTON, self.On_browse_abcsearch, self.choose_search_folder_button)
         self.Bind(wx.EVT_BUTTON, self.On_start_search, self.startbut)
-        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.list_ctrl)
+        self.Bind(wx.EVT_TEXT_ENTER, self.On_start_search, self.find_what_ctrl)
+        self.Bind(wx.EVT_TEXT_ENTER, self.On_start_search, self.searchfolder_ctrl)
+        self.list_ctrl.Bind(wx.EVT_LISTBOX, self.OnItemSelected, self.list_ctrl)
+
+        self.search_thread = None
+
+    def focus_find_what(self):
+        self.find_what_ctrl.SetFocus()
 
     def On_browse_abcsearch(self, evt):
         ''' Selects the folder to open for searching'''
-        dlg = wx.DirDialog(self, _("Open"), _("Choose a folder"), wx.FD_OPEN)
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                self.settings['searchfolder'] = dlg.GetPath()
-                self.searchfoldtxt.SetValue(self.settings['searchfolder'])
-        finally:
-            dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+        old_path = self.searchfolder_ctrl.GetValue()
+        path = wx_dirdialog(self, _("Open"), old_path)
+        if path:
+            self.settings['searchfolder'] = path
+            self.searchfolder_ctrl.SetValue(path)
 
     def On_start_search(self, evt):
         ''' Initializes dictionaries and calls find_abc_files'''
-        self.list_ctrl.DeleteAllItems()
-        self.searchlocator = {}
-        self.searchline = {}
-        self.searchpaths = {}
-        self.count = 0
-        self.find_abc_files()
+        root = self.searchfolder_ctrl.GetValue()
+        if not root or not os.path.exists(root):
+            wx_show_message(_('Invalid path'), _('Please enter a valid path to start looking for ABC-files.'))
+        else:
+            searchstring = self.find_what_ctrl.GetValue()
+            wx_insert_dropdown_value(self.find_what_ctrl, searchstring, max=5)
+            self.list_ctrl.Show(False)
+            self.startbut.Disable()
+            self.progress.Pulse()
+            self.progress.Show()
+            if self.search_thread:
+                self.search_thread.abort()
+            self.search_thread = SearchFilesThread(root, searchstring, self.list_ctrl, self.on_after_search)
+    
+    def on_after_search(self):
+        self.startbut.Enable()
+        self.progress.Hide()
+        self.progress.SetValue(0)
 
-# 1.3.6 [SS] 2014-11-23
-    def find_abc_files(self):
-        ''' Does a recursive search of all folders inside root for abc files
-            storing the results in the list abcmatches. Pops up a progress
-            bar and searches each abc file in abcmatches for a specific
-            searchstring in the title field by calling find_abc_string.'''
-        # adapted from Programming Python by Mark Lutz
-        root = self.settings['searchfolder']
-        searchstring  = self.searchstring.GetValue()
-        list_ctrl = self.list_ctrl
-        searchstring = searchstring.lower()
-        abcmatches = []
-        for (dirname,dirshere,fileshere) in os.walk(root):
-            #print fileshere
-            for filename in fileshere:
-                if filename.endswith('.abc') or filename.endswith('.ABC'):
-                    pathname = os.path.join(dirname,filename)
-                    abcmatches.append(pathname)
+    @property
+    def is_searching(self):
+        return self.search_thread and self.search_thread.is_alive()
 
-        progmax = len(abcmatches)
-        progdialog = wx.ProgressDialog(_('Searching directory'), _('Remaining time'),
-                     progmax,style = wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME |
-                     wx.PD_REMAINING_TIME | wx.PD_AUTO_HIDE)
-        try:
-            #for name in abcmatches: print name
-            k = 0
-            for pathname in abcmatches:
-                #print str(k) + ' ' + pathname
-                k += 1
-                running = progdialog.Update(k)
-                #self.search_for_abc_string(pathname,'T:',searchstring,running,list_ctrl)
-                self.find_abc_string(pathname, 'T:', searchstring, list_ctrl)
-                if running[0] == False or k > progmax:
-                    break
-        finally:
-            progdialog.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+    def clear_results(self):
+        self.find_what_ctrl.SetValue('')
+        if self.is_searching:
+            self.search_thread.abort()
+        else:
+            self.list_ctrl.Clear()
 
-# 1.3.6 [SS] 2014-11-30
-    def find_abc_string(self, path, abckey, searchstring, list_ctrl):
-        f = open(path, 'rb') # read in binary to avoid problem with EOL characters
-        wholefile = f.read()
-        f.close()
-        encoding = self.frame.get_encoding(wholefile)
-        wholefile = wholefile.decode(encoding)
-        loc = 0
-        if not PY3:
-            searchstring = searchstring.decode(encoding)
-        lwholefile = wholefile.lower()
-        while loc != -1:
-            loc = wholefile.find(abckey, loc)
-            if loc == -1:
-                break
-            linend = wholefile.find('\n', loc)
-            if linend == -1:
-                break
-            index = lwholefile.find(searchstring, loc, linend)
-            if index != -1:
-                if WX4:
-                    list_ctrl.InsertItem(self.count, wholefile[loc+2:linend])
-                else:
-                    list_ctrl.InsertStringItem(self.count, wholefile[loc+2:linend])
-                self.searchpaths[self.count] = path
-                self.searchlocator[self.count] = index
-                #1.3.6
-                #self.searchline is used for debugging only (see OnItemSelected below)
-                self.searchline[self.count] = wholefile.count('\n',0,loc)
-                self.count += 1
-            loc = linend
 
 # 1.3.6 [SS] 2014-12-02
     def OnItemSelected(self, evt):
@@ -3713,11 +3666,9 @@ class MySearchFrame(wx.Frame):
         containing the selected tune is opened and the table of contents is updated.'''
         global app
         frame = app._frames[0]
-        index = evt.GetIndex() #line number in listbox
-        path = self.searchpaths[index]
-        loc = self.searchlocator[index] #character position in file
-        line = self.searchline[index]
-        #print 'line = ',line,' char = ',loc
+        index = evt.Selection  # line number in listbox
+        path, char_pos_in_file = self.search_thread.get_result_for_index(index)
+
         if frame.current_file != path:
             frame.document_name = path
             frame.SetTitle('%s - %s' % (program_name, frame.document_name))
@@ -3725,7 +3676,90 @@ class MySearchFrame(wx.Frame):
             frame.load(path)
         # SetCurrentPos will position the editor on the selected tune
         # and should automatically position the music window and the tune_list.
-        frame.editor.SetCurrentPos(loc)
+        frame.editor.SetCurrentPos(char_pos_in_file)
+
+
+class SearchFilesThread(threading.Thread):
+    def __init__(self, root, searchstring, list_ctrl, on_after_search):
+        threading.Thread.__init__(self)
+        self.daemon = True
+        self._stop_event = threading.Event()
+        self.root = root
+        self.searchstring = searchstring
+        self.list_ctrl = list_ctrl
+        self.searchlocator = {}
+        self.searchline = {}
+        self.searchpaths = {}
+        self.on_after_search = on_after_search
+        self.items = []
+        self.count = 0
+        self.start()
+
+    def abort(self):
+        self._stop_event.set()
+
+    @property
+    def abort_requested(self):
+        return self._stop_event.is_set()
+
+    def run(self):
+        self.list_ctrl.Clear()
+        self.find_abc_files(self.root, self.searchstring, self.list_ctrl)
+        if self.on_after_search is not None:
+            self.on_after_search()
+
+# 1.3.6 [SS] 2014-11-23
+    def find_abc_files(self, root, searchstring, list_ctrl):
+        abcmatches = []
+        for pathname in search_files(root, ['.abc', '.ABC']):
+            abcmatches.append(pathname)
+
+        for pathname in abcmatches:
+            self.find_abc_string(pathname, 'T:', searchstring, list_ctrl)
+            if self.abort_requested:
+                break
+
+        if self.items and not self.abort_requested:
+            list_ctrl.InsertItems(self.items, 0)
+        
+        if not self.abort_requested:
+            list_ctrl.Show()
+
+# 1.3.6 [SS] 2014-11-30
+    def find_abc_string(self, path, abckey, searchstring, list_ctrl):
+        wholefile = read_entire_file(path)
+        encoding = get_encoding_abc(wholefile)
+        wholefile = wholefile.decode(encoding)
+
+        loc = 0
+        if not PY3:
+            searchstring = searchstring.decode(encoding)
+        while loc != -1:
+            loc = wholefile.find(abckey, loc)
+            if loc == -1:
+                break
+            linend = wholefile.find('\n', loc)
+            if linend == -1:
+                break
+            start_line_pos = loc+2
+            line = wholefile[start_line_pos:linend]
+            if searchstring:
+                index = line.lower().find(searchstring)
+            else:
+                index = 0
+
+            if index != -1:
+                index += start_line_pos
+                self.items.append(line)
+                self.searchpaths[self.count] = path
+                self.searchlocator[self.count] = index
+                # self.searchline is used for debugging only (see OnItemSelected below)
+                # self.searchline[self.count] = wholefile.count('\n', 0, loc)
+                self.count += 1
+            loc = linend
+
+    def get_result_for_index(self, index):
+        return self.searchpaths[index], self.searchlocator[index]  # character position in file
 
 
 class MainFrame(wx.Frame):
@@ -3775,11 +3809,17 @@ class MainFrame(wx.Frame):
         self.find_data.SetFlags(wx.FR_DOWN)
         self.execmessage_time = datetime.now() # 1.3.6 [SS] 2014-12-11
 
+        self.load_settings()
+        settings = self.settings
+
         # 1.3.6 [SS] 2014-12-07
         self.statusbar = self.CreateStatusBar()
         #print 'statusbar = ', self.statusbar
         self.SetMinSize((100, 100))
-        self.manager = aui.AuiManager(self)
+        if settings.get('live_resize', False):
+            self.manager = aui.AuiManager(self, agwFlags=aui.AUI_MGR_DEFAULT | aui.AUI_MGR_LIVE_RESIZE)
+        else:
+            self.manager = aui.AuiManager(self)
 
         self.printData = wx.PrintData()
         self.printData.SetPrintMode(wx.PRINT_MODE_PRINTER)
@@ -3787,7 +3827,6 @@ class MainFrame(wx.Frame):
         self.setup_menus()
         self.setup_toolbar()
         self.mc = None
-        self.load_settings()
 
         if platform.system() == 'Windows':
             default_soundfont_path = os.environ.get('HOMEPATH', 'C:') + "\\SoundFonts\\FluidR3_GM.sf2"
@@ -3866,7 +3905,6 @@ class MainFrame(wx.Frame):
         tune_list_pane = aui.AuiPaneInfo().Name("tune list").Caption(_("Tune list")).MinimizeButton(True).CloseButton(False).BestSize((265, 80)).Left().Row(0).Layer(1)
         editor_pane = aui.AuiPaneInfo().Name("abc editor").Caption(_("ABC code")).CloseButton(False).MinSize(40, 40).MaximizeButton(True).CaptionVisible(True).Center()
         music_pane_info = aui.AuiPaneInfo().Name("tune preview").Caption(_("Musical score")).MaximizeButton(True).MinimizeButton(True).CloseButton(False).BestSize((200, 280)).Right().Top()
-
         for pane_info in [tune_list_pane, editor_pane, music_pane_info, self.error_pane, self.assist_pane]:
             pane_info.Floatable(False).Dockable(False).Snappable(False).NotebookDockable(False)
 
@@ -3879,11 +3917,19 @@ class MainFrame(wx.Frame):
         self.manager.Bind(aui.EVT_AUI_PANE_CLOSE, self.__onPaneClose)
 
         self.manager.Update()
+
+        self.search_files_panel = None
         self.default_perspective = self.manager.SavePerspective()
-
-
+        
         self.styler = ABCStyler(self.editor)
-        self.InitEditor()
+
+        font_info = settings.get('font')
+        if font_info:
+            face, size = font_info[-1], font_info[0]
+            self.InitEditor(face, size)
+            self.editor.SetFont(wx.Font(font_info))
+        else:
+            self.InitEditor()
 
         self.editor.SetDropTarget(MyFileDropTarget(self))
         self.tune_list.SetDropTarget(MyFileDropTarget(self))
@@ -3962,6 +4008,7 @@ class MainFrame(wx.Frame):
         self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
         execmessages = _('You are running {0} on {1}').format(program_name, wx.Platform)
         execmessages += '\n' + _('You can get the latest version on') + ' https://sourceforge.net/projects/easyabc/'
+
 
     def update_controls_using_settings(self):
         # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
@@ -4393,9 +4440,9 @@ class MainFrame(wx.Frame):
 
     def OnAfterStop(self):
         # 1.3.6.3 [SS] 2015-05-04
-        self.flip_tempobox(False)
         self.stop_playing()
         self.reset_BpmSlider()
+        self.flip_tempobox(False)
 
     def OnToolRecord(self, evt):
         if self.record_thread and self.record_thread.is_running:
@@ -4570,8 +4617,7 @@ class MainFrame(wx.Frame):
         self.follow_score_check.Show(state)
         self.UpdateTimingSliderVisibility()
         self.toolbar.Realize()
-        if wx.Platform == "__WXMAC__": #FAU: 23.12.2020: Added as issue in toolbar display when play and stop button are used
-            self.manager.Update()
+        self.manager.Update()
 
 
     def show_toolbar_panel(self, panel, visible):
@@ -4580,7 +4626,7 @@ class MainFrame(wx.Frame):
         panel.Show(visible)
 
     def setup_toolbar(self):
-        self.toolbar = aui.AuiToolBar(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)#, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
+        self.toolbar = aui.AuiToolBar(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, style=aui.AUI_TB_NO_AUTORESIZE)#, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
         try:
             self.toolbar.SetAGWWindowStyleFlag(aui.AUI_TB_PLAIN_BACKGROUND)
         except:
@@ -4926,12 +4972,29 @@ class MainFrame(wx.Frame):
 
     # 1.3.6 [SS] 2014-11-21
     def OnSearchDirectories(self, evt):
-        win = wx.FindWindowByName('searcher')
-        if win is not None:
-            return
-        self.search = MySearchFrame(self, self.settings)
-        self.search.Show()
+        self.show_search_in_files(True)
 
+    def show_search_in_files(self, show):
+        panel = self.search_files_panel
+        if not panel:
+            panel = AbcSearchPanel(self, self.settings)
+            self.search_files_panel = panel
+
+        pane = self.manager.GetPane(self.search_files_panel)
+        if not pane.IsOk():
+            pane = aui.AuiPaneInfo().Name("search files").Caption(_("Find in Files")).MaximizeButton(False).MinimizeButton(False).CloseButton(True).BestSize((300, 600)).Right().Layer(1)
+            self.manager.AddPane(self.search_files_panel, pane)
+            self.manager.Update()
+        
+        if show:
+            self.manager.RestorePane(pane)
+            self.manager.Update()
+        else:
+            if self.abc_assist_panel.IsShown():
+                self.abc_assist_panel.Hide()
+            if pane.IsOk():
+                self.manager.DetachPane(self.abc_assist_panel)
+        self.manager.Update()
 
 
     def OnUploadTune(self, evt):
@@ -5466,7 +5529,9 @@ class MainFrame(wx.Frame):
     def __onPaneClose(self, evt):
         if evt.pane.window == self.abc_assist_panel:
             self.settings['show_abc_assist'] = False
-            # wx.CallAfter(self.UpdateAbcAssistSetting()) # seems to be too early, pane is still shown
+        if evt.pane.window == self.search_files_panel:
+            self.search_files_panel.focus_find_what()
+            self.search_files_panel.clear_results()
 
     def OnToolDynamics(self, evt):
         try: self.toolbar.PopupMenu(self.popup_dynamics)
@@ -5547,29 +5612,6 @@ class MainFrame(wx.Frame):
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
         # self.UpdateTuneList() # 1.3.7.4 [JWDJ] No need to explicitly update tunelist, because adding lines triggers UpdateTuneList
 
-    def get_encoding(self, abc_code):
-        encoding = 'latin-1'
-
-        # strip the utf-8 byte order mark if present
-        if type(abc_code) is str and abc_code.startswith(utf8_byte_order_mark):
-            abc_code = abc_code[len(utf8_byte_order_mark):]
-            ##encoding = 'utf-8'
-
-        if abc_code.startswith(b'%abc-2.1'):
-            encoding = 'utf-8'
-        match = re.search(b'(%%|I:)abc-charset (?P<encoding>[-a-z0-9]+)', abc_code)
-        if match:
-            encoding = match.group('encoding')
-            if PY3:
-                encoding = encoding.decode()
-            codecs.lookup(encoding) # make sure that it exists at this point so as to avoid confusing errors later
-
-        # normalize a bit
-        if encoding in ['utf8', 'UTF-8', 'UTF8']:
-            encoding = 'utf-8'
-
-        return encoding
-
     def load_or_import(self, filepath):
         if not self.editor.GetModify() and not self.editor.GetText().strip() and os.path.splitext(filepath)[1].lower() in ('.txt', '.abc', '.mcm', ''):
             self.load(filepath)
@@ -5578,9 +5620,8 @@ class MainFrame(wx.Frame):
 
     def load(self, filepath):
         try:
-            f = open(filepath, 'rb')
-            text = f.read()
-            encoding = self.get_encoding(text)
+            text = read_entire_file(filepath)
+            encoding = get_encoding_abc(text)
 
             # if there's an utf-8 BOM strip it, and if necessary ask if the user wants to add an abc-charset field
             if text.startswith(utf8_byte_order_mark) and encoding != 'utf-8':
@@ -5641,7 +5682,7 @@ class MainFrame(wx.Frame):
                 if PY3:
                     encoding = 'utf-8'
                 else:
-                    encoding = self.get_encoding(s)
+                    encoding = get_encoding_abc(s)
                 try:
                     s.encode(encoding, 'strict')
                 except UnicodeEncodeError as e: # 1.3.6.2 [JWdJ] 2015-02
@@ -5907,7 +5948,8 @@ class MainFrame(wx.Frame):
                 (_("A&lign bars\tCtrl+Shift+A"), '', self.OnAlignBars),
                 (),
                 (_("&Find...\tCtrl+F"), '', self.OnFind),
-                (_("&Find Next\tF3"), '', self.OnFindNext),
+                (_("Find in Files") + '\tCtrl+Shift+F', '', self.OnSearchDirectories), # 1.3.6 [SS] 2014-11-21
+                (_("Find &Next\tF3"), '', self.OnFindNext),
                 (_("&Replace...\tCtrl+H"), '', self.OnReplace),
                 (),
                 (_("&Select all\tCtrl+A"), '', self.OnSelectAll)]),
@@ -5923,8 +5965,7 @@ class MainFrame(wx.Frame):
                 (_('&View incipits...'), '', self.OnViewIncipits),
                 (),
                 (_('&Renumber X: fields...'), '', self.OnRenumberTunes),
-                (_('&Sort tunes...'), '', self.OnSortTunes),
-                (_('Search directories...'), '', self.OnSearchDirectories)]), # 1.3.6 [SS] 2014-11-21
+                (_('&Sort tunes...'), '', self.OnSortTunes)]),
             (_("&View")     , view_menu),
             (_("&Internals"), [ #p09 [SS] 2014-10-22
                 (_("Messages"), _("Show warnings and errors"), self.OnShowMessages),
@@ -6961,7 +7002,7 @@ class MainFrame(wx.Frame):
 
     def GrayUngray(self, evt=None):
         editMenu = self.GetMenuBar().GetMenu(1)
-        undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, findnext, replace, _, selectall = editMenu.GetMenuItems()
+        undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
         undo.Enable(self.editor.CanUndo())
         redo.Enable(self.editor.CanRedo())
         # paste.Enable(self.editor.CanPaste())
@@ -7734,7 +7775,7 @@ class MainFrame(wx.Frame):
                 font = wantFonts.pop(0)
                 if font in font_names:
                     break
-            self.SetFont(wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=font))
+            self.editor.SetFont(wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=font))
         else:
             font = font_face
             size = font_size
@@ -7993,12 +8034,6 @@ class MainFrame(wx.Frame):
         self.manager.GetPane('error message').Caption(_("ABC errors")).Hide()
         self.manager.GetPane('abcassist').Caption(_("ABC assist")) # 1.3.6.3 [JWDJ] 2015-04-21 added ABC assist
         self.manager.Update()
-
-        if 'font' in settings:
-            face, size = settings['font'][-1], settings['font'][0]
-            self.InitEditor(face, size)
-            self.editor.SetFont(wx.Font(*settings['font']))
-
         self.music_pane.reset_scrolling()
 
     def get_tempo_multiplier(self):

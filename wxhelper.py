@@ -2,20 +2,12 @@ import wx
 
 WX4 = wx.version().startswith('4')
 
-
-def wx_cursor(c):
-    if WX4:
-        return wx.Cursor(c)
-    else:
-        return wx.StockCursor(c)
-
-
-def wx_colour(c):
-    if WX4:
-        return wx.Colour(c)
-    else:
-        return wx.NamedColour(c)
-
+if WX4:
+    wx_cursor = wx.Cursor
+    wx_colour = wx.Colour
+else:
+    wx_cursor = wx.StockCursor
+    wx_colour = wx.NamedColour
 
 def delete_menuitem(menu, item):
     if WX4:
@@ -23,6 +15,11 @@ def delete_menuitem(menu, item):
     else:
         menu.DeleteItem(item)
 
+def wx_set_size(frame, x, y, width, height):
+    if WX4:
+        frame.SetSize(x, y, width, height)
+    else:
+        frame.SetDimensions(x, y, width, height)
 
 def append_submenu(menu, label, submenu):
     if WX4:
@@ -112,3 +109,22 @@ def wx_sound(path):
         return wx.adv.Sound(path)
     else:
         return wx.Sound(path)
+
+def wx_show_message(title, message):
+    dlg = wx.MessageDialog(None, message, title, wx.OK | wx.ICON_INFORMATION)
+    dlg.ShowModal()
+    dlg.Destroy()
+
+def wx_insert_dropdown_value(combobox, value, max=None):
+    combobox.Insert(value, 0)
+    if max:
+        if combobox.Count > max:
+            combobox.Delete(max)
+
+def wx_dirdialog(parent, message, path):
+    dlg = wx.DirDialog(parent, message, path, style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+    try:
+        if dlg.ShowModal() == wx.ID_OK:
+            return dlg.GetPath()
+    finally:
+        dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window

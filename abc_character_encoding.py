@@ -2,11 +2,14 @@
 
 import re
 import sys
-PY3 = sys.version_info.major > 2
+PY3 = sys.version_info.major >= 3
 try:
     from html import escape  # py3
 except ImportError:
     from cgi import escape  # py2
+import codecs
+utf8_byte_order_mark = codecs.BOM_UTF8
+
 
 unicode16_re = re.compile(r'\\u[0-9a-fA-F]{4}')
 unicode32_re = re.compile(r'\\U[0-9a-fA-F]{8}')
@@ -477,3 +480,29 @@ encoded_char_re = re.compile('|'.join(re.escape(k) for k in mapping))
 
 def decode_abc(abc_code): return encoded_char_re.sub(lambda m: mapping[m.group(0)], abc_code)
 def encode_abc(abc_code): return ''.join(reverse_mapping.get(c, c) for c in abc_code)
+
+abc_charset_re = re.compile(b'(%%|I:)abc-charset (?P<encoding>[-a-z0-9]+)')
+
+def get_encoding_abc(abc_code):
+    encoding = 'latin-1'
+
+    # strip the utf-8 byte order mark if present
+    if type(abc_code) is str and abc_code.startswith(utf8_byte_order_mark):
+        return 'utf-8'
+
+    if abc_code.startswith(b'%abc-2.1'):
+        return 'utf-8'
+
+    match = abc_charset_re.search(abc_code[:1024])
+    if match:
+        encoding = match.group('encoding')
+        if PY3:
+            encoding = encoding.decode()
+ 
+        if encoding != 'utf-8':
+            # normalize a bit
+            if encoding in ['utf8', 'UTF-8', 'UTF8']:
+                encoding = 'utf-8'
+            codecs.lookup(encoding) # make sure that it exists at this point so as to avoid confusing errors later
+
+    return encoding
