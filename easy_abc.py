@@ -3638,8 +3638,9 @@ class AbcSearchPanel(wx.Panel):
         if not root or not os.path.exists(root):
             wx_show_message(_('Invalid path'), _('Please enter a valid path to start looking for ABC-files.'))
         else:
-            searchstring = self.find_what_ctrl.GetValue()
-            wx_insert_dropdown_value(self.find_what_ctrl, searchstring, max=5)
+            searchstring = self.find_what_ctrl.GetValue().strip()
+            if searchstring and not searchstring in self.find_what_ctrl.Items:
+                wx_insert_dropdown_value(self.find_what_ctrl, searchstring, max=5)
             self.find_all_button.Disable()
             self.list_ctrl.Show(False)
             self.list_ctrl.Clear()
@@ -3724,23 +3725,23 @@ class SearchFilesThread(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self):
-        self.find_abc_files(self.root, self.searchstring, self.list_ctrl)
+        self.find_abc_files(self.root, self.searchstring)
         if self.on_after_search is not None:
             wx.CallAfter(self.on_after_search, self.abort_requested, self.items)
 
 # 1.3.6 [SS] 2014-11-23
-    def find_abc_files(self, root, searchstring, list_ctrl):
+    def find_abc_files(self, root, searchstring):
         abcmatches = []
         for pathname in search_files(root, ['.abc', '.ABC']):  # currently not abortable
             abcmatches.append(pathname)
 
         for pathname in abcmatches:
-            self.find_abc_string(pathname, 'T:', searchstring, list_ctrl)
+            self.find_abc_string(pathname, 'T:', searchstring)
             if self.abort_requested:
                 break
 
 # 1.3.6 [SS] 2014-11-30
-    def find_abc_string(self, path, abckey, searchstring, list_ctrl):
+    def find_abc_string(self, path, abckey, searchstring):
         wholefile = read_entire_file(path)
         encoding = get_encoding_abc(wholefile)
         wholefile = wholefile.decode(encoding)
@@ -3756,21 +3757,21 @@ class SearchFilesThread(threading.Thread):
             linend = wholefile.find('\n', loc)
             if linend == -1:
                 break
-            start_line_pos = loc+2
-            line = wholefile[start_line_pos:linend]
-            if searchstring:
-                index = line.lower().find(searchstring)
-            else:
+            if wholefile[loc - 1] == '\n':
+                start_line_pos = loc + len(abckey)
+                line = wholefile[start_line_pos:linend]
                 index = 0
+                if searchstring:
+                    index = line.lower().find(searchstring)
 
-            if index != -1:
-                index += start_line_pos
-                self.items.append(line)
-                self.searchpaths[self.count] = path
-                self.searchlocator[self.count] = index
-                # self.searchline is used for debugging only (see OnItemSelected below)
-                # self.searchline[self.count] = wholefile.count('\n', 0, loc)
-                self.count += 1
+                if index != -1:
+                    index += start_line_pos
+                    self.items.append(line.strip())
+                    self.searchpaths[self.count] = path
+                    self.searchlocator[self.count] = index
+                    # self.searchline is used for debugging only (see OnItemSelected below)
+                    # self.searchline[self.count] = wholefile.count('\n', 0, loc)
+                    self.count += 1
             loc = linend
 
     def get_result_for_index(self, index):
