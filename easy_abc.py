@@ -3572,7 +3572,7 @@ class AbcSearchPanel(wx.Panel):
         border = control_margin
 
         find_what_label = wx.StaticText(self, wx.ID_ANY, _('Find what') + ':')
-        
+
         self.find_what_ctrl = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER)
         self.focus_find_what()
 
@@ -3593,7 +3593,7 @@ class AbcSearchPanel(wx.Panel):
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         mainsizer.Add(find_what_label, flag=no_bottom_border, border=border)
         mainsizer.Add(self.find_what_ctrl, flag=no_top_border | wx.EXPAND, border=border)
-        
+
         mainsizer.Add(searchfolder_label, flag=no_bottom_border, border=border)
         folderSizer = wx.BoxSizer(wx.HORIZONTAL)
         folderSizer.Add(self.searchfolder_ctrl, 1, flag=wx.EXPAND | wx.BOTTOM | wx.LEFT, border=border)
@@ -3640,8 +3640,9 @@ class AbcSearchPanel(wx.Panel):
         else:
             searchstring = self.find_what_ctrl.GetValue()
             wx_insert_dropdown_value(self.find_what_ctrl, searchstring, max=5)
-            self.list_ctrl.Show(False)
             self.find_all_button.Disable()
+            self.list_ctrl.Show(False)
+            self.list_ctrl.Clear()
             self.cancel_search_button.Enable()
             self.cancel_search_button.Show()
             self.progress.Pulse()
@@ -3649,8 +3650,13 @@ class AbcSearchPanel(wx.Panel):
             if self.search_thread:
                 self.search_thread.abort()
             self.search_thread = SearchFilesThread(root, searchstring, self.list_ctrl, self.on_after_search)
-    
-    def on_after_search(self):
+
+    def on_after_search(self, aborted, items):
+        if not aborted:
+            if items:
+                self.list_ctrl.InsertItems(items, 0)
+            self.list_ctrl.Show()
+
         self.find_all_button.Enable()
         self.cancel_search_button.Hide()
         self.progress.Hide()
@@ -3658,7 +3664,7 @@ class AbcSearchPanel(wx.Panel):
 
     def on_cancel_search(self, event):
         self.abort_search()
-    
+
     def abort_search(self):
         self.cancel_search_button.Disable()
         self.search_thread.abort()
@@ -3718,10 +3724,9 @@ class SearchFilesThread(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self):
-        self.list_ctrl.Clear()
         self.find_abc_files(self.root, self.searchstring, self.list_ctrl)
         if self.on_after_search is not None:
-            self.on_after_search()
+            wx.CallAfter(self.on_after_search, self.abort_requested, self.items)
 
 # 1.3.6 [SS] 2014-11-23
     def find_abc_files(self, root, searchstring, list_ctrl):
@@ -3734,21 +3739,16 @@ class SearchFilesThread(threading.Thread):
             if self.abort_requested:
                 break
 
-        if self.items and not self.abort_requested:
-            list_ctrl.InsertItems(self.items, 0)
-        
-        if not self.abort_requested:
-            list_ctrl.Show()
-
 # 1.3.6 [SS] 2014-11-30
     def find_abc_string(self, path, abckey, searchstring, list_ctrl):
         wholefile = read_entire_file(path)
         encoding = get_encoding_abc(wholefile)
         wholefile = wholefile.decode(encoding)
 
-        loc = 0
         if not PY3:
             searchstring = searchstring.decode(encoding)
+
+        loc = 0
         while loc != -1:
             loc = wholefile.find(abckey, loc)
             if loc == -1:
@@ -3935,7 +3935,7 @@ class MainFrame(wx.Frame):
 
         self.search_files_panel = None
         self.default_perspective = self.manager.SavePerspective()
-        
+
         self.styler = ABCStyler(self.editor)
 
         font_info = settings.get('font')
@@ -5000,7 +5000,7 @@ class MainFrame(wx.Frame):
             pane = aui.AuiPaneInfo().Name("search files").Caption(_("Find in Files")).MaximizeButton(False).MinimizeButton(False).CloseButton(True).BestSize((300, 600)).Right().Layer(1)
             self.manager.AddPane(self.search_files_panel, pane)
             self.manager.Update()
-        
+
         if show:
             self.manager.RestorePane(pane)
             self.manager.Update()
