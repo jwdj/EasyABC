@@ -3583,7 +3583,9 @@ class AbcSearchPanel(wx.Panel):
         self.progress = wx.Gauge(self, wx.ID_ANY)
         self.progress.Hide()
 
-        self.startbut = wx.Button(self, wx.ID_ANY, _('Find All'))
+        self.cancel_search_button = wx.Button(self, wx.ID_ANY, _('Cancel'))
+        self.cancel_search_button.Hide()
+        self.find_all_button = wx.Button(self, wx.ID_ANY, _('Find All'))
         self.list_ctrl = wx.ListBox(self, style=wx.LB_SINGLE)
 
         no_top_border = wx.BOTTOM | wx.LEFT | wx.RIGHT
@@ -3599,7 +3601,8 @@ class AbcSearchPanel(wx.Panel):
 
         progressSizer = wx.BoxSizer(wx.HORIZONTAL)
         progressSizer.Add(self.progress, 1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=border)
-        progressSizer.Add(self.startbut, 0, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
+        progressSizer.Add(self.cancel_search_button, 0, flag=wx.ALL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=border)
+        progressSizer.Add(self.find_all_button, 0, flag=wx.ALL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=border)
 
         mainsizer.Add(folderSizer, 0, flag=wx.EXPAND)
         mainsizer.Add(progressSizer, 0, flag=wx.EXPAND)
@@ -3609,7 +3612,9 @@ class AbcSearchPanel(wx.Panel):
         self.Show()
 
         self.Bind(wx.EVT_BUTTON, self.On_browse_abcsearch, self.choose_search_folder_button)
-        self.Bind(wx.EVT_BUTTON, self.On_start_search, self.startbut)
+        self.Bind(wx.EVT_BUTTON, self.On_start_search, self.find_all_button)
+        self.Bind(wx.EVT_BUTTON, self.On_start_search, self.find_all_button)
+        self.Bind(wx.EVT_BUTTON, self.on_cancel_search, self.cancel_search_button)
         self.Bind(wx.EVT_TEXT_ENTER, self.On_start_search, self.find_what_ctrl)
         self.Bind(wx.EVT_TEXT_ENTER, self.On_start_search, self.searchfolder_ctrl)
         self.list_ctrl.Bind(wx.EVT_LISTBOX, self.OnItemSelected, self.list_ctrl)
@@ -3636,7 +3641,9 @@ class AbcSearchPanel(wx.Panel):
             searchstring = self.find_what_ctrl.GetValue()
             wx_insert_dropdown_value(self.find_what_ctrl, searchstring, max=5)
             self.list_ctrl.Show(False)
-            self.startbut.Disable()
+            self.find_all_button.Disable()
+            self.cancel_search_button.Enable()
+            self.cancel_search_button.Show()
             self.progress.Pulse()
             self.progress.Show()
             if self.search_thread:
@@ -3644,9 +3651,17 @@ class AbcSearchPanel(wx.Panel):
             self.search_thread = SearchFilesThread(root, searchstring, self.list_ctrl, self.on_after_search)
     
     def on_after_search(self):
-        self.startbut.Enable()
+        self.find_all_button.Enable()
+        self.cancel_search_button.Hide()
         self.progress.Hide()
         self.progress.SetValue(0)
+
+    def on_cancel_search(self, event):
+        self.abort_search()
+    
+    def abort_search(self):
+        self.cancel_search_button.Disable()
+        self.search_thread.abort()
 
     @property
     def is_searching(self):
@@ -3711,7 +3726,7 @@ class SearchFilesThread(threading.Thread):
 # 1.3.6 [SS] 2014-11-23
     def find_abc_files(self, root, searchstring, list_ctrl):
         abcmatches = []
-        for pathname in search_files(root, ['.abc', '.ABC']):
+        for pathname in search_files(root, ['.abc', '.ABC']):  # currently not abortable
             abcmatches.append(pathname)
 
         for pathname in abcmatches:
