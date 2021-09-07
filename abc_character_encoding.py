@@ -498,7 +498,7 @@ def get_encoding_abc(abc_code):
         encoding = match.group('encoding')
         if PY3:
             encoding = encoding.decode()
- 
+
         if encoding != 'utf-8':
             # normalize a bit
             if encoding in ['utf8', 'UTF-8', 'UTF8']:
@@ -506,3 +506,4 @@ def get_encoding_abc(abc_code):
             codecs.lookup(encoding) # make sure that it exists at this point so as to avoid confusing errors later
 
     return encoding
+

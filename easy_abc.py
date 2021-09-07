@@ -170,37 +170,12 @@ class AbortException(Exception): pass
 class Abcm2psException(Exception): pass
 class NWCConversionException(Exception): pass
 
-from abc_tune import AbcTune
+from abc_tune import *
 
 dialog_background_colour = wx.Colour(245, 244, 235)
 default_note_highlight_color = '#FF7F3F'
 control_margin = 6
 
-def ensure_file_name_does_not_exist(file_path):
-    if not os.path.exists(file_path):
-        return file_path
-
-    i = 0
-    file_exists = True
-    path, file_name = os.path.split(file_path)
-    name, extension = os.path.splitext(file_name)
-    while file_exists:
-        i += 1
-        file_path = os.path.abspath(os.path.join(path, "{0}({1}){2}".format(name, i, extension)))
-        file_exists = os.path.exists(file_path)
-    return file_path
-
-def generate_temp_file_name(path, ending, replace_ending=None):
-    i = 0
-    file_exists = True
-    while file_exists:
-        file_name = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, ending)))
-        file_exists = os.path.exists(file_name)
-        if not file_exists and replace_ending is not None:
-            f = os.path.abspath(os.path.join(path, "temp{0:02d}{1}".format(i, replace_ending)))
-            file_exists = os.path.exists(f)
-        i += 1
-    return file_name
 
 # 1.3.6.3 [JWdJ] 2015-04-22
 class MidiTune(object):
@@ -494,7 +469,7 @@ def remove_non_note_fragments(abc, exclude_grace_notes=False):
     abc = abc.replace('\r', '\n')
     abc = re.sub(r'(?s)%%beginps.+?%%endps', repl_by_spaces, abc)  # remove embedded postscript
     abc = re.sub(r'(?s)%%begintext.+?%%endtext', repl_by_spaces, abc)  # remove text
-    abc = re.sub(r'(?m)%.*$', repl_by_spaces, abc)     # remove comments
+    abc = re.sub(comment_pattern, repl_by_spaces, abc) # remove comments
     abc = re.sub(r'\[\w:.*?\]', repl_by_spaces, abc)   # remove embedded fields
     abc = re.sub(r'(?m)^\w:.*?$', repl_by_spaces, abc) # remove normal fields
     abc = re.sub(r'\\"', repl_by_spaces, abc)          # remove escaped quote characters
@@ -3573,8 +3548,19 @@ class AbcSearchPanel(wx.Panel):
 
         find_what_label = wx.StaticText(self, wx.ID_ANY, _('Find what') + ':')
 
-        self.find_what_ctrl = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER)
+        default_choices = ['C:mozart', 'w:love', 'R:jig', 'M:6/8']
+        self.find_what_ctrl = wx.ComboBox(self, wx.ID_ANY, choices=default_choices, style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER)
         self.focus_find_what()
+        self.show_search_options_button = wx.Button(self, wx.ID_ANY, '...', size=(26, -1))
+
+        options = [(_('Title'), 'T:'), (_('Composer'), 'C:'), (_('Lyrics'), 'w: W:')]
+        searchfields = self.get_searchfields()
+        menu = create_menu([], parent=self)
+        for label, field in options:
+            menuitem = append_menu_item(menu, label + ' (' + field + ')', '', self.on_toggle_option, kind=wx.ITEM_CHECK)
+            menuitem.Help = field
+            menuitem.Check(field.split()[0] in searchfields)
+        self.search_menu = menu
 
         searchfolder_label = wx.StaticText(self, wx.ID_ANY, _("Look in") + ':')
         self.searchfolder_ctrl = wx.TextCtrl(self, wx.ID_ANY, settings['searchfolder'], style=wx.TE_PROCESS_ENTER)
@@ -3592,7 +3578,11 @@ class AbcSearchPanel(wx.Panel):
         no_bottom_border = wx.TOP | wx.LEFT | wx.RIGHT
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         mainsizer.Add(find_what_label, flag=no_bottom_border, border=border)
-        mainsizer.Add(self.find_what_ctrl, flag=no_top_border | wx.EXPAND, border=border)
+
+        whatSizer = wx.BoxSizer(wx.HORIZONTAL)
+        whatSizer.Add(self.find_what_ctrl, 1, flag=wx.EXPAND | wx.BOTTOM | wx.LEFT, border=border)
+        whatSizer.Add(self.show_search_options_button, 0, flag=no_top_border, border=border)
+        mainsizer.Add(whatSizer, 0, flag=wx.EXPAND)
 
         mainsizer.Add(searchfolder_label, flag=no_bottom_border, border=border)
         folderSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -3612,6 +3602,7 @@ class AbcSearchPanel(wx.Panel):
         self.Show()
 
         self.Bind(wx.EVT_BUTTON, self.On_browse_abcsearch, self.choose_search_folder_button)
+        self.Bind(wx.EVT_BUTTON, self.on_popup_search_menu, self.show_search_options_button)
         self.Bind(wx.EVT_BUTTON, self.On_start_search, self.find_all_button)
         self.Bind(wx.EVT_BUTTON, self.On_start_search, self.find_all_button)
         self.Bind(wx.EVT_BUTTON, self.on_cancel_search, self.cancel_search_button)
@@ -3620,6 +3611,30 @@ class AbcSearchPanel(wx.Panel):
         self.list_ctrl.Bind(wx.EVT_LISTBOX, self.OnItemSelected, self.list_ctrl)
 
         self.search_thread = None
+
+    def get_searchfields(self):
+        return self.settings.get('searchfields', 'T:').split(';')
+
+    def set_searchfields(self, value):
+        self.settings['searchfields'] = ';'.join(value)
+
+    def on_popup_search_menu(self, event):
+        self.PopupMenu(self.search_menu, event.EventObject.Position)
+
+    def on_toggle_option(self, event):
+        menu = event.EventObject
+        menu_item = menu.FindItemById(event.Id)
+        include = menu_item.IsChecked()
+        fields = menu_item.Help.split()
+        searchfields = self.get_searchfields()
+        for field in fields:
+            if include:
+                if not field in searchfields:
+                    searchfields.append(field)
+            else:
+                if field in searchfields:
+                    searchfields.remove(field)
+        self.set_searchfields([f for f in searchfields if f])
 
     def focus_find_what(self):
         self.find_what_ctrl.SetFocus()
@@ -3648,14 +3663,17 @@ class AbcSearchPanel(wx.Panel):
             self.cancel_search_button.Show()
             self.progress.Pulse()
             self.progress.Show()
+
             if self.search_thread:
                 self.search_thread.abort()
-            self.search_thread = SearchFilesThread(root, searchstring, self.list_ctrl, self.on_after_search)
+            self.search_thread = SearchFilesThread(root, searchstring, self.get_searchfields(), self.on_after_search)
 
     def on_after_search(self, aborted, items):
         if not aborted:
+            self.Parent.statusbar.SetStatusText(_('Found {0} items').format(len(items)))
             if items:
-                self.list_ctrl.InsertItems(items, 0)
+                titles = [title for title, _, _ in items]
+                self.list_ctrl.InsertItems(titles, 0)
             self.list_ctrl.Show()
 
         self.find_all_button.Enable()
@@ -3701,20 +3719,21 @@ class AbcSearchPanel(wx.Panel):
         frame.editor.SetCurrentPos(char_pos_in_file)
 
 
+search_parts_re = re.compile(r'(?:^| )([A-Za-z]:|%%)')
+clean_lyrics_re = re.compile(r'\s*(?:-|\\-|\*|\|)\s*')
+def lyrics_to_text(lyrics):
+    return clean_lyrics_re.sub('', lyrics)
+
 class SearchFilesThread(threading.Thread):
-    def __init__(self, root, searchstring, list_ctrl, on_after_search):
+    def __init__(self, root, searchstring, searchfields, on_after_search):
         threading.Thread.__init__(self)
         self.daemon = True
         self._stop_event = threading.Event()
         self.root = root
         self.searchstring = searchstring
-        self.list_ctrl = list_ctrl
-        self.searchlocator = {}
-        self.searchline = {}
-        self.searchpaths = {}
+        self.searchfields = searchfields
         self.on_after_search = on_after_search
-        self.items = []
-        self.count = 0
+        self.search_results = []
         self.start()
 
     def abort(self):
@@ -3725,57 +3744,100 @@ class SearchFilesThread(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self):
-        self.find_abc_files(self.root, self.searchstring)
+        self.find_abc_files(self.root, self.searchstring, self.searchfields)
         if self.on_after_search is not None:
-            wx.CallAfter(self.on_after_search, self.abort_requested, self.items)
+            wx.CallAfter(self.on_after_search, self.abort_requested, self.search_results)
 
 # 1.3.6 [SS] 2014-11-23
-    def find_abc_files(self, root, searchstring):
+    def find_abc_files(self, root, searchstring, searchfields):
         abcmatches = []
         for pathname in search_files(root, ['.abc', '.ABC']):  # currently not abortable
             abcmatches.append(pathname)
 
         for pathname in abcmatches:
-            self.find_abc_string(pathname, 'T:', searchstring)
+            self.find_abc_string(pathname, self.extract_search_parts(searchstring, searchfields))
             if self.abort_requested:
                 break
 
+    def extract_search_parts(self, searchtext, searchfields):
+        abckey = searchfields  # default search in title
+        if not abckey or not abckey[0]:
+            abckey = 'T:'
+        search_parts = []
+        pos = 0
+        for m in search_parts_re.finditer(searchtext):
+            text = searchtext[pos:m.start(1)].strip()
+            self.add_searchpart(search_parts, abckey, text)
+            abckey = m.group(1)
+            pos = m.end(1)
+
+        text = searchtext[pos:].strip().lower()
+        self.add_searchpart(search_parts, abckey, text)
+
+        if not search_parts:
+            search_parts.append([('T:', None)])
+        return search_parts
+
+    @staticmethod
+    def add_searchpart(search_parts, abckey, text):
+        if text:
+            words = text.split()
+            if isinstance(abckey, str):
+                search_parts.append([(abckey, words)])
+            else:
+                search_parts.append([(k, words) for k in abckey])
+
 # 1.3.6 [SS] 2014-11-30
-    def find_abc_string(self, path, abckey, searchstring):
+    def find_abc_string(self, path, search_parts):
         wholefile = read_entire_file(path)
         encoding = get_encoding_abc(wholefile)
         wholefile = wholefile.decode(encoding)
+        prev_found_tune_positions = None
+        for search_part in search_parts:
+            found_tune_positions = {}
+            for abckey, words in search_part:
+                convert_line = lambda s: s
+                if abckey in ['w:', 'W:']:
+                    convert_line = lyrics_to_text
 
-        if not PY3:
-            searchstring = searchstring.decode(encoding)
+                loc = 0
+                while loc != -1:
+                    loc = wholefile.find(abckey, loc)
+                    if loc == -1:
+                        break
+                    line_end = wholefile.find('\n', loc)
+                    if line_end == -1:
+                        break
+                    if wholefile[loc - 1] == '\n':
+                        start_pos = loc + len(abckey)
+                        line = wholefile[start_pos:line_end]
 
-        loc = 0
-        while loc != -1:
-            loc = wholefile.find(abckey, loc)
-            if loc == -1:
-                break
-            linend = wholefile.find('\n', loc)
-            if linend == -1:
-                break
-            if wholefile[loc - 1] == '\n':
-                start_line_pos = loc + len(abckey)
-                line = wholefile[start_line_pos:linend]
-                index = 0
-                if searchstring:
-                    index = line.lower().find(searchstring)
+                        index = 0
+                        if words:
+                            lline = convert_line(line).lower()
+                            for word in words:
+                                if word:
+                                    index = lline.find(word)
+                                    if index == -1:
+                                        break  # all words must match
 
-                if index != -1:
-                    index += start_line_pos
-                    self.items.append(line.strip())
-                    self.searchpaths[self.count] = path
-                    self.searchlocator[self.count] = index
-                    # self.searchline is used for debugging only (see OnItemSelected below)
-                    # self.searchline[self.count] = wholefile.count('\n', 0, loc)
-                    self.count += 1
-            loc = linend
+                        if index != -1:
+                            start_pos += index
+                            tune_start = find_start_of_tune(wholefile, start_pos)
+                            if prev_found_tune_positions is None or tune_start in prev_found_tune_positions:
+                                found_tune_positions[tune_start] = start_pos
+                    loc = line_end
+            prev_found_tune_positions = found_tune_positions
+
+        if prev_found_tune_positions:
+            for tune_pos in prev_found_tune_positions:
+                title = get_tune_title_at_pos(wholefile, tune_pos)
+                index = found_tune_positions[tune_pos]
+                self.search_results.append((title, path, index))
 
     def get_result_for_index(self, index):
-        return self.searchpaths[index], self.searchlocator[index]  # character position in file
+        _, path, pos = self.search_results[index]
+        return path, pos  # character position in file
 
 
 class MainFrame(wx.Frame):
