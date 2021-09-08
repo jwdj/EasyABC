@@ -301,6 +301,19 @@ def note_to_index(abc_note):
 def text_to_lines(text):
     return line_end_re.split(text)
 
+def read_abc_file(path):
+    file_as_bytes = read_entire_file(path)
+    encoding = get_encoding_abc(file_as_bytes)
+    if encoding and encoding != 'utf-8':
+        try:
+            return file_as_bytes.decode(encoding)
+        except UnicodeError:
+            pass
+    try:
+        return file_as_bytes.decode('utf-8')
+    except UnicodeError:
+        return file_as_bytes.decode('latin-1')
+
 
 # 1.3.6.3 [JWDJ] one function to determine font size
 def get_normal_fontsize():
@@ -3560,6 +3573,10 @@ class AbcSearchPanel(wx.Panel):
             menuitem = append_menu_item(menu, label + ' (' + field + ')', '', self.on_toggle_option, kind=wx.ITEM_CHECK)
             menuitem.Help = field
             menuitem.Check(field.split()[0] in searchfields)
+        menu.AppendSeparator()
+        menuitem = append_menu_item(menu, _('Sort by title'), '', self.on_toggle_sort_search_results, kind=wx.ITEM_CHECK)
+        menuitem.Check(settings.get('sort_search_results', True))
+
         self.search_menu = menu
 
         searchfolder_label = wx.StaticText(self, wx.ID_ANY, _("Look in") + ':')
@@ -3568,6 +3585,10 @@ class AbcSearchPanel(wx.Panel):
 
         self.progress = wx.Gauge(self, wx.ID_ANY)
         self.progress.Hide()
+        self.progress_timer = None
+        if wx.Platform == "__WXGTK__":  # only on Linux? On Windows not needed, but perhaps macOS?
+            self.progress_timer = wx.Timer(self)
+            self.Bind(wx.EVT_TIMER, self.on_progress_timer, self.progress_timer)
 
         self.cancel_search_button = wx.Button(self, wx.ID_ANY, _('Cancel'))
         self.cancel_search_button.Hide()
@@ -3618,8 +3639,16 @@ class AbcSearchPanel(wx.Panel):
     def set_searchfields(self, value):
         self.settings['searchfields'] = ';'.join(value)
 
+    def on_progress_timer(self, event):
+        self.progress.Pulse()
+
     def on_popup_search_menu(self, event):
         self.PopupMenu(self.search_menu, event.EventObject.Position)
+
+    def on_toggle_sort_search_results(self, event):
+        menu = event.EventObject
+        menu_item = menu.FindItemById(event.Id)
+        self.settings['sort_search_results'] = menu_item.IsChecked()
 
     def on_toggle_option(self, event):
         menu = event.EventObject
@@ -3663,10 +3692,13 @@ class AbcSearchPanel(wx.Panel):
             self.cancel_search_button.Show()
             self.progress.Pulse()
             self.progress.Show()
+            if self.progress_timer:
+                self.progress_timer.Start(200, wx.TIMER_CONTINUOUS)
 
+            sort_results = self.settings.get('sort_search_results', True)
             if self.search_thread:
                 self.search_thread.abort()
-            self.search_thread = SearchFilesThread(root, searchstring, self.get_searchfields(), self.on_after_search)
+            self.search_thread = SearchFilesThread(root, searchstring, self.get_searchfields(), self.on_after_search, sort_results)
 
     def on_after_search(self, aborted, items):
         if not aborted:
@@ -3678,6 +3710,8 @@ class AbcSearchPanel(wx.Panel):
 
         self.find_all_button.Enable()
         self.cancel_search_button.Hide()
+        if self.progress_timer:
+            self.progress_timer.Stop()
         self.progress.Hide()
         self.progress.SetValue(0)
 
@@ -3725,7 +3759,7 @@ def lyrics_to_text(lyrics):
     return clean_lyrics_re.sub('', lyrics)
 
 class SearchFilesThread(threading.Thread):
-    def __init__(self, root, searchstring, searchfields, on_after_search):
+    def __init__(self, root, searchstring, searchfields, on_after_search, sort_search_results):
         threading.Thread.__init__(self)
         self.daemon = True
         self._stop_event = threading.Event()
@@ -3733,6 +3767,7 @@ class SearchFilesThread(threading.Thread):
         self.searchstring = searchstring
         self.searchfields = searchfields
         self.on_after_search = on_after_search
+        self.sort_search_results = sort_search_results
         self.search_results = []
         self.start()
 
@@ -3745,6 +3780,9 @@ class SearchFilesThread(threading.Thread):
 
     def run(self):
         self.find_abc_files(self.root, self.searchstring, self.searchfields)
+        if self.sort_search_results:
+            self.search_results = sorted(self.search_results, key=lambda sr: sr[0])
+
         if self.on_after_search is not None:
             wx.CallAfter(self.on_after_search, self.abort_requested, self.search_results)
 
@@ -3789,9 +3827,7 @@ class SearchFilesThread(threading.Thread):
 
 # 1.3.6 [SS] 2014-11-30
     def find_abc_string(self, path, search_parts):
-        wholefile = read_entire_file(path)
-        encoding = get_encoding_abc(wholefile)
-        wholefile = wholefile.decode(encoding)
+        wholefile = read_abc_file(path)
         prev_found_tune_positions = None
         for search_part in search_parts:
             found_tune_positions = {}
@@ -5308,7 +5344,7 @@ class MainFrame(wx.Frame):
         self.export_tunes(_('ABC file'), '.abc', self.export_abc, only_selected=True, single_file=True)
 
     def export_abc(self, tune, filepath):
-        f = codecs.open(filepath, 'wb', 'latin-1')
+        f = codecs.open(filepath, 'wb', 'utf-8')
         f.write(tune.header)
         f.write(os.linesep)
         f.write(tune.abc)
@@ -5696,30 +5732,35 @@ class MainFrame(wx.Frame):
         else:
             self.OnDropFile(filepath)
 
-    def load(self, filepath):
-        try:
-            text = read_entire_file(filepath)
-            encoding = get_encoding_abc(text)
-
-            # if there's an utf-8 BOM strip it, and if necessary ask if the user wants to add an abc-charset field
-            if text.startswith(utf8_byte_order_mark) and encoding != 'utf-8':
-                text = text[len(utf8_byte_order_mark):]
+    def abc_bytes_to_text(self, file_as_bytes):
+        encoding = get_encoding_abc(file_as_bytes)
+        if encoding and encoding != 'utf-8':
+            try:
+                return file_as_bytes.decode(encoding)
+            except UnicodeError:
                 try:
-                    # is it possible to re-encode the text using the default encoding without problems?
-                    s = text.decode('utf-8', 'ignore')
-                    s.encode(encoding)
-                except UnicodeError:
+                    text = file_as_bytes.decode('utf-8')
                     modal_result = wx.MessageBox(_("This ABC file seems to be encoded using UTF-8 but contains no indication of this fact. "
                                                    "It is strongly recommended that an I:abc-charset field is added in order for you to load the file and safely save changes to it. "
                                                    "Do you want EasyABC to add this for you automatically?"), _("Add abc-charset field?"), wx.ICON_QUESTION | wx.YES | wx.NO)
                     if modal_result == wx.YES:
                         text = os.linesep.join(('I:abc-charset utf-8', text))
-                        encoding = 'utf-8'
+                    return text
+                except UnicodeError:
+                    pass
+        try:
+            return file_as_bytes.decode('utf-8')
+        except UnicodeError:
+            return file_as_bytes.decode('latin-1')
 
-            text = text.decode(encoding)
+    def load(self, filepath):
+        try:
+            file_as_bytes = read_entire_file(filepath)
         except IOError:
             wx.MessageBox(_("Could not find file.\nIt may have been moved or deleted. Choose File,Open to locate it."), _("File not found"), wx.OK)
             return
+
+        text = self.abc_bytes_to_text(file_as_bytes)
 
         if wx.Platform == "__WXMAC__":
             text = text.replace('\r\n', '\n')
@@ -5729,7 +5770,6 @@ class MainFrame(wx.Frame):
                 text = text.replace('\r', '\r\n')
 
         self.current_file = filepath
-        #self.document_name = os.path.basename(filepath) #1.3.6 [SS] 2014-12-01
         self.document_name = filepath
         self.SetTitle('%s - %s' % (program_name, self.document_name))
         self.updating_text = True
@@ -7808,8 +7848,12 @@ class MainFrame(wx.Frame):
                 else:
                     cur_index = None
                 cur_title = u''
-            elif cur_index is not None and t == 'T:' and not cur_title:
-                cur_title = decode_abc(get_line(i)[2:].strip())
+            elif cur_index is not None and t == 'T:':
+                title = decode_abc(strip_comments(get_line(i)[2:]).strip())
+                if title:
+                    if cur_title:
+                        cur_title += ' - '
+                    cur_title += title
 
         if cur_index is not None:
             tunes_append((cur_index, cur_title, cur_startline))

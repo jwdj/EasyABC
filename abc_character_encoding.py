@@ -483,17 +483,12 @@ def encode_abc(abc_code): return ''.join(reverse_mapping.get(c, c) for c in abc_
 
 abc_charset_re = re.compile(b'(%%|I:)abc-charset (?P<encoding>[-a-z0-9]+)')
 
-def get_encoding_abc(abc_code):
-    encoding = 'latin-1'
-
-    # strip the utf-8 byte order mark if present
-    if type(abc_code) is str and abc_code.startswith(utf8_byte_order_mark):
+def get_encoding_abc(abc_as_bytes, default_encoding = None):
+    if abc_as_bytes[0:len(utf8_byte_order_mark)] == utf8_byte_order_mark:
         return 'utf-8'
 
-    if abc_code.startswith(b'%abc-2.1'):
-        return 'utf-8'
-
-    match = abc_charset_re.search(abc_code[:1024])
+    file_header = abc_as_bytes[:1024]
+    match = abc_charset_re.search(file_header)
     if match:
         encoding = match.group('encoding')
         if PY3:
@@ -504,6 +499,10 @@ def get_encoding_abc(abc_code):
             if encoding in ['utf8', 'UTF-8', 'UTF8']:
                 encoding = 'utf-8'
             codecs.lookup(encoding) # make sure that it exists at this point so as to avoid confusing errors later
+        return encoding
 
-    return encoding
+    if file_header.startswith(b'%abc'):
+        return 'utf-8'
+
+    return default_encoding
 
