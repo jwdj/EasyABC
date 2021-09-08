@@ -1,6 +1,6 @@
 import uuid  # 1.3.6.3 [JWdJ] 2015-04-22
 from fractions import Fraction
-from abc_character_encoding import abc_text_to_unicode
+from abc_character_encoding import abc_text_to_unicode, decode_abc
 from collections import defaultdict
 import re
 import sys
@@ -47,7 +47,7 @@ def get_tune_title_at_pos(abc_text, pos):
         title_start = -1
         if abc_text[end_of_line:end_of_line + len(title_tag)] == title_tag:
             title_start = end_of_line
-    return title
+    return decode_abc(title)
 
 def match_to_meter(m, default):
     metre = default
@@ -59,6 +59,27 @@ def match_to_meter(m, default):
         metre = Fraction(2, 2)
     return metre
 
+base_notes = 'C D E F G A B c d e f g a b'.split()
+
+def note_to_number(abc_note):
+    num = base_notes.index(abc_note[0])
+    for i in range(1, len(abc_note)):
+        if abc_note[i] == '\'':
+            num += 7
+        elif abc_note[i] == ',':
+            num -= 7
+    return num
+
+def number_to_note(num):
+    octaves_up = 0
+    octaves_down = 0
+    while num < 0:
+        octaves_down += 1
+        num += 7
+    while num >= len(base_notes):
+        octaves_up += 1
+        num -= 7
+    return base_notes[num] + '\'' * octaves_up + ',' * octaves_down
 
 # 1.3.6.3 [JWdJ] renamed BaseTune to AbcTune and added functions
 class AbcTune(object):

@@ -471,9 +471,11 @@ mapping = {'\\`A': u'\xc0',
 '"\\u;"': u'\u0173',
 '\\u?': u'\u0169',
 '\\u-': u'\u016b',
-
+'\\\\': u'\\',
+'\\&': u'&',
+'\\%': u'%',
 r'{\aa}': u'\xe5',
-r'{\aA}': u'\xc5',}
+r'{\aA}': u'\xc5'}
 
 reverse_mapping = dict((b, a) for (a, b) in mapping.items())
 encoded_char_re = re.compile('|'.join(re.escape(k) for k in mapping))

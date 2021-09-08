@@ -26,7 +26,7 @@ except ImportError:
 from fractions import Fraction
 from aligner import get_bar_length
 from generalmidi import general_midi_instruments
-from abc_tune import AbcTune
+from abc_tune import AbcTune, note_to_number, number_to_note
 from abc_character_encoding import unicode_text_to_abc
 
 if PY3:
@@ -1944,6 +1944,28 @@ class ToggleContinuedBarlinesAction(AbcAction):
         context.replace_match_text(new_text, tune_scope=TuneScope.InnerText)
 
 
+class SimplifyNoteAction(AbcAction):
+    def __init__(self):
+        super(SimplifyNoteAction, self).__init__('simplify_note', display_name=_('Simplify note'))
+
+    def can_execute(self, context, params=None):
+        note = self.current_note(context)
+        new_note = self.simplified_note(context)
+        return note != new_note
+
+    def execute(self, context, params=None):
+        new_note = self.simplified_note(context)
+        context.replace_matchgroups([('note', new_note[0]), ('octave', new_note[1:])])
+
+    def current_note(self, context):
+        return context.get_matchgroup('note') + context.get_matchgroup('octave')
+
+    def simplified_note(self, context):
+        note = self.current_note(context)
+        num = note_to_number(note)
+        return number_to_note(num)
+
+
 class PageFormatDirectiveChangeAction(ValueChangeAction):
     values = [
         ValueDescription('pagewidth', _('Page width')),
@@ -2289,6 +2311,7 @@ class AbcActionHandlers(object):
             BracketTogetherAction(),
             ToggleContinuedBarlinesAction(),
             MeasureNumberingChangeAction(),
+            SimplifyNoteAction(),
         ])
 
         new_tune_actions = ['new_tune', '', 'new_multivoice_tune', '', 'new_drum_tune']
@@ -2300,7 +2323,7 @@ class AbcActionHandlers(object):
             'empty_line_header'      : self.create_handler(['new_note', 'insert_field_in_header']),
             'empty_line_tune'        : self.create_handler(['new_note', 'insert_change_field_on_empty_line', 'insert_append_field_on_empty_line']),
             'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
-            'Note'                   : self.create_handler(['new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
+            'Note'                   : self.create_handler(['simplify_note', 'new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
