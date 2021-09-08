@@ -3750,7 +3750,9 @@ class AbcSearchPanel(wx.Panel):
             frame.load(path)
         # SetCurrentPos will position the editor on the selected tune
         # and should automatically position the music window and the tune_list.
-        frame.editor.SetCurrentPos(char_pos_in_file)
+        abc_text = read_abc_file(path)[0:char_pos_in_file]
+        byte_pos_in_file = len(abc_text.encode('utf-8'))
+        frame.editor.SetCurrentPos(byte_pos_in_file)
 
 
 search_parts_re = re.compile(r'(?:^| )([A-Za-z]:|%%)')
