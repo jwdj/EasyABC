@@ -5636,6 +5636,16 @@ class MainFrame(wx.Frame):
         except UnicodeError:
             return file_as_bytes.decode('latin-1')
 
+    @staticmethod
+    def fix_end_of_line_sequence(text):
+        if wx.Platform == "__WXMAC__":
+            return text.replace('\r\n', '\n')
+        else:
+            text = re.sub('\r+', '\r', text)
+            if not '\n' in text:
+                text = text.replace('\r', '\r\n')
+            return text
+
     def load(self, filepath, editor_pos = None):
         try:
             file_as_bytes = read_entire_file(filepath)
@@ -5644,13 +5654,7 @@ class MainFrame(wx.Frame):
             return
 
         text = self.abc_bytes_to_text(file_as_bytes)
-
-        if wx.Platform == "__WXMAC__":
-            text = text.replace('\r\n', '\n')
-        else:
-            text = re.sub('\r+', '\r', text)
-            if not '\n' in text:
-                text = text.replace('\r', '\r\n')
+        text = self.fix_end_of_line_sequence(text)
 
         self.current_file = filepath
         self.document_name = filepath
@@ -5673,6 +5677,10 @@ class MainFrame(wx.Frame):
             self.tune_list.Select(0)
 
     def load_and_position(self, filepath, editor_pos):
+        # import cProfile
+        # profiler = cProfile.Profile()
+        # profiler.enable()
+
         self.Freeze()
         try:
             if self.current_file == filepath:
@@ -5682,6 +5690,10 @@ class MainFrame(wx.Frame):
                 self.load(filepath, editor_pos)
         finally:
             self.Thaw()
+
+        # import pstats
+        # p = pstats.Stats(profiler)
+        # p.strip_dirs().sort_stats('cumulative').reverse_order().print_stats()
 
     def ask_save(self):
         dlg = wx.MessageDialog(self, _('Do you want to save your changes to %s?') % self.document_name,
@@ -6280,10 +6292,6 @@ class MainFrame(wx.Frame):
 
     #p09 revised to use MyNoteBook
     def OnAbcSettings(self, evt):
-        # import cProfile
-        # profiler = cProfile.Profile()
-        # profiler.enable()
-
         # 1.3.6.4 [SS] 2015-07-07
         win = wx.FindWindowByName('settingsbook')
         if win is None:
@@ -6292,9 +6300,6 @@ class MainFrame(wx.Frame):
         else:
             self.settingsbook.Iconize(False)
             self.settingsbook.Raise()
-
-        # profiler.disable()
-        # profiler.print_stats()
 
     def OnChangeFont(self, evt):
         font = wx.GetFontFromUser(self, self.editor.GetFont(), _('Select a font for the ABC editor'))
