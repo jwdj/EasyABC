@@ -1,4 +1,4 @@
-#
+#!/usr/bin/env python3
 
 program_name = 'EasyABC 1.3.8.1'
 
@@ -18,11 +18,6 @@ program_name = 'EasyABC 1.3.8.1'
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
-# V1.3.7.8
-# - made BPM slider sticky for looping [EPO]
-# - fixed bug where tempo reset after loop [EPO]
-# - fixed crash when trying to Select() empty combobox in MainFrame/@current_page_index.setter [EPO]
 
 # # for finding memory leaks uncomment following two lines
 # import gc
@@ -119,19 +114,15 @@ except ImportError:
 from wxmediaplayer import *
 from xml2abc_interface import xml_to_abc, abc_to_xml
 from midi2abc import midi_to_abc, Note, duration2abc
-# from midi_meta_data import midi_to_meta_data # 1.3.6.3 [JWdJ] 2015-04-22
 from generalmidi import general_midi_instruments
-# from ps_parser import Abcm2psOutputParser # 1.3.6.3 [JWdJ] 2015-04-22
 from abc_styler import ABCStyler
 from abc_character_encoding import decode_abc, abc_text_to_unicode, get_encoding_abc
-# from abc_character_encoding import encode_abc # 1.3.7.3 [JWdJ] 2016-04-09
 from abc_search import abc_matches_iter
 from fractions import Fraction
 from music_score_panel import MusicScorePanel
 from svgrenderer import SvgRenderer
 import itertools
 from aligner import align_lines, extract_incipit, bar_sep, bar_sep_without_space, get_bar_length, bar_and_voice_overlay_sep
-##from midi_processing import humanize_midi
 if sys.version_info >= (3,0,0):
     from queue import Queue # 1.3.6.2 [JWdJ] 2015-02
 else:
@@ -446,13 +437,9 @@ def upload_tune(tune, author):
     if m:
         captcha_url = m.group(1).encode('utf-8')
         f = tempfile.NamedTemporaryFile(delete=False)
-        # img_path = f.name
-        # print(captcha_url)
-        # print(img_path)
         img_data = urlopen(captcha_url).read()
 
         urlretrieve(urlunparse(parsed), outpath)
-        # print(img_data)
         f.write(img_data)
         f.close()
         return ''
@@ -685,7 +672,6 @@ def sort_abc_tunes(abc_code, sort_fields, keep_free_text=True):
 
     tunes = [(get_sort_key_for_tune(t, sort_fields), t) for t in tunes]
     tunes.sort()
-    ##print '\n'.join([str(x[0]) for x in tunes])
 
     result = file_header
     for _, tune in tunes:
@@ -777,7 +763,6 @@ def AbcToPS(abc_code, cache_dir, extra_params='', abcm2ps_path=None, abcm2ps_for
                                     if not x.startswith('abcm2ps-') and not x.startswith('File ') and not x.startswith('Output written on ')])
     stderr_value = stderr_value.strip()
     execmessages += '\nAbcToPs\n' + " ".join(cmd1) + '\n' + stdout_value + stderr_value
-    #print execmessages
     if not os.path.exists(ps_file):
         ps_file = None
     return (ps_file, stderr_value)
@@ -813,8 +798,6 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     extra_params = settings.get('abcm2ps_extra_params', '')
     # 1.3.6.3 [SS] 2015-05-01
     visible_abc_code = abc_code
-
-    #print traceback.extract_stack(None, 5)
 
     if target_file_name:
         svg_file = target_file_name
@@ -863,7 +846,6 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     #cmd1 = [arg.encode(fse) if isinstance(arg,unicode) else arg for arg in cmd1]
 
     # clear execmessages any time the music panel is refreshed
-    # execmessages += '\nAbcToSvg\n' + " ".join(cmd1) 1.3.6.4 [JWdJ]
     execmessages = u'\nAbcToSvg\n' + " ".join(cmd1)
     input_abc = abc_code + os.linesep * 2
     stdout_value, stderr_value, returncode = get_output_from_process(cmd1, input=input_abc, encoding=abcm2ps_default_encoding, bufsize=-1, cwd=os.path.dirname(svg_file))
@@ -872,9 +854,6 @@ def abc_to_svg(abc_code, cache_dir, settings, target_file_name=None, with_annota
     if returncode < 0:
         execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % {'program': 'Abcm2ps', 'error': returncode & 0xffffffff}
         raise Abcm2psException('Unknown error - abcm2ps may have crashed')
-    #dt = datetime.now() - t
-    ##if wx.Platform != "__WXGTK__":
-    ##    print 'abcm2ps time:\t', dt.seconds * 1000 + dt.microseconds/1000
     stderr_value = os.linesep.join([x for x in stderr_value.splitlines()
                                     if not x.startswith('abcm2ps-') and not x.startswith('File ') and not x.startswith('Output written on ')])
     stderr_value = stderr_value.strip()
@@ -889,8 +868,6 @@ def AbcToAbc(abc_code, cache_dir, params, abc2abc_path=None):
     global execmessages
 
     abc_code = re.sub(r'\\"', '', abc_code)  # remove escaped quote characters, since abc2abc cannot handle them
-
-    # hash = get_hash_code(abc_code) # 1.3.6.3 [JWDJ] 2015-04-21 not used anymore
 
     # determine parameters
     cmd1 = [abc2abc_path, '-', '-r', '-b', '-e'] + params
@@ -919,8 +896,6 @@ def MidiToMftext(midi2abc_path, midifile):
 
     if os.path.exists(midi2abc_path):
         stdout_value, stderr_value, returncode = get_output_from_process(cmd1, bufsize=-1)
-        #print stdout_value
-
         midiframe = MyMidiTextTree(_('Disassembled Midi File'))
         midiframe.Show(True)
         midi_data = stdout_value
@@ -1151,7 +1126,6 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
     MyAbcFrame.update_text()
 
     # 1.3.6 [SS] 2014-12-08
-    # time.sleep(0.2)
     if execmessages.find('Error') != -1:
         statusbar.SetStatusText(_('{0} reported some errors').format('Abc2midi'))
     elif execmessages.find('Warning') != -1:
@@ -1174,10 +1148,6 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         examples see https://abcmidi.sourceforge.io/ and click link [I:MIDI=...].
     '''
     global execmessages
-    #print traceback.extract_stack(None, 5)
-
-
-
     ####   set all the control flags which determine which %%MIDI commands are written
 
     play_chords = settings.get('play_chords')
@@ -1189,7 +1159,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     default_midi_bassvol = settings.get('bassvol')
     # 1.3.6.3 [SS] 2015-05-04
     default_tempo = settings.get('bpmtempo')
-    #build the list of midi program to be used for each voice
+    # build the list of midi program to be used for each voice
     midi_program_ch_list = ['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
                             'midi_program_ch5', 'midi_program_ch6', 'midi_program_ch7', 'midi_program_ch8',
                             'midi_program_ch9', 'midi_program_ch10', 'midi_program_ch11', 'midi_program_ch12',
@@ -1198,7 +1168,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     for channel in range(16):
         default_midi_program_ch.append(settings.get(midi_program_ch_list[channel]))
 
-    #this flag is added just in case none would have been set but shouldn't be the case.
+    # this flag is added just in case none would have been set but shouldn't be the case.
     if not default_midi_bassprog:
         default_midi_bassprog = default_midi_chordprog
 
@@ -1227,9 +1197,6 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         elif line.startswith('%%MIDI chordprog') or line.startswith('%%MIDI bassprog'):
             add_midi_chordprog_extra_line = False
         if not (add_midi_program_extra_line or add_midi_volume_extra_line or add_midi_gchord_extra_line or add_midi_chordprog_extra_line): break
-
-
-
 
     #### create the abc_header which will be placed in front of the processed abc file
     # extra_lines is a list of all the MIDI commands to be put in abcheader
@@ -1301,8 +1268,6 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     # 1.3.6.4 [SS] 2015-07-03
     if add_midi_introduction:
         midi_introduction = make_abc_introduction(abc_code, voicelist)
-
-
 
     ####  modify abc_code to add MIDI instruction just after voice definition
     # (because using channel only in header doesn't seem to allow association with voice
@@ -1379,8 +1344,6 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
         abc_code = os.linesep.join(new_abc_lines)
 
-
-
     #### assemble everything together
 
     # 1.3.6.4 [SS] 2014-07-07 replacement for process_abc_code
@@ -1409,7 +1372,6 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             break
     abc_code = os.linesep.join(abclines) # put it back together
 
-
     #### for debugging
     #Write temporary abc_file (for debug purpose)
     #temp_abc_file =  os.path.abspath(os.path.join(cache_dir, 'temp_%s.abc' % hash)) 1.3.6 [SS] 2014-11-13
@@ -1426,25 +1388,20 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 def abc_to_midi(abc_code, settings, midi_file_name):
     global execmessages
 
-    if True: # p09 disable cache memory
-    #if not os.path.exists(midi_file): #p09 disable cache
-        abc2midi_path = settings.get('abc2midi_path')
-        cmd = [abc2midi_path, '-', '-o', midi_file_name]
-        cmd = add_abc2midi_options(cmd, settings)
-        execmessages += '\nAbcToMidi\n' + " ".join(cmd)
-        input_abc = abc_code + os.linesep * 2
-        stdout_value, stderr_value, returncode = get_output_from_process(cmd, input=input_abc)
-        execmessages += '\n' + stdout_value + stderr_value
-        if stdout_value:
-            stdout_value = re.sub(r'(?m)(writing MIDI file .*\r?\n?)', '', stdout_value)
-        if returncode != 0:
-            # 1.3.7.0 [SS] 2016-01-06
-            execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'AbcToMidi', 'error': returncode & 0xffffffff }
-            return None
+    abc2midi_path = settings.get('abc2midi_path')
+    cmd = [abc2midi_path, '-', '-o', midi_file_name]
+    cmd = add_abc2midi_options(cmd, settings)
+    execmessages += '\nAbcToMidi\n' + " ".join(cmd)
+    input_abc = abc_code + os.linesep * 2
+    stdout_value, stderr_value, returncode = get_output_from_process(cmd, input=input_abc)
+    execmessages += '\n' + stdout_value + stderr_value
+    if stdout_value:
+        stdout_value = re.sub(r'(?m)(writing MIDI file .*\r?\n?)', '', stdout_value)
+    if returncode != 0:
+        # 1.3.7.0 [SS] 2016-01-06
+        execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'AbcToMidi', 'error': returncode & 0xffffffff }
+        return None
 
-        #if humanize:
-        #    humanize_midi(midi_file, midi_file)
-        #    pass
     return midi_file_name
 
 # 1.3.6 [SS] 2014-11-24
@@ -1853,8 +1810,6 @@ class RecordThread(threading.Thread):
 
 
         finally:
-            #print('FAU: closing')
-            #print(self.notes)
             if wx.Platform == "__WXMAC__":
                 self.midi_in.close()
             else:
@@ -1872,26 +1827,13 @@ class RecordThread(threading.Thread):
         quantize_time = 0.25  # 1/16th
         return round(start_time / quantize_time) * quantize_time
 
-        # 1.3.6.2 [JWdJ] 2015-02 commented out folllowing lines
-        # because they are never executed
-        # beats = int(start_time / 1.0)
-        # offset_from_beat = start_time - beats
-        # len_16th = 0.25 # 1/4 of a beat's duration
-        # positions_for_16ths = [0, len_16th*0.9, len_16th*2*0.9, len_16th*3, len_16th*4]
-        # best_pos = 0
-        # for pos in positions_for_16ths:
-        #     if abs(offset_from_beat - pos) < abs(offset_from_beat - best_pos):
-        #         best_pos = pos
-        # return beats * 1.0 + best_pos
-
     def quantize_triplet(self, notes):
         if len(notes) < 4:
             return False
 
         tolerance = 0.07
-        first_note_start = round(notes[0][1] / 0.25) * 0.25  #self.quantize_swinged_16th(notes[0][1])
+        first_note_start = round(notes[0][1] / 0.25) * 0.25
 
-        #durations = [n[2] - n[1] for n in notes[:3]]
         durations = [n2[1]-n1[1] for n1, n2 in zip(notes[:3], notes[1:4])]
 
         for total_len in [1.0, 0.5]:
@@ -1913,7 +1855,6 @@ class RecordThread(threading.Thread):
 
     def quantize(self):
         quantized_notes = []
-        # quantize_time = 0.25  # 1/16th
 
         if self.notes:
             distance_from_beat = frac_mod(self.notes[0][1], 1.0)
@@ -1946,9 +1887,7 @@ class RecordThread(threading.Thread):
             else:
                 raise Exception('unknown metre')
             (note, start, end) = quantized_notes.pop()
-            ##print end, int(end / bar_length), bar_length
             end = (int(end / bar_length) + 1) * bar_length     # set the end to be at the end of the bar
-            ##print end
             quantized_notes.append((note, start, end))
 
         self.notes = [Note(start, end, note) for (note, start, end) in quantized_notes]
@@ -2116,7 +2055,6 @@ class AbcFileSettingsFrame(wx.Panel):
     # 1.3.6.4 [SS] 2015-05-26 added statusbar
     def __init__(self, parent, settings, statusbar):
         wx.Panel.__init__(self, parent)
-        # -1, _('ABC settings'), wx.DefaultPosition, wx.Size(530, 500))
         self.settings = settings
         self.statusbar = statusbar
         self.SetBackgroundColour(dialog_background_colour)
@@ -2164,9 +2102,6 @@ class AbcFileSettingsFrame(wx.Panel):
         for entry in self.needed_path_entries:
             setting_name = '%s_path' % entry.name
             current_path = self.settings.get(setting_name, '')
-            #if wx.Platform == "__WXMAC__":
-            #    control = wx.TextCtrl(self)
-            #else:
             setting_name_choices = '%s_path_choices' % entry.name
             path_choices = self.settings.get(setting_name_choices, '').split('|')
             path_choices = self.keep_existing_paths(path_choices)
@@ -2213,7 +2148,6 @@ class AbcFileSettingsFrame(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(box2, flag=wx.ALL | wx.EXPAND, border=10)
         # 1.3.6.1 [SS] 2015-01-28
-        #self.sizer.Add(box1, flag=wx.ALL | wx.EXPAND, border=10)
         self.sizer.Add(midiplayer_params_sizer, flag=wx.ALL | wx.EXPAND, border=border)
         self.sizer.Add(self.restore_settings, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
@@ -2327,7 +2261,6 @@ class MyChordPlayPage (wx.Panel):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(dialog_background_colour) # 1.3.6.3 [JWDJ] 2014-04-28 same background for all tabs
         gridsizer = wx.FlexGridSizer(20, 4, 2, 2)
-        #self.program = ''
         # midi_box to set default instrument for playback
         midi_box = rcs.RowColSizer()
         border = control_margin
@@ -2362,7 +2295,6 @@ class MyChordPlayPage (wx.Panel):
         self.sliderBassVol = wx.Slider(self, value=96, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
         self.BassVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
-
 
         #1.3.6 [SS] 2014-11-21
         self.nodynamics = wx.CheckBox(self, wx.ID_ANY, _('Ignore Dynamics'))
@@ -2455,13 +2387,6 @@ class MyChordPlayPage (wx.Panel):
         self.slidertuning.SetToolTip(wx.ToolTip(tuning_toolTip))
         self.sliderVol.SetToolTip(wx.ToolTip(vol_toolTip))
 
-        #1.3.6 [SS] 2014-11-15
-        #self.chkSameInstrumentVoice.SetValue(self.settings.get('one_instrument_only', True))
-        #update the enabling status of the button depending on the previously saved information
-        #if self.settings.get('one_instrument_only', True):
-            #self.midiprogramchannelbtn1.Disable()
-        #else:
-            #self.midiprogramchannelbtn1.Enable()
         try:
             self.cmbMidiProgram.Select(self.settings.get('midi_program', 1))
             self.cmbMidiChordProgram.Select(self.settings.get('midi_chord_program', 25))
@@ -2470,7 +2395,6 @@ class MyChordPlayPage (wx.Panel):
             pass
 
         #1.3.6 [SS] 2014-11-24
-        #self.chkSameInstrumentVoice.Bind(wx.EVT_CHECKBOX, self.ShowOrHideInstrumentPerVoice)
         self.chkPlayChords.Bind(wx.EVT_CHECKBOX, self.OnPlayChords)
         self.nodynamics.Bind(wx.EVT_CHECKBOX, self.OnNodynamics)
         self.nofermatas.Bind(wx.EVT_CHECKBOX, self.OnNofermatas)
@@ -2497,15 +2421,10 @@ class MyChordPlayPage (wx.Panel):
         self.cmbMidiChordProgram.Bind(wx.EVT_COMBOBOX, self.On_midi_chord_program)
         self.cmbMidiBassProgram.Bind(wx.EVT_COMBOBOX, self.On_midi_bass_program)
 
-        #midi_box.AddGrowableCol(1)
         self.SetSizer(midi_box)
         self.SetAutoLayout(True)
-        #midi_box.SetSizer()
         self.Fit()
         self.Layout()
-
-
-
 
     def OnPlayChords(self, evt):
         self.settings['play_chords'] = self.chkPlayChords.GetValue()
@@ -2578,10 +2497,6 @@ class MyChordPlayPage (wx.Panel):
         melodyvol = self.sliderVol.GetValue()
         self.settings['melodyvol'] = melodyvol
         self.Voltxt.SetLabel(str(melodyvol))
-
-
-
-
 
 
 # New panel to be able to set MIDI settings for the different voices
@@ -3386,7 +3301,6 @@ class MidiOptionsFrame(wx.Dialog):
         self.slur_16ths = wx.CheckBox(self, wx.ID_ANY, _('Use slurs on first pair of sixteenth (useful for some 16th polskas)'))
         self.ok = wx.Button(self, wx.ID_ANY, _('&Ok'))
         self.cancel = wx.Button(self, wx.ID_ANY, _('&Cancel'))
-        #box.AddStretchSpacer()
         # 1.3.6.1 [JWdJ] 2015-01-30 Swapped next two lines so OK-button comes first (OK Cancel)
         if WX4:
             box = wx.BoxSizer()
@@ -3510,14 +3424,12 @@ class FlexibleListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlA
         "REFUOI1jZGRiZqAEMFGke2gY8P/f3/9kGwDTjM8QnAaga8JlCG3CAJdt2MQxDCAUaOjyjKMp"
         "cRAYAABS2CPsss3BWQAAAABJRU5ErkJggg==")
 
-        #----------------------------------------------------------------------
         SmallDnArrow = PyEmbeddedImage(
         "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAEhJ"
         "REFUOI1jZGRiZqAEMFGke9QABgYGBgYWdIH///7+J6SJkYmZEacLkCUJacZqAD5DsInTLhDR"
         "bcPlKrwugGnCFy6Mo3mBAQChDgRlP4RC7wAAAABJRU5ErkJggg==")
         self.sm_up = self.il.Add(SmallUpArrow.GetBitmap())
         self.sm_dn = self.il.Add(SmallDnArrow.GetBitmap())
-        #self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
     def GetListCtrl(self):
         return self
     def GetSortImages(self):
@@ -3539,10 +3451,6 @@ class FlexibleListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlA
 
     def SelectItem(self, index, select=True):
         self.Select(index, select)
-        #if select:
-        #    self.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
-        #else:
-        #    self.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
 
     def DeselectAll(self):
         item = self.GetFirstSelected()
@@ -3928,7 +3836,6 @@ class MainFrame(wx.Frame):
 
         # 1.3.6 [SS] 2014-12-07
         self.statusbar = self.CreateStatusBar()
-        #print 'statusbar = ', self.statusbar
         self.SetMinSize((100, 100))
         if settings.get('live_resize', False):
             self.manager = aui.AuiManager(self, agwFlags=aui.AUI_MGR_DEFAULT | aui.AUI_MGR_LIVE_RESIZE)
@@ -3976,7 +3883,6 @@ class MainFrame(wx.Frame):
 
         self.mc.OnAfterLoad += self.OnMediaLoaded
         self.mc.OnAfterStop += self.OnAfterStop
-        # self.media_file_loaded = False
         self.play_music_thread = None
 
         # 1.3.7.3 [JWDJ] Removed wx.LC_SINGLE_SEL to enable multiselect tunes
@@ -4069,13 +3975,10 @@ class MainFrame(wx.Frame):
         self.editor.Bind(stc.EVT_STC_MODIFIED, self.OnModified)
         self.editor.Bind(stc.EVT_STC_UPDATEUI, self.OnPosChanged)
         self.editor.Bind(wx.EVT_LEFT_UP, self.OnEditorMouseRelease)
-        ##self.editor.Bind(stc.EVT_STC_KEY, self.OnKeyPressed)
         self.editor.Bind(wx.EVT_KEY_DOWN, self.OnKeyDownEvent)
         self.editor.Bind(wx.EVT_CHAR, self.OnCharEvent)
         self.editor.CmdKeyAssign(ord('+'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.editor.CmdKeyAssign(ord('-'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
-        #self.editor.CmdKeyClearAll()
-        #self.editor.CmdKeyAssign(ord('\t'), 0, 2172)  # not used
         self.music_pane.Bind(wx.EVT_LEFT_DCLICK, self.OnMusicPaneDoubleClick)
         #self.music_pane.Bind(wx.EVT_KEY_DOWN, self.OnMusicPaneKeyDown)
 
@@ -4084,8 +3987,6 @@ class MainFrame(wx.Frame):
 
         self.update_controls_using_settings()
 
-        #1.3.6 [SS] 2014-12-07 (self.statusbar)
-        #1.3.6.2 [SS] 2015-03-03 self.statusbar removed
         self.music_update_thread = MusicUpdateThread(self, self.settings, self.cache_dir)
 
         self.tune_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickList, self.tune_list)
@@ -4100,7 +4001,6 @@ class MainFrame(wx.Frame):
 
         self.updating_text = False
         self.UpdateTuneList()
-        self.UpdateTuneListVisibility(True)
 
         self.play_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnPlayTimer, self.play_timer)
@@ -4258,7 +4158,6 @@ class MainFrame(wx.Frame):
                     self.printData = wx.PrintData(printer.GetPrintDialogData().GetPrintData())
                 else:
                     wx.MessageBox(_("There was a problem printing.\nPerhaps your current printer is not set correctly?"), _("Printing"), wx.OK)
-                # printout.Destroy()
 
     def GetAbcToPlay(self):
         tune = self.GetSelectedTune()
@@ -4526,11 +4425,9 @@ class MainFrame(wx.Frame):
         self.play_music_thread.play_midi(midifile)
 
     def do_load_media_file(self, path):
-        # self.media_file_loaded = False
         if self.mc.Load(path):
             if wx.Platform == "__WXMSW__" and platform.release() != 'XP':
                 # 1.3.6.3 [JWDJ] 2015-3 It seems mc.Play() triggers the OnMediaLoaded event
-                # self.OnMediaLoaded(None)
                 self.mc.Play() # does not start playing but triggers OnMediaLoaded event
         else:
             wx.MessageBox(_("Unable to load %s: Unsupported format?") % path,
@@ -4589,7 +4486,6 @@ class MainFrame(wx.Frame):
         if self.uses_fluidsynth:
             self.OnAfterStop()
 
-
     def OnSeek(self, evt):
         self.mc.Seek(self.progress_slider.GetValue())
 
@@ -4627,7 +4523,6 @@ class MainFrame(wx.Frame):
                 self.started_playing = False
                 self.OnToolStop(None)
 
-
     def FollowScore(self, offset, queue_number):
         if self.queue_number_follow_score != queue_number:
             return
@@ -4639,7 +4534,6 @@ class MainFrame(wx.Frame):
         if not page:
             return
 
-        # self.statusbar.SetStatusText('%d' % offset)
         offset += self.settings.get('follow_score_timing_offset', 0)
 
         current_time_slice = self.current_time_slice
@@ -4725,7 +4619,6 @@ class MainFrame(wx.Frame):
     def flip_tempobox(self, state):
         ''' rearranges the toolbar depending on whether a midi file is played using the
             mc media player'''
-        # self.show_toolbar_panel(self.bpm_slider.Parent, state)
         self.show_toolbar_panel(self.progress_slider.Parent, state)
         self.loop_check.Show(state)
         self.follow_score_check.Show(state)
@@ -4735,8 +4628,6 @@ class MainFrame(wx.Frame):
 
 
     def show_toolbar_panel(self, panel, visible):
-        #for sizer_item in panel.Sizer.Children:
-        #    sizer_item.Show(visible)
         panel.Show(visible)
 
     def setup_toolbar(self):
@@ -4774,15 +4665,12 @@ class MainFrame(wx.Frame):
         self.play_button = play = platebtn.PlateButton(self.toolbar, self.id_play, "", self.play_bitmap, style=button_style)
         self.stop_button = stop = platebtn.PlateButton(self.toolbar, self.id_stop, "", wx.Image(os.path.join(image_path, 'toolbar_stop.png')).ConvertToBitmap(), style=button_style)
         self.record_btn = record = platebtn.PlateButton(self.toolbar, self.id_record, "", wx.Image(os.path.join(image_path, 'toolbar_record.png')).ConvertToBitmap(), style=button_style)
-        ##self.refresh = refresh = platebtn.PlateButton(self.toolbar, self.id_refresh, "", wx.Image(os.path.join(image_path, 'toolbar_refresh.png')).ConvertToBitmap(), style=button_style)
-        #add_tune = platebtn.PlateButton(self.toolbar, self.id_add_tune, "", wx.Image(os.path.join(image_path, 'new.gif')).ConvertToBitmap(), style=button_style)
 
         play.SetHelpText('Play (F6)')
         record.SetMenu(record_popup)
         self.toolbar.AddControl(play)
         self.toolbar.AddControl(stop)
         self.toolbar.AddControl(record)
-        ##self.toolbar.AddControl(refresh)
         self.toolbar.AddSeparator()
 
         # 1.3.6.3 [JWdJ] 2015-04-26 turned off abc assist for it is not finished yet
@@ -4834,14 +4722,11 @@ class MainFrame(wx.Frame):
         play.Bind(wx.EVT_LEFT_DCLICK, self.OnToolPlayLoop)
         self.Bind(wx.EVT_BUTTON, self.OnToolStop, stop)
         self.Bind(wx.EVT_BUTTON, self.OnToolRecord, record)
-        ##self.Bind(wx.EVT_BUTTON, self.OnToolRefresh, refresh)
-        ##self.Bind(wx.EVT_BUTTON, self.OnToolAddTune, add_tune)
 
         self.popup_upload = self.create_upload_context_menu()
 
         # 1.3.6.3 [JWDJ] fixes toolbar repaint bug
         self.flip_tempobox(False)
-        #self.play_panel.Show(False)
         self.cur_page_combo.Parent.Show(False)
 
         self.manager.AddPane(self.toolbar, aui.AuiPaneInfo().
@@ -5083,7 +4968,6 @@ class MainFrame(wx.Frame):
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
 
-
     # 1.3.6 [SS] 2014-11-21
     def OnSearchDirectories(self, evt):
         self.show_search_in_files(True)
@@ -5193,7 +5077,6 @@ class MainFrame(wx.Frame):
         self.export_tunes(_('SVG file'), '.svg', self.export_svg, only_selected=True)
 
     def export_svg(self, tune, filepath):
-        #shutil.copy(svg_file, path)
         # 1.3.6 [SS] 2014-12-02 2014-12-07
         svg_files, error = AbcToSvg(tune.abc, tune.header,
                                              self.cache_dir,
@@ -5697,7 +5580,7 @@ class MainFrame(wx.Frame):
         wildcard = _("ABC file") + " (*.abc;*.txt;*.mcm)|*.abc;*.txt;*.mcm|" + \
                    _('Any file') + " (*.*)|*"
         dlg = wx.FileDialog(
-            self, message=_("Open ABC file"), #defaultDir='',
+            self, message=_("Open ABC file"),
             defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR )
         try:
             if dlg.ShowModal() == wx.ID_OK:
@@ -5839,7 +5722,6 @@ class MainFrame(wx.Frame):
             f.write(s)
             f.close()
             self.editor.SetSavePoint()
-            #self.was_non_modified = True
 
     def save_as(self, directory=None):
         wildcard = _('ABC file') + " (*.abc)|*.abc"
@@ -6304,7 +6186,6 @@ class MainFrame(wx.Frame):
                 self.editor.SetSelection(p2, p2)
             else:
                 self.editor.SetSelection(p1, p2)
-            #print 'current position = ', self.editor.GetCurrentPos()
             self.editor.SearchAnchor()
             if self.find_data.GetFlags() & wx.FR_DOWN:
                 search_func = self.editor.SearchNext
@@ -6359,7 +6240,6 @@ class MainFrame(wx.Frame):
 
         dir_name = os.path.join(self.app_dir, 'cache')
         # 1.3.6 [SS] 2014-11-16
-        #files = [os.path.join(dir_name, f) for f in os.listdir(dir_name) if f.startswith('temp_') and f[-3:] in ('png', 'svg', 'abc', 'mid', 'idi')]
         files = [os.path.join(dir_name, f) for f in os.listdir(dir_name) if f.startswith('temp') and f[-3:] in ('png', 'svg', 'abc', 'mid', 'idi', 'pdf')]
 
         if evt is None: #PO9 2014-10-26
@@ -6378,7 +6258,6 @@ class MainFrame(wx.Frame):
             self.svg_tunes.cleanup()
             self.midi_tunes.cleanup()
 
-
     # 1.3.6.1 [SS] 2014-12-28 2015-01-22
     def OnColdRestart(self, evt):
         result = wx.MessageBox(_("This will close EasyAbc and put it in a state so that it starts with default settings."
@@ -6391,12 +6270,6 @@ class MainFrame(wx.Frame):
             self.is_closed = True
             self.manager.UnInit()
             self.Destroy()
-
-
-
-
-
-
 
     def OnMidiSettings(self, evt):
         dlg = MidiSettingsFrame(self, self.settings)
@@ -6481,8 +6354,6 @@ class MainFrame(wx.Frame):
         # check the row number of the first note and if it doesn't agree with the actual value
         # then pretend that we have more or less extra header lines
         num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
-        #actual_first_row = page.notes[0][2]-1
-        #num_header_lines += (actual_first_row - first_note_line_index)
 
         current_pos = self.editor.GetCurrentPos()
         current_row = self.editor.LineFromPosition(current_pos)
@@ -6535,16 +6406,10 @@ class MainFrame(wx.Frame):
             self.scroll_music_pane(*closest_xy)
 
     def scroll_music_pane(self, x, y):
-        #x, y = x*self.zoom_factor, y*self.zoom_factor
-        #sx, sy = self.music_pane.GetScrollPos(wx.HORIZONTAL), self.music_pane.GetScrollPos(wx.VERTICAL)
         sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
         vw, vh = self.music_pane.VirtualSize
         w, h = self.music_pane.ClientSize
         margin = 20
-        #if y > sy+margin:
-        #    sy = y-h-margin*2
-        #elif y < h+sy-margin:
-        #    sy = y-margin*2
         orig_scroll = (sx, sy)
         if not sx+margin <= x <= w+sx-margin:
             sx = x - w + w/5
@@ -6553,7 +6418,6 @@ class MainFrame(wx.Frame):
         sx = max(0, min(sx, vw))
         sy = max(0, min(sy, vh))
         if (sx, sy) != orig_scroll:
-            #print 'scroll', sx, sy
             ux, uy = self.music_pane.GetScrollPixelsPerUnit()
             self.music_pane.Scroll(int(sx/ux), int(sy/uy))
 
@@ -6595,7 +6459,6 @@ class MainFrame(wx.Frame):
                 xNum = max(xNum, int(m.group(1)))
 
         line = editor.GetCurrentLine()
-        # start = self.editor.PositionFromLine(line)
         p = editor.GetCurrentPos()
         editor.BeginUndoAction()
         editor.SetSelection(p, p)
@@ -6871,15 +6734,6 @@ class MainFrame(wx.Frame):
         else:
             evt.Skip()
 
-        # if event was processed, restore the old note selection
-##        if not evt.GetSkipped():
-##            def restore():
-##                print 'restore', selected_indices_backup
-##                self.music_pane.current_page.clear_note_selection()
-##                for i in selected_indices_backup:
-##                    self.music_pane.current_page.add_note_to_selection(i)
-##                self.music_pane.redraw()
-##            wx.CallLater(1260, restore)
 
     def get_metre_and_default_length(self, abc):
         return AbcTune(abc).get_metre_and_default_length()
@@ -7056,11 +6910,6 @@ class MainFrame(wx.Frame):
                 wx.CallAfter(lambda: self.insert_bar())
             else:
                 evt.Skip()
-##        elif evt.GetUnicodeKey() == ord('D') and evt.CmdDown() and False:
-##            if self.keyboard_input_mode:
-##                self.keyboard_input_mode = False
-##            else:
-##                self.StartKeyboardInputMode()
         elif evt.GetUnicodeKey() == ord('L') and evt.CmdDown():
             self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=self.mni_auto_refresh.IsChecked())
         elif evt.MetaDown() and evt.GetKeyCode() == wx.WXK_UP:
@@ -7143,11 +6992,9 @@ class MainFrame(wx.Frame):
         undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
         undo.Enable(self.editor.CanUndo())
         redo.Enable(self.editor.CanRedo())
-        # paste.Enable(self.editor.CanPaste())
 
         for mni in (self.mni_TA_auto_case, self.mni_TA_do_re_mi, self.mni_TA_add_note_durations, self.mni_TA_add_right, self.mni_TA_add_bar_disabled, self.mni_TA_add_bar, self.mni_TA_add_bar_auto):
             mni.Enable(self.mni_TA_active.IsChecked())
-        #self.mni_TA_do_re_mi.Enable(False)
 
     def OnUpdate(self, evt):
         if evt.GetKeyCode() == 344: #F5
@@ -7155,7 +7002,6 @@ class MainFrame(wx.Frame):
         elif evt.GetKeyCode() == 345: #F6
             self.OnToolPlay(evt)
             self.play_button.Refresh()
-            #self.play_button.Update()
         elif evt.GetKeyCode() == 346: #F7
             self.OnToolStop(evt)
         else:
@@ -7195,38 +7041,6 @@ class MainFrame(wx.Frame):
         self.manager.UnInit()
         self.Destroy()
 
-    # 1.3.6.3 [JWDJ] DetermineMidiPlayRange is not used anymore
-    # def DetermineMidiPlayRange(self, tune, midi_file):
-    #     start = None
-    #     end = None
-    #     if False and self.selected_note_indices:
-    #         offsets = midi_to_meta_data(midi_file)
-    #
-    #         # what's the (row, col) range of the selection
-    #         p1, p2 = self.editor.GetSelection()
-    #         row1, row2 = self.editor.LineFromPosition(p1), self.editor.LineFromPosition(p2)
-    #         col1, col2 = p1-self.editor.PositionFromLine(row1), p2-self.editor.PositionFromLine(row2)
-    #         # adjust so that the X: line corresponds to row number 0
-    #         start_row = self.editor.LineFromPosition(tune.offset_start)
-    #         row1 -= start_row
-    #         row2 -= start_row
-    #         ##print (row1, col1), (row2, col2)
-    #
-    #         if offsets:
-    #             for i, (row, col, time) in enumerate(offsets):
-    #                 row = row - 17 - 1 # 17 is the number of extra rows added by process_abc_code, and -1 is to make it zero-based
-    #                 ##print (row, col, time)
-    #                 if row1 <= row <= row2 and col1 <= col < col2:  # if inside selection
-    #                     if start is None or time < start:
-    #                         start = int(time)
-    #                     if end is None or time > end:
-    #                         if i < len(offsets)-1:
-    #                             end = int(offsets[i+1][2])-1   # end just before the next note starts
-    #                         else:
-    #                             end = None
-    #     self.play_start_offset = start or 0
-    #     self.play_end_offset = end or 9999999999999
-
     def PlayMidi(self, remove_repeats=False):
         global execmessages # 1.3.6 [SS] 2014-11-11
         tune, abc = self.GetAbcToPlay()
@@ -7255,8 +7069,6 @@ class MainFrame(wx.Frame):
                 execmessages += '\ncalling ' + self.settings['midiplayer_path'] #1.3.6 [SS]
                 self.start_midi_out(midi_file)
             else:
-                # 1.3.6.3 [JWDJ] 2015-3 DetermineMidiPlayRange not used anymore
-                # self.DetermineMidiPlayRange(tune, midi_file)
                 self.played_notes_timeline = None
                 self.started_playing = False
                 if self.settings.get('follow_score', False):
@@ -7555,8 +7367,6 @@ class MainFrame(wx.Frame):
         evt.Skip()
 
     def SetErrorMessage(self, error_msg):
-        #print traceback.extract_stack(None, 5)
-        #print 'SetErrorMessage called ',error_msg
         old_err = self.error_msg.GetValue()
         self.error_msg.SetValue(error_msg)
         pane = self.manager.GetPane('error message')
@@ -7626,7 +7436,6 @@ class MainFrame(wx.Frame):
 
         self.svg_tunes.add(tune) # 1.3.6.3 [JWDJ] for proper disposable of svg files
         self.UpdateMusicPane()
-        #self.SetErrorMessage(error) 1.3.6 [SS] 2014-12-07
 
     def GetTextRangeOfTune(self, offset):
         position = offset
@@ -7728,9 +7537,6 @@ class MainFrame(wx.Frame):
 
     def OnTuneSelected(self, evt):
         global execmessages # [SS] 1.3.6 2014-11-11
-        #print 'evt = '+ str(evt) + '  ' + str(self.tune_list.GetFirstSelected())
-        #print traceback.extract_stack(None, 5)
-        #self.execmessage_time set by OnDropFile(self, filename)
 
         # 1.3.6.4 [SS] 2015-06-11 -- to maintain consistency for different media players
         # self.reset_BpmSlider()
@@ -7746,9 +7552,6 @@ class MainFrame(wx.Frame):
         if tune:
             self.music_update_thread.ConvertAbcToSvg(tune.abc, tune.header)
             if evt and (wx.Window.FindFocus() != self.editor and not (self.find_dialog and self.find_dialog.IsActive() or self.replace_dialog and self.replace_dialog.IsActive())):
-            #if evt and wx.Window.FindFocus() != self.editor:
-            #print wx.Window.FindFocus()
-            #if evt and wx.Window.FindFocus() == self.tune_list:
                 # 1.3.6.2 [JWdJ] 2015-02
                 self.music_pane.current_page.clear_note_selection()
                 self.selected_note_descs = []
@@ -7815,21 +7618,6 @@ class MainFrame(wx.Frame):
 
         self.SelectOnlyTuneIfTuneNotSelected()
 
-        self.UpdateTuneListVisibility()
-
-
-    def UpdateTuneListVisibility(self, force_update=False):
-        pass
-##        tune_list = self.manager.GetPane('tune list')
-##        print len(self.tunes), tune_list.IsShown()
-##        if len(self.tunes) > 1 and (not tune_list.IsShown() or force_update):
-##            tune_list.Show()
-##            print 'show tl'
-##            self.manager.Update
-##        elif len(self.tunes) <= 1 and (tune_list.IsShown() or force_update or True):
-##            tune_list.Hide()
-##            print 'hide tl'
-##            self.manager.Update
 
     def OnTimer(self, evt):
         self.SelectOnlyTuneIfTuneNotSelected()
@@ -7904,9 +7692,7 @@ class MainFrame(wx.Frame):
         if not font_face:
             fixedWidthFonts = ['Bitstream Vera Sans Mono', 'Courier New', 'Courier']
             #fixedWidthFonts = ['Lucida Grande', 'Monaco' 'Inconsolata', 'Consolas', 'Deja Vu Sans Mono', 'Droid Sans Mono', 'Courier', 'Andale Mono', 'Monaco', 'Courier New', 'Courier']
-            #variableWidthFonts = ['Bitstream Vera Sans', 'Arial', 'Verdana']
             wantFonts = fixedWidthFonts[:]
-            #wantFonts = variableWidthFonts[:]
             size = 16
             if wx.Platform == "__WXMSW__":
                 size = 10
@@ -7981,7 +7767,6 @@ class MainFrame(wx.Frame):
             p = self.settings['xml_p'].split(',')
             for elem in p:
                 options.p.append(float(elem))
-            # print(options.p)
 
         try:
             extension = os.path.splitext(filename)[1].lower()
@@ -7999,9 +7784,6 @@ class MainFrame(wx.Frame):
                     xml_file_path = NWCToXml(filename, self.cache_dir, self.settings.get('nwc2xml_path', None))
                     # 1.3.6 [SS] 2014-12-18
                     abc_code = xml_to_abc(xml_file_path,options,info_messages)
-                    if '%%score 1 2' in abc_code:
-                        abc_code = re.sub(r'%%score 1 2\s*', '', abc_code)
-                        #abc_code = copy_bar_symbols_from_first_voice(abc_code)
                     abc_code = fix_boxmarks_texts(abc_code)
                     abc_code = change_texts_into_chords(abc_code)
                 # 1.3.6.2 [JWdJ] 2015-02
@@ -8141,7 +7923,6 @@ class MainFrame(wx.Frame):
             # 1.3.6.3 [JWDJ] 2015-04-14 only load perspective if there is any.
             if perspective:
                 self.manager.LoadPerspective(perspective)
-        #self.bpm_slider.SetValue(settings.get('tempo', 100))
         self.bpm_slider.SetValue(0)
         self.zoom_slider.SetValue(settings.get('score_zoom', 1000))
         self.author = settings.get('author', '')
@@ -8273,8 +8054,6 @@ class MainFrame(wx.Frame):
 
         gs_path = settings.get('gs_path')
         # 1.3.6.1 [SS] 2015-01-28
-        #ps2pdf_path = settings.get('ps2pdf_path')
-        #print 'gs_path = ',gs_path
 
         if not gs_path:
             if wx.Platform == "__WXMSW__":
@@ -8288,12 +8067,8 @@ class MainFrame(wx.Frame):
                     settings['gs_path'] = ''
             #1.3.6.1 [SS] 2014-01-13
             elif wx.Platform == "__WXMAC__":
-                #gs_path = os.path.join(cwd, 'gs-8.71-macosx')
                 gs_path = '/usr/bin/pstopdf'
                 settings['gs_path'] = gs_path
-                # 1.3.6.1 [SS] 2015-01-28
-                #ps2pdf_path = os.path.join(cwd, 'pstopdf')
-                #settings['ps2pdf_path'] = ps2pdf_path
 
         # 1.3.6.1 [SS] 2015-01-12 2015-01-22
         gs_path = settings['gs_path'] #eliminate trailing \n
@@ -8302,27 +8077,6 @@ class MainFrame(wx.Frame):
             dlg = wx.MessageDialog(self, msg, _('Warning'), wx.OK)
             dlg.ShowModal()
 
-        # 1.3.6.1 [SS] 2015-01-13 2015-01-28
-        #if wx.Platform == "__WXMAC__" and (os.path.exists(gs_path) == False):
-            #if ps2pdf_path and  os.path.exists(ps2pdf_path) == False:
-                #msg = 'The executable '+ps2pdf_path+' could not be found.'
-                #dlg = wx.MessageDialog(self, msg,'Warning', wx.OK)
-                #dlg.ShowModal()
-
-
-        #print 'ps2pdf_path = ',ps2pdf_path
-        #nwc2xml_path = settings.get('nwc2xml_path')
-        #print 'nwc2xml_path = ',nwc2xml_path
-        #if wx.Platform == "__WXMSW__":
-        #    pass
-        #elif wx.Platform == "__WXMAC__":
-        #    pass
-        #elif wx.Platform == "__WXGTK__":
-        #    pass
-        #else:
-        #    pass
-
-# Upgrade to 1.3.6
         #Fix midi_program_ch settings - 1.3.5 to 1.3.6 compatibility 2014-11-14
         midi_program_ch_list=['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
                               'midi_program_ch5', 'midi_program_ch6', 'midi_program_ch7', 'midi_program_ch8',
@@ -8402,7 +8156,6 @@ class MyFileDropTarget(wx.FileDropTarget):
         self.frame = frame
 
     def OnDropFiles(self, x, y, filenames):
-        #frame = wx.GetApp().GetTopWindow()
         frame = self.frame
         self.frame.Raise()
 
@@ -8715,6 +8468,4 @@ app.MainLoop()
 application_running = False
 current_locale = None
 app = None
-
-
 
