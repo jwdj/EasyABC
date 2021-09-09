@@ -3554,9 +3554,10 @@ class FlexibleListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlA
 
 class AbcSearchPanel(wx.Panel):
     ''' For searching a directory of abc files for tunes containing a string. '''
-    def __init__(self, parent, settings):
+    def __init__(self, parent, settings, statusbar):
         wx.Panel.__init__(self, parent)
         self.settings = settings
+        self.statusbar = statusbar
         border = control_margin
 
         find_what_label = wx.StaticText(self, wx.ID_ANY, _('Find what') + ':')
@@ -3702,9 +3703,9 @@ class AbcSearchPanel(wx.Panel):
 
     def on_after_search(self, aborted, items):
         if not aborted:
-            self.Parent.statusbar.SetStatusText(_('Found {0} items').format(len(items)))
+            self.statusbar.SetStatusText(_('Found {0} items').format(len(items)))
             if items:
-                titles = [title for title, _, _ in items]
+                titles = [title for title, path, pos in items]
                 self.list_ctrl.InsertItems(titles, 0)
             self.list_ctrl.Show()
 
@@ -3743,16 +3744,13 @@ class AbcSearchPanel(wx.Panel):
         index = evt.Selection  # line number in listbox
         path, char_pos_in_file = self.search_thread.get_result_for_index(index)
 
-        if frame.current_file != path:
-            frame.document_name = path
-            frame.SetTitle('%s - %s' % (program_name, frame.document_name))
-            frame.editor.ClearAll()
-            frame.load(path)
         # SetCurrentPos will position the editor on the selected tune
         # and should automatically position the music window and the tune_list.
+        wait = wx.BusyCursor()
         abc_text = read_abc_file(path)[0:char_pos_in_file]
         byte_pos_in_file = len(abc_text.encode('utf-8'))
-        frame.editor.SetCurrentPos(byte_pos_in_file)
+        frame.load_and_position(path, byte_pos_in_file)
+        del wait
 
 
 search_parts_re = re.compile(r'(?:^| )([A-Za-z]:|%%)')
@@ -5093,7 +5091,7 @@ class MainFrame(wx.Frame):
     def show_search_in_files(self, show):
         panel = self.search_files_panel
         if not panel:
-            panel = AbcSearchPanel(self, self.settings)
+            panel = AbcSearchPanel(self, self.settings, self.statusbar)
             self.search_files_panel = panel
 
         pane = self.manager.GetPane(self.search_files_panel)
@@ -5755,7 +5753,7 @@ class MainFrame(wx.Frame):
         except UnicodeError:
             return file_as_bytes.decode('latin-1')
 
-    def load(self, filepath):
+    def load(self, filepath, editor_pos = None):
         try:
             file_as_bytes = read_entire_file(filepath)
         except IOError:
@@ -5778,12 +5776,29 @@ class MainFrame(wx.Frame):
         try:
             self.editor.ClearAll()
             self.editor.SetText(text)
+            if editor_pos:
+                self.editor.SetCurrentPos(editor_pos)
             self.editor.SetSavePoint()
             self.editor.EmptyUndoBuffer()
         finally:
             self.updating_text = False
+        
         self.UpdateTuneList()
-        self.tune_list.Select(0)
+        if editor_pos:
+            self.select_tune_at_current_pos()
+        else:
+            self.tune_list.Select(0)
+
+    def load_and_position(self, filepath, editor_pos):
+        self.Freeze()
+        try:
+            if self.current_file == filepath:
+                self.editor.SetCurrentPos(editor_pos)
+                self.select_tune_at_current_pos()
+            else:
+                self.load(filepath, editor_pos)
+        finally:
+            self.Thaw()
 
     def ask_save(self):
         dlg = wx.MessageDialog(self, _('Do you want to save your changes to %s?') % self.document_name,
@@ -6542,9 +6557,7 @@ class MainFrame(wx.Frame):
             ux, uy = self.music_pane.GetScrollPixelsPerUnit()
             self.music_pane.Scroll(int(sx/ux), int(sy/uy))
 
-    def OnMovedToDifferentLine(self, queue_number_movement):
-        if self.queue_number_movement != queue_number_movement:
-            return
+    def select_tune_at_current_pos(self):
         line_no = self.editor.LineFromPosition(self.editor.GetCurrentPos())
         total_tunes = self.tune_list.GetItemCount()
         found_index = next((i for i, (index, title, startline) in enumerate(self.tunes) if startline > line_no), total_tunes) - 1
@@ -6566,6 +6579,11 @@ class MainFrame(wx.Frame):
 
         if self.abc_assist_panel.IsShown():
             self.abc_assist_panel.update_assist()
+
+    def OnMovedToDifferentLine(self, queue_number_movement):
+        if self.queue_number_movement != queue_number_movement:
+            return
+        self.select_tune_at_current_pos()
 
     def AutoInsertXNum(self):
         xNum = 0
@@ -7822,8 +7840,8 @@ class MainFrame(wx.Frame):
             self.OnTuneSelected(None)
 
     def GetTunes(self):
-        n = self.editor.GetLineCount()
         editor = self.editor
+        n = editor.GetLineCount()
         pos_from_line = editor.PositionFromLine
         get_text_range = editor.GetTextRange
         get_line = editor.GetLine
@@ -7831,6 +7849,7 @@ class MainFrame(wx.Frame):
         cur_index = None
         cur_startline = None
         cur_title = u''
+        titles_found = 0
         tunes = []
         tunes_append = tunes.append
         for i in xrange(n):
@@ -7850,12 +7869,14 @@ class MainFrame(wx.Frame):
                 else:
                     cur_index = None
                 cur_title = u''
-            elif cur_index is not None and t == 'T:':
+                titles_found = 0
+            elif t == 'T:' and titles_found < 2 and cur_index is not None:
                 title = decode_abc(strip_comments(get_line(i)[2:]).strip())
                 if title:
                     if cur_title:
                         cur_title += ' - '
                     cur_title += title
+                    titles_found += 1
 
         if cur_index is not None:
             tunes_append((cur_index, cur_title, cur_startline))
