@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2021-09-09 23:44+0200\n"
-"PO-Revision-Date: 2021-09-09 23:48+0200\n"
+"POT-Creation-Date: 2021-09-10 13:04+0200\n"
+"PO-Revision-Date: 2021-09-10 15:20+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -1223,16 +1223,16 @@ msgid "&File"
 msgstr "&Bestand"
 
 #: easy_abc.py:5927
-msgid "&New\tCtrl+N"
-msgstr "&Nieuw\tCtrl+N"
+msgid "&New"
+msgstr "&Nieuw"
 
 #: easy_abc.py:5927
 msgid "Create a new file"
 msgstr "Nieuw bestand maken"
 
 #: easy_abc.py:5928
-msgid "&Open...\tCtrl+O"
-msgstr "&Openen...\tCtrl+O"
+msgid "&Open..."
+msgstr "&Openen..."
 
 #: easy_abc.py:5928
 msgid "Open an existing file"
@@ -1303,32 +1303,32 @@ msgid "as PDF &Files..."
 msgstr "als losse PD&F-bestanden..."
 
 #: easy_abc.py:5949
-msgid "&Save\tCtrl+S"
-msgstr "Op&slaan\tCtrl+S"
+msgid "&Save"
+msgstr "Op&slaan"
 
 #: easy_abc.py:5949
 msgid "Save the active file"
 msgstr "Huidig bestand opslaan"
 
 #: easy_abc.py:5950
-msgid "Save &As...\tShift+Ctrl+S"
-msgstr "Opslaan &als...\tShift+Ctrl+S"
+msgid "Save &As..."
+msgstr "Opslaan &als..."
 
 #: easy_abc.py:5950
 msgid "Save the active file with a new filename"
 msgstr "Huidig bestand opslaan onder een andere naam"
 
 #: easy_abc.py:5952
-msgid "&Print...\tCtrl+P"
-msgstr "&Afdrukken...\tCtrl+P"
+msgid "&Print..."
+msgstr "&Afdrukken..."
 
 #: easy_abc.py:5952
 msgid "Print the selected tune"
 msgstr "Geselecteerde composities afdrukken"
 
 #: easy_abc.py:5953
-msgid "&Print preview\tCtrl+Shift+P"
-msgstr "&Afdrukvoorbeeld...\tCtrl+Shift+P"
+msgid "&Print preview"
+msgstr "Afdruk&voorbeeld"
 
 #: easy_abc.py:5954
 msgid "P&age Setup..."
@@ -1343,8 +1343,8 @@ msgid "&Recent files"
 msgstr "&Recente bestanden"
 
 #: easy_abc.py:5958
-msgid "&Quit\tCtrl+Q"
-msgstr "&Afsluiten\tCtrl+Q"
+msgid "&Quit"
+msgstr "Afsluiten"
 
 #: easy_abc.py:5958
 msgid "Exit the application (prompt to save files)"
@@ -1355,48 +1355,48 @@ msgid "&Edit"
 msgstr "B&ewerken"
 
 #: easy_abc.py:5960
-msgid "&Undo\tCtrl+Z"
-msgstr "&Ongedaan maken\tCtrl+Z"
+msgid "&Undo"
+msgstr "Ongedaan maken"
 
 #: easy_abc.py:5960
 msgid "Undo the last action"
 msgstr "Laatste actie ongedaan maken"
 
 #: easy_abc.py:5961
-msgid "&Redo\tCtrl+Y"
-msgstr "&Opnieuw\tCtrl+Y"
+msgid "&Redo"
+msgstr "Opnieuw"
 
 #: easy_abc.py:5961
 msgid "Redo the last action"
 msgstr "Laatste actie opnieuw doen"
 
 #: easy_abc.py:5963
-msgid "&Cut\tCtrl+X"
-msgstr "&Knippen\tCtrl+X"
+msgid "&Cut"
+msgstr "Knippen"
 
 #: easy_abc.py:5963
 msgid "Cut the selection and put it on the clipboard"
 msgstr "Knip de selectie naar het klembord"
 
 #: easy_abc.py:5964
-msgid "&Copy\tCtrl+C"
-msgstr "&Kopiëren\tCtrl+C"
+msgid "&Copy"
+msgstr "Kopiëren"
 
 #: easy_abc.py:5964
 msgid "Copy the selection and put it on the clipboard"
 msgstr "Kopieer selectie naar het klembord"
 
 #: easy_abc.py:5965
-msgid "&Paste\tCtrl+V"
-msgstr "&Plakken\tCtrl+V"
+msgid "&Paste"
+msgstr "Plakken"
 
 #: easy_abc.py:5965
 msgid "Paste clipboard contents"
 msgstr "Klembord plakken"
 
 #: easy_abc.py:5966
-msgid "&Delete\tDel"
-msgstr "&Verwijderen\tDel"
+msgid "&Delete"
+msgstr "Verwijderen"
 
 #: easy_abc.py:5966
 msgid "Delete the selection"
@@ -1415,32 +1415,32 @@ msgid "&Change note length"
 msgstr "Andere nootlengte"
 
 #: easy_abc.py:5975
-msgid "Double note lengths\tCtrl+Shift++"
-msgstr "Verdubbel nootduur\tCtrl+Shift++"
+msgid "Double note lengths"
+msgstr "Nootduur verdubbelen"
 
 #: easy_abc.py:5976
-msgid "Halve note lengths\tCtrl+Shift+-"
-msgstr "Halveer nootduur\tCtrl+Shift+-"
+msgid "Halve note lengths"
+msgstr "Nootduur halveren"
 
 #: easy_abc.py:5977
-msgid "A&lign bars\tCtrl+Shift+A"
-msgstr "Maatstrepen uit&lijnen\tCtrl+Shift+A"
+msgid "A&lign bars"
+msgstr "Maatstrepen uitlijnen"
 
 #: easy_abc.py:5979
-msgid "&Find...\tCtrl+F"
-msgstr "&Zoeken...\tCtrl+F"
+msgid "&Find..."
+msgstr "&Zoeken..."
 
 #: easy_abc.py:5981
-msgid "Find &Next\tF3"
-msgstr "Volgende zoeken\tF3"
+msgid "Find &Next"
+msgstr "Volgende zoeken"
 
 #: easy_abc.py:5982
-msgid "&Replace...\tCtrl+H"
-msgstr "&Vervangen...\tCtrl+H"
+msgid "&Replace..."
+msgstr "&Vervangen..."
 
 #: easy_abc.py:5984
-msgid "&Select all\tCtrl+A"
-msgstr "Alles &selecteren\tCtrl+A"
+msgid "&Select all"
+msgstr "Alles selecteren"
 
 #: easy_abc.py:5985
 msgid "&Settings"
@@ -3628,6 +3628,66 @@ msgid ""
 msgstr ""
 "In abc-code een nieuwe regel in de code is ook een nieuwe regel in de "
 "bladmuziek. Een backslash voorkomt een nieuwe regel."
+
+#~ msgid "&New\tCtrl+N"
+#~ msgstr "&Nieuw\tCtrl+N"
+
+#~ msgid "&Open...\tCtrl+O"
+#~ msgstr "&Openen...\tCtrl+O"
+
+#~ msgid "&Save\tCtrl+S"
+#~ msgstr "Op&slaan\tCtrl+S"
+
+#~ msgid "Save &As...\tShift+Ctrl+S"
+#~ msgstr "Opslaan &als...\tShift+Ctrl+S"
+
+#~ msgid "&Print...\tCtrl+P"
+#~ msgstr "&Afdrukken...\tCtrl+P"
+
+#~ msgid "&Print preview\tCtrl+Shift+P"
+#~ msgstr "&Afdrukvoorbeeld...\tCtrl+Shift+P"
+
+#~ msgid "&Quit\tCtrl+Q"
+#~ msgstr "&Afsluiten\tCtrl+Q"
+
+#~ msgid "&Undo\tCtrl+Z"
+#~ msgstr "&Ongedaan maken\tCtrl+Z"
+
+#~ msgid "&Redo\tCtrl+Y"
+#~ msgstr "&Opnieuw\tCtrl+Y"
+
+#~ msgid "&Cut\tCtrl+X"
+#~ msgstr "&Knippen\tCtrl+X"
+
+#~ msgid "&Copy\tCtrl+C"
+#~ msgstr "&Kopiëren\tCtrl+C"
+
+#~ msgid "&Paste\tCtrl+V"
+#~ msgstr "&Plakken\tCtrl+V"
+
+#~ msgid "Double note lengths\tCtrl+Shift++"
+#~ msgstr "Verdubbel nootduur\tCtrl+Shift++"
+
+#~ msgid "Halve note lengths\tCtrl+Shift+-"
+#~ msgstr "Halveer nootduur\tCtrl+Shift+-"
+
+#~ msgid "A&lign bars\tCtrl+Shift+A"
+#~ msgstr "Maatstrepen uit&lijnen\tCtrl+Shift+A"
+
+#~ msgid "&Find...\tCtrl+F"
+#~ msgstr "&Zoeken...\tCtrl+F"
+
+#~ msgid "Find &Next\tF3"
+#~ msgstr "Volgende zoeken\tF3"
+
+#~ msgid "&Replace...\tCtrl+H"
+#~ msgstr "&Vervangen...\tCtrl+H"
+
+#~ msgid "&Select all\tCtrl+A"
+#~ msgstr "Alles &selecteren\tCtrl+A"
+
+#~ msgid "&Delete\tDel"
+#~ msgstr "&Verwijderen\tDel"
 
 #~ msgid "Search files"
 #~ msgstr "Bestanden zoeken"

@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2021-09-09 23:43+0200\n"
+"POT-Creation-Date: 2021-09-10 13:04+0200\n"
 "PO-Revision-Date: 2016-09-06 09:44+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1165,7 +1165,7 @@ msgid "&File"
 msgstr ""
 
 #: easy_abc.py:5927
-msgid "&New\tCtrl+N"
+msgid "&New"
 msgstr ""
 
 #: easy_abc.py:5927
@@ -1173,7 +1173,7 @@ msgid "Create a new file"
 msgstr ""
 
 #: easy_abc.py:5928
-msgid "&Open...\tCtrl+O"
+msgid "&Open..."
 msgstr ""
 
 #: easy_abc.py:5928
@@ -1243,7 +1243,7 @@ msgid "as PDF &Files..."
 msgstr ""
 
 #: easy_abc.py:5949
-msgid "&Save\tCtrl+S"
+msgid "&Save"
 msgstr ""
 
 #: easy_abc.py:5949
@@ -1251,7 +1251,7 @@ msgid "Save the active file"
 msgstr ""
 
 #: easy_abc.py:5950
-msgid "Save &As...\tShift+Ctrl+S"
+msgid "Save &As..."
 msgstr ""
 
 #: easy_abc.py:5950
@@ -1259,7 +1259,7 @@ msgid "Save the active file with a new filename"
 msgstr ""
 
 #: easy_abc.py:5952
-msgid "&Print...\tCtrl+P"
+msgid "&Print..."
 msgstr ""
 
 #: easy_abc.py:5952
@@ -1267,7 +1267,7 @@ msgid "Print the selected tune"
 msgstr ""
 
 #: easy_abc.py:5953
-msgid "&Print preview\tCtrl+Shift+P"
+msgid "&Print preview"
 msgstr ""
 
 #: easy_abc.py:5954
@@ -1283,7 +1283,7 @@ msgid "&Recent files"
 msgstr ""
 
 #: easy_abc.py:5958
-msgid "&Quit\tCtrl+Q"
+msgid "&Quit"
 msgstr ""
 
 #: easy_abc.py:5958
@@ -1295,7 +1295,7 @@ msgid "&Edit"
 msgstr ""
 
 #: easy_abc.py:5960
-msgid "&Undo\tCtrl+Z"
+msgid "&Undo"
 msgstr ""
 
 #: easy_abc.py:5960
@@ -1303,7 +1303,7 @@ msgid "Undo the last action"
 msgstr ""
 
 #: easy_abc.py:5961
-msgid "&Redo\tCtrl+Y"
+msgid "&Redo"
 msgstr ""
 
 #: easy_abc.py:5961
@@ -1311,7 +1311,7 @@ msgid "Redo the last action"
 msgstr ""
 
 #: easy_abc.py:5963
-msgid "&Cut\tCtrl+X"
+msgid "&Cut"
 msgstr ""
 
 #: easy_abc.py:5963
@@ -1319,7 +1319,7 @@ msgid "Cut the selection and put it on the clipboard"
 msgstr ""
 
 #: easy_abc.py:5964
-msgid "&Copy\tCtrl+C"
+msgid "&Copy"
 msgstr ""
 
 #: easy_abc.py:5964
@@ -1327,7 +1327,7 @@ msgid "Copy the selection and put it on the clipboard"
 msgstr ""
 
 #: easy_abc.py:5965
-msgid "&Paste\tCtrl+V"
+msgid "&Paste"
 msgstr ""
 
 #: easy_abc.py:5965
@@ -1335,7 +1335,7 @@ msgid "Paste clipboard contents"
 msgstr ""
 
 #: easy_abc.py:5966
-msgid "&Delete\tDel"
+msgid "&Delete"
 msgstr ""
 
 #: easy_abc.py:5966
@@ -1355,31 +1355,31 @@ msgid "&Change note length"
 msgstr ""
 
 #: easy_abc.py:5975
-msgid "Double note lengths\tCtrl+Shift++"
+msgid "Double note lengths"
 msgstr ""
 
 #: easy_abc.py:5976
-msgid "Halve note lengths\tCtrl+Shift+-"
+msgid "Halve note lengths"
 msgstr ""
 
 #: easy_abc.py:5977
-msgid "A&lign bars\tCtrl+Shift+A"
+msgid "A&lign bars"
 msgstr ""
 
 #: easy_abc.py:5979
-msgid "&Find...\tCtrl+F"
+msgid "&Find..."
 msgstr ""
 
 #: easy_abc.py:5981
-msgid "Find &Next\tF3"
+msgid "Find &Next"
 msgstr ""
 
 #: easy_abc.py:5982
-msgid "&Replace...\tCtrl+H"
+msgid "&Replace..."
 msgstr ""
 
 #: easy_abc.py:5984
-msgid "&Select all\tCtrl+A"
+msgid "&Select all"
 msgstr ""
 
 #: easy_abc.py:5985

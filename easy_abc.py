@@ -5877,7 +5877,7 @@ class MainFrame(wx.Frame):
         self.mni_TA_active = append_menu_item(menu, _("&Active") + '\tCtrl+T', "", self.GrayUngray, kind=wx.ITEM_CHECK)
         menu.AppendSeparator()
         self.mni_TA_auto_case = append_menu_item(menu, _("Automatic uppercase/lowercase"), "", None, kind=wx.ITEM_CHECK)
-        self.mni_TA_do_re_mi = append_menu_item(menu, _("&Do-re-mi mode") + " (experimental)" + "\tCtrl+D", "", self.OnDoReMiModeChange, kind=wx.ITEM_CHECK)
+        self.mni_TA_do_re_mi = append_menu_item(menu, _("&Do-re-mi mode") + "\tCtrl+D", "", self.OnDoReMiModeChange, kind=wx.ITEM_CHECK)
         self.mni_TA_add_note_durations = append_menu_item(menu, _("Add note &durations"), "", None, kind=wx.ITEM_CHECK)
 
         add_bar_menu = create_menu([], parent=self)
@@ -5918,14 +5918,14 @@ class MainFrame(wx.Frame):
         append_menu_item(view_menu, _("&Use default editor font"), "", self.OnUseDefaultFont)
         view_menu.AppendSeparator()
         append_menu_item(view_menu, _("&Reset window layout to default"), "", self.OnResetView)
-        #self.append_menu_item(view_menu, _("&Maximize/restore musical score pane\tCtrl+M"), "", self.OnToggleMusicPaneMaximize)
+        #self.append_menu_item(view_menu, _("&Maximize/restore musical score pane") + "\tCtrl+M", "", self.OnToggleMusicPaneMaximize)
 
         self.recent_menu = create_menu([], parent=self)
 
         menuBar = create_menu_bar([
             (_("&File")     , [
-                (_('&New\tCtrl+N'), _("Create a new file"), self.OnNew),
-                (_("&Open...\tCtrl+O"), _("Open an existing file"), self.OnOpen),
+                (_('&New') + '\tCtrl+N', _("Create a new file"), self.OnNew),
+                (_('&Open...') + '\tCtrl+O', _("Open an existing file"), self.OnOpen),
                 (_("&Close") + '\tCtrl+W', _("Close the current file"), self.OnCloseFile),
                 (),
                 (_("&Import and add..."), _("Import a song in ABC, Midi or MusicXML format and add it to the current document."), self.OnImport),
@@ -5946,24 +5946,24 @@ class MainFrame(wx.Frame):
                     #(_('as &EPUB...'), '', self.OnExportAllEpub),
                     (_('as Music&XML...'), '', self.OnExportAllMusicXML)]),
                 (),
-                (_("&Save\tCtrl+S"), _("Save the active file"), self.OnSave),
-                (_("Save &As...\tShift+Ctrl+S"), _("Save the active file with a new filename"), self.OnSaveAs),
+                (_("&Save") + "\tCtrl+S", _("Save the active file"), self.OnSave),
+                (_("Save &As...") + "\tShift+Ctrl+S", _("Save the active file with a new filename"), self.OnSaveAs),
                 (),
-                (_("&Print...\tCtrl+P"), _("Print the selected tune"), self.OnPrint),
-                (_("&Print preview\tCtrl+Shift+P"), '', self.OnPrintPreview),
+                (_("&Print...") + "\tCtrl+P", _("Print the selected tune"), self.OnPrint),
+                (_("&Print preview") + "\tCtrl+Shift+P", '', self.OnPrintPreview),
                 (_("P&age Setup..."), _("Change the printer and printing options"), self.OnPageSetup),
                 (),
                 (_('&Recent files'), self.recent_menu),
                 (),
-                (wx.ID_EXIT, _("&Quit\tCtrl+Q"), _("Exit the application (prompt to save files)"), self.OnQuit)]),
+                (wx.ID_EXIT, _("&Quit") + "\tCtrl+Q", _("Exit the application (prompt to save files)"), self.OnQuit)]),
             (_("&Edit")     , [
-                (_("&Undo\tCtrl+Z"), _("Undo the last action"), self.OnUndo),
-                (_("&Redo\tCtrl+Y"), _("Redo the last action"), self.OnRedo),
+                (_("&Undo") + "\tCtrl+Z", _("Undo the last action"), self.OnUndo),
+                (_("&Redo") + "\tCtrl+Y", _("Redo the last action"), self.OnRedo),
                 (),
-                (_("&Cut\tCtrl+X"), _("Cut the selection and put it on the clipboard"), self.OnCut),
-                (_("&Copy\tCtrl+C"), _("Copy the selection and put it on the clipboard"), self.OnCopy),
-                (_("&Paste\tCtrl+V"), _("Paste clipboard contents"), self.OnPaste),
-                (_("&Delete\tDel"), _("Delete the selection"), self.OnDelete),
+                (_("&Cut") + "\tCtrl+X", _("Cut the selection and put it on the clipboard"), self.OnCut),
+                (_("&Copy") + "\tCtrl+C", _("Copy the selection and put it on the clipboard"), self.OnCopy),
+                (_("&Paste") + "\tCtrl+V", _("Paste clipboard contents"), self.OnPaste),
+                (_("&Delete"), _("Delete the selection"), self.OnDelete),
                 (),
                 (_("&Insert musical symbol"), [
                     (_('Note ornaments'), self.popup_ornaments),
@@ -5972,16 +5972,16 @@ class MainFrame(wx.Frame):
                 (),
                 (_("&Transpose"), transpose_menu),
                 (_("&Change note length"), [
-                    (_('Double note lengths\tCtrl+Shift++'), '', self.OnDoubleL),
-                    (_('Halve note lengths\tCtrl+Shift+-'), '', self.OnHalveL)]),
-                (_("A&lign bars\tCtrl+Shift+A"), '', self.OnAlignBars),
+                    (_('Double note lengths') + '\tCtrl+Shift++', '', self.OnDoubleL),
+                    (_('Halve note lengths') + '\tCtrl+Shift+-', '', self.OnHalveL)]),
+                (_("A&lign bars") + "\tCtrl+Shift+A", '', self.OnAlignBars),
                 (),
-                (_("&Find...\tCtrl+F"), '', self.OnFind),
+                (_("&Find...") + "\tCtrl+F", '', self.OnFind),
                 (_("Find in Files") + '\tCtrl+Shift+F', '', self.OnSearchDirectories), # 1.3.6 [SS] 2014-11-21
-                (_("Find &Next\tF3"), '', self.OnFindNext),
-                (_("&Replace...\tCtrl+H"), '', self.OnReplace),
+                (_("Find &Next") + "\tF3", '', self.OnFindNext),
+                (_("&Replace...") + "\tCtrl+H", '', self.OnReplace),
                 (),
-                (_("&Select all\tCtrl+A"), '', self.OnSelectAll)]),
+                (_("&Select all") + "\tCtrl+A", '', self.OnSelectAll)]),
             (_("&Settings") , [
                 (_("&ABC settings") + '...', "", self.OnAbcSettings),
                 (_("&Midi device settings") + "...", "", self.OnMidiSettings),
