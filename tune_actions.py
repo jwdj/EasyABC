@@ -1382,6 +1382,40 @@ class MidiVolumeChangeAction(ValueChangeAction):
         return rows
 
 
+class MidiGuitarChordChangeAction(ValueChangeAction):
+    values = [
+        ValueDescription('fcfc', _('Preset') + ' 1'),
+        ValueDescription('c4',   _('Preset') + ' 2'),
+        ValueDescription('f2c2', _('Preset') + ' 3'),
+        ValueDescription('c2fc', _('Preset') + ' 4'),
+        ValueDescription('GIHI', _('Preset') + ' 5'),
+        ValueDescription('', _('Custom')),
+    ]
+    def __init__(self):
+        super(MidiGuitarChordChangeAction, self).__init__('change_gchord', MidiGuitarChordChangeAction.values, matchgroup='pattern', display_name=_('Change guitar pattern'))
+        self.show_current_value = True
+
+
+class MidiGuitarChordInsertAction(InsertValueAction):
+    values = [
+        CodeDescription('f', _('Fundamental')),
+        CodeDescription('c', _('Chord')),
+        CodeDescription('b', _('Fundamental plus chord')),
+        CodeDescription('z', _('Rest')),
+        CodeDescription('2', _('Double duration')),
+        CodeDescription('G', _('Lowest note'), common=False),
+        CodeDescription('H', _('Second note'), common=False),
+        CodeDescription('I', _('Third note'), common=False),
+        CodeDescription('J', _('Fourth note'), common=False),
+        CodeDescription('g', _('Lowest note an octave higher'), common=False),
+        CodeDescription('h', _('Second note an octave higher'), common=False),
+        CodeDescription('i', _('Third note an octave higher'), common=False),
+        CodeDescription('j', _('Fourth note an octave higher'), common=False),
+    ]
+    def __init__(self):
+        super(MidiGuitarChordInsertAction, self).__init__('insert_gchord', MidiGuitarChordInsertAction.values, matchgroup='pattern', display_name=_('Insert pattern'))
+
+
 ##################################################################################################
 #  COSMETIC ACTIONS
 ##################################################################################################
@@ -2078,9 +2112,17 @@ class InsertDirectiveAction(InsertValueAction):
 
 
 class InsertMidiDirectiveAction(InsertValueAction):
+    play_chords_cmds = (
+        r' chordprog 24    % ' + _('Chord instrument'),
+        r'%%MIDI chordvol 64     % ' + _('Chord volume'),
+        r'%%MIDI bassprog 24     % ' + _('Bass instrument'),
+        r'%%MIDI bassvol 64      % ' + _('Bass volume'),
+        r'%%MIDI gchord fcfc     % ' + _('Chord pattern')
+    )
     values = [
         ValueDescription(' program 0       % ' + _('Instrument'), _('Set instrument')),
         ValueDescription(' control 7 127   % ' + _('Volume'), _('Set volume')),
+        ValueDescription(os.linesep.join(play_chords_cmds), _('Play chords')),
     ]
     def __init__(self):
         super(InsertMidiDirectiveAction, self).__init__('insert_midi_directive', InsertMidiDirectiveAction.values, display_name=_('Insert playback directive'))
@@ -2321,6 +2363,8 @@ class AbcActionHandlers(object):
             MidiChannelChangeAction(),
             MidiDrumInstrumentChangeAction(),
             MidiVolumeChangeAction(),
+            MidiGuitarChordChangeAction(),
+            MidiGuitarChordInsertAction(),
             InsertDirectiveAction(),
             InsertMidiDirectiveAction(),
             ShowVoiceAction(),
@@ -2346,7 +2390,7 @@ class AbcActionHandlers(object):
             'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
             'Note'                   : self.create_handler(['simplify_note', 'new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
-            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
+            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_measurerest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
             'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'fix_characters', 'remove']),
             'Chord'                  : self.create_handler(['new_note', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
@@ -2376,6 +2420,7 @@ class AbcActionHandlers(object):
             'MIDI_channel'           : self.create_handler(['change_midi_channel']),
             'MIDI_drummap'           : self.create_handler(['change_midi_drum_instrument']),
             'MIDI_volume'            : self.create_handler(['change_midi_volume']),
+            'MIDI_gchord'            : self.create_handler(['change_gchord', 'insert_gchord']),
             'MIDI'                   : self.create_handler(['insert_midi_directive']),
             'score'                  : self.create_handler(['show_single_voice', 'hide_voice', 'show_voice', 'show_all_voices', 'toggle_continued_barlines', 'group_together', 'brace_together', 'bracket_together']),
             'measurenb'              : self.create_handler(['change_measurenb']),

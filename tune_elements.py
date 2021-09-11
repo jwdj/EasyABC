@@ -611,12 +611,21 @@ class AbcMidiDrumMapDirective(AbcElement):
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiDrumMapDirective.pattern
 
+
 class AbcMidiVolumeDirective(AbcElement):
     pattern = r"(?m)^(?:%%|I:)MIDI (?:control 7|chordvol|bassvol) (?P<volume>\d*)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiVolumeDirective, self).__init__('MIDI_volume', display_name=_('Volume'), description=_('Volume for current voice.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiVolumeDirective.pattern
+
+
+class AbcMidiGuitarChordDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)MIDI gchord (?P<pattern>\w*)" + AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(AbcMidiGuitarChordDirective, self).__init__('MIDI_gchord', display_name=_('Guitar chords'), description=_('Play guitar chords'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiGuitarChordDirective.pattern
 
 
 class ScoreDirective(AbcElement):
@@ -1137,6 +1146,7 @@ class AbcStructure(object):
             AbcMidiChannelDirective(),
             AbcMidiDrumMapDirective(),
             AbcMidiVolumeDirective(),
+            AbcMidiGuitarChordDirective(),
             ScoreDirective(),
             MeasureNumberDirective(),
             directive,

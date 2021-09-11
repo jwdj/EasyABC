@@ -567,3 +567,4 @@ different panes. Tie/untie option added for notes. Broken rhythm
     C:mozart M:3/4
 - Added exclusive mode: only one file is allowed
     Exlusive mode is enabled via command line option -exclusive
+- ABC assist: Support for %%MIDI gchord
