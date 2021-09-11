@@ -22,9 +22,7 @@ EasyABC supports both FluidSynth 2 and the mediaplayer from wxPython, but most u
 We have tested EasyABC on Linux Mint 20 using Virtual Box 6.1
 The steps we had to do are as follows:
 
-sudo apt install abcmidi abcm2ps libfluidsynth2 fluid-soundfont-gm jackd
-
-The soundfont should now be installed in
+sudo apt install abcmidi abcm2ps libfluidsynth2 fluid-soundfont-gm
 
 sudo apt install python3-wxgtk4.0 python3-wxgtk-media4.0 python-wxtools python3-pygame
 
@@ -35,7 +33,7 @@ cd EasyABC
 Now you can run EasyABC:
 python3 easy_abc.py
 
-You may get a GStreamer error. Just ignore it.
+(If you get a GStreamer error it means that FluidSynth failed to initialize. Then either FluidSynth library or SoundFont can not be found.)
 
 Then choose a soundfont in Settings -> ABC Settings -> File Settings -> soundfont
 You can find one here: /usr/share/sounds/sf2/FluidR3_GM.sf2

@@ -2,20 +2,12 @@ import wx
 
 WX4 = wx.version().startswith('4')
 
-
-def wx_cursor(c):
-    if WX4:
-        return wx.Cursor(c)
-    else:
-        return wx.StockCursor(c)
-
-
-def wx_colour(c):
-    if WX4:
-        return wx.Colour(c)
-    else:
-        return wx.NamedColour(c)
-
+if WX4:
+    wx_cursor = wx.Cursor
+    wx_colour = wx.Colour
+else:
+    wx_cursor = wx.StockCursor
+    wx_colour = wx.NamedColour
 
 def delete_menuitem(menu, item):
     if WX4:
@@ -23,6 +15,11 @@ def delete_menuitem(menu, item):
     else:
         menu.DeleteItem(item)
 
+def wx_set_size(frame, x, y, width, height):
+    if WX4:
+        frame.SetSize(x, y, width, height)
+    else:
+        frame.SetDimensions(x, y, width, height)
 
 def append_submenu(menu, label, submenu):
     if WX4:
@@ -52,25 +49,29 @@ def append_to_menu(menu, items):
     for item in items:
         if len(item) == 0:
             menu.AppendSeparator()
-        elif len(item) == 2:
+        elif len(item) >= 2:
             label = item[0]
             sub_menu = item[1]
-            if not isinstance(sub_menu, wx.Menu):
-                sub_menu = create_menu(sub_menu, menu.InvokingWindow)
-            append_submenu(menu, label, sub_menu)
-        else:
-            id = None
-            after_add = None
-            if isinstance(item[0], int):
-                id = item[0]
-                item = tuple(list(item)[1:]) # strip id from tuple
-            if len(item) > 3:
+            if isinstance(sub_menu, (wx.Menu, tuple, list)):
+                if not isinstance(sub_menu, wx.Menu):
+                    sub_menu = create_menu(sub_menu, menu.InvokingWindow)
+                menu_item = append_submenu(menu, label, sub_menu)
                 after_add = item[-1]
                 if hasattr(after_add, '__call__'):
-                    item = tuple(list(item)[0:-1]) # strip after-add-function
-            menu_item = append_menu_item(menu, *item, id=id)
-            if after_add is not None:
-                after_add(menu_item)
+                    after_add(menu_item)
+            else:
+                id = None
+                after_add = None
+                if isinstance(item[0], int):
+                    id = item[0]
+                    item = tuple(list(item)[1:]) # strip id from tuple
+                if len(item) > 3:
+                    after_add = item[-1]
+                    if hasattr(after_add, '__call__'):
+                        item = tuple(list(item)[0:-1]) # strip after-add-function
+                menu_item = append_menu_item(menu, *item, id=id)
+                if after_add is not None:
+                    after_add(menu_item)
 
 
 def create_menu(items, parent=None):
@@ -112,3 +113,22 @@ def wx_sound(path):
         return wx.adv.Sound(path)
     else:
         return wx.Sound(path)
+
+def wx_show_message(title, message):
+    dlg = wx.MessageDialog(None, message, title, wx.OK | wx.ICON_INFORMATION)
+    dlg.ShowModal()
+    dlg.Destroy()
+
+def wx_insert_dropdown_value(combobox, value, max=None):
+    combobox.Insert(value, 0)
+    if max:
+        if combobox.Count > max:
+            combobox.Delete(max)
+
+def wx_dirdialog(parent, message, path):
+    dlg = wx.DirDialog(parent, message, path, style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+    try:
+        if dlg.ShowModal() == wx.ID_OK:
+            return dlg.GetPath()
+    finally:
+        dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window

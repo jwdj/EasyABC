@@ -288,7 +288,7 @@ class MusicScorePanel(wx.ScrolledWindow):
             if self.current_page != self.renderer.empty_page:
                 self.renderer.draw(page=self.current_page, clear_background=False, dc=dc)
         except Exception as e:
-            error_msg = ''.join(traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]))
+            error_msg = traceback.format_exc()
             print('Warning: ' + error_msg)
         finally:
             if not WX4:

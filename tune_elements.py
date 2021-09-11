@@ -575,21 +575,21 @@ class AbcMidiDirective(CompositeElement):
 
 
 class AbcMidiProgramDirective(AbcElement):
-    pattern = r'(?m)^(?:%%|I:)MIDI program(?P<channel>(?:\s+\d+(?=\s+\d))?)(?:(?P<instrument>\s*\d*))?'
+    pattern = r'(?m)^(?:%%|I:)MIDI program(?P<channel>(?:\s+\d+(?=\s+\d))?)(?:(?P<instrument>\s*\d*))?' + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiProgramDirective, self).__init__('MIDI_program', display_name=_('Instrument'), description=_('Sets the instrument for a MIDI channel.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiProgramDirective.pattern
 
 class AbcMidiChordProgramDirective(AbcElement):
-    pattern = r'(?m)^(?:%%|I:)MIDI chordprog(?:(?P<instrument>\s*\d*))?'
+    pattern = r'(?m)^(?:%%|I:)MIDI chordprog(?:(?P<instrument>\s*\d*))?' + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiChordProgramDirective, self).__init__('MIDI_chordprog', display_name=_('Chord instrument'), description=_('Sets the instrument for playing chords.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiChordProgramDirective.pattern
 
 class AbcMidiBaseProgramDirective(AbcElement):
-    pattern = r'(?m)^(?:%%|I:)MIDI bassprog(?:(?P<instrument>\s*\d*))?'
+    pattern = r'(?m)^(?:%%|I:)MIDI bassprog(?:(?P<instrument>\s*\d*))?' + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiBaseProgramDirective, self).__init__('MIDI_bassprog', display_name=_('Bass instrument'), description=_('Sets the instrument for the base.'))
         for section in ABC_SECTIONS:
@@ -597,7 +597,7 @@ class AbcMidiBaseProgramDirective(AbcElement):
 
 
 class AbcMidiChannelDirective(AbcElement):
-    pattern = r'(?m)^(?:%%|I:)MIDI channel(?P<channel>\s*\d*)'
+    pattern = r'(?m)^(?:%%|I:)MIDI channel(?P<channel>\s*\d*)' + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiChannelDirective, self).__init__('MIDI_channel', display_name=_('Channel'), description=_('Sets the MIDI channel for the current voice.'))
         for section in ABC_SECTIONS:
@@ -605,7 +605,7 @@ class AbcMidiChannelDirective(AbcElement):
 
 
 class AbcMidiDrumMapDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)"
+    pattern = r"(?m)^(?:%%|I:)MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
         for section in ABC_SECTIONS:
@@ -613,7 +613,7 @@ class AbcMidiDrumMapDirective(AbcElement):
 
 
 class AbcMidiVolumeDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)MIDI control 7 (?P<volume>\d*)"
+    pattern = r"(?m)^(?:%%|I:)MIDI control 7 (?P<volume>\d*)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiVolumeDirective, self).__init__('MIDI_volume', display_name=_('Volume'), description=_('Volume for current voice.'))
         for section in ABC_SECTIONS:
