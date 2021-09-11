@@ -230,23 +230,27 @@ class ValueChangeAction(AbcAction):
                 return False # don't show action if matchgroup not present in match
         return True
 
-    def get_action_html(self, context):
-        result = u''
-        if not self.is_action_allowed(context):
-            return result
-        rows = []
+    def append_current_value_to_rows(self, context, rows):
         if self.show_current_value:
             current_value = self.get_current_value(context)
             if current_value and current_value.strip():
-                descriptions = [v.description for v in self.get_values(context) if v.value == current_value]
-                if descriptions:
-                    text = descriptions[0]
+                description = next([v.description for v in self.get_values(context) if v.value == current_value])
+                if description:
+                    text = description
                 else:
                     text = current_value
 
                 row = u'\u25BA ' + escape(text)
                 rows.append(row)
                 rows.append('<br>')
+        return rows
+
+    def get_action_html(self, context):
+        result = u''
+        if not self.is_action_allowed(context):
+            return result
+        rows = []
+        rows = self.append_current_value_to_rows(context, rows)
 
         if self.display_name:
             row = html_enclose('b', escape(self.display_name))
@@ -1351,14 +1355,31 @@ class MidiDrumInstrumentChangeAction(ValueChangeAction):
 class MidiVolumeChangeAction(ValueChangeAction):
     values = [
         ValueDescription('0', _('Muted')),
-        ValueDescription('32', '25 %'),
+        ValueDescription('13', '10 %'),
+        ValueDescription('26', '20 %'),
+        ValueDescription('39', '30 %'),
+        ValueDescription('51', '40 %'),
         ValueDescription('64', '50 %'),
-        ValueDescription('96', '75 %'),
+        ValueDescription('77', '60 %'),
+        ValueDescription('89', '70 %'),
+        ValueDescription('102', '80 %'),
+        ValueDescription('115', '90 %'),
         ValueDescription('127', '100 %'),
     ]
     def __init__(self):
         super(MidiVolumeChangeAction, self).__init__('change_midi_volume', MidiVolumeChangeAction.values, matchgroup='volume', display_name=_('Change volume'))
-        self.show_current_value = True
+
+    def append_current_value_to_rows(self, context, rows):
+        current_value = self.get_current_value(context)
+
+        if current_value and current_value.strip():
+            row = u'{0} %'.format(int(current_value) * 100 // 127)
+            rows.append(row)
+            volume_bars = 50
+            volume_bar = int(current_value) * volume_bars // 127
+            rows.append('[{0}{1}]'.format('|' * volume_bar, u'&#x2005;' * (volume_bars - volume_bar)))
+            rows.append('<br>')
+        return rows
 
 
 ##################################################################################################

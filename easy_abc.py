@@ -8444,8 +8444,8 @@ class MyApp(wx.App):
             self.settings['can_draw_sharps_and_flats'] = False
 
 
-    def NewMainFrame(self, options):
-        frame = MainFrame(None, 0, self.app_dir, self.settings, options)
+    def NewMainFrame(self, options = None):
+        frame = MainFrame(None, 0, self.app_dir, self.settings, options or {})
         self._frames.append(frame)
         return frame
 
