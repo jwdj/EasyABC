@@ -60,3 +60,7 @@ dist
 .vscode
 *.spec
 *.sf2
+*.pdb
+.vscode/settings.json
+.vscode/launch.json
+test.py
