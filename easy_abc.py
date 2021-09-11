@@ -3467,6 +3467,7 @@ class AbcSearchPanel(wx.Panel):
         self.settings = settings
         self.statusbar = statusbar
         border = control_margin
+        self.max_results = 5000
 
         find_what_label = wx.StaticText(self, wx.ID_ANY, _('Find what') + ':')
 
@@ -3541,6 +3542,8 @@ class AbcSearchPanel(wx.Panel):
         self.list_ctrl.Bind(wx.EVT_LISTBOX, self.OnItemSelected, self.list_ctrl)
 
         self.search_thread = None
+        self.last_results = None
+        self.results_start_index = 0
 
     def get_searchfields(self):
         return self.settings.get('searchfields', 'T:').split(';')
@@ -3610,12 +3613,11 @@ class AbcSearchPanel(wx.Panel):
             self.search_thread = SearchFilesThread(root, searchstring, self.get_searchfields(), self.on_after_search, sort_results)
 
     def on_after_search(self, aborted, items):
+        self.last_results = items
+        self.results_start_index = 0
         if not aborted:
-            self.statusbar.SetStatusText(_('Found {0} items').format(len(items)))
-            if items:
-                titles = [title for title, path, pos in items]
-                self.list_ctrl.InsertItems(titles, 0)
-            self.list_ctrl.Show()
+            self.statusbar.SetStatusText(_('Found {0} results').format(len(items)))
+            self.show_next_results(self.results_start_index)
 
         self.find_all_button.Enable()
         self.cancel_search_button.Hide()
@@ -3650,14 +3652,38 @@ class AbcSearchPanel(wx.Panel):
         global app
         frame = app._frames[0]
         index = evt.Selection  # line number in listbox
-        path, char_pos_in_file = self.search_thread.get_result_for_index(index)
+        if self.max_results > 0 and index >= self.max_results:
+            self.show_next_results(self.max_results + self.results_start_index)
+        else:
+            index += self.results_start_index
+            path, char_pos_in_file = self.search_thread.get_result_for_index(index)
 
-        # SetCurrentPos will position the editor on the selected tune
-        # and should automatically position the music window and the tune_list.
+            wait = wx.BusyCursor()
+            abc_text = read_abc_file(path)[0:char_pos_in_file]
+            byte_pos_in_file = len(abc_text.encode('utf-8'))
+            frame.load_and_position(path, byte_pos_in_file)
+            del wait
+
+    def show_next_results(self, start_index):
+        results = self.last_results
+        items = results
+        end_index = len(results)
+        if self.max_results > 0:
+            end_index = start_index + self.max_results
+            items = results[start_index:end_index]
+
+        titles = [title for title, path, pos in items]
+        if end_index < len(results):
+            next_count = min(len(results) - end_index, self.max_results)
+            titles.append(u'[ ' + _('Next {0} results').format(next_count) + u' ]')
+
+        self.results_start_index = start_index
         wait = wx.BusyCursor()
-        abc_text = read_abc_file(path)[0:char_pos_in_file]
-        byte_pos_in_file = len(abc_text.encode('utf-8'))
-        frame.load_and_position(path, byte_pos_in_file)
+        self.list_ctrl.Hide()
+        self.list_ctrl.Clear()
+        if titles:
+            self.list_ctrl.InsertItems(titles, 0)
+        self.list_ctrl.Show()
         del wait
 
 
@@ -3700,8 +3726,9 @@ class SearchFilesThread(threading.Thread):
         for pathname in search_files(root, ['.abc', '.ABC']):  # currently not abortable
             abcmatches.append(pathname)
 
+        search_parts = self.extract_search_parts(searchstring, searchfields)
         for pathname in abcmatches:
-            self.find_abc_string(pathname, self.extract_search_parts(searchstring, searchfields))
+            self.find_abc_string(pathname, search_parts)
             if self.abort_requested:
                 break
 
@@ -3712,12 +3739,12 @@ class SearchFilesThread(threading.Thread):
         search_parts = []
         pos = 0
         for m in search_parts_re.finditer(searchtext):
-            text = searchtext[pos:m.start(1)].strip()
+            text = searchtext[pos:m.start(1)]
             self.add_searchpart(search_parts, abckey, text)
             abckey = m.group(1)
             pos = m.end(1)
 
-        text = searchtext[pos:].strip().lower()
+        text = searchtext[pos:]
         self.add_searchpart(search_parts, abckey, text)
 
         if not search_parts:
@@ -3727,7 +3754,7 @@ class SearchFilesThread(threading.Thread):
     @staticmethod
     def add_searchpart(search_parts, abckey, text):
         if text:
-            words = text.split()
+            words = text.strip().lower().split()
             if isinstance(abckey, str):
                 search_parts.append([(abckey, words)])
             else:
@@ -5681,15 +5708,15 @@ class MainFrame(wx.Frame):
         # profiler = cProfile.Profile()
         # profiler.enable()
 
-        self.Freeze()
-        try:
-            if self.current_file == filepath:
-                self.editor.SetCurrentPos(editor_pos)
-                self.select_tune_at_current_pos()
-            else:
-                self.load(filepath, editor_pos)
-        finally:
-            self.Thaw()
+        # self.Freeze()
+        # try:
+        if self.current_file == filepath:
+            self.editor.SetCurrentPos(editor_pos)
+            self.select_tune_at_current_pos()
+        else:
+            self.load(filepath, editor_pos)
+        # finally:
+        #     self.Thaw()
 
         # import pstats
         # p = pstats.Stats(profiler)
