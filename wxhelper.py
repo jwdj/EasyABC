@@ -49,25 +49,29 @@ def append_to_menu(menu, items):
     for item in items:
         if len(item) == 0:
             menu.AppendSeparator()
-        elif len(item) == 2:
+        elif len(item) >= 2:
             label = item[0]
             sub_menu = item[1]
-            if not isinstance(sub_menu, wx.Menu):
-                sub_menu = create_menu(sub_menu, menu.InvokingWindow)
-            append_submenu(menu, label, sub_menu)
-        else:
-            id = None
-            after_add = None
-            if isinstance(item[0], int):
-                id = item[0]
-                item = tuple(list(item)[1:]) # strip id from tuple
-            if len(item) > 3:
+            if isinstance(sub_menu, (wx.Menu, tuple, list)):
+                if not isinstance(sub_menu, wx.Menu):
+                    sub_menu = create_menu(sub_menu, menu.InvokingWindow)
+                menu_item = append_submenu(menu, label, sub_menu)
                 after_add = item[-1]
                 if hasattr(after_add, '__call__'):
-                    item = tuple(list(item)[0:-1]) # strip after-add-function
-            menu_item = append_menu_item(menu, *item, id=id)
-            if after_add is not None:
-                after_add(menu_item)
+                    after_add(menu_item)
+            else:
+                id = None
+                after_add = None
+                if isinstance(item[0], int):
+                    id = item[0]
+                    item = tuple(list(item)[1:]) # strip id from tuple
+                if len(item) > 3:
+                    after_add = item[-1]
+                    if hasattr(after_add, '__call__'):
+                        item = tuple(list(item)[0:-1]) # strip after-add-function
+                menu_item = append_menu_item(menu, *item, id=id)
+                if after_add is not None:
+                    after_add(menu_item)
 
 
 def create_menu(items, parent=None):

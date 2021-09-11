@@ -3785,7 +3785,7 @@ class SearchFilesThread(threading.Thread):
 
 
 class MainFrame(wx.Frame):
-    def __init__(self, parent, ID, app_dir, settings):
+    def __init__(self, parent, ID, app_dir, settings, options):
         wx.Frame.__init__(self, parent, ID, '%s - %s %s' % (program_name, _('Untitled'), 1),
                          wx.DefaultPosition, wx.Size(900, 850))
         #_icon = wx.EmptyIcon()
@@ -3807,6 +3807,7 @@ class MainFrame(wx.Frame):
         self.app_dir = app_dir
         self.cache_dir = os.path.join(self.app_dir, 'cache')
         self.settings_file = os.path.join(self.app_dir, 'settings1.3.dat')
+        self.exclusive_file_mode = options.get('exclusive', False)
         self._current_file = None
         self.untitled_number = 1
         self.author = ''
@@ -3947,7 +3948,6 @@ class MainFrame(wx.Frame):
         if font_info:
             face, size = font_info[-1], font_info[0]
             self.InitEditor(face, size)
-            self.editor.SetFont(wx.Font(font_info))
         else:
             self.InitEditor()
 
@@ -5669,7 +5669,7 @@ class MainFrame(wx.Frame):
             self.editor.EmptyUndoBuffer()
         finally:
             self.updating_text = False
-        
+
         self.UpdateTuneList()
         if editor_pos:
             self.select_tune_at_current_pos()
@@ -5924,11 +5924,11 @@ class MainFrame(wx.Frame):
 
         menuBar = create_menu_bar([
             (_("&File")     , [
-                (_('&New') + '\tCtrl+N', _("Create a new file"), self.OnNew),
-                (_('&Open...') + '\tCtrl+O', _("Open an existing file"), self.OnOpen),
-                (_("&Close") + '\tCtrl+W', _("Close the current file"), self.OnCloseFile),
+                (_('&New') + '\tCtrl+N', _("Create a new file"), self.OnNew, self.disable_in_exclusive_mode),
+                (_('&Open...') + '\tCtrl+O', _("Open an existing file"), self.OnOpen, self.disable_in_exclusive_mode),
+                (_("&Close") + '\tCtrl+W', _("Close the current file"), self.OnCloseFile, self.disable_in_exclusive_mode),
                 (),
-                (_("&Import and add..."), _("Import a song in ABC, Midi or MusicXML format and add it to the current document."), self.OnImport),
+                (_("&Import and add..."), _("Import a song in ABC, Midi or MusicXML format and add it to the current document."), self.OnImport, self.disable_in_exclusive_mode),
                 (),
                 (_("&Export selected"), [
                     (_('as &PDF...'), '', self.OnExportPDF),
@@ -5953,7 +5953,7 @@ class MainFrame(wx.Frame):
                 (_("&Print preview") + "\tCtrl+Shift+P", '', self.OnPrintPreview),
                 (_("P&age Setup..."), _("Change the printer and printing options"), self.OnPageSetup),
                 (),
-                (_('&Recent files'), self.recent_menu),
+                (_('&Recent files'), self.recent_menu, self.disable_in_exclusive_mode),
                 (),
                 (wx.ID_EXIT, _("&Quit") + "\tCtrl+Q", _("Exit the application (prompt to save files)"), self.OnQuit)]),
             (_("&Edit")     , [
@@ -5977,7 +5977,7 @@ class MainFrame(wx.Frame):
                 (_("A&lign bars") + "\tCtrl+Shift+A", '', self.OnAlignBars),
                 (),
                 (_("&Find...") + "\tCtrl+F", '', self.OnFind),
-                (_("Find in Files") + '\tCtrl+Shift+F', '', self.OnSearchDirectories), # 1.3.6 [SS] 2014-11-21
+                (_("Find in Files") + '\tCtrl+Shift+F', '', self.OnSearchDirectories, self.disable_in_exclusive_mode), # 1.3.6 [SS] 2014-11-21
                 (_("Find &Next") + "\tF3", '', self.OnFindNext),
                 (_("&Replace...") + "\tCtrl+H", '', self.OnReplace),
                 (),
@@ -6024,6 +6024,10 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_FIND_REPLACE, self.OnFindReplace)
         self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnFindReplaceAll)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+
+    def disable_in_exclusive_mode(self, menu_item):
+        if self.exclusive_file_mode:
+            menu_item.Enable(False)
 
     def ShowMessages(self):
         global execmessages
@@ -8131,6 +8135,8 @@ class MainFrame(wx.Frame):
         self.settings['gchord'] = 'default' # 1.3.6 [SS] 2014-11-26
 
     def update_recent_files_menu(self):
+        if self.exclusive_file_mode:
+            return
         recent_files = self.settings.get('recentfiles', '').split('|')
         while self.recent_menu.MenuItemCount > 0:
             delete_menuitem(self.recent_menu, self.recent_menu.FindItemByPosition(0))
@@ -8411,8 +8417,8 @@ class MyApp(wx.App):
             self.settings['can_draw_sharps_and_flats'] = False
 
 
-    def NewMainFrame(self):
-        frame = MainFrame(None, 0, self.app_dir, self.settings)
+    def NewMainFrame(self, options):
+        frame = MainFrame(None, 0, self.app_dir, self.settings, options)
         self._frames.append(frame)
         return frame
 
@@ -8451,16 +8457,32 @@ class MyApp(wx.App):
         wx.ToolTip.SetDelay(1000)
 
         self.CheckCanDrawSharpFlat()
-
-        #p08 We need to be able to find app.frame [SS] 2014-10-14
-        self.frame = self.NewMainFrame()
-        self.frame.Show(True)
-        self.SetTopWindow(self.frame)
+        options = {}
         if len(sys.argv) > 1:
             if sys.version_info >= (3,0,0): #FAU 20210101: In Python3 there isn't anymore the decode.
-                path = os.path.abspath(sys.argv[1])
+                args = sys.argv
             else:
-                path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
+                fse = sys.getfilesystemencoding()
+                args = [arg.decode(fse) for arg in sys.argv]
+
+            path = None
+            i = 0
+            while i < len(args):
+                arg = args[i]
+                i += 1
+                if arg.startswith('-'):
+                    arg = arg[1:]
+                    if arg == 'exclusive':
+                        options[arg] = 'True'
+                else:
+                    path = os.path.abspath(arg)
+
+        #p08 We need to be able to find app.frame [SS] 2014-10-14
+        self.frame = self.NewMainFrame(options)
+        self.frame.Show(True)
+        self.SetTopWindow(self.frame)
+
+        if path:
             self.frame.load_or_import(path)
         return True
 

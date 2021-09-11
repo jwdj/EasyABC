@@ -561,3 +561,9 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Support for FluidSynth 2.1 in Windows version
 - ABC Assist improvements: more help on what to do on an empty line
 
+1.3.8.1
+- Added Find in Files (Ctrl-Shift-F) to the Edit Menu
+  Search advanced using ABC-fields. For example: search all tunes with Mozart as composer and meter 3/4:
+    C:mozart M:3/4
+- Added exclusive mode: only one file is allowed
+    Exlusive mode is enabled via command line option -exclusive
