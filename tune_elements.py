@@ -611,9 +611,8 @@ class AbcMidiDrumMapDirective(AbcElement):
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiDrumMapDirective.pattern
 
-
 class AbcMidiVolumeDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)MIDI control 7 (?P<volume>\d*)" + AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)MIDI (?:control 7|chordvol|bassvol) (?P<volume>\d*)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiVolumeDirective, self).__init__('MIDI_volume', display_name=_('Volume'), description=_('Volume for current voice.'))
         for section in ABC_SECTIONS:

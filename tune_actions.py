@@ -234,9 +234,9 @@ class ValueChangeAction(AbcAction):
         if self.show_current_value:
             current_value = self.get_current_value(context)
             if current_value and current_value.strip():
-                description = next([v.description for v in self.get_values(context) if v.value == current_value])
-                if description:
-                    text = description
+                descriptions = [v.description for v in self.get_values(context) if v.value == current_value]
+                if descriptions:
+                    text = descriptions[0]
                 else:
                     text = current_value
 
