@@ -8458,6 +8458,7 @@ class MyApp(wx.App):
 
         self.CheckCanDrawSharpFlat()
         options = {}
+        path = None
         if len(sys.argv) > 1:
             if sys.version_info >= (3,0,0): #FAU 20210101: In Python3 there isn't anymore the decode.
                 args = sys.argv
@@ -8465,7 +8466,6 @@ class MyApp(wx.App):
                 fse = sys.getfilesystemencoding()
                 args = [arg.decode(fse) for arg in sys.argv]
 
-            path = None
             i = 0
             while i < len(args):
                 arg = args[i]
