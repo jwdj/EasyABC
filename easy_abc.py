@@ -3821,10 +3821,10 @@ class MainFrame(wx.Frame):
         if wx.Platform == "__WXMSW__":
             exeName = win32api.GetModuleFileName(win32api.GetModuleHandle(None))
             # 1.3.8.1 [mist13] Icon for Python version in Windows
-            if "easy_abc" in exeName:           
+            if "easy_abc" in exeName:
                 icon = wx.Icon(exeName + ";0", wx.BITMAP_TYPE_ICO)
             else:
-                icon = wx.Icon(os.path.join('img', 'logo.ico'))
+                icon = wx.Icon(os.path.join(application_path, 'img', 'logo.ico'))
             self.SetIcon(icon)
         global execmessages, visible_abc_code
         self.settings = settings
@@ -6341,7 +6341,7 @@ class MainFrame(wx.Frame):
         if font and font.IsOk():
             f = font
             self.settings['font'] = (f.GetPointSize(), f.GetFamily(), f.GetStyle(), f.GetWeight(), f.GetUnderlined(), f.GetFaceName())
-            self.OnSettingsChanged()
+            self.InitEditor(f.GetFaceName(), f.GetPointSize())
 
     def OnViewFieldReference(self, evt):
         if not self.field_reference_frame:
@@ -7746,10 +7746,10 @@ class MainFrame(wx.Frame):
                 font = wantFonts.pop(0)
                 if font in font_names:
                     break
-            self.editor.SetFont(wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=font))
         else:
             font = font_face
             size = font_size
+        self.editor.SetFont(wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=font))
 
         self.editor.SetProperty("fold", "0")
         self.editor.StyleSetSpec(self.styler.STYLE_DEFAULT, "fore:#000000,face:%s,size:%d" % (font, size))
