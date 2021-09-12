@@ -3820,7 +3820,11 @@ class MainFrame(wx.Frame):
         #self.SetIcon(_icon)
         if wx.Platform == "__WXMSW__":
             exeName = win32api.GetModuleFileName(win32api.GetModuleHandle(None))
-            icon = wx.Icon(exeName + ";0", wx.BITMAP_TYPE_ICO)
+            # 1.3.8.1 [mist13] Icon for Python version in Windows
+            if "easy_abc" in exeName:           
+                icon = wx.Icon(exeName + ";0", wx.BITMAP_TYPE_ICO)
+            else:
+                icon = wx.Icon(os.path.join('img', 'logo.ico'))
             self.SetIcon(icon)
         global execmessages, visible_abc_code
         self.settings = settings
