@@ -1,4 +1,4 @@
-![EasyABC logo](img\abclogo.png "EasyABC")
+![EasyABC logo](img/abclogo.png "EasyABC")
 
 # EasyABC
 
@@ -13,7 +13,7 @@ An open source ABC editor for Windows, OSX and Linux. It is published under the 
 - Export to MIDI, SVG, PDF (single tune or whole tune book).
 - Select notes by clicking on them and add music symbols by using drop-down menus in the toolbar.
 - Play the active tune as midi (using SoundFont)
-- See which notes are currently playing
+- See which notes are currently playing (Follow score)
 - Contextual guidance (ABC Assist)
 - Record songs from midi directly in the program (no OSX support at the moment).
 - Just press Rec, play on your midi keyboard and then press Stop.
