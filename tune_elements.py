@@ -6,13 +6,12 @@ import sys
 PY3 = sys.version_info.major > 2
 
 try:
-    from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
-    from urllib.request import urlopen, Request, urlretrieve
+    from urllib.parse import quote # py3
+    from urllib.request import urlopen
     from urllib.error import HTTPError, URLError
-except ImportError:
-    from urlparse import urlparse, urlunparse, parse_qsl # py2
-    from urllib import urlencode, urlretrieve, quote
-    from urllib2 import urlopen, Request, HTTPError, URLError
+except ImportError: # py2
+    from urllib import quote
+    from urllib2 import urlopen, HTTPError, URLError
 
 import logging
 from collections import namedtuple

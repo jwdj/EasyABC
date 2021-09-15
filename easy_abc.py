@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-program_name = 'EasyABC 1.3.8.1'
+program_name = 'EasyABC 1.3.8.2'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -67,14 +67,8 @@ import subprocess
 import hashlib
 
 if sys.version_info >= (3,0,0):
-    from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
-    from urllib.request import urlopen, Request, urlretrieve
-    from urllib.error import HTTPError, URLError
     import pickle as pickle # py3
 else:
-    from urlparse import urlparse, urlunparse, parse_qsl # py2
-    from urllib import urlencode, urlretrieve, quote
-    from urllib2 import urlopen, Request, HTTPError, URLError
     import cPickle as pickle # py2
 
 import threading
@@ -131,8 +125,13 @@ else:
 application_running = True
 
 if wx.Platform == "__WXMSW__":
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, 'w')
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, 'w')
     import win32api
     import win32process
+
 try:
     old_stdout = sys.stdout
     sys.stdout = open(os.devnull, 'w')
@@ -420,36 +419,36 @@ def get_ghostscript_path():
     else:
         return None
 
-browser = None
-def upload_tune(tune, author):
-    ''' upload the tune to the site ABC WIKI site folkwiki.se (this UI option is only visible if the OS language is Swedish) '''
-    global browser
-    import mechanize
-    import tempfile
-    tune = tune.replace('\r\n', '\n')
-    text = '(:music:)\n%s\n(:musicend:)\n' % tune.strip()
-    if not browser:
-        browser = mechanize.Browser()
-    response = browser.open('https://www.folkwiki.se/Meta/Nyl%c3%a5t?n=Meta.Nyl%c3%a5t&base=Musik.Musik&action=newnumbered')
-    response = response.read()
-    import pdb; pdb.set_trace()
-    m = re.search(r"img src='(.*?action=captchaimage.*?)'", response)
-    if m:
-        captcha_url = m.group(1).encode('utf-8')
-        f = tempfile.NamedTemporaryFile(delete=False)
-        img_data = urlopen(captcha_url).read()
+# browser = None
+# def upload_tune(tune, author):
+#     ''' upload the tune to the site ABC WIKI site folkwiki.se (this UI option is only visible if the OS language is Swedish) '''
+#     global browser
+#     import mechanize
+#     import tempfile
+#     tune = tune.replace('\r\n', '\n')
+#     text = '(:music:)\n%s\n(:musicend:)\n' % tune.strip()
+#     if not browser:
+#         browser = mechanize.Browser()
+#     response = browser.open('https://www.folkwiki.se/Meta/Nyl%c3%a5t?n=Meta.Nyl%c3%a5t&base=Musik.Musik&action=newnumbered')
+#     response = response.read()
+#     import pdb; pdb.set_trace()
+#     m = re.search(r"img src='(.*?action=captchaimage.*?)'", response)
+#     if m:
+#         captcha_url = m.group(1).encode('utf-8')
+#         f = tempfile.NamedTemporaryFile(delete=False)
+#         img_data = urlopen(captcha_url).read()
 
-        urlretrieve(urlunparse(parsed), outpath)
-        f.write(img_data)
-        f.close()
-        return ''
-    browser.select_form(nr=1)
-    browser['text'] = text.encode('utf-8')
-    browser['author'] = author.encode('utf-8')
-    response = browser.submit()
-    url = response.geturl()
-    url = url.split('?')[0]  # remove the part after the first '?'
-    return url
+#         urlretrieve(urlunparse(parsed), outpath)
+#         f.write(img_data)
+#         f.close()
+#         return ''
+#     browser.select_form(nr=1)
+#     browser['text'] = text.encode('utf-8')
+#     browser['author'] = author.encode('utf-8')
+#     response = browser.submit()
+#     url = response.geturl()
+#     url = url.split('?')[0]  # remove the part after the first '?'
+#     return url
 
 def launch_file(filepath):
     ''' open the given document using its associated program '''
@@ -5026,17 +5025,17 @@ class MainFrame(wx.Frame):
         self.manager.Update()
 
 
-    def OnUploadTune(self, evt):
-        tune = self.GetSelectedTune()
-        if tune:
-            if not self.author:
-                dialog = wx.TextEntryDialog(self, _('Please enter your full name (your FolkWiki entries will henceforth be associated with this name): '), _('Enter your name'), '')
-                if dialog.ShowModal() != wx.ID_OK:
-                    return
-                self.author = dialog.GetValue().strip()
+    # def OnUploadTune(self, evt):
+    #     tune = self.GetSelectedTune()
+    #     if tune:
+    #         if not self.author:
+    #             dialog = wx.TextEntryDialog(self, _('Please enter your full name (your FolkWiki entries will henceforth be associated with this name): '), _('Enter your name'), '')
+    #             if dialog.ShowModal() != wx.ID_OK:
+    #                 return
+    #             self.author = dialog.GetValue().strip()
 
-            url = upload_tune(tune.abc, self.author)
-            webbrowser.open(url)
+    #         url = upload_tune(tune.abc, self.author)
+    #         webbrowser.open(url)
 
     def GetFileNameForTune(self, tune, file_extension):
         filename = tune.title
@@ -5882,21 +5881,21 @@ class MainFrame(wx.Frame):
             (_('Export to &ABC...'), '', self.OnExportToABC)
         ], parent=self)
 
-        global current_locale
-        if current_locale.GetLanguageName(wx.LANGUAGE_DEFAULT) == 'Swedish':
-            id = wx.NewId()
-            item = wx.MenuItem(menu, id, _('Upload tune to FolkWiki'))
-            menu.AppendItem(item)
-            menu.AppendSeparator()
-            self.Bind(wx.EVT_MENU, self.OnUploadTune, id=id)
+        # global current_locale
+        # if current_locale.GetLanguageName(wx.LANGUAGE_DEFAULT) == 'Swedish':
+        #     id = wx.NewId()
+        #     item = wx.MenuItem(menu, id, _('Upload tune to FolkWiki'))
+        #     menu.AppendItem(item)
+        #     menu.AppendSeparator()
+        #     self.Bind(wx.EVT_MENU, self.OnUploadTune, id=id)
 
-        if current_locale.GetLanguageName(wx.LANGUAGE_DEFAULT) == 'Danish':
-            id = wx.NewId()
-            item = wx.MenuItem(menu, id, _('Upload tune to Spillemandsportalen'))
-            menu.AppendItem(item)
-            menu.AppendSeparator()
-            self.Bind(wx.EVT_MENU, self.OnUploadTune, id=id)
-            item.Enable(False)  # disabled for now
+        # if current_locale.GetLanguageName(wx.LANGUAGE_DEFAULT) == 'Danish':
+        #     id = wx.NewId()
+        #     item = wx.MenuItem(menu, id, _('Upload tune to Spillemandsportalen'))
+        #     menu.AppendItem(item)
+        #     menu.AppendSeparator()
+        #     self.Bind(wx.EVT_MENU, self.OnUploadTune, id=id)
+        #     item.Enable(False)  # disabled for now
 
         return menu
 
@@ -8469,52 +8468,55 @@ class MyApp(wx.App):
     #     frame.load_or_import(filename)
 
     def OnInit(self):
-        self.SetAppName('EasyABC')
-        #wx.SystemOptions.SetOptionInt('msw.window.no-clip-children', 1)
-        app_dir = self.app_dir = wx.StandardPaths.Get().GetUserLocalDataDir()
-        if not os.path.exists(app_dir):
-            os.mkdir(app_dir)
-        cache_dir = os.path.join(app_dir, 'cache')
-        if not os.path.exists(cache_dir):
-            os.mkdir(cache_dir)
-        default_lang = wx.LANGUAGE_DEFAULT
-        locale = wx.Locale(language=default_lang)
-        locale.AddCatalogLookupPathPrefix(os.path.join(cwd, 'locale'))
-        locale.AddCatalog('easyabc')
-        self.locale = locale # keep this reference alive
-        global current_locale
-        current_locale = locale
-        wx.ToolTip.Enable(True)
-        wx.ToolTip.SetDelay(1000)
+        try:
+            self.SetAppName('EasyABC')
+            #wx.SystemOptions.SetOptionInt('msw.window.no-clip-children', 1)
+            app_dir = self.app_dir = wx.StandardPaths.Get().GetUserLocalDataDir()
+            if not os.path.exists(app_dir):
+                os.mkdir(app_dir)
+            cache_dir = os.path.join(app_dir, 'cache')
+            if not os.path.exists(cache_dir):
+                os.mkdir(cache_dir)
+            default_lang = wx.LANGUAGE_DEFAULT
+            locale = wx.Locale(language=default_lang)
+            locale.AddCatalogLookupPathPrefix(os.path.join(cwd, 'locale'))
+            locale.AddCatalog('easyabc')
+            self.locale = locale # keep this reference alive
+            global current_locale
+            current_locale = locale
+            wx.ToolTip.Enable(True)
+            wx.ToolTip.SetDelay(1000)
 
-        self.CheckCanDrawSharpFlat()
-        options = {}
-        path = None
-        if len(sys.argv) > 1:
-            if sys.version_info >= (3,0,0): #FAU 20210101: In Python3 there isn't anymore the decode.
-                args = sys.argv
-            else:
-                fse = sys.getfilesystemencoding()
-                args = [arg.decode(fse) for arg in sys.argv]
-
-            i = 0
-            while i < len(args):
-                arg = args[i]
-                i += 1
-                if arg.startswith('-'):
-                    arg = arg[1:]
-                    if arg == 'exclusive':
-                        options[arg] = 'True'
+            self.CheckCanDrawSharpFlat()
+            options = {}
+            path = None
+            if len(sys.argv) > 1:
+                if sys.version_info >= (3,0,0): #FAU 20210101: In Python3 there isn't anymore the decode.
+                    args = sys.argv
                 else:
-                    path = os.path.abspath(arg)
+                    fse = sys.getfilesystemencoding()
+                    args = [arg.decode(fse) for arg in sys.argv]
 
-        #p08 We need to be able to find app.frame [SS] 2014-10-14
-        self.frame = self.NewMainFrame(options)
-        self.frame.Show(True)
-        self.SetTopWindow(self.frame)
+                i = 0
+                while i < len(args):
+                    arg = args[i]
+                    i += 1
+                    if arg.startswith('-'):
+                        arg = arg[1:]
+                        if arg == 'exclusive':
+                            options[arg] = 'True'
+                    else:
+                        path = os.path.abspath(arg)
 
-        if path:
-            self.frame.load_or_import(path)
+            #p08 We need to be able to find app.frame [SS] 2014-10-14
+            self.frame = self.NewMainFrame(options)
+            self.frame.Show(True)
+            self.SetTopWindow(self.frame)
+
+            if path:
+                self.frame.load_or_import(path)
+        except:
+            sys.stdout.write(traceback.format_exc())
         return True
 
 app = MyApp(0)

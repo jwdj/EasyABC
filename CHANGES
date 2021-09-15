@@ -568,3 +568,8 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Added exclusive mode: only one file is allowed
     Exlusive mode is enabled via command line option -exclusive
 - ABC assist: Support for %%MIDI gchord
+
+1.3.8.2
+- Windows installer upgraded from Python 2 to Python 3
+- Python 2 is not supported anymore
+- Uninstaller now shows EasyABC logo in 'Change or remove a program'

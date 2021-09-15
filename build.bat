@@ -1,1 +1,2 @@
-python setup.py build && "C:\Program Files (x86)\Inno Setup 6\iscc.exe" setupEasy137.iss
+python setup.py build
+"C:\Program Files (x86)\Inno Setup 6\iscc.exe" setupEasyABC.iss
