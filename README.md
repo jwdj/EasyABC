@@ -45,3 +45,10 @@ An open source ABC editor for Windows, OSX and Linux. It is published under the 
 
 - [abcnotation.com](https://abcnotation.com)
 - [abcplus.sourceforge.net](https://abcplus.sourceforge.net)
+
+## Keyboard shortcuts
+
+- <kbd>F5</kbd> Refresh
+- <kbd>F6</kbd> Play current song
+- <kbd>F7</kbd> Stop song
+- <kbd>Ctrl-Shift-F</kbd> Find in Files (or show entire collection)
