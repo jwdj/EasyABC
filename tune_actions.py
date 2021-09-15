@@ -579,6 +579,8 @@ class PitchAction(ValueChangeAction):
     pitch_values = [
         ValueDescription('noteup', _('Note up')),
         ValueDescription('notedown', _('Note down')),
+        ValueDescription('thirdup', _('Third up'), common=False),
+        ValueDescription('thirddown', _('Third down'), common=False),
         ValueDescription("'", _('Octave up')),
         ValueDescription(",", _('Octave down'))
     ]
@@ -594,9 +596,9 @@ class PitchAction(ValueChangeAction):
             note = context.get_matchgroup('note')
             octave = context.get_matchgroup('octave')
             note_no = self.octave_abc_to_number(note, octave)
-            if value == "'" or value == 'noteup':
+            if value == "'" or value == 'noteup' or value == 'thirdup':
                 return note_no < 4*7
-            elif value == ',' or value == 'notedown':
+            elif value == ',' or value == 'notedown' or value == 'thirddown':
                 return note_no > -4*7
             return False
 
@@ -613,6 +615,10 @@ class PitchAction(ValueChangeAction):
                 note_no += 1
             elif value == 'notedown':
                 note_no -= 1
+            elif value == 'thirdup':
+                note_no += 2
+            elif value == 'thirddown':
+                note_no -= 2
             elif value == "'":
                 note_no += 7
             elif value == ',':
@@ -1385,8 +1391,8 @@ class MidiVolumeChangeAction(ValueChangeAction):
 class MidiGuitarChordChangeAction(ValueChangeAction):
     values = [
         ValueDescription('fcfc', _('Preset') + ' 1'),
-        ValueDescription('c4',   _('Preset') + ' 2'),
-        ValueDescription('f2c2', _('Preset') + ' 3'),
+        ValueDescription('c',   _('Preset') + ' 2'),
+        ValueDescription('fc', _('Preset') + ' 3'),
         ValueDescription('c2fc', _('Preset') + ' 4'),
         ValueDescription('GIHI', _('Preset') + ' 5'),
         ValueDescription('', _('Custom')),
@@ -1400,17 +1406,17 @@ class MidiGuitarChordInsertAction(InsertValueAction):
     values = [
         CodeDescription('f', _('Fundamental')),
         CodeDescription('c', _('Chord')),
-        CodeDescription('b', _('Fundamental plus chord')),
         CodeDescription('z', _('Rest')),
         CodeDescription('2', _('Double duration')),
+        CodeDescription('b', _('Fundamental plus chord'), common=False),
         CodeDescription('G', _('Lowest note'), common=False),
         CodeDescription('H', _('Second note'), common=False),
         CodeDescription('I', _('Third note'), common=False),
         CodeDescription('J', _('Fourth note'), common=False),
-        CodeDescription('g', _('Lowest note an octave higher'), common=False),
-        CodeDescription('h', _('Second note an octave higher'), common=False),
-        CodeDescription('i', _('Third note an octave higher'), common=False),
-        CodeDescription('j', _('Fourth note an octave higher'), common=False),
+        CodeDescription('g', _('Lowest note') + ' ' + _('an octave higher'), common=False),
+        CodeDescription('h', _('Second note') + ' ' + _('an octave higher'), common=False),
+        CodeDescription('i', _('Third note') + ' ' + _('an octave higher'), common=False),
+        CodeDescription('j', _('Fourth note') + ' ' + _('an octave higher'), common=False),
     ]
     def __init__(self):
         super(MidiGuitarChordInsertAction, self).__init__('insert_gchord', MidiGuitarChordInsertAction.values, matchgroup='pattern', display_name=_('Insert pattern'))
