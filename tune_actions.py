@@ -916,6 +916,19 @@ class KeyChangeAction(ValueChangeAction):
     def is_current_value(self, context, value):
         return True
 
+    @staticmethod
+    def abc_key_to_number(tonic, mode):
+        middle_idx = len(key_ladder) // 2
+        try:
+            tonic_idx = key_ladder.index(tonic)
+        except ValueError:
+            return None
+
+        mode_idx = KeyChangeAction.abc_mode_to_number(mode)
+
+        if tonic_idx >= 0 and mode_idx is not None:
+            return tonic_idx - middle_idx - mode_idx
+
 
 class KeySignatureChangeAction(KeyChangeAction):
     values = [
@@ -954,22 +967,9 @@ class KeySignatureChangeAction(KeyChangeAction):
             return tonic != value
         else:
             value = int(value)
-            middle_idx = len(key_ladder) // 2
-            try:
-                tonic_idx = key_ladder.index(tonic)
-            except ValueError:
-                return True
-
             mode = context.get_matchgroup('mode')
-            mode_idx = self.abc_mode_to_number(mode)
-            if mode_idx is None:
-                return False
-
-            if tonic_idx >= 0 and mode_idx is not None:
-                current_value = tonic_idx - middle_idx - mode_idx
-                return current_value != value
-            else:
-                return True
+            current_value = self.abc_key_to_number(tonic, mode)
+            return current_value != value
 
     def execute(self, context, params=None):
         value = params.get('value')
@@ -1173,24 +1173,30 @@ class ArticulationDecorationChangeAction(BaseDecorationChangeAction):
 
 class ChordNoteChangeAction(ValueChangeAction):
     def __init__(self):
-        super(ChordNoteChangeAction, self).__init__('change_chord_note', [], 'chordnote', display_name=_('Change chord'))
+        super(ChordNoteChangeAction, self).__init__('change_chord_note', [], 'chordsymbol', display_name=_('Change chord'))
+        self.show_current_value = True
 
     def get_values(self, context):
-        i = key_ladder.index('C') # todo: retrieve from K:
+        try:
+            (tonic, mode) = AbcTune(context.tune).initial_tonic_and_mode
+            i = KeyChangeAction.abc_key_to_number(tonic, mode) - 2 + len(key_ladder) // 2
+        except:
+            i = key_ladder.index('C')
+
         values = [
             self.get_value_for_chord(i),
             self.get_value_for_chord(i-1),
             self.get_value_for_chord(i+1),
-            self.get_value_for_chord(i+3),
-            self.get_value_for_chord(i+2),
-            self.get_value_for_chord(i+4),
-            self.get_value_for_chord(i+5),
+            self.get_value_for_chord(i+3, 'm'),
+            self.get_value_for_chord(i+2, 'm'),
+            self.get_value_for_chord(i+4, 'm'),
+            self.get_value_for_chord(i+5, 'dim'),
         ]
         return values
 
     @staticmethod
-    def get_value_for_chord(index):
-        chord = key_ladder[index]
+    def get_value_for_chord(index, suffix = ''):
+        chord = key_ladder[index] + suffix
         return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D'))
 
 

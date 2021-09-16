@@ -136,7 +136,7 @@ class AbcTune(object):
     def get_abc_per_voice(self):
         if self.__abc_per_voice is None:
             if self.tune_body_start_line_index:
-                abc_body = self.tune_body
+                abc_body = '\n'.join(self.tune_body)
                 voices = defaultdict(unicode)
                 last_voice_id = ''
                 start_index = 0
@@ -163,14 +163,21 @@ class AbcTune(object):
 
     @property
     def tune_body(self):
-        return '\n'.join(self.abc_lines[self.tune_body_start_line_index:])
+        return self.abc_lines[self.tune_body_start_line_index:]
 
     @property
     def tune_header(self):
         end_line = None
         if self.tune_body_start_line_index is not None:
             end_line = self.tune_body_start_line_index
-        return '\n'.join(self.abc_lines[self.tune_header_start_line_index:end_line])
+        return self.abc_lines[self.tune_header_start_line_index:end_line]
+
+    @property
+    def initial_tonic_and_mode(self):
+        key_line = self.tune_header[-1]
+        m = re.match(r'K: ?(?P<tonic>(?:[A-G][b#]?|none)) ?(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)', key_line)
+        if m:
+            return (m.group('tonic'), m.group('mode'))
 
     def get_metre_and_default_length(self):
         lines = self.abc_lines
