@@ -2129,7 +2129,7 @@ class InsertMidiDirectiveAction(InsertValueAction):
         r'%%MIDI chordvol 64     % ' + _('Chord volume'),
         r'%%MIDI bassprog 24     % ' + _('Bass instrument'),
         r'%%MIDI bassvol 64      % ' + _('Bass volume'),
-        r'%%MIDI gchord fcfc     % ' + _('Chord pattern')
+        r'%%MIDI gchord fcfc     % ' + _('Accompaniment pattern. Place after line with M:')
     )
     values = [
         ValueDescription(' program 0       % ' + _('Instrument'), _('Set instrument')),
