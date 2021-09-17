@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-program_name = 'EasyABC 1.3.8.2'
+program_name = 'EasyABC 1.3.8.3'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -6102,7 +6102,7 @@ class MainFrame(wx.Frame):
     def OnShowMidiFile(self, evt):
         midi2abc_path = self.settings['midi2abc_path']
         if hasattr(self.current_midi_tune, 'midi_file'):
-            MidiToMftext (midi2abc_path, self.current_midi_tune.midi_file)
+            MidiToMftext(midi2abc_path, self.current_midi_tune.midi_file)
         else:
             wx.MessageBox(_("You need to create the midi file by playing the tune"), _("Error") , wx.ICON_ERROR | wx.OK)
 
@@ -7877,8 +7877,23 @@ class MainFrame(wx.Frame):
         else:
             self.statusbar.SetStatusText('')
 
-
     def handle_midi_conversion(self, filename=None, notes=None):
+        global execmessages
+        midi2abc_path = self.settings.get('midi2abc_path')
+        if midi2abc_path and os.path.exists(midi2abc_path):
+            cmd = [midi2abc_path, '-f', filename]
+            execmessages += '\nMidiToAbc\n' + " ".join(cmd)
+            stdout_value, stderr_value, returncode = get_output_from_process(cmd)
+            execmessages += '\n' + stdout_value + stderr_value
+            if returncode != 0:
+                execmessages += '\n' + _('%(program)s exited abnormally (errorcode %(error)#8x)') % { 'program': 'MidiToAbc', 'error': returncode & 0xffffffff }
+                return None
+            if stdout_value:
+                self.AddTextWithUndo('\n' + stdout_value + '\n')
+        else:
+            self.internal_midi_conversion(filename, notes)
+
+    def internal_midi_conversion(self, filename=None, notes=None):
         metre1, metre2 = [int(x) for x in self.settings['record_metre'].split('/')]
         metre = Fraction(metre1, metre2)
         abcs = [midi_to_abc(filename=filename, notes=notes, metre=metre, default_len=df) for df in [Fraction(1,16), Fraction(1,8)]]
@@ -7907,9 +7922,7 @@ class MainFrame(wx.Frame):
         try:
             result = dlg.ShowModal() == wx.ID_OK
             if result:
-                self.editor.BeginUndoAction()
-                self.editor.AddText('\n')
-                self.editor.AddText(midi_to_abc(filename=filename, notes=notes,
+                abc = midi_to_abc(filename=filename, notes=notes,
                                              key=dlg.key.GetValue(),
                                              metre=str2fraction(dlg.metre.GetValue()),
                                              title=dlg.title.GetValue(),
@@ -7922,9 +7935,7 @@ class MainFrame(wx.Frame):
                                              slur_16th_pairs=dlg.slur_16ths.GetValue(),
                                              slur_triplets=dlg.slur_triplets.GetValue(),
                                              index=self.index)
-                                    )
-                self.editor.AddText('\n')
-                self.editor.EndUndoAction()
+                self.AddTextWithUndo('\n' + abc + '\n')
                 self.index += 1
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window

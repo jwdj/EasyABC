@@ -9,7 +9,7 @@ An open source ABC editor for Windows, OSX and Linux. It is published under the 
 - Good ABC standard coverage thanks to internal use of abcm2ps and abc2midi
 - Syntax highlighting
 - Zoom support
-- Import MusicXML, MIDI and Noteworthy Composer files (the midi to abc translator is custom made in order to produce legible abc code with more sensible - beams than the typical midi2abc output).
+- Import MusicXML, MIDI and Noteworthy Composer files.
 - Export to MIDI, SVG, PDF (single tune or whole tune book).
 - Select notes by clicking on them and add music symbols by using drop-down menus in the toolbar.
 - Play the active tune as midi (using SoundFont)
