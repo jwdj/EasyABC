@@ -40,22 +40,38 @@ if platform.system() == 'Windows':
     lib = fluidsynth_lib_path + '\\libfluidsynth-3.dll'
     if not os.path.isfile(lib):
         lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
+    lib_locations = [lib]
 else:
-    lib = 'libfluidsynth.so.2'
+    lib_locations = ['libfluidsynth.so.3', 'libfluidsynth.so.2']
 
-try:
-    F = CDLL(lib)
-except:
+i = 0
+while i < len(lib_locations):
+    try:
+        lib = lib_locations[i]
+        F = CDLL(lib)
+        break
+    except:
+        i += 1
+
+if i == len(lib_locations):
     raise ImportError("Couldn't find the FluidSynth library: " + lib)
 
-
 class Synth:            # interface for the FluidSynth synthesizer
-    def __init__(self, gain=0.2, samplerate=44100.0, bsize=64):
+    def __init__(self, gain=0.2, samplerate=44100.0, bsize=64, output_path=None):
         self.settings = F.new_fluid_settings()
         self.setting_setnum('synth.gain', gain)
         # self.setting_setnum('synth.sample-rate', samplerate)
         # self.setting_setint('audio.period-size', bsize)
         # self.setting_setint('audio.periods', 2)
+        if output_path:
+            # specify the file to store the audio to
+            # make sure you compiled fluidsynth with libsndfile to get a real wave file
+            # otherwise this file will only contain raw s16 stereo PCM
+            self.setting_setstr("audio.file.name", output_path)
+            # use number of samples processed as timing source, rather than the system timer
+            self.setting_setstr("player.timing-source", "sample")
+            # since this is a non-realtime scenario, there is no need to pin the sample data
+            self.setting_setint("synth.lock-memory", 0)
         self.synth = F.new_fluid_synth(self.settings)
         self.audio_driver = None
 
@@ -181,22 +197,23 @@ class Player:               # interface for the FluidSynth internal midi player
     def delete(self):
         F.delete_fluid_player(self.player)
 
-    def renderLoop(self, quality = 0.5, callback=None):       # render midi file to audio file
+    def renderLoop(self, callback=None):       # render midi file to audio file
         renderer = F.new_fluid_file_renderer(self.flsynth.synth)
         if not renderer:
             print('failed to create file renderer')
             return
-        F.fluid_file_set_qual(renderer, c_double(quality))
         k = self.flsynth.setting_getint('audio.period-size')         # get block size (samples are rendered one block at a time)
-        n = 0               # sample counter
+        samples = 0               # sample counter
         while self.get_status() == 1:
             if F.fluid_file_renderer_process_block(renderer) != 0: # render one block
                 print('renderer_loop error')
                 break
-            n += k.value    # increment with block size
-            if callback: callback(n)   # for progress reporting
+            samples += k.value    # increment with block size
+            if callback: callback(samples)   # for progress reporting
+        self.stop()  # just for sure: stop the playback explicitly and wait until finished
+        F.fluid_player_join(self.player)
         F.delete_fluid_file_renderer(renderer)
-        return n
+        return samples
 
     def set_render_mode(self, file_name, file_type):  # set audio file and audio type
         st = self.flsynth                     # should be called before the renderLoop

@@ -5086,6 +5086,26 @@ class MainFrame(wx.Frame):
                 midi_tune.cleanup()
         return False
 
+    def OnExportToWave(self, evt):
+        if fluidsynth_available:
+            self.export_tunes(_('Wave file'), '.wav', self.export_wave, only_selected=True)
+        else:
+            wx.MessageBox(_("Both the FluidSynth library and a valid SoundFont are required for exporting to a wave file."),
+                          _("Unable to export"), wx.ICON_INFORMATION | wx.OK)
+
+    def export_wave(self, tune, filepath):
+        tempo_multiplier = self.get_tempo_multiplier()
+        midi_tune = AbcToMidi(tune.abc, tune.header, self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
+        if midi_tune:
+            try:
+                self.mc.render_to_file(midi_tune.midi_file, filepath)
+                return True
+            except:
+                self.statusbar.SetStatusText(_('Failed to create {0}').format(filepath))
+            finally:
+                midi_tune.cleanup()
+        return False
+
     #Add an export all tunes to individual PDF option
     def OnExportAllPDFFiles(self, evt):
         self.export_pdf_tunes(only_selected=False)
@@ -5898,7 +5918,8 @@ class MainFrame(wx.Frame):
             (_('Export to &SVG...'), '', self.OnExportSVG),
             (_('Export to &HTML...'), '', self.OnExportHTML),
             (_('Export to Music&XML...'), '', self.OnExportMusicXML),
-            (_('Export to &ABC...'), '', self.OnExportToABC)
+            (_('Export to &ABC...'), '', self.OnExportToABC),
+            (_('Export to &Wave...'), '', self.OnExportToWave)
         ], parent=self)
 
         # global current_locale
@@ -5987,7 +6008,8 @@ class MainFrame(wx.Frame):
                     (_('as &SVG...'), '', self.OnExportSVG),
                     (_('as &HTML...'), '', self.OnExportHTML),
                     (_('as Music&XML...'), '', self.OnExportMusicXML),
-                    (_('as A&BC...'), '', self.OnExportToABC)]),
+                    (_('as A&BC...'), '', self.OnExportToABC),
+                    (_('as &Wave...'), '', self.OnExportToWave)]),
                 (_("Export &all"), [
                     (_('as a &PDF Book...'), '', self.OnExportAllPDF),
                     (_('as PDF &Files...'), '', self.OnExportAllPDFFiles),

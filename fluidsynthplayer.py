@@ -88,6 +88,23 @@ class FluidSynthPlayer(MidiPlayer):
         ticks = self.p.get_ticks() # get play position in midi ticks
         return ticks
 
+    def render_to_file(self, midi_path, output_path):
+        fs = F.Synth(gain=1.0, bsize=2048, output_path=output_path)
+        soundfont_path = self.pending_soundfont
+        if not soundfont_path:
+            soundfont_path = self.soundfont_path
+        sfid = fs.sfload(soundfont_path)
+        if sfid < 0:
+            return 0     # not a sf2 file
+        fs.program_select(0, sfid, 0, 0)
+        player = F.Player(fs)   # make a new one
+        player.add(midi_path)
+        player.play()
+        samples = player.renderLoop()
+        # print(samples)
+        player.delete()
+        fs.delete()
+
     def dispose(self):             # free some memory
         self.p.delete()
         self.fs.delete()
