@@ -2214,9 +2214,10 @@ class AbcFileSettingsFrame(wx.Panel):
 
     def soundfont_changed(self, sf2_path):
         try:
-            wait = wx.BusyCursor()
-            self.mc.set_soundfont(sf2_path)         # load another sound font
-            del wait
+            if os.path.exists(sf2_path):
+                wait = wx.BusyCursor()
+                self.mc.set_soundfont(sf2_path)         # load another sound font
+                del wait
         except:
             pass
 
@@ -3904,8 +3905,12 @@ class MainFrame(wx.Frame):
         self.uses_fluidsynth = False
         if fluidsynth_available and soundfont_path and os.path.exists(soundfont_path):
             try:
-                self.mc = FluidSynthPlayer(soundfont_path)
+                init_soundfont_path = os.path.join(application_path, 'sound', 'example.sf2')
+                if not os.path.exists(init_soundfont_path):
+                    init_soundfont_path = soundfont_path
+                self.mc = FluidSynthPlayer(init_soundfont_path)
                 self.uses_fluidsynth = True
+                self.mc.set_soundfont(soundfont_path, load_on_play=True)
             except Exception as e:
                 error_msg = traceback.format_exc()
                 self.mc = None
@@ -6343,7 +6348,7 @@ class MainFrame(wx.Frame):
     def OnAbcSettings(self, evt):
         # 1.3.6.4 [SS] 2015-07-07
         win = wx.FindWindowByName('settingsbook')
-        if win is None:
+        if win is None or not self.settingsbook:
             self.settingsbook = MyNoteBook(self, self.settings, self.statusbar)
             self.settingsbook.Show()
         else:

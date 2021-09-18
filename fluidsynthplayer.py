@@ -21,6 +21,7 @@ class FluidSynthPlayer(MidiPlayer):
             driver = 'pulseaudio'
 
         self.fs.start(driver)  # set default output driver and start clock
+        self.soundfont_path = sf2_path
         self.sfid = self.fs.sfload(sf2_path)
         self.fs.program_select(0, self.sfid, 0, 0)
         self.p = F.Player(self.fs)   # make a new player
@@ -28,11 +29,11 @@ class FluidSynthPlayer(MidiPlayer):
         self.pause_time = 0        # time in midi ticks where player stopped
         self.pending_soundfont = None
 
-    def set_soundfont(self, sf2_path):         # load another sound font
-        if self.is_playing:
+    def set_soundfont(self, sf2_path, load_on_play=False):         # load another sound font
+        if self.is_playing or load_on_play:
             self.pending_soundfont = sf2_path
         else:
-            self.sf2 = sf2_path
+            self.soundfont_path = sf2_path
             if self.sfid >= 0:
                 self.fs.sfunload(self.sfid)
             self.sfid = self.fs.sfload(sf2_path)
@@ -46,7 +47,6 @@ class FluidSynthPlayer(MidiPlayer):
         self.pause_time = 0       # resume playing at time == 0
         if os.path.exists(path):
             success = self.p.add(path)           # add file to playlist
-            self.p.play()
             self.OnAfterLoad.fire()
             return True
         return False
@@ -60,7 +60,8 @@ class FluidSynthPlayer(MidiPlayer):
         if self.is_playing:
             return
         if self.pending_soundfont:
-            self.set_soundfont(self.pending_soundfont)
+            if self.pending_soundfont != self.soundfont_path and os.path.exists(self.pending_soundfont):
+                self.set_soundfont(self.pending_soundfont)
             self.pending_soundfont = None
 
         self.p.play(self.pause_time)
