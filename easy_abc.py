@@ -2017,13 +2017,13 @@ class IncipitsFrame(wx.Dialog):
 #2014-10-14
 class MyNoteBook(wx.Frame):
     ''' Settings Notebook '''
-    def __init__(self, settings, statusbar):
-        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("Abc settings"), style=wx.DEFAULT_FRAME_STYLE, name='settingsbook')
+    def __init__(self, parent, settings, statusbar):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, _("Abc settings"), style=wx.DEFAULT_FRAME_STYLE, name='settingsbook')
         # Add a panel so it looks the correct on all platforms
         p = wx.Panel(self)
         nb = wx.Notebook(p)
         # 1.3.6.4 [SS] 2015-05-26 added statusbar
-        abcsettings = AbcFileSettingsFrame(nb, settings, statusbar)
+        abcsettings = AbcFileSettingsFrame(nb, settings, statusbar, parent.mc)
         chordpage = MyChordPlayPage(nb, settings)
         self.voicepage = MyVoicePage(nb, settings)
         # 1.3.6.1 [SS] 2015-02-02
@@ -2052,26 +2052,27 @@ class MyNoteBook(wx.Frame):
 
 class AbcFileSettingsFrame(wx.Panel):
     # 1.3.6.4 [SS] 2015-05-26 added statusbar
-    def __init__(self, parent, settings, statusbar):
+    def __init__(self, parent, settings, statusbar, mc):
         wx.Panel.__init__(self, parent)
         self.settings = settings
         self.statusbar = statusbar
+        self.mc = mc
         self.SetBackgroundColour(dialog_background_colour)
         border = control_margin
 
-        PathEntry = namedtuple('PathEntry', 'name display_name tooltip add_default wildcard')
+        PathEntry = namedtuple('PathEntry', 'name display_name tooltip add_default wildcard on_change')
 
         # 1.3.6.3 [JWDJ] 2015-04-27 replaced TextCtrl with ComboBox for easier switching of versions
         self.needed_path_entries = [
-            PathEntry('abcm2ps', _('abcm2ps executable:'), _('This executable is used to display the music'), True, None),
-            PathEntry('abc2midi', _('abc2midi executable:'), _('This executable is used to make the midi file'), True, None),
-            PathEntry('abc2abc', _('abc2abc executable:'), _('This executable is used to transpose the music'), True, None),
+            PathEntry('abcm2ps', _('abcm2ps executable:'), _('This executable is used to display the music'), True, None, None),
+            PathEntry('abc2midi', _('abc2midi executable:'), _('This executable is used to make the midi file'), True, None, None),
+            PathEntry('abc2abc', _('abc2abc executable:'), _('This executable is used to transpose the music'), True, None, None),
             # 1.3.6.4 [SS] 2015-06-22
-            PathEntry('midi2abc', _('midi2abc executable:'), _('This executable is used to disassemble the output midi file'), True, None),
-            PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False, None),
-            PathEntry('nwc2xml', _('nwc2xml executable:'), _('For NoteWorthy Composer - Windows only'), False, None),
-            PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False, None),
-            PathEntry('soundfont', _('SoundFont:'), _('Your preferred SoundFont (.sf2)'), False, 'SoundFont (*.sf2;*.sf3)|*.sf2;*.sf3')
+            PathEntry('midi2abc', _('midi2abc executable:'), _('This executable is used to disassemble the output midi file'), True, None, None),
+            PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False, None, None),
+            PathEntry('nwc2xml', _('nwc2xml executable:'), _('For NoteWorthy Composer - Windows only'), False, None, None),
+            PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False, None, self.midiplayer_changed),
+            PathEntry('soundfont', _('SoundFont:'), _('Your preferred SoundFont (.sf2)'), False, 'SoundFont (*.sf2;*.sf3)|*.sf2;*.sf3', self.soundfont_changed)
         ]
 
 
@@ -2098,9 +2099,11 @@ class AbcFileSettingsFrame(wx.Panel):
         self.browsebutton_to_control = {}
         self.browsebutton_to_wildcard = {}
         self.control_to_name = {}
+        self.afterchanged = {}
         for entry in self.needed_path_entries:
             setting_name = '%s_path' % entry.name
             current_path = self.settings.get(setting_name, '')
+            self.afterchanged[setting_name] = entry.on_change
             setting_name_choices = '%s_path_choices' % entry.name
             path_choices = self.settings.get(setting_name_choices, '').split('|')
             path_choices = self.keep_existing_paths(path_choices)
@@ -2201,9 +2204,21 @@ class AbcFileSettingsFrame(wx.Panel):
             self.settings[setting_name_choices] = '|'.join(paths)
         # 1.3.6.4 [SS] 2015-05-26
         self.statusbar.SetStatusText(setting_name + ' was updated to '+ path)
-        if setting_name == 'midiplayer_path':
-            app = wx.GetApp()
-            app.frame.update_play_button() # 1.3.6.3 [JWDJ] 2015-04-21 playbutton enabling centralized
+        on_changed = self.afterchanged.get(setting_name)
+        if on_changed is not None:
+            on_changed(path)
+
+    def midiplayer_changed(self, path):
+        app = wx.GetApp()
+        app.frame.update_play_button() # 1.3.6.3 [JWDJ] 2015-04-21 playbutton enabling centralized
+
+    def soundfont_changed(self, sf2_path):
+        try:
+            wait = wx.BusyCursor()
+            self.mc.set_soundfont(sf2_path)         # load another sound font
+            del wait
+        except:
+            pass
 
     def On_Chk_IncludeHeader(self, event):
         self.settings['abc_include_file_header'] = self.chkIncludeHeader.GetValue()
@@ -2229,7 +2244,7 @@ class AbcFileSettingsFrame(wx.Panel):
             frame.restore_settings()
             frame.settingsbook.Show(False)
             frame.settingsbook.Destroy()
-            frame.settingsbook = MyNoteBook(self.settings, self.statusbar)
+            frame.settingsbook = MyNoteBook(self, self.settings, self.statusbar)
             frame.settingsbook.Show()
 
     def append_exe(self, path, paths):
@@ -6329,7 +6344,7 @@ class MainFrame(wx.Frame):
         # 1.3.6.4 [SS] 2015-07-07
         win = wx.FindWindowByName('settingsbook')
         if win is None:
-            self.settingsbook = MyNoteBook(self.settings, self.statusbar)
+            self.settingsbook = MyNoteBook(self, self.settings, self.statusbar)
             self.settingsbook.Show()
         else:
             self.settingsbook.Iconize(False)
