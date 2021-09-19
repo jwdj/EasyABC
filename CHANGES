@@ -577,3 +577,4 @@ different panes. Tie/untie option added for notes. Broken rhythm
 1.3.8.3
 - Startup improved by using a small (and horribly sounding) SoundFont (sound\example.sf2) on startup and switching to the SoundFont in the settings on first play
 - Export to wave file. Thanks to FluidSynth exporting to a wave file is now possible. You could if you want convert this manually to an MP3 file using ffmpeg (https://ffmpeg.org/ffmpeg.html)
+- MIDI to ABC now uses the midi2abc executable instead of the built-in conversion. This improves the import for multivoice tunes.
