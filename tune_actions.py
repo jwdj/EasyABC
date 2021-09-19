@@ -1176,6 +1176,9 @@ class ChordNoteChangeAction(ValueChangeAction):
         super(ChordNoteChangeAction, self).__init__('change_chord_note', [], 'chordsymbol', display_name=_('Change chord'))
         self.show_current_value = True
 
+    def contains_only_common(self, values):
+        return False
+
     def get_values(self, context):
         try:
             (tonic, mode) = AbcTune(context.tune).initial_tonic_and_mode
@@ -1183,21 +1186,22 @@ class ChordNoteChangeAction(ValueChangeAction):
         except:
             i = key_ladder.index('C')
 
-        values = [
+        return [
             self.get_value_for_chord(i),
             self.get_value_for_chord(i-1),
             self.get_value_for_chord(i+1),
+            self.get_value_for_chord(i+1, '7', common=False),
             self.get_value_for_chord(i+3, 'm'),
             self.get_value_for_chord(i+2, 'm'),
             self.get_value_for_chord(i+4, 'm'),
-            self.get_value_for_chord(i+5, 'dim'),
+            self.get_value_for_chord(i+4, '7', common=False),
+            self.get_value_for_chord(i+5, 'dim', common=False),
         ]
-        return values
 
     @staticmethod
-    def get_value_for_chord(index, suffix = ''):
+    def get_value_for_chord(index, suffix = '', common=True):
         chord = key_ladder[index] + suffix
-        return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D'))
+        return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D'), common=common)
 
 
 class ChordNameChangeAction(ValueChangeAction):
