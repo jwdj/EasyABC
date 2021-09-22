@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import re
 import os
 import sys
+import traceback
 
 PY3 = sys.version_info.major > 2
 
@@ -1399,17 +1400,34 @@ class MidiVolumeChangeAction(ValueChangeAction):
 
 
 class MidiGuitarChordChangeAction(ValueChangeAction):
-    values = [
+    values_even = [
         ValueDescription('fcfc', _('Preset') + ' 1'),
         ValueDescription('c',   _('Preset') + ' 2'),
         ValueDescription('fc', _('Preset') + ' 3'),
-        ValueDescription('c2fc', _('Preset') + ' 4'),
+        ValueDescription('f3c3c2', _('Preset') + ' 4'),
         ValueDescription('GIHI', _('Preset') + ' 5'),
         ValueDescription('', _('Custom')),
     ]
+    values_odd = [
+        ValueDescription('fccfcc', _('Preset') + ' 1'),
+        ValueDescription('c',   _('Preset') + ' 2'),
+        ValueDescription('fcc', _('Preset') + ' 3'),
+        ValueDescription('fc', _('Preset') + ' 4'),
+        ValueDescription('GIIHII', _('Preset') + ' 5'),
+        ValueDescription('', _('Custom')),
+    ]
     def __init__(self):
-        super(MidiGuitarChordChangeAction, self).__init__('change_gchord', MidiGuitarChordChangeAction.values, matchgroup='pattern', display_name=_('Change guitar pattern'))
+        super(MidiGuitarChordChangeAction, self).__init__('change_gchord', [], matchgroup='pattern', display_name=_('Change guitar pattern'))
         self.show_current_value = True
+
+    def get_values(self, context):
+        try:
+            metre, default_len = AbcTune(context.tune_header).get_metre_and_default_length()
+            if metre.numerator % 3 == 0:
+                return MidiGuitarChordChangeAction.values_odd
+        except:
+            pass
+        return MidiGuitarChordChangeAction.values_even
 
 
 class MidiGuitarChordInsertAction(InsertValueAction):
@@ -1430,6 +1448,29 @@ class MidiGuitarChordInsertAction(InsertValueAction):
     ]
     def __init__(self):
         super(MidiGuitarChordInsertAction, self).__init__('insert_gchord', MidiGuitarChordInsertAction.values, matchgroup='pattern', display_name=_('Insert pattern'))
+
+
+class MidiGuitarChordTimeAction(ValueChangeAction):
+    def __init__(self):
+        super(MidiGuitarChordTimeAction, self).__init__('time_gchord', [], matchgroup='pattern', display_name=_('Change time'))
+
+    def get_values(self, context):
+        values = []
+        current_value = self.get_current_value(context)
+        values.append(ValueDescription('/', _('Double time')))
+        l = len(current_value)
+        if l >= 2 and current_value[:l // 2] == current_value[l // 2:]:
+            values.append(ValueDescription('2', _('Half time')))
+        return values
+
+    def execute(self, context, params=None):
+        value = params.get('value', '')
+        current_value = self.get_current_value(context)
+        if value == '/':
+            new_text = current_value + current_value
+        else:
+            new_text = current_value[:len(current_value) // 2]
+        context.replace_match_text(new_text, self.matchgroup) # , tune_scope=self.get_tune_scope())
 
 
 ##################################################################################################
@@ -2130,10 +2171,11 @@ class InsertDirectiveAction(InsertValueAction):
 class InsertMidiDirectiveAction(InsertValueAction):
     play_chords_cmds = (
         r' chordprog 24    % ' + _('Chord instrument'),
-        r'%%MIDI chordvol 64     % ' + _('Chord volume'),
-        r'%%MIDI bassprog 24     % ' + _('Bass instrument'),
-        r'%%MIDI bassvol 64      % ' + _('Bass volume'),
-        r'%%MIDI gchord fcfc     % ' + _('Accompaniment pattern. Place after line with M:')
+        r'%%MIDI chordvol 64       % ' + _('Chord volume'),
+        r'%%MIDI bassprog 24       % ' + _('Bass instrument'),
+        r'%%MIDI bassvol 64        % ' + _('Bass volume'),
+        r'%%MIDI gchordon',
+        r'%%MIDI gchord c          % ' + _('Accompaniment pattern (optional). Place after line with M:')
     )
     values = [
         ValueDescription(' program 0       % ' + _('Instrument'), _('Set instrument')),
@@ -2381,6 +2423,7 @@ class AbcActionHandlers(object):
             MidiVolumeChangeAction(),
             MidiGuitarChordChangeAction(),
             MidiGuitarChordInsertAction(),
+            MidiGuitarChordTimeAction(),
             InsertDirectiveAction(),
             InsertMidiDirectiveAction(),
             ShowVoiceAction(),
@@ -2436,7 +2479,7 @@ class AbcActionHandlers(object):
             'MIDI_channel'           : self.create_handler(['change_midi_channel']),
             'MIDI_drummap'           : self.create_handler(['change_midi_drum_instrument']),
             'MIDI_volume'            : self.create_handler(['change_midi_volume']),
-            'MIDI_gchord'            : self.create_handler(['change_gchord', 'insert_gchord']),
+            'MIDI_gchord'            : self.create_handler(['change_gchord', 'insert_gchord', 'time_gchord']),
             'MIDI'                   : self.create_handler(['insert_midi_directive']),
             'score'                  : self.create_handler(['show_single_voice', 'hide_voice', 'show_voice', 'show_all_voices', 'toggle_continued_barlines', 'group_together', 'brace_together', 'bracket_together']),
             'measurenb'              : self.create_handler(['change_measurenb']),

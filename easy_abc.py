@@ -1185,8 +1185,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     # 1.3.6.3 [JWDJ] 2015-04-17 header was forgotten when checking for MIDI directives
     abclines = text_to_lines(header + abc_code)
-    for i in range(len(abclines)):
-        line = abclines[i]
+    for line in abclines:
         if line.startswith('%%MIDI program'):
             add_midi_program_extra_line = False
         elif line.startswith('%%MIDI control 7 '):
@@ -1195,7 +1194,8 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             add_midi_gchord_extra_line = False
         elif line.startswith('%%MIDI chordprog') or line.startswith('%%MIDI bassprog'):
             add_midi_chordprog_extra_line = False
-        if not (add_midi_program_extra_line or add_midi_volume_extra_line or add_midi_gchord_extra_line or add_midi_chordprog_extra_line): break
+        if not (add_midi_program_extra_line or add_midi_volume_extra_line or add_midi_gchord_extra_line or add_midi_chordprog_extra_line):
+            break
 
     #### create the abc_header which will be placed in front of the processed abc file
     # extra_lines is a list of all the MIDI commands to be put in abcheader
@@ -1220,13 +1220,14 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         extra_lines.append('%%MIDI control 7 {0}'.format(midi_program_ch[0][1]))
         extra_lines.append('%%MIDI control 10 {0}'.format(midi_program_ch[0][2]))
 
-    #add extra instruction to play guitar chords
+    # add extra instruction to play guitar chords
     if add_midi_gchord_extra_line:
         if play_chords:
             extra_lines.append('%%MIDI gchordon')
             # 1.3.6 [SS] 2014-11-26
-            if settings['gchord'] != 'default':
-                extra_lines.append('%%MIDI gchord '+ settings['gchord'])
+            gchord = settings.get('gchord')
+            if gchord and gchord != 'default':
+                extra_lines.append('%%MIDI gchord '+ gchord)
 
         else:
             extra_lines.append('%%MIDI gchordoff')
@@ -1281,8 +1282,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         new_abc_lines = [] # contains the new processed abc tune
         voice = 0
         header_finished = False
-        for i in range(len(abclines)):
-            line = abclines[i]
+        for line in abclines:
             new_abc_lines.append(line)
             # do not take into account the definition present in the header (maybe it would be better... to be further analysed)
             if line.startswith('K:'):
@@ -1291,8 +1291,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                     new_abc_lines.append('%%MIDI control 7 {0}'.format(int(settings['melodyvol'])))
                 # 1.3.6.4 [SS] 2015-07-03
                 if not header_finished and add_midi_introduction:
-                    for j in range(len(midi_introduction)):
-                        new_abc_lines.append(midi_introduction[j])
+                    new_abc_lines.extend(midi_introduction)
                 header_finished = True
             # 1.3.6.3 [JWDJ] 2015-04-21
             if (line.startswith('V:') or line.startswith('[V:')) and header_finished:
@@ -2429,7 +2428,7 @@ class MyChordPlayPage (wx.Panel):
         #1.3.6 [SS] 2014-11-26
         self.gchordcombo.Bind(wx.EVT_COMBOBOX, self.OnGchordSelection, self.gchordcombo)
         self.gchordcombo.Bind(wx.EVT_TEXT, self.OnGchordSelection, self.gchordcombo)
-        self.gchordcombo.SetToolTip(wx.ToolTip(_('for chord C:\nf --> C,,  c -> [C,E,G] z --> rest\ng --> C, h --> E, i --> G, j--> B,\nG --> C,, H --> E,, I --> G,,\nJ --> B,')))
+        self.gchordcombo.SetToolTip(wx.ToolTip(_('f = fundamental\nc = chord\nz = rest\n\nfor chord C:\nf -> C,,\nc -> [C,E,G]\ng -> C\nh -> E\ni -> G\nj -> B\nG -> C,,\nH -> E,,\nI -> G,,\nJ -> B,')))
 
         #1.3.6 [SS] 2014-11-15
         self.cmbMidiProgram.Bind(wx.EVT_COMBOBOX, self.OnMidi_Program)
@@ -5090,7 +5089,7 @@ class MainFrame(wx.Frame):
         if fluidsynth_available:
             self.export_tunes(_('Wave file'), '.wav', self.export_wave, only_selected=True)
         else:
-            wx.MessageBox(_("Both the FluidSynth library and a valid SoundFont are required for exporting to a wave file."),
+            wx.MessageBox(_("Both the FluidSynth library and a valid SoundFont (see menu Settings -> ABC Settings -> File settings) are required for exporting to a wave file."),
                           _("Unable to export"), wx.ICON_INFORMATION | wx.OK)
 
     def export_wave(self, tune, filepath):
