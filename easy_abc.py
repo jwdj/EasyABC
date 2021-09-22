@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-program_name = 'EasyABC 1.3.8.3'
+program_name = 'EasyABC 1.3.8.4'
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -5198,6 +5198,9 @@ class MainFrame(wx.Frame):
     def OnExportHTML(self, evt):
         self.export_tunes(_('HTML file'), '.html', self.export_html, only_selected=True)
 
+    def OnExportInteractiveHTML(self, evt):
+        self.export_tunes(_('HTML file (interactive)'), '.html', self.export_interactive_html, only_selected=True, single_file=True)
+
     def export_html(self, tune, filepath):
         # 1.3.6 [SS] 2014-12-02 2014-12-07
         svg_files, error = AbcToSvg(tune.abc, tune.header,
@@ -5219,8 +5222,45 @@ class MainFrame(wx.Frame):
             return launch_file(filepath)
         return False
 
+    def export_interactive_html(self, tune, filepath):
+        f = codecs.open(filepath, 'wb', 'UTF-8')
+        f.write('<!DOCTYPE HTML>\n')
+        f.write('<html>\n<head>\n')
+        f.write('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>\n')
+        f.write('<script src="http://moinejf.free.fr/js/abcweb-1.js"></script>\n')
+        f.write('<script src="http://moinejf.free.fr/js/snd-1.js"></script>\n')
+        f.write('<style type="text/css">\n')
+        f.write('svg {display:block}\n')
+        f.write('@media print{body{margin:0;padding:0;border:0}.nop{display:none}}\n')
+        f.write('</style>\n')
+        f.write('</head>\n<body>\n<script type="text/vnd.abc">\n%%linebreak <none>\n\n\n')
+        file_header = re.sub('(?m)^%%pageheight.*$', '', tune.header)
+        f.write(file_header)
+        f.write('\n')
+        if self.settings.get('play_chords') or '%%MIDI gchord' in tune.abc:
+            # prepend gchordon to each tune body
+            abclines = text_to_lines(tune.abc)
+            new_abc_lines = []
+            header_started = False
+            for line in abclines:
+                new_abc_lines.append(line)
+                if line.startswith('X:'):
+                    header_started = True
+                elif line.startswith('K:') and header_started:
+                    new_abc_lines.append('%%MIDI gchordon')
+                    header_started = False
+            f.write('\n'.join(new_abc_lines))
+        else:
+            f.write(tune.abc)
+        f.write('\n\n\n</script>\n</body>\n</html>')
+        f.close()
+        return launch_file(filepath)
+
     def OnExportAllHTML(self, evt):
         self.export_tunes(_('HTML file'), '.html', self.export_html, only_selected=False, single_file=True)
+
+    def OnExportAllInteractiveHTML(self, evt):
+        self.export_tunes(_('HTML file'), '.html', self.export_interactive_html, only_selected=False, single_file=True)
 
     def OnExportAllEpub(self, evt):
         tunes = []
@@ -5916,6 +5956,7 @@ class MainFrame(wx.Frame):
             (_('Export to &one PDF...'), '', self.OnExportSelectedToSinglePDF, self.add_to_multi_list),
             (_('Export to &SVG...'), '', self.OnExportSVG),
             (_('Export to &HTML...'), '', self.OnExportHTML),
+            (_('Export to HTML (&interactive)...'), '', self.OnExportInteractiveHTML),
             (_('Export to Music&XML...'), '', self.OnExportMusicXML),
             (_('Export to &ABC...'), '', self.OnExportToABC),
             (_('Export to &Wave...'), '', self.OnExportToWave)
@@ -6006,6 +6047,7 @@ class MainFrame(wx.Frame):
                     (_('as &MIDI...'), '', self.OnExportMidi),
                     (_('as &SVG...'), '', self.OnExportSVG),
                     (_('as &HTML...'), '', self.OnExportHTML),
+                    (_('as HTML (&interactive)...'), '', self.OnExportInteractiveHTML),
                     (_('as Music&XML...'), '', self.OnExportMusicXML),
                     (_('as A&BC...'), '', self.OnExportToABC),
                     (_('as &Wave...'), '', self.OnExportToWave)]),
@@ -6014,6 +6056,7 @@ class MainFrame(wx.Frame):
                     (_('as PDF &Files...'), '', self.OnExportAllPDFFiles),
                     (_('as &MIDI...'), '', self.OnExportAllMidi),
                     (_('as &HTML...'), '', self.OnExportAllHTML),
+                    (_('as HTML (&interactive)...'), '', self.OnExportAllInteractiveHTML),
                     #(_('as &EPUB...'), '', self.OnExportAllEpub),
                     (_('as Music&XML...'), '', self.OnExportAllMusicXML)]),
                 (),
