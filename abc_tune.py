@@ -13,6 +13,7 @@ meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
 unitlength_pattern = r'^L:\s*(\d+)/(\d+)'
 voice_pattern = r'(?m)(?:^V:\s*(?P<name>\w+).*$\n|\[V:\s*(?P<inlinename>\w+)[^\]]*\])'
 comment_pattern = r'(?m)(?<!\\)%.*$'
+empty_line_pattern = r'(?m)^\s*$'
 
 meter_re = re.compile(meter_pattern)
 unitlength_re = re.compile(unitlength_pattern)
@@ -21,13 +22,23 @@ inline_unitlength_re = re.compile('\[{0}\]'.format(unitlength_pattern))
 abc_field_re = re.compile(field_pattern)
 voice_re = re.compile(voice_pattern)
 comment_re = re.compile(comment_pattern)
+empty_line_re = re.compile(empty_line_pattern)
+
 
 def find_start_of_tune(abc_text, pos):
+    """ A tune always starts with X: """
     while pos > 0:
         pos = abc_text.rfind('X:', 0, pos)
         if pos <= 0 or abc_text[pos - 1] == '\n':
             break
     return pos
+
+def find_end_of_tune(abc_text, pos):
+    """ A tune ends with an empty line or when end of file """
+    match = empty_line_re.search(abc_text, pos)
+    if match:
+        return match.start()
+    return len(abc_text)
 
 def strip_comments(abc_text):
     return comment_re.sub('', abc_text)

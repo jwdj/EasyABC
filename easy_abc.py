@@ -32,6 +32,8 @@ program_name = 'EasyABC 1.3.8.4'
 #     pass
 
 import sys
+
+from wx.core import VERTICAL
 PY3 = sys.version_info >= (3,0,0)
 
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
@@ -2323,27 +2325,27 @@ class MyChordPlayPage (wx.Panel):
         gchordchoices = ['default', 'f', 'fzfz', 'gi', 'gihi', 'f4c2', 'ghihgh', 'g2hg2h']
         self.SetGchordChoices(gchordchoices)
 
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Instrument for playback: ')), row=0, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Instrument for playback') + ': '), row=0, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderVol, row=0, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.Voltxt, row=0, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiProgram, row=0, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for chord's playback: ")), row=1, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for chord's playback") + ': '), row=1, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiChordProgram, row=1, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderChordVol, row=1, col=2, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.ChordVoltxt, row=1, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for bass chord's playback: ")), row=2, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for bass chord's playback") + ': '), row=2, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.cmbMidiBassProgram, row=2, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderBassVol, row=2, col=2, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.BassVoltxt, row=2, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # 1.3.6.4 [SS] 2015-06-10
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Default Tempo: ")), row=3, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Default Tempo") + ': '), row=3, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.sliderbeatsperminute, row=3, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.beatsperminutetxt, row=3, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Transposition: ")), row=4, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Transposition") + ': '), row=4, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.slidertranspose, row=4, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.transposetxt, row=4, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Tuning: ")), row=5, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Tuning") + ': '), row=5, col=0, flag=wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.slidertuning, row=5, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(self.tuningtxt, row=5, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
@@ -3480,6 +3482,7 @@ class AbcSearchPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.settings = settings
         self.statusbar = statusbar
+        self.mainwindow = parent
         border = control_margin
         self.max_results = 5000
 
@@ -3510,7 +3513,7 @@ class AbcSearchPanel(wx.Panel):
         self.progress = wx.Gauge(self, wx.ID_ANY)
         self.progress.Hide()
         self.progress_timer = None
-        if wx.Platform == "__WXGTK__":  # only on Linux? On Windows not needed, but perhaps macOS?
+        if wx.Platform != "__WXMSW__":  # on Windows not needed, but Linux and macOS need an update timer
             self.progress_timer = wx.Timer(self)
             self.Bind(wx.EVT_TIMER, self.on_progress_timer, self.progress_timer)
 
@@ -3539,9 +3542,14 @@ class AbcSearchPanel(wx.Panel):
         progressSizer.Add(self.cancel_search_button, 0, flag=wx.ALL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=border)
         progressSizer.Add(self.find_all_button, 0, flag=wx.ALL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=border)
 
+        self.when_selecting = wx.RadioBox(self, wx.ID_ANY, _('When selecting'), choices=[_('Open file'), _('Copy tune to editor')], majorDimension=1)
+        when_selecting_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        when_selecting_sizer.Add(self.when_selecting, 1, flag=wx.ALL | wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=border)
+
         mainsizer.Add(folderSizer, 0, flag=wx.EXPAND)
         mainsizer.Add(progressSizer, 0, flag=wx.EXPAND)
         mainsizer.Add(self.list_ctrl, 1, flag=wx.EXPAND)
+        mainsizer.Add(when_selecting_sizer, 0, flag=wx.EXPAND)
 
         self.SetSizer(mainsizer)
         self.Show()
@@ -3663,8 +3671,6 @@ class AbcSearchPanel(wx.Panel):
     def OnItemSelected(self, evt):
         ''' Responds to a selected title in the search listbox results. The abc file
         containing the selected tune is opened and the table of contents is updated.'''
-        global app
-        frame = app._frames[0]
         index = evt.Selection  # line number in listbox
         if self.max_results > 0 and index >= self.max_results:
             self.show_next_results(self.max_results + self.results_start_index)
@@ -3673,9 +3679,31 @@ class AbcSearchPanel(wx.Panel):
             path, char_pos_in_file = self.search_thread.get_result_for_index(index)
 
             wait = wx.BusyCursor()
-            abc_text = read_abc_file(path)[0:char_pos_in_file]
-            byte_pos_in_file = len(abc_text.encode('utf-8'))
-            frame.load_and_position(path, byte_pos_in_file)
+            if self.when_selecting.GetSelection() == 0:
+                # open file and select tune
+                if self.mainwindow.CanClose():
+                    abc_text = read_abc_file(path)[0:char_pos_in_file]
+                    byte_pos_in_file = len(abc_text.encode('utf-8'))
+                    self.mainwindow.load_and_position(path, byte_pos_in_file)
+            else:
+                # open in current editor
+                wholefile = read_abc_file(path)
+                tune_start = find_start_of_tune(wholefile, char_pos_in_file)
+                tune_end = find_end_of_tune(wholefile, char_pos_in_file)
+                editor = self.mainwindow.editor
+                editor.BeginUndoAction()
+
+                last_pos = editor.GetLength()
+                editor.GotoPos(last_pos)
+                editor.SetSelection(last_pos, last_pos)
+
+                empty_line = os.linesep
+                if last_pos > 0 and editor.GetTextRange(last_pos - 1, last_pos) != '\n':
+                    empty_line += os.linesep
+
+                editor.ReplaceSelection(empty_line + wholefile[tune_start:tune_end])
+
+                editor.EndUndoAction()
             del wait
 
     def show_next_results(self, start_index):
@@ -5234,7 +5262,7 @@ class MainFrame(wx.Frame):
         f.write('@media print{body{margin:0;padding:0;border:0}.nop{display:none}}\n')
         f.write('</style>\n')
         f.write('</head>\n<body>\n<script type="text/vnd.abc">\n%%linebreak <none>\n\n\n')
-        file_header = re.sub('(?m)^%%pageheight.*$', '', tune.header)
+        file_header = re.sub(r'(?m)^%%pageheight.*$', '', tune.header)
         f.write(file_header)
         f.write('\n')
         if self.settings.get('play_chords') or '%%MIDI gchord' in tune.abc:
