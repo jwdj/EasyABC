@@ -7300,6 +7300,7 @@ class MainFrame(wx.Frame):
         ticks_per_quarter = 480
         tempos = []
         notes = []
+        svg_row = None
         row_col_midi_notes = defaultdict(lambda: defaultdict(int))
         last_line_was_pos = False
         for line in lines:
