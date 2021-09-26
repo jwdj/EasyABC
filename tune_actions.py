@@ -159,6 +159,7 @@ class ValueChangeAction(AbcAction):
         self.relative_selection = None
         self.show_non_common = False
         self.show_current_value = False
+        self.multiple_items_can_apply = False
 
     def can_execute(self, context, params=None):
         show_non_common = params.get('show_non_common')
@@ -318,7 +319,12 @@ class ValueChangeAction(AbcAction):
                         image_html = html_image(value.image_name, desc)
                         columns.append(self.enclose_action_url(action_url, image_html))
                     if can:
-                        columns.append(self.enclose_action_url(action_url, desc))
+                        if self.multiple_items_can_apply:
+                            html = url_tuple_to_href(self.enclose_action_url(action_url, desc))
+                            html = self.html_selected_item(context, value.value, html)
+                            columns.append(html)
+                        else:
+                            columns.append(self.enclose_action_url(action_url, desc))
                     else:
                         columns.append(self.html_selected_item(context, value.value, desc))
         elif isinstance(value, list):
@@ -1897,7 +1903,7 @@ class ShowSingleVoiceAction(ValueChangeAction):
         return values
 
     def can_execute(self, context, params=None):
-        tune = AbcTune(context.tune)
+        tune = AbcTune(context.tune or '')
         voice = params.get('value', '')
         if len(tune.get_voice_ids()) > 1 and not self.is_current_value(context, voice):
             return True
@@ -1924,7 +1930,7 @@ class ShowAllVoicesAction(AbcAction):
         super(ShowAllVoicesAction, self).__init__('show_all_voices', display_name=_('Show all voices'))
 
     def can_execute(self, context, params=None):
-        tune = AbcTune(context.tune)
+        tune = AbcTune(context.tune or '')
         all_voices = tune.get_voice_ids()
         shown_voices = get_words(context.inner_text)
         hidden_voices = [v for v in all_voices if v not in shown_voices]
@@ -1951,7 +1957,7 @@ class ShowVoiceAction(ValueChangeAction):
         return values
 
     def can_execute(self, context, params=None):
-        return True
+        return context.tune is not None
 
     def execute(self, context, params=None):
         voice = params.get('value', '')
@@ -2078,6 +2084,52 @@ class SimplifyNoteAction(AbcAction):
         return number_to_note(num)
 
 
+class PickFieldsAction(ValueChangeAction):
+    values = [
+        CodeDescription('B', _('Book'                ), common=False),
+        CodeDescription('C', _('Composer'            )),
+        CodeDescription('D', _('Discography'         ), common=False),
+        CodeDescription('F', _('File url'            ), common=False),
+        CodeDescription('G', _('Group'               ), common=False),
+        CodeDescription('H', _('History'             ), common=False),
+        CodeDescription('N', _('Notes'               ), common=False),
+        CodeDescription('O', _('Origin'              )),
+        CodeDescription('P', _('Parts'               )),
+        CodeDescription('Q', _('Tempo'               )),
+        CodeDescription('R', _('Rhythm'              )),
+        CodeDescription('S', _('Source'              ), common=False),
+        CodeDescription('T', _('Tune title'          )),
+        CodeDescription('w', _('Words (note aligned)')),
+        CodeDescription('W', _('Words (at the end)'  )),
+        CodeDescription('X', _('Reference number'    ), common=False),
+        CodeDescription('Z', _('Transcription'       ), common=False),
+    ]
+    def __init__(self):
+        super(PickFieldsAction, self).__init__('pick_fields', PickFieldsAction.values, display_name=_('Fields'), matchgroup='fields')
+        self.multiple_items_can_apply = True
+
+    def is_current_value(self, context, value):
+        current_value = self.get_current_value(context)
+        return value in current_value
+
+    def can_execute(self, context, params=None):
+        return True
+
+    def execute(self, context, params=None):
+        value = params.get('value')
+        if value:
+            current_value = (self.get_current_value(context) or '').replace('_', '')
+            if value in current_value:
+                new_text = current_value.replace(value, '')
+            else:
+                new_text = current_value + value
+            if not new_text:
+                new_text = '_'
+            context.replace_matchgroups([('fields', new_text)])
+        else:
+            super(PickFieldsAction, self).execute(context, params)
+
+
 class PageFormatDirectiveChangeAction(ValueChangeAction):
     values = [
         ValueDescription('pagewidth', _('Page width')),
@@ -2159,6 +2211,7 @@ class InsertDirectiveAction(InsertValueAction):
         ValueDescription('score', _('Score layout')),
         ValueDescription('pagescale 1.0', _('Page scale factor')),
         ValueDescription('measurenb 0', _('Measure numbering')),
+        ValueDescription('writefields PQ false', _('Hide fields')),
         ValueDescription('MIDI', _('Playback')),
     ]
     def __init__(self):
@@ -2234,14 +2287,14 @@ class InsertFieldInHeaderAction(InsertValueAction):
         ValueDescription('C:', name_to_display_text['composer']),
         ValueDescription('M:4/4', name_to_display_text['meter']),
         ValueDescription('L:1/4', name_to_display_text['unit note length']),
-        ValueDescription('Q:', name_to_display_text['tempo']),
-        ValueDescription('V:', name_to_display_text['voice']),
+        ValueDescription('Q:1/4=120', name_to_display_text['tempo']),
+        ValueDescription('V:1', name_to_display_text['voice']),
         ValueDescription(r'%%', name_to_display_text['instruction']),
         ValueDescription('I:', name_to_display_text['instruction'], common=False),
         ValueDescription('O:', name_to_display_text['origin'], common=False),
         ValueDescription('R:', name_to_display_text['rhythm'], common=False),
         ValueDescription('r:', name_to_display_text['remark'], common=False),
-        ValueDescription('U:', name_to_display_text['user defined'], common=False),
+        ValueDescription('U: T = !trill!', name_to_display_text['user defined'], common=False),
         ValueDescription('Z:', name_to_display_text['transcription'], common=False),
         ValueDescription('K:', _('Key / clef')),
     ]
@@ -2250,7 +2303,7 @@ class InsertFieldInHeaderAction(InsertValueAction):
 
     def get_values(self, context):
         tune_header = context.tune_header
-        return [vd for vd in self.supported_values if vd.value in [r'%%', 'V:'] or vd.value not in tune_header]
+        return [vd for vd in self.supported_values if vd.value in [r'%%', 'V:1'] or vd.value not in tune_header]
 
 
     # def execute(self, context, params=None):
@@ -2436,6 +2489,7 @@ class AbcActionHandlers(object):
             ToggleContinuedBarlinesAction(),
             MeasureNumberingChangeAction(),
             SimplifyNoteAction(),
+            PickFieldsAction(),
         ])
 
         new_tune_actions = ['new_tune', '', 'new_multivoice_tune', '', 'new_drum_tune']
@@ -2483,6 +2537,8 @@ class AbcActionHandlers(object):
             'MIDI'                   : self.create_handler(['insert_midi_directive']),
             'score'                  : self.create_handler(['show_single_voice', 'hide_voice', 'show_voice', 'show_all_voices', 'toggle_continued_barlines', 'group_together', 'brace_together', 'bracket_together']),
             'measurenb'              : self.create_handler(['change_measurenb']),
+            'show_fields'            : self.create_handler(['pick_fields']),
+            'hide_fields'            : self.create_handler(['pick_fields']),
         }
 
         for key in ['V:', 'K:']:

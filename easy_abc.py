@@ -3779,23 +3779,25 @@ class SearchFilesThread(threading.Thread):
         if not abckey or not abckey[0]:
             abckey = 'T:'
         search_parts = []
+        allow_empty_text = False
         pos = 0
         for m in search_parts_re.finditer(searchtext):
             text = searchtext[pos:m.start(1)]
-            self.add_searchpart(search_parts, abckey, text)
+            self.add_searchpart(search_parts, abckey, text, allow_empty_text)
             abckey = m.group(1)
             pos = m.end(1)
+            allow_empty_text = True
 
         text = searchtext[pos:]
-        self.add_searchpart(search_parts, abckey, text)
+        self.add_searchpart(search_parts, abckey, text, allow_empty_text)
 
         if not search_parts:
             search_parts.append([('T:', None)])
         return search_parts
 
     @staticmethod
-    def add_searchpart(search_parts, abckey, text):
-        if text:
+    def add_searchpart(search_parts, abckey, text, allow_empty_text=False):
+        if text or allow_empty_text:
             words = text.strip().lower().split()
             if isinstance(abckey, str):
                 search_parts.append([(abckey, words)])
@@ -5261,7 +5263,7 @@ class MainFrame(wx.Frame):
         f.write('svg {display:block}\n')
         f.write('@media print{body{margin:0;padding:0;border:0}.nop{display:none}}\n')
         f.write('</style>\n')
-        f.write('</head>\n<body>\n<script type="text/vnd.abc">\n%%linebreak <none>\n\n\n')
+        f.write('</head>\n<body>\n<script type="text/vnd.abc">\n\n\n')
         file_header = re.sub(r'(?m)^%%pageheight.*$', '', tune.header)
         f.write(file_header)
         f.write('\n')

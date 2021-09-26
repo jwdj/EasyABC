@@ -643,6 +643,22 @@ class MeasureNumberDirective(AbcElement):
             self._search_pattern[section] = MeasureNumberDirective.pattern
 
 
+class HideFieldsDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)writefields\s+(?P<fields>[A-Za-z_]+)\s+(?:0|false)"+ AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(HideFieldsDirective, self).__init__('hide_fields', display_name=_('Hide fields'), description=_('Defines which fields should be hidden.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = HideFieldsDirective.pattern
+
+
+class ShowFieldsDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)writefields\s+(?P<fields>[A-Za-z]+)"+ AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(ShowFieldsDirective, self).__init__('show_fields', display_name=_('Show fields'), description=_('Defines which fields should be shown.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = ShowFieldsDirective.pattern
+
+
 class Abcm2psDirective(AbcElement):
     """ Elements defined by abcm2ps """
     anchor_replacement = (re.compile('<a (?:href|name)="[^"]*">|</a>', re.IGNORECASE), '')
@@ -1148,6 +1164,8 @@ class AbcStructure(object):
             AbcMidiGuitarChordDirective(),
             ScoreDirective(),
             MeasureNumberDirective(),
+            HideFieldsDirective(),
+            ShowFieldsDirective(),
             directive,
             AbcComment(),
             AbcBeam(),

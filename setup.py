@@ -7,7 +7,7 @@ import os.path
 if sys.version_info >= (3,0,0):
     basestring = str
 
-version = '1.3.8.2'
+version = '1.3.8.4'
 description = "EasyABC"
 long_description = "Nils Liberg's EasyABC 1.3.8 (Seymour Shlien)"
 url = 'https://sourceforge.net/projects/easyabc/'
