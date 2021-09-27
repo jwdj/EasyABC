@@ -8638,6 +8638,12 @@ class MyApp(wx.App):
             self.frame = self.NewMainFrame(options)
             self.frame.Show(True)
             self.SetTopWindow(self.frame)
+            
+            # 1.3.8.4 [mist] Load most recent file
+            if not path:
+                recent_file = self.settings.get('recentfiles', '').split('|')[0]
+                if recent_file and os.path.exists(recent_file):
+                    path = recent_file
 
             if path:
                 self.frame.load_or_import(path)
