@@ -7022,7 +7022,7 @@ class MainFrame(wx.Frame):
         self.editor.EndUndoAction()
 
     def position_is_music_code(self, position):
-        return self.editor.GetStyleAt(position) in [self.styler.STYLE_DEFAULT, self.styler.STYLE_GRACE]
+        return self.editor.GetStyleAt(position) == self.styler.STYLE_DEFAULT
 
     def OnKeyDownEvent(self, evt):
         # temporary work-around for what seems to be a scintilla bug on Mac:
@@ -7045,7 +7045,7 @@ class MainFrame(wx.Frame):
         if evt.GetKeyCode() == wx.WXK_RETURN:
             line = self.editor.GetCurrentLine()
             # 1.3.7.2 [JWDJ] 2016-03-17
-            if use_typing_assist and self.mni_TA_add_bar_auto.IsChecked() and not is_inside_field and in_music_code:
+            if use_typing_assist and self.mni_TA_add_bar_auto.IsChecked() and in_music_code:
                 self.add_bar_if_needed()
 
             # 1.3.6.3 [JWDJ] 2015-04-21 Added line continuation

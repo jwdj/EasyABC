@@ -134,13 +134,14 @@ class ABCStyler:
                 elif chPrev == '[':
                     state = STYLE_CHORD
             elif state == STYLE_ORNAMENT:
-                state = STYLE_DEFAULT
-            elif state == STYLE_FIELD_VALUE:
+                if ch not in 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~':
+                    state = STYLE_DEFAULT
+            elif state in (STYLE_FIELD_VALUE, STYLE_LYRICS):
                 if ch == '%' and chPrev != '\\':
                     state = STYLE_COMMENT_NORMAL
             elif state == STYLE_EMBEDDED_FIELD_VALUE:
                 if ch == ']':
-                    state = STYLE_DEFAULT
+                    state = STYLE_CHORD  # not true but works
             elif state == STYLE_FIELD:
                 if ch == ':':
                     next_state = STYLE_FIELD_VALUE
@@ -148,7 +149,7 @@ class ABCStyler:
                 if ch == ':':
                     next_state = STYLE_EMBEDDED_FIELD_VALUE
             elif state == STYLE_STRING:
-                if ch == '"' and chPrev != '\\' and chPrev != '"' and chNext != '"':
+                if ch == '"' and chPrev != '\\':
                     next_state = STYLE_DEFAULT
             elif state == STYLE_GRACE:
                 if ch == '}':
