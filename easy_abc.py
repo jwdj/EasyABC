@@ -6611,12 +6611,13 @@ class MainFrame(wx.Frame):
             if m:
                 xNum = max(xNum, int(m.group(1)))
 
-        line = editor.GetCurrentLine()
-        p = editor.GetCurrentPos()
         editor.BeginUndoAction()
+        p = editor.GetCurrentPos()
         editor.SetSelection(p, p)
         editor.ReplaceSelection(str(xNum+1))
-        editor.SetSelection(editor.GetLineEndPosition(line), editor.GetLineEndPosition(line))
+        line = editor.GetCurrentLine()
+        end_pos = editor.GetLineEndPosition(line)
+        editor.SetSelection(end_pos, end_pos)
         editor.EndUndoAction()
 
     def DoReMiToNote(self, char):
@@ -6636,8 +6637,6 @@ class MainFrame(wx.Frame):
         return char
 
     def OnCharEvent(self, evt):
-        in_music_code = self.position_is_music_code(self.editor.GetCurrentPos())
-
         # 1.3.7 [JWdJ] 2016-01-06
         if self.current_svg_tune and evt.KeyCode in [wx.WXK_PAGEDOWN, wx.WXK_PAGEUP, wx.WXK_HOME, wx.WXK_END]:
             # 1.3.7.0 [JWdJ] 2015-12 Added shortcuts to navigate through pages
@@ -6656,20 +6655,22 @@ class MainFrame(wx.Frame):
                 evt.Skip()
                 return
 
+        editor = self.editor
+        cur_pos = editor.GetCurrentPos()
+        in_music_code = self.position_is_music_code(cur_pos)
+
         c = unichr(evt.GetUnicodeKey())
-        p1, p2 = self.editor.GetSelection()
+        p1, p2 = editor.GetSelection()
         # 1.3.6.2 [JWdJ] 2015-02
-        # selected_indices_backup = self.music_pane.current_page.selected_indices.copy()
-        line, caret = self.editor.GetCurLine()
+        line, caret = editor.GetCurLine()
         is_inside_field = len(line)>=2 and line[1] == ':' and re.match(r'[A-Za-z\+]', line[0]) or line.startswith('%')
         if is_inside_field:
             evt.Skip()
             return
 
-        at_end_of_line = not self.editor.GetTextRange(self.editor.GetCurrentPos(), self.editor.GetLineEndPosition(self.editor.GetCurrentLine())).strip('| : ] [')
-
+        at_end_of_line = not line[caret:].strip(' \r\n|:][')
         use_typing_assist = self.mni_TA_active.IsChecked()
-        if use_typing_assist and not is_inside_field and in_music_code:
+        if use_typing_assist and in_music_code:
             if c == ' ':
                 try:
                     self.FixNoteDurations()
@@ -6699,117 +6700,117 @@ class MainFrame(wx.Frame):
             c = '('
 
         if c == ':':
+            # fill in unique tune index after typing X:
             evt.Skip()
             if (line.rstrip(), caret) == (u'X', 1):
                 wx.CallAfter(self.AutoInsertXNum)
 
-        elif c == '3' and p1 == p2 and self.editor.GetTextRange(p1-1, p1+1) == '()' and in_music_code:
+        elif c == '3' and p1 == p2 and editor.GetTextRange(p1-1, p1+1) == '()' and in_music_code:
             # if the user writes ( which is auto-completed to () and then writes 3, he/she probably
             # wants to start a triplet so we delete the right parenthesis
-            self.editor.BeginUndoAction()
-            self.editor.SetSelection(p1, p1+1)
-            self.editor.ReplaceSelection(c)
-            self.editor.EndUndoAction()
+            editor.BeginUndoAction()
+            editor.SetSelection(p1, p1+1)
+            editor.ReplaceSelection(c)
+            editor.EndUndoAction()
 
-        elif (c in ']}' and self.editor.GetTextRange(p1, p1+1) == c and in_music_code) or \
-                (c == '"'  and self.editor.GetTextRange(p1, p1+1) == c and self.editor.GetTextRange(p1-1, p1) != '\\'):
-            (text,pos) = self.editor.GetCurLine()
+        elif (c in ']}' and editor.GetTextRange(p1, p1+1) == c and in_music_code) or \
+                (c == '"'  and editor.GetTextRange(p1, p1+1) == c and editor.GetTextRange(p1-1, p1) != '\\'):
             # unless this is not a field line
-            if re.match('[a-zA-Z]:', text):
+            if re.match('[a-zA-Z]:', line):
                 evt.Skip()
             # if there is already a ] or }, just move one step to the right
             else:
-                self.editor.SetSelection(p1+1, p1+1)
+                editor.SetSelection(p1+1, p1+1)
 
         elif c in '([{"':
             start, end = {'(': '()', '[': '[]', '{': '{}', '"': '""'}[c]
 
             # if this is a text or chord, then don't replace selection, but insert the new text/chord in front of the note(s) selected
             if c == '"':
-                self.editor.SetSelection(p1, p1)
+                editor.SetSelection(p1, p1)
                 p2 = p1
 
-            first_char, last_char = self.editor.GetTextRange(p1-1, p1), self.editor.GetTextRange(p2, p2+1)
+            first_char, last_char = editor.GetTextRange(p1-1, p1), editor.GetTextRange(p2, p2+1)
             orig_p1 = p1
 
             # if this is a triplet with a leading '(' then virtually move the selection start a bit to the left
-            if p1 != p2 and last_char == ')' and self.editor.GetTextRange(p1-3, p1) == '((3':
+            if p1 != p2 and last_char == ')' and editor.GetTextRange(p1-3, p1) == '((3':
                 p1 -= 2
                 first_char = '('
             if p1 != p2 and first_char == start and last_char == end and first_char != '"':
-                self.editor.BeginUndoAction()
-                self.editor.SetSelection(p2, p2+1)
-                self.editor.ReplaceSelection('')
-                self.editor.SetSelection(p1-1, p1)
-                self.editor.ReplaceSelection('')
-                self.editor.SetSelection(orig_p1-1, p2-1)
-                self.editor.EndUndoAction()
+                editor.BeginUndoAction()
+                editor.SetSelection(p2, p2+1)
+                editor.ReplaceSelection('')
+                editor.SetSelection(p1-1, p1)
+                editor.ReplaceSelection('')
+                editor.SetSelection(orig_p1-1, p2-1)
+                editor.EndUndoAction()
             elif p1 != p2 and c != '[':
-                self.editor.BeginUndoAction()
+                editor.BeginUndoAction()
                 # if this is a triplet, then start the slur just before '(3' instead of after.
-                if c == '(' and last_char == ' ' and self.editor.GetTextRange(p1-2, p1) == '(3':
-                    self.editor.InsertText(p1-2, start)
+                if c == '(' and last_char == ' ' and editor.GetTextRange(p1-2, p1) == '(3':
+                    editor.InsertText(p1-2, start)
                 else:
-                    self.editor.InsertText(p1, start)
-                self.editor.InsertText(p2+1, end)
-                self.editor.SetSelection(p1+1, p2+1)
-                self.editor.EndUndoAction()
+                    editor.InsertText(p1, start)
+                editor.InsertText(p2+1, end)
+                editor.SetSelection(p1+1, p2+1)
+                editor.EndUndoAction()
             elif in_music_code and use_typing_assist and self.mni_TA_add_right.IsChecked():
-                line, _ = self.editor.GetCurLine()
                 if c == '"' and line.count('"') % 2 == 1 or \
                         c != '"' and line.count(end) > line.count(start):
                     evt.Skip()
                 else:
-                    self.editor.ReplaceSelection(start + end)
-                    self.editor.SetSelection(p1+1, p1+1)
+                    editor.ReplaceSelection(start + end)
+                    editor.SetSelection(p1+1, p1+1)
             else:
                 evt.Skip()
         elif c in '<>' and (p2 - p1) > 1:
             try:
-                self.editor.BeginUndoAction()
-                base_pos = self.editor.GetSelectionStart()
-                text = self.editor.GetSelectedText()
+                editor.BeginUndoAction()
+                base_pos = editor.GetSelectionStart()
+                text = editor.GetSelectedText()
                 notes = get_notes_from_abc(text, exclude_grace_notes=True)
                 total_offset = 0
                 for (start, end, abc_note_text) in notes[0::2]:
                     p = base_pos + end + total_offset
                     if re.match(r'[_=^]', abc_note_text):
                         p += 1
-                    cur_char = self.editor.GetTextRange(p-1, p)
+                    cur_char = editor.GetTextRange(p-1, p)
                     if cur_char == '<' and c == '>' or cur_char == '>' and c == '<':
-                        self.editor.SetSelection(p-1, p)
-                        self.editor.ReplaceSelection('')
+                        editor.SetSelection(p-1, p)
+                        editor.ReplaceSelection('')
                         total_offset -= 1
                     else:
-                        self.editor.SetSelection(p, p)
-                        self.editor.AddText(c)
+                        editor.SetSelection(p, p)
+                        editor.AddText(c)
                         total_offset += 1
-                self.editor.SetSelection(p1, p2+total_offset)
+                editor.SetSelection(p1, p2+total_offset)
             finally:
-                self.editor.EndUndoAction()
+                editor.EndUndoAction()
         elif c == '.' and p1 != p2:
+            # staccato selection
             try:
-                self.editor.BeginUndoAction()
-                base_pos = self.editor.GetSelectionStart()
-                text = self.editor.GetSelectedText()
+                editor.BeginUndoAction()
+                base_pos = editor.GetSelectionStart()
+                text = editor.GetSelectedText()
                 notes = get_notes_from_abc(text, exclude_grace_notes=True)
                 total_offset = 0
                 for (start, end, abc_note_text) in notes:
                     p = base_pos + start + total_offset
                     #if re.match(r'[_=^]', abc_note_text):
                     #    p -= 1
-                    cur_char = self.editor.GetTextRange(p-1, p)
+                    cur_char = editor.GetTextRange(p-1, p)
                     if cur_char == '.':
-                        self.editor.SetSelection(p-1, p)
-                        self.editor.ReplaceSelection('')
+                        editor.SetSelection(p-1, p)
+                        editor.ReplaceSelection('')
                         total_offset -= 1
                     else:
-                        self.editor.SetSelection(p, p)
-                        self.editor.AddText(c)
+                        editor.SetSelection(p, p)
+                        editor.AddText(c)
                         total_offset += 1
-                self.editor.SetSelection(p1, p2+total_offset)
+                editor.SetSelection(p1, p2+total_offset)
             finally:
-                self.editor.EndUndoAction()
+                editor.EndUndoAction()
         elif self.keyboard_input_mode and in_music_code:
             keys = u'asdfghjkl\xf6\xe4'
             sharp_keys = '' #u'\x00wertyuiop\xe5\x00'
@@ -6829,24 +6830,23 @@ class MainFrame(wx.Frame):
                     self.keyboard_input_base_key = i
                 else:
                     note = all_notes[i - self.keyboard_input_base_key + self.keyboard_input_base_note]
-                    self.editor.ReplaceSelection(accidental + note)
+                    editor.ReplaceSelection(accidental + note)
 
         # automatically select uppercase/lowercase - choose the one that will make this note be closest to the previous note
-        elif p1 == p2 and at_end_of_line and in_music_code and (use_typing_assist and self.mni_TA_auto_case.IsChecked()) and \
-                 (not self.mni_TA_do_re_mi.IsChecked() and c in 'abcdefgABCDEFG' or \
+        elif use_typing_assist and in_music_code and p1 == p2 and at_end_of_line and self.mni_TA_auto_case.IsChecked() \
+            and (not self.mni_TA_do_re_mi.IsChecked() and c in 'abcdefgABCDEFG' or \
                   self.mni_TA_do_re_mi.IsChecked() and c in doremi_prefixes):
-            last_note_number = None
 
             if self.mni_TA_do_re_mi.IsChecked():
                 c = self.DoReMiToNote(c)[0]
 
             # get the text of the previous and current line up to the position of the cursor
-            prev_line = self.editor.GetLine(self.editor.GetCurrentLine()-1)
-            this_line, pos = self.editor.GetCurLine()
-            text, pos = prev_line + this_line[:pos], pos + len(prev_line)
+            prev_line = editor.GetLine(editor.GetCurrentLine()-1)
+            text = prev_line + line[:caret]
 
-            p = self.editor.GetCurrentPos()
+            p = cur_pos
 
+            last_note_number = None
             # go backwards (to the left from the cursor) and look for the first note
             for i in range(len(text)-1):
                 if p-i >= 1 and self.position_is_music_code(p-i-1):
@@ -6857,7 +6857,7 @@ class MainFrame(wx.Frame):
 
             if last_note_number is None:
                 if self.mni_TA_do_re_mi.IsChecked():
-                    self.editor.AddText(c)
+                    editor.AddText(c)
                 else:
                     evt.Skip()
             else:
@@ -6873,14 +6873,14 @@ class MainFrame(wx.Frame):
                     else:
                         c = all_matches[0][1]  # first choice
                     c = c[0]
-                    self.editor.AddText(c)
+                    editor.AddText(c)
                 else:
                     evt.Skip()
 
-        elif use_typing_assist and self.mni_TA_do_re_mi.IsChecked() and in_music_code:
+        elif use_typing_assist and in_music_code and self.mni_TA_do_re_mi.IsChecked():
             if c in doremi_prefixes:
                 c = self.DoReMiToNote(c)
-                self.editor.AddText(c)
+                editor.AddText(c)
             elif c not in doremi_suffixes:
                 evt.Skip()
 
@@ -7031,54 +7031,49 @@ class MainFrame(wx.Frame):
             evt.Skip()
             return
 
-        # remap the tab key to '|'
-        # if evt.GetUnicodeKey() == ord('\t'):
-        #    self.editor.ReplaceSelection('|')
-        #    evt.StopPropagation()
-        #    return
-
-        line, caret = self.editor.GetCurLine()
-        is_inside_field = len(line)>=2 and line[1] == ':' and re.match(r'[A-Za-z]', line[0]) or line.startswith('%')
-        in_music_code = self.position_is_music_code(self.editor.GetCurrentPos())
+        editor = self.editor
+        line, caret = editor.GetCurLine()
+        in_music_code = self.position_is_music_code(editor.GetCurrentPos())
 
         use_typing_assist = self.mni_TA_active.IsChecked()
         if evt.GetKeyCode() == wx.WXK_RETURN:
-            line = self.editor.GetCurrentLine()
             # 1.3.7.2 [JWDJ] 2016-03-17
-            if use_typing_assist and self.mni_TA_add_bar_auto.IsChecked() and in_music_code:
+            if in_music_code and use_typing_assist and self.mni_TA_add_bar_auto.IsChecked():
                 self.add_bar_if_needed()
 
             # 1.3.6.3 [JWDJ] 2015-04-21 Added line continuation
-            for prefix in ['W:', 'w:', 'N:', 'H:', '%%', '%', '+:']:
-                if self.editor.GetLine(line-1).startswith(prefix) and self.editor.GetLine(line).startswith(prefix):
-                    if self.editor.GetLine(line-1).startswith(prefix+' '):  # whether to add a space after W:
-                        wx.CallAfter(lambda: self.AddTextWithUndo(prefix + ' '))
-                        break
-                    else:
+            if use_typing_assist:
+                line = editor.GetCurrentLine()
+                for prefix in ['W:', 'w:', 'N:', 'H:', '%%', '%', '+:']:
+                    prev_line = editor.GetLine(line-1)
+                    if prev_line.startswith(prefix) and editor.GetLine(line).startswith(prefix):
+                        if prev_line.startswith(prefix + ' '):  # whether to add a space after W:
+                            prefix += ' '
                         wx.CallAfter(lambda: self.AddTextWithUndo(prefix))
                         break
             evt.Skip()
         elif evt.GetKeyCode() == wx.WXK_TAB:
-            if not is_inside_field and self.editor.GetSelectionStart() == self.editor.GetSelectionEnd():
+            if in_music_code and editor.GetSelectionStart() == editor.GetSelectionEnd():
                 wx.CallAfter(lambda: self.insert_bar())
             else:
                 evt.Skip()
         elif evt.GetUnicodeKey() == ord('L') and evt.CmdDown():
             self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=self.mni_auto_refresh.IsChecked())
         elif evt.MetaDown() and evt.GetKeyCode() == wx.WXK_UP:
-            self.editor.GotoPos(0)
+            editor.GotoPos(0)
         elif evt.MetaDown() and evt.GetKeyCode() == wx.WXK_DOWN:
-            self.editor.GotoPos(self.editor.GetLength())
+            editor.GotoPos(editor.GetLength())
         elif evt.MetaDown() and evt.GetKeyCode() == wx.WXK_LEFT:
-            self.editor.GotoPos(self.editor.PositionFromLine(self.editor.GetCurrentLine()))
+            editor.GotoPos(editor.PositionFromLine(editor.GetCurrentLine()))
         elif evt.MetaDown() and evt.GetKeyCode() == wx.WXK_RIGHT:
-            self.editor.GotoPos(self.editor.GetLineEndPosition(self.editor.GetCurrentLine()))
+            editor.GotoPos(editor.GetLineEndPosition(editor.GetCurrentLine()))
         else:
             evt.Skip()
 
     def StartKeyboardInputMode(self):
-        line_start_offset = self.editor.PositionFromLine(self.editor.GetCurrentLine())
-        text = self.editor.GetTextRange(line_start_offset, self.editor.GetCurrentPos()) # line up to selection position
+        editor = self.editor
+        line_start_offset = editor.PositionFromLine(editor.GetCurrentLine())
+        text = editor.GetTextRange(line_start_offset, editor.GetCurrentPos()) # line up to selection position
         notes = get_notes_from_abc(text)
         if notes:
             self.keyboard_input_mode = True
@@ -8638,7 +8633,7 @@ class MyApp(wx.App):
             self.frame = self.NewMainFrame(options)
             self.frame.Show(True)
             self.SetTopWindow(self.frame)
-            
+
             # 1.3.8.4 [mist] Load most recent file
             if not path:
                 recent_file = self.settings.get('recentfiles', '').split('|')[0]
