@@ -56,6 +56,8 @@ class ABCStyler:
         STYLE_ORNAMENT_PLUS = self.STYLE_ORNAMENT_PLUS
         STYLE_ORNAMENT = self.STYLE_ORNAMENT
         STYLE_LYRICS = self.STYLE_LYRICS
+        STYLE_CHORD = self.STYLE_CHORD
+
         editor = self.e
         get_char_at = editor.GetCharAt
         get_text_range = editor.GetTextRangeRaw
@@ -64,7 +66,7 @@ class ABCStyler:
         end = event.GetPosition()        # this is the last character that needs styling
         line_start = editor.LineFromPosition(start)
         start = editor.PositionFromLine(line_start)
-        state = editor.GetStyleAt(start-1)  # init style
+        state = next_state = STYLE_DEFAULT  #  editor.GetStyleAt(start-1)  # init style
         text_length = editor.GetTextLength()
         old_state = state
         try:
@@ -81,7 +83,34 @@ class ABCStyler:
             next_buffer = list(map(chr, next_buffer))
         buffer_pos = 0
 
+        ornaments = 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~'
+        fields = 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ'
+        bar_chars = '|:['
+        # go back to default style if next character is \r\n (to avoid some strange syntax highlighting with lyrics at least on mac version)
+        style_changers = {
+            '\n': bar_chars + '%"{[!+.' + fields + ornaments,
+            ':': '\n%',
+            '%': '\n',
+            '%%': '\n%',
+            '!': '!\n%',
+            '+': '+\n%',
+            '{': '}\n%',
+            '[': ']\n%',
+            '"': '"\n%',
+        }
+        non_style_changers = {
+            STYLE_BAR: '|[]:1234',
+            STYLE_ORNAMENT: ornaments,
+            STYLE_COMMENT_SPECIAL: '%'
+        }
+        style_per_char = {
+            '!': STYLE_ORNAMENT_EXCL,
+            '+': STYLE_ORNAMENT_PLUS,
+            '{': STYLE_GRACE,
+        }
         char_count = 0
+        style_changer = None
+        non_style_changer = None
         for i in xrange(i, end):
             try:
                 chNext = next_buffer[buffer_pos]
@@ -97,86 +126,87 @@ class ABCStyler:
                 except IndexError:
                     chNext = '\x00' # reached end of text
 
-            next_state = state
-
-            if state == STYLE_BAR:
-                if ch not in '|[]:1234':
+            if (not style_changer or ch in style_changer) or (non_style_changer and not ch in non_style_changer):
+                style_changer = None
+                if non_style_changer:
+                    non_style_changer = None
                     state = STYLE_DEFAULT
 
-            if ch in '\r\n':  # go back to default style if next character is \r\n (to avoid some strange syntax highlighting with lyrics at least on mac version)
-                state = STYLE_DEFAULT
-            elif state == STYLE_DEFAULT:
-                if chPrev in '\r\n[\x00' and ch in 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ' and chNext == ':':
-                    if chPrev == '[':
-                        state = STYLE_EMBEDDED_FIELD   # field on the [M:3/4] form
-                    elif ch in ('w', 'W'):
-                        state = STYLE_LYRICS
-                    elif ch == 'X':
-                        state = STYLE_FIELD_INDEX
-                    else:
-                        state = STYLE_FIELD
-                elif (ch == '|' or (ch == ':' and chNext in '|:')) or (ch == '[' and chNext in '1234'):
-                    state = STYLE_BAR
-                elif ch == '!':
-                    state = STYLE_ORNAMENT_EXCL
-                elif ch == '+':
-                    state = STYLE_ORNAMENT_PLUS
-                elif ch == '%' and chNext != '%':
-                    state = STYLE_COMMENT_NORMAL
-                elif ch == '%' and chNext == '%':
-                    state = STYLE_COMMENT_SPECIAL
-                elif ch == '"':
-                    state = STYLE_STRING
-                elif ch == '{':
-                    state = STYLE_GRACE
-                elif ch in 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~':
-                    state = STYLE_ORNAMENT
-                elif chPrev == '[':
-                    state = STYLE_CHORD
-            elif state == STYLE_ORNAMENT:
-                if ch not in 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~':
+                if ch in '\r\n':
+                    style_changer = style_changers['\n']
                     state = STYLE_DEFAULT
-            elif state in (STYLE_FIELD_VALUE, STYLE_LYRICS):
-                if ch == '%' and chPrev != '\\':
-                    state = STYLE_COMMENT_NORMAL
-            elif state == STYLE_EMBEDDED_FIELD_VALUE:
-                if ch == ']':
-                    state = STYLE_CHORD  # not true but works
-            elif state == STYLE_FIELD:
-                if ch == ':':
-                    next_state = STYLE_FIELD_VALUE
-            elif state == STYLE_EMBEDDED_FIELD:
-                if ch == ':':
-                    next_state = STYLE_EMBEDDED_FIELD_VALUE
-            elif state == STYLE_STRING:
-                if ch == '"' and chPrev != '\\':
-                    next_state = STYLE_DEFAULT
-            elif state == STYLE_GRACE:
-                if ch == '}':
-                    next_state = STYLE_DEFAULT
-            elif state == STYLE_CHORD:
-                if ch == ']':
-                    next_state = STYLE_DEFAULT
-            elif state == STYLE_ORNAMENT_EXCL:
-                if ch == '!':
-                    next_state = STYLE_DEFAULT
-            elif state == STYLE_ORNAMENT_PLUS:
-                if ch == '+':
-                    next_state = STYLE_DEFAULT
-            #elif state not in [STYLE_LYRICS, STYLE_BAR, STYLE_COMMENT_NORMAL, STYLE_COMMENT_SPECIAL, STYLE_FIELD_INDEX]:
-            #    state = STYLE_DEFAULT  # force to go back to STYLE_DEFAULT if in none of the previous case
+                elif state == STYLE_DEFAULT:
+                    if chPrev in '\n[\x00' and ch in fields and chNext == ':':
+                        if chPrev == '[':
+                            state = STYLE_EMBEDDED_FIELD   # field on the [M:3/4] form
+                        elif ch in 'wW':
+                            state = STYLE_LYRICS
+                            style_changer = style_changers[':']
+                        elif ch == 'X':
+                            state = STYLE_FIELD_INDEX
+                            style_changer = style_changers[':']
+                        else:
+                            state = STYLE_FIELD
+                    elif (ch == '|' or (ch in ':.' and chNext in '|:')) or (ch == '[' and chNext in '1234'):
+                        state = STYLE_BAR
+                        non_style_changer = non_style_changers[state]
+                    elif ch in '!+{':
+                        state = style_per_char[ch]
+                        style_changer = style_changers[ch]
+                    elif ch == '%':
+                        if chNext == '%' and chPrev in '\n\x00':
+                            state = STYLE_COMMENT_SPECIAL
+                        else:
+                            state = STYLE_COMMENT_NORMAL
+                            style_changer = style_changers[ch]
+                    elif ch == '"':
+                        state = STYLE_STRING
+                        style_changer = style_changers[ch]
+                    elif ch in ornaments:
+                        state = STYLE_ORNAMENT
+                        non_style_changer = non_style_changers[state]
+                    elif chPrev == '[':
+                        state = STYLE_CHORD
+                        style_changer = style_changers[chPrev]
+                elif state == STYLE_COMMENT_SPECIAL and chPrev == '%':
+                    style_changer = style_changers['%%']
+                elif state in (STYLE_ORNAMENT_EXCL, STYLE_ORNAMENT_PLUS, STYLE_GRACE):
+                    if style_per_char.get(ch) == state:
+                        next_state = STYLE_DEFAULT
+                elif state in (STYLE_FIELD_VALUE, STYLE_LYRICS, STYLE_COMMENT_SPECIAL):
+                    if ch == '%' and chPrev != '\\':
+                        state = STYLE_COMMENT_NORMAL
+                        style_changer = style_changers[ch]
+                elif state == STYLE_EMBEDDED_FIELD_VALUE:
+                    if ch == ']':
+                        state = STYLE_DEFAULT
+                elif state == STYLE_FIELD:
+                    if ch == ':':
+                        next_state = STYLE_FIELD_VALUE
+                        style_changer = style_changers[ch]
+                elif state == STYLE_EMBEDDED_FIELD:
+                    if ch == ':':
+                        next_state = STYLE_EMBEDDED_FIELD_VALUE
+                        style_changer = style_changers['[']
+                elif state == STYLE_STRING:
+                    if ch == '"':
+                        if chPrev != '\\':
+                            next_state = STYLE_DEFAULT
+                        else:
+                            style_changer = style_changers[ch]  # when " is escaped with \ then look for next ""
+                else:
+                    state == STYLE_DEFAULT
 
             if old_state != state:
+                # print('state:%d  count:%d    `%s`' % (old_state, char_count, editor.GetTextRange(i - char_count, i)))
                 set_styling(char_count, old_state)
                 char_count = 0
-                old_state = state
-                next_state = state
-
-            char_count += 1
-            chPrev = ch
-            ch = chNext
+                old_state = next_state = state
 
             state = next_state
 
-        if char_count > 0:
-            set_styling(char_count, old_state)
+            char_count += 1
+            chPrev, ch = ch, chNext
+
+        # final style
+        set_styling(char_count, old_state)

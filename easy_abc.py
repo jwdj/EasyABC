@@ -4148,13 +4148,14 @@ class MainFrame(wx.Frame):
         self._current_file = value
         if value:
             recent_files = self.settings.get('recentfiles', '').split('|')
-            if value in recent_files:
-                recent_files.remove(value)
-            recent_files.insert(0, value)
-            if len(recent_files) > 10:
-                recent_files = recent_files[:10]
-            self.settings['recentfiles'] = '|'.join(recent_files)
-            self.update_recent_files_menu()
+            if recent_files[0] != value:
+                if value in recent_files:
+                    recent_files.remove(value)
+                recent_files.insert(0, value)
+                if len(recent_files) > 10:
+                    recent_files = recent_files[:10]
+                self.settings['recentfiles'] = '|'.join(recent_files)
+                self.update_recent_files_menu()
 
     def OnPageSetup(self, evt):
         psdd = wx.PageSetupDialogData(self.printData)
@@ -5780,7 +5781,7 @@ class MainFrame(wx.Frame):
         if wx.Platform == "__WXMAC__":
             return text.replace('\r\n', '\n')
         else:
-            text = re.sub('\r+', '\r', text)
+            # text = re.sub('\r+', '\r', text)
             if not '\n' in text:
                 text = text.replace('\r', '\r\n')
             return text
@@ -7022,7 +7023,9 @@ class MainFrame(wx.Frame):
         self.editor.EndUndoAction()
 
     def position_is_music_code(self, position):
-        return self.editor.GetStyleAt(position) == self.styler.STYLE_DEFAULT
+        style_at = self.editor.GetStyleAt
+        return style_at(position) == self.styler.STYLE_DEFAULT \
+            and style_at(position-1) not in (self.styler.STYLE_EMBEDDED_FIELD_VALUE, self.styler.STYLE_EMBEDDED_FIELD)
 
     def OnKeyDownEvent(self, evt):
         # temporary work-around for what seems to be a scintilla bug on Mac:
@@ -7750,7 +7753,7 @@ class MainFrame(wx.Frame):
                 set_item(index, 1, title)
                 set_item_data(index, index)
 
-            last_index = tune_list.GetItemCount() - 1
+            last_index = get_item_count() - 1
             if selected_tune_index is not None and selected_tune_index <= last_index:
                 tune_list.Select(selected_tune_index)
 
@@ -7778,7 +7781,6 @@ class MainFrame(wx.Frame):
 
     def GetTunes(self):
         editor = self.editor
-        n = editor.GetLineCount()
         pos_from_line = editor.PositionFromLine
         get_text_range = editor.GetTextRange
         get_line = editor.GetLine
@@ -7789,6 +7791,7 @@ class MainFrame(wx.Frame):
         titles_found = 0
         tunes = []
         tunes_append = tunes.append
+        n = editor.GetLineCount()
         for i in xrange(n):
             p = pos_from_line(i)
             try:
@@ -7798,45 +7801,42 @@ class MainFrame(wx.Frame):
             if t == 'X:':
                 if cur_index is not None:
                     tunes_append((cur_index, cur_title, cur_startline))
-                text = get_line(i)
-                m = search_tune_index(text)
+                    cur_index = None
+                m = search_tune_index(get_line(i))
                 if m:
                     cur_index = int(m.group(1))
                     cur_startline = i
-                else:
-                    cur_index = None
                 cur_title = u''
                 titles_found = 0
             elif t == 'T:' and titles_found < 2 and cur_index is not None:
                 title = decode_abc(strip_comments(get_line(i)[2:]).strip())
-                if title:
-                    if cur_title:
-                        cur_title += ' - '
-                    cur_title += title
-                    titles_found += 1
+                cur_title = ' - '.join(filter(None, (cur_title, title)))
 
         if cur_index is not None:
             tunes_append((cur_index, cur_title, cur_startline))
         return tunes
 
     def GetTuneAbc(self, startpos):
-        first_line_no = self.editor.LineFromPosition(startpos)
-        lines = [self.editor.GetLine(first_line_no)]
-        for line_no in range(first_line_no+1, self.editor.GetLineCount()):
-            line = self.editor.GetLine(line_no)
+        editor = self.editor
+        get_line = editor.GetLine
+        first_line_no = editor.LineFromPosition(startpos)
+        lines = []
+        for line_no in range(first_line_no, editor.GetLineCount()):
+            line = get_line(line_no)
             if line.startswith('X:'):
                 break
             lines.append(line)
         return ''.join(lines)
 
     def InitEditor(self, font_face=None, font_size=None):
-        self.editor.ClearDocumentStyle()
-        self.editor.StyleClearAll()
-        self.editor.SetLexer(stc.STC_LEX_CONTAINER)
-        self.editor.SetProperty("fold", "0")
-        self.editor.SetUseTabs(False)
+        editor = self.editor
+        editor.ClearDocumentStyle()
+        editor.StyleClearAll()
+        editor.SetLexer(stc.STC_LEX_CONTAINER)
+        editor.SetProperty("fold", "0")
+        editor.SetUseTabs(False)
         if not WX4:
-            self.editor.SetUseAntiAliasing(True)
+            editor.SetUseAntiAliasing(True)
 
         if not font_face:
             fixedWidthFonts = ['Bitstream Vera Sans Mono', 'Courier New', 'Courier']
@@ -7858,35 +7858,36 @@ class MainFrame(wx.Frame):
         else:
             font = font_face
             size = font_size
-        self.editor.SetFont(wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=font))
+        editor.SetFont(wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=font))
 
-        self.editor.SetProperty("fold", "0")
-        self.editor.StyleSetSpec(self.styler.STYLE_DEFAULT, "fore:#000000,face:%s,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_CHORD, "fore:#000000,face:%s,size:%d" % (font, size))
+        editor.SetProperty("fold", "0")
+        set_style = editor.StyleSetSpec
+        set_style(self.styler.STYLE_DEFAULT, "fore:#000000,face:%s,size:%d" % (font, size))
+        set_style(self.styler.STYLE_CHORD, "fore:#000000,face:%s,size:%d" % (font, size))
         # Comments
-        self.editor.StyleSetSpec(self.styler.STYLE_COMMENT_NORMAL, "fore:#AAAAAA,face:%s,italic,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_COMMENT_SPECIAL, "fore:#888888,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_COMMENT_NORMAL, "fore:#AAAAAA,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_COMMENT_SPECIAL, "fore:#888888,face:%s,italic,size:%d" % (font, size))
         # Bar
-        self.editor.StyleSetSpec(self.styler.STYLE_BAR, "fore:#00007F,face:%s,bold,size:%d" % (font, size))
+        set_style(self.styler.STYLE_BAR, "fore:#00007F,face:%s,bold,size:%d" % (font, size))
         # Field
-        self.editor.StyleSetSpec(self.styler.STYLE_FIELD,                "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_FIELD_VALUE,          "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_EMBEDDED_FIELD,       "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_EMBEDDED_FIELD_VALUE, "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_FIELD_INDEX,          "fore:#000000,face:%s,bold,underline,size:%d" % (font, size))
+        set_style(self.styler.STYLE_FIELD,                "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
+        set_style(self.styler.STYLE_FIELD_VALUE,          "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_EMBEDDED_FIELD,       "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
+        set_style(self.styler.STYLE_EMBEDDED_FIELD_VALUE, "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_FIELD_INDEX,          "fore:#000000,face:%s,bold,underline,size:%d" % (font, size))
         # Single quoted string
-        self.editor.StyleSetSpec(self.styler.STYLE_STRING, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_STRING, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
         # Lyrics
-        self.editor.StyleSetSpec(self.styler.STYLE_LYRICS, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_LYRICS, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
 
-        self.editor.StyleSetSpec(self.styler.STYLE_GRACE, "fore:#5a3700,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_GRACE, "fore:#5a3700,face:%s,italic,size:%d" % (font, size))
 
-        self.editor.StyleSetSpec(self.styler.STYLE_ORNAMENT, "fore:#777799,face:%s,bold,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_ORNAMENT_PLUS, "fore:#888888,face:%s,size:%d" % (font, size))
-        self.editor.StyleSetSpec(self.styler.STYLE_ORNAMENT_EXCL, "fore:#888888,face:%s,size:%d" % (font, size))
+        set_style(self.styler.STYLE_ORNAMENT, "fore:#777799,face:%s,bold,size:%d" % (font, size))
+        set_style(self.styler.STYLE_ORNAMENT_PLUS, "fore:#888888,face:%s,size:%d" % (font, size))
+        set_style(self.styler.STYLE_ORNAMENT_EXCL, "fore:#888888,face:%s,size:%d" % (font, size))
 
-        self.editor.SetModEventMask(wx.stc.STC_MODEVENTMASKALL & ~(wx.stc.STC_MOD_CHANGESTYLE | wx.stc.STC_PERFORMED_USER)) # [1.3.7.4] JWDJ: don't fire OnModified on style changes
-        self.editor.Colourise(0, self.editor.GetLength())
+        editor.SetModEventMask(wx.stc.STC_MODEVENTMASKALL & ~(wx.stc.STC_MOD_CHANGESTYLE | wx.stc.STC_PERFORMED_USER)) # [1.3.7.4] JWDJ: don't fire OnModified on style changes
+        editor.Colourise(0, editor.GetLength())
 
 
     def OnDropFile(self, filename):
