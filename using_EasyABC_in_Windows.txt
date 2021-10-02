@@ -28,3 +28,7 @@ python easy_abc.py
 
 Alternatively you can start easy_abc.py from a Python IDE which
 should set the path automatically.
+
+When dashed barlines (.|) are displayed as normal barlines then try:
+pip install wxPython==4.0.7.post2
+(see https://github.com/wxWidgets/Phoenix/issues/2011)
