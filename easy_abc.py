@@ -7356,13 +7356,13 @@ class MainFrame(wx.Frame):
                     note_num = int(m.group(4))
                     if on_off == 'on':
                         note_start = converted_time
-                        active_notes[(channel, note_num)] = MidiNote(note_start, None, indices, page_index, svg_row)
+                        active_notes[(channel, note_num)] = MidiNote(note_start, None, indices, page_index, svg_row or 0)
                     elif on_off == 'off':
                         note_stop = converted_time
                         note_on = active_notes.pop((channel, note_num), None)
                         if note_on is not None:
                             if page_index == note_on.page:
-                                notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row))
+                                notes.append(MidiNote(note_on.start, note_stop, indices.union(note_on.indices), page_index, svg_row or 0))
                             else:
                                 notes.append(MidiNote(note_on.start, note_stop, note_on.indices, note_on.page, note_on.svg_row))
                 elif not self.mc.unit_is_midi_tick:
