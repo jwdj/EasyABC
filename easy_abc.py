@@ -7728,7 +7728,7 @@ class MainFrame(wx.Frame):
                 self.manager.Update()
 
     def UpdateTuneListAndReselectTune(self):
-        self.UpdateTuneList(self, reselect_tune=True)
+        self.UpdateTuneList(reselect_tune=True)
 
     def UpdateTuneList(self, reselect_tune=False):
         tune_list = self.tune_list
