@@ -5253,6 +5253,9 @@ class MainFrame(wx.Frame):
             return launch_file(filepath)
         return False
 
+    def comment_pageheight(self, abc):
+        return re.sub(r'(?m)^%%pageheight\b', '% %%pageheight', abc)
+
     def export_interactive_html(self, tune, filepath):
         f = codecs.open(filepath, 'wb', 'UTF-8')
         f.write('<!DOCTYPE HTML>\n')
@@ -5265,12 +5268,13 @@ class MainFrame(wx.Frame):
         f.write('@media print{body{margin:0;padding:0;border:0}.nop{display:none}}\n')
         f.write('</style>\n')
         f.write('</head>\n<body>\n<script type="text/vnd.abc">\n\n\n')
-        file_header = re.sub(r'(?m)^%%pageheight.*$', '', tune.header)
+        file_header = self.comment_pageheight(tune.header)
         f.write(file_header)
         f.write('\n')
-        if self.settings.get('play_chords') or '%%MIDI gchord' in tune.abc:
+        abc = tune.abc
+        if self.settings.get('play_chords') or '%%MIDI gchord' in abc:
             # prepend gchordon to each tune body
-            abclines = text_to_lines(tune.abc)
+            abclines = text_to_lines(abc)
             new_abc_lines = []
             header_started = False
             for line in abclines:
@@ -5280,9 +5284,8 @@ class MainFrame(wx.Frame):
                 elif line.startswith('K:') and header_started:
                     new_abc_lines.append('%%MIDI gchordon')
                     header_started = False
-            f.write('\n'.join(new_abc_lines))
-        else:
-            f.write(tune.abc)
+            abc = '\n'.join(new_abc_lines)
+        f.write(self.comment_pageheight(abc))
         f.write('\n\n\n</script>\n</body>\n</html>')
         f.close()
         return launch_file(filepath)
@@ -5596,7 +5599,7 @@ class MainFrame(wx.Frame):
 
     def refresh_tunes(self):
         self.last_refresh_time = datetime.now()
-        self.UpdateTuneList()
+        self.UpdateTuneListAndReselectTune()
         self.OnTuneSelected(None)
 
     def OnToolAbcAssist(self, evt):
@@ -7122,7 +7125,7 @@ class MainFrame(wx.Frame):
         if self.updating_text:
             return
         if evt.GetLinesAdded() != 0:
-            wx.CallAfter(self.UpdateTuneList)
+            wx.CallAfter(self.UpdateTuneListAndReselectTune)
 
     def AutomaticUpdate(self, update_number):
         if self.queue_number_refresh_music == update_number:
@@ -7724,13 +7727,17 @@ class MainFrame(wx.Frame):
                 self.error_pane = self.manager.GetPane('error message').Hide()
                 self.manager.Update()
 
-    def UpdateTuneList(self):
-        if self.tune_list.GetFirstSelected() > 0:
-            selected_tune_index = self.tune_list.GetItemData(self.tune_list.GetFirstSelected())
-        else:
-            selected_tune_index = None
-        tunes = self.GetTunes()
+    def UpdateTuneListAndReselectTune(self):
+        self.UpdateTuneList(self, reselect_tune=True)
+
+    def UpdateTuneList(self, reselect_tune=False):
         tune_list = self.tune_list
+        selected_tune_index = None
+        if reselect_tune:
+            first_selected = tune_list.GetFirstSelected()
+            if first_selected > 0:
+                selected_tune_index = tune_list.GetItemData(tune_list.GetFirstSelected())
+        tunes = self.GetTunes()
         tune_list.itemDataMap = dict(enumerate(tunes))
 
         different = (len(tunes) != len(self.tunes))
