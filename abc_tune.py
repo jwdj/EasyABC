@@ -11,7 +11,7 @@ if PY3:
 field_pattern = r'[A-Za-z\+]:'
 meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
 unitlength_pattern = r'^L:\s*(\d+)/(\d+)'
-voice_pattern = r'(?m)(?:^V:\s*(?P<name>\w+).*$\n|\[V:\s*(?P<inlinename>\w+)[^\]]*\])'
+voice_pattern = r'(?m)(?:^V:\s*(?P<voice_id>\w+).*$|\[V:\s*(?P<inline_voice_id>\w+)[^\]]*\])'
 comment_pattern = r'(?m)(?<!\\)%.*$'
 empty_line_pattern = r'(?m)^\s*$'
 
@@ -142,7 +142,7 @@ class AbcTune(object):
         self.note_line_indices = note_line_indices
 
     def get_voice_ids(self):
-        return [m.group('name') or m.group('inlinename') for m in voice_re.finditer('\n'.join(self.tune_header))]
+        return [m.group('voice_id') or m.group('inline_voice_id') for m in voice_re.finditer('\n'.join(self.tune_header))]
 
     def get_abc_per_voice(self):
         if self.__abc_per_voice is None:
@@ -152,7 +152,7 @@ class AbcTune(object):
                 last_voice_id = ''
                 start_index = 0
                 for m in voice_re.finditer(abc_body):
-                    voice_id = m.group('name') or m.group('inlinename')
+                    voice_id = m.group('voice_id') or m.group('inline_voice_id')
                     abc = abc_body[start_index:m.start()]
                     voices[last_voice_id] += abc
                     start_index = m.end()

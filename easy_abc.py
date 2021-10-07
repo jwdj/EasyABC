@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-program_name = 'EasyABC 1.3.8.4'
+program_version = '1.3.8.4'
+program_name = 'EasyABC ' + program_version
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 # Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
@@ -167,7 +168,9 @@ from abc_tune import *
 dialog_background_colour = wx.Colour(245, 244, 235)
 default_note_highlight_color = '#FF7F3F'
 control_margin = 6
-
+default_midi_volume = 96
+default_midi_pan = 64
+default_midi_instrument = 0
 
 # 1.3.6.3 [JWdJ] 2015-04-22
 class MidiTune(object):
@@ -980,22 +983,8 @@ def list_voices_in(abccode):
         too long). A list of all the unique identifiers are
         returned.
     '''
-
-    start = 0
     voices = []
-    while start != -1:
-        loc = abccode.find('V:', start)
-        if loc == -1:
-            break
-        segment = abccode[loc+2:loc+12]
-        # in case of inline V: eg [V:3] replace ] with white space
-        segment = segment.replace(']', ' ')
-        elemlist = segment.split()
-        elem1 = elemlist[0]
-        if elem1 not in voices:
-            voices.append(elem1)
-        start = loc+2
-
+    [voices.append(v) for v in [m.group('voice_id') or m.group('inline_voice_id') for m in voice_re.finditer(abccode)] if v not in voices]
     return voices
 
 
@@ -1141,7 +1130,6 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
 
 # 1.3.6.3 [JWDJ] 2015-04-21 split up AbcToMidi into 2 functions: preprocessing (process_abc_for_midi) and actual midi generation (abc_to_midi)
 def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier):
-
     ''' This function inserts extra lines in the abc tune controlling the assignment of musical instruments to the different voices
         per the instructions in the ABC Settings/abc2midi and voices. If the tune already contains these instructions, eg. %%MIDI program,
         %%MIDI chordprog, etc. then the function avoids changing these assignments by suppressing the output of the additional commands.
@@ -1156,18 +1144,13 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     default_midi_chordprog = settings.get('midi_chord_program')
     default_midi_bassprog = settings.get('midi_bass_program')
     # 1.3.6.4 [SS] 2015-06-07
+    default_midi_melodyvol = settings.get('melodyvol')
     default_midi_chordvol = settings.get('chordvol')
     default_midi_bassvol = settings.get('bassvol')
     # 1.3.6.3 [SS] 2015-05-04
     default_tempo = settings.get('bpmtempo')
     # build the list of midi program to be used for each voice
-    midi_program_ch_list = ['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
-                            'midi_program_ch5', 'midi_program_ch6', 'midi_program_ch7', 'midi_program_ch8',
-                            'midi_program_ch9', 'midi_program_ch10', 'midi_program_ch11', 'midi_program_ch12',
-                            'midi_program_ch13', 'midi_program_ch14', 'midi_program_ch15', 'midi_program_ch16']
-    default_midi_program_ch = []
-    for channel in range(16):
-        default_midi_program_ch.append(settings.get(midi_program_ch_list[channel]))
+    midi_program_ch_list = ['midi_program_ch%d' % ch for ch in range(1, 16 + 1)]
 
     # this flag is added just in case none would have been set but shouldn't be the case.
     if not default_midi_bassprog:
@@ -1205,11 +1188,18 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     extra_lines = []
 
     # build default list of midi_program
-    # this is needed in case no instrument per voices where defined or in case option "use default one for all voices" is checked
-    midi_program_ch = default_midi_program_ch
-    if len(midi_program_ch) < 16:
-        for channel in range(len(midi_program_ch), 16+1):
-            midi_program_ch.append([default_midi_program, 64, 64])
+    # this is needed in case no instrument per voices where defined or in case option "separate defaults per voice" is not checked
+
+    midi_program_ch = []
+    for channel in range(16):
+        midi_program_ch.append([default_midi_program, default_midi_volume, default_midi_pan])
+
+    separate_defaults_per_voice = settings.get('separate_defaults_per_voice', False)
+    if separate_defaults_per_voice:
+        for channel in range(16):
+            program_vol_pan = settings.get(midi_program_ch_list[channel])
+            if program_vol_pan:
+                midi_program_ch[channel] = program_vol_pan
 
     # Though these instructions shouldn't be needed (they are added for each voice afterwards),
     # there is a problem with QuickTime on the Mac and these lines ensure that the MIDI file is
@@ -1256,7 +1246,7 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
         extra_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
 
     # 1.3.6.3 [SS] 2015-03-19
-    if settings.get('transposition', '0') != '0':
+    if int(settings.get('transposition', 0)) != 0:
         extra_lines.append('%%MIDI transpose {0}'.format(settings['transposition']))
 
     # 1.3.6.3 [SS] 2015-05-04
@@ -1288,28 +1278,24 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
             new_abc_lines.append(line)
             # do not take into account the definition present in the header (maybe it would be better... to be further analysed)
             if line.startswith('K:'):
-                # 1.3.6.4 [SS] 2015-07-09
-                if not header_finished and len(voicelist) == 0:
-                    new_abc_lines.append('%%MIDI control 7 {0}'.format(int(settings['melodyvol'])))
-                # 1.3.6.4 [SS] 2015-07-03
-                if not header_finished and add_midi_introduction:
-                    new_abc_lines.extend(midi_introduction)
+                if not header_finished:
+                    # 1.3.6.4 [SS] 2015-07-09
+                    if len(voicelist) == 0:
+                        new_abc_lines.append('%%MIDI control 7 {0}'.format(int(default_midi_melodyvol)))
+                    # 1.3.6.4 [SS] 2015-07-03
+                    if add_midi_introduction:
+                        new_abc_lines.extend(midi_introduction)
                 header_finished = True
-            # 1.3.6.3 [JWDJ] 2015-04-21
-            if (line.startswith('V:') or line.startswith('[V:')) and header_finished:
-                #extraction of the voice ID
-                if line.startswith('V:'):
-                    voice_def = line[2:].strip()
-                else:
-                    voice_def = line[3:].strip()
-                voice_parse = voice_def.split()
-                if voice_parse:
-                    voice_ID = voice_parse[0].rstrip(']')
+            if header_finished:
+                match = voice_re.match(line)
+                if match:
+                    inline_voice_id = match.group('inline_voice_id')
+                    voice_ID = inline_voice_id or match.group('voice_id')
                     if voice_ID not in list_voice:
                         # 1.3.6.4 [SS] 2015-07-08
                         # if it is an inline voice, we are not want to include the following notes before
                         # specifying the %%MIDI parameters
-                        if line.startswith('[V:'):
+                        if inline_voice_id:
                             # remove last line in new_abc and put it back afterwards
                             removedline = new_abc_lines.pop()
                             new_abc_lines.append('V: {0}'.format(voice_ID))
@@ -1338,9 +1324,11 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
                                 # 1.3.6.4 [SS] 2015-06-19
                                 new_abc_lines.append('%%MIDI chordvol {0}'.format(default_midi_chordvol))
                                 new_abc_lines.append('%%MIDI bassvol {0}'.format(default_midi_bassvol))
-                        if line.startswith('[V:'):
+                        if inline_voice_id:
                             new_abc_lines.append(removedline)
                         voice += 1
+                        if voice == 16:
+                            voice = 0
 
         abc_code = os.linesep.join(new_abc_lines)
 
@@ -1363,14 +1351,15 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
     # make sure that X field is on the first line since abc2midi doesn't seem to support
     # fields and instructions that come before the X field
-    abclines = text_to_lines(abc_code) # take it apart again
-    for i in range(len(abclines)):
-        if abclines[i].startswith('X:'):
-            line = abclines[i]
-            del abclines[i]
-            abclines.insert(0, line)
-            break
-    abc_code = os.linesep.join(abclines) # put it back together
+    if not abc_code.startswith('X:'):
+        abclines = text_to_lines(abc_code) # take it apart again
+        for i in range(len(abclines)):
+            if abclines[i].startswith('X:'):
+                line = abclines[i]
+                del abclines[i]
+                abclines.insert(0, line)
+                break
+        abc_code = os.linesep.join(abclines) # put it back together
 
     #### for debugging
     #Write temporary abc_file (for debug purpose)
@@ -2301,14 +2290,14 @@ class MyChordPlayPage (wx.Panel):
         self.tuningtxt         = wx.StaticText(self, wx.ID_ANY, " ")
 
         #1.3.6.4 [SS] 2015-07-08
-        self.sliderVol = wx.Slider(self, value=96, minValue=0, maxValue=127,
+        self.sliderVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
         self.Voltxt = wx.StaticText(self, wx.ID_ANY, " ")
         #1.3.6.4 [SS] 2015-06-07
-        self.sliderChordVol = wx.Slider(self, value=96, minValue=0, maxValue=127,
+        self.sliderChordVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
         self.ChordVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
-        self.sliderBassVol = wx.Slider(self, value=96, minValue=0, maxValue=127,
+        self.sliderBassVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
                                 size=(128, -1), style=wx.SL_HORIZONTAL)
         self.BassVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
 
@@ -2360,15 +2349,15 @@ class MyChordPlayPage (wx.Panel):
 
         self.chkPlayChords.SetValue(self.settings.get('play_chords', False))
         self.slidertranspose.SetValue(self.settings.get('transposition', 0))
-        self.transposetxt.SetLabel(str(self.settings.get('transposition', '0')))
+        self.transposetxt.SetLabel(str(self.settings.get('transposition', 0)))
         self.slidertuning.SetValue(self.settings.get('tuning', 440))
-        self.tuningtxt.SetLabel(str(self.settings.get('tuning', '440')))
-        self.sliderVol.SetValue(int(self.settings.get('melodyvol', 96)))
-        self.Voltxt.SetLabel(str(self.settings.get('melodyvol', '96')))
-        self.sliderChordVol.SetValue(int(self.settings.get('chordvol', 96)))
-        self.ChordVoltxt.SetLabel(str(self.settings.get('chordvol', '96')))
-        self.sliderBassVol.SetValue(int(self.settings.get('bassvol', 96)))
-        self.BassVoltxt.SetLabel(str(self.settings.get('bassvol', '96')))
+        self.tuningtxt.SetLabel(str(self.settings.get('tuning', 440)))
+        self.sliderVol.SetValue(int(self.settings.get('melodyvol', default_midi_volume)))
+        self.Voltxt.SetLabel(str(self.settings.get('melodyvol', default_midi_volume)))
+        self.sliderChordVol.SetValue(int(self.settings.get('chordvol', default_midi_volume)))
+        self.ChordVoltxt.SetLabel(str(self.settings.get('chordvol', default_midi_volume)))
+        self.sliderBassVol.SetValue(int(self.settings.get('bassvol', default_midi_volume)))
+        self.BassVoltxt.SetLabel(str(self.settings.get('bassvol', default_midi_volume)))
         self.nodynamics.SetValue(self.settings.get('nodynamics', False))
         self.nofermatas.SetValue(self.settings.get('nofermatas', False))
         self.nograce.SetValue(self.settings.get('nograce', False))
@@ -2376,8 +2365,9 @@ class MyChordPlayPage (wx.Panel):
         # 1.3.6.4 [SS[ 2015-07-05
         self.midi_intro.SetValue(self.settings.get('midi_intro', False))
         # 1.3.6.4 [SS] 2015-06-10
-        self.sliderbeatsperminute.SetValue(int(self.settings.get('bpmtempo', 120)))
-        self.beatsperminutetxt.SetLabel(str(self.settings.get('bpmtempo', '120')))
+        bpmtempo = self.settings.get('bpmtempo', 120)
+        self.sliderbeatsperminute.SetValue(int(bpmtempo))
+        self.beatsperminutetxt.SetLabel(str(bpmtempo))
 
         beatsperminute_toolTip = _('Quarter notes per minute')
         ChordVol_toolTip = _('Volume level for chordal accompaniment')
@@ -2404,7 +2394,7 @@ class MyChordPlayPage (wx.Panel):
         self.sliderVol.SetToolTip(wx.ToolTip(vol_toolTip))
 
         try:
-            self.cmbMidiProgram.Select(self.settings.get('midi_program', 1))
+            self.cmbMidiProgram.Select(self.settings.get('midi_program', default_midi_instrument))
             self.cmbMidiChordProgram.Select(self.settings.get('midi_chord_program', 25))
             self.cmbMidiBassProgram.Select(self.settings.get('midi_bass_program', 25))
         except:
@@ -2531,6 +2521,10 @@ class MyVoicePage(wx.Panel):
         self.textValueMidiControlVolumeCh_list = {}
         self.sldMidiControlPanCh_list = {}
         self.textValueMidiControlPanCh_list = {}
+        self.chkPerVoice = wx.CheckBox(self, wx.ID_ANY, _('Separate defaults per voice'))
+        separate_defaults_per_voice = settings.get('separate_defaults_per_voice', False)
+        self.chkPerVoice.Value = separate_defaults_per_voice
+        self.chkPerVoice.Bind(wx.EVT_CHECKBOX, self.OnToggleDefaultsPerVoice)
         midi_box = rcs.RowColSizer()
         midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Default instrument:')), row=0, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Main Volume:')), row=0, col=3, colspan=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
@@ -2541,26 +2535,29 @@ class MyVoicePage(wx.Panel):
             instrument_choices = []  # instruments fill be filled when tab is selected to speed up ABC settings
         else:
             instrument_choices = general_midi_instruments
-
+        controls = []
         for channel in range(1, 16+1):
             cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=instrument_choices, size=(200, 26),
                                                             style=wx.CB_READONLY)
+            controls.append(cmbMidiProgram)
             self.cmbMidiProgramCh_list[channel] = cmbMidiProgram
-            volumeSlider = wx.Slider(self, value=64, minValue=0, maxValue=127,
+            volumeSlider = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
                                                                 size=(80, -1), style=wx.SL_HORIZONTAL)
             # A text field is added to show value of slider as activating option SL_LABELS will show to many information
             self.sldMidiControlVolumeCh_list[channel] = volumeSlider
+            controls.append(volumeSlider)
 
-            volumeText = wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
+            volumeText = wx.StaticText(self, wx.ID_ANY, str(default_midi_volume), style=wx.ALIGN_RIGHT |
                                                                 wx.ST_NO_AUTORESIZE, size=(30, 20))
             self.textValueMidiControlVolumeCh_list[channel] = volumeText
 
-            panSlider = wx.Slider(self, value=64, minValue=0, maxValue=127,
+            panSlider = wx.Slider(self, value=default_midi_pan, minValue=0, maxValue=127,
                                                                 size=(80, -1), style=wx.SL_HORIZONTAL)
             self.sldMidiControlPanCh_list[channel] = panSlider
+            controls.append(panSlider)
 
             # A text field is added to show value of slider as activating option SL_LABELS will show to many information
-            panText = wx.StaticText(self, wx.ID_ANY, '64', style=wx.ALIGN_RIGHT |
+            panText = wx.StaticText(self, wx.ID_ANY, str(default_midi_pan), style=wx.ALIGN_RIGHT |
                                                                 wx.ST_NO_AUTORESIZE, size=(30, 20))
             self.textValueMidiControlPanCh_list[channel] = panText
 
@@ -2586,10 +2583,9 @@ class MyVoicePage(wx.Panel):
             cmbMidiProgram.currentchannel=channel
             cmbMidiProgram.Bind(wx.EVT_COMBOBOX, self.OnProgramSelection)
 
-        midi_box.AddGrowableCol(1)  # JWDJ: does this still have a purpose?
-
         # reset buttons box
         self.reset = wx.Button(self, wx.ID_ANY, _('&Reset'))
+        controls.append(self.reset)
         if WX4:
             btn_box = wx.BoxSizer()
             btn_box.Add(self.reset)
@@ -2597,25 +2593,40 @@ class MyVoicePage(wx.Panel):
             btn_box = wx.BoxSizer(wx.HORIZONTAL)
             btn_box.Add(self.reset, flag=wx.ALIGN_RIGHT)
 
+        if not separate_defaults_per_voice:
+            for control in controls:
+                control.Disable() # IsEnabled = separate_defaults_per_voice
+        self.voices_controls = controls
+
         reset_toolTip = _('The instrument for all voices is set to the default midi program. The volume and pan are set to 96/64.')
         self.reset.SetToolTip(wx.ToolTip(reset_toolTip))
         self.reset.Bind(wx.EVT_BUTTON, self.OnResetDefault)
 
         # add all box to the dialog to be displayed
         self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.chkPerVoice, flag=wx.ALL, border=border)
         self.sizer.Add(midi_box, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
         self.sizer.Add(btn_box, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
         self.SetSizer(self.sizer)
 
         # try to set selection on previously defined instrument or default one or Piano
-        self.midi_program_ch_list = ['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
-                                   'midi_program_ch5', 'midi_program_ch6', 'midi_program_ch7', 'midi_program_ch8',
-                                   'midi_program_ch9', 'midi_program_ch10', 'midi_program_ch11', 'midi_program_ch12',
-                                   'midi_program_ch13', 'midi_program_ch14', 'midi_program_ch15', 'midi_program_ch16']
+        self.midi_program_ch_list = ['midi_program_ch%d' % ch for ch in range(1, 16 + 1)]
+
+    def OnToggleDefaultsPerVoice(self, event):
+        separate_defaults_per_voice = event.EventObject.GetValue()
+        self.settings['separate_defaults_per_voice'] = separate_defaults_per_voice
+        controls = self.voices_controls
+        if separate_defaults_per_voice:
+            self.FillControls()
+            for control in controls:
+                control.Enable()
+        else:
+            for control in controls:
+                control.Disable()
 
     def FillControls(self):
-        if self.controls_initialized:
+        if self.controls_initialized or not self.settings.get('separate_defaults_per_voice', False):
             return
 
         instruments = general_midi_instruments
@@ -2626,12 +2637,12 @@ class MyVoicePage(wx.Panel):
                 setting_name = self.midi_program_ch_list[channel-1]
                 midi_info = self.settings.get(setting_name)
                 if midi_info is None:
-                    midi_info = [self.settings.get('midi_program', 1), 96, 64]
+                    midi_info = [self.settings.get('midi_program', default_midi_instrument), default_midi_volume, default_midi_pan]
                 self.cmbMidiProgramCh_list[channel].Select(midi_info[0])
                 self.sldMidiControlVolumeCh_list[channel].SetValue(midi_info[1])
-                self.textValueMidiControlVolumeCh_list[channel].SetLabel("%d" % midi_info[1])
+                self.textValueMidiControlVolumeCh_list[channel].SetLabel(str(midi_info[1]))
                 self.sldMidiControlPanCh_list[channel].SetValue(midi_info[2])
-                self.textValueMidiControlPanCh_list[channel].SetLabel("%d" % midi_info[2])
+                self.textValueMidiControlPanCh_list[channel].SetLabel(str(midi_info[2]))
             except:
                 pass
 
@@ -2664,11 +2675,11 @@ class MyVoicePage(wx.Panel):
     def OnResetDefault(self, evt):
         try:
             for channel in range(1, 16+1):
-                self.cmbMidiProgramCh_list[channel].Select(self.settings.get('midi_program', 1))
-                self.sldMidiControlVolumeCh_list[channel].SetValue(96)
-                self.textValueMidiControlVolumeCh_list[channel].SetLabel("96")
-                self.sldMidiControlPanCh_list[channel].SetValue(64)
-                self.textValueMidiControlPanCh_list[channel].SetLabel("64")
+                self.cmbMidiProgramCh_list[channel].Select(self.settings.get('midi_program', default_midi_instrument))
+                self.sldMidiControlVolumeCh_list[channel].SetValue(default_midi_volume)
+                self.textValueMidiControlVolumeCh_list[channel].SetLabel(str(default_midi_volume))
+                self.sldMidiControlPanCh_list[channel].SetValue(default_midi_pan)
+                self.textValueMidiControlPanCh_list[channel].SetLabel(str(default_midi_pan))
 
                 self.settings[self.midi_program_ch_list[channel-1]] = [self.cmbMidiProgramCh_list[channel].GetSelection(),
                                                                        self.sldMidiControlVolumeCh_list[channel].GetValue(),
@@ -8246,15 +8257,12 @@ class MainFrame(wx.Frame):
             dlg.ShowModal()
 
         #Fix midi_program_ch settings - 1.3.5 to 1.3.6 compatibility 2014-11-14
-        midi_program_ch_list=['midi_program_ch1', 'midi_program_ch2', 'midi_program_ch3', 'midi_program_ch4',
-                              'midi_program_ch5', 'midi_program_ch6', 'midi_program_ch7', 'midi_program_ch8',
-                              'midi_program_ch9', 'midi_program_ch10', 'midi_program_ch11', 'midi_program_ch12',
-                              'midi_program_ch13', 'midi_program_ch14', 'midi_program_ch15', 'midi_program_ch16']
-        for channel in range(1, 16+1):
-            if settings.get(midi_program_ch_list[channel-1]):
+        midi_program_ch_list = ['midi_program_ch%d' % ch for ch in range(1, 16 + 1)]
+        for channel in range(16):
+            if settings.get(midi_program_ch_list[channel]):
                 pass
             else:
-                settings[midi_program_ch_list[channel-1]] = [0, 96, 64]
+                settings[midi_program_ch_list[channel]] = [default_midi_instrument, default_midi_volume, default_midi_pan]
 
         #delete 'one_instrument_only'. It is no longer used. 1.3.6 [SS] 2014-11-20
         try:
@@ -8263,7 +8271,7 @@ class MainFrame(wx.Frame):
             pass
 
         # 1.3.6 [SS] 2014-12-18
-        new_settings = [('midi_program', 0), ('midi_chord_program', 24),
+        new_settings = [('midi_program', default_midi_instrument), ('midi_chord_program', 24),
                         ('transposition',0), ('tuning',440),
                         ('nodynamics', False), ('nofermatas', False),
                         ('nograce', False), ('barfly', True),
@@ -8278,8 +8286,8 @@ class MainFrame(wx.Frame):
                         ('abcm2ps_scale', '0.75'), ('abcm2ps_clean', False),
                         ('abcm2ps_defaults', True), ('abcm2ps_pagewidth', '21.59'),
                         ('abcm2ps_pageheight', '27.94'), ('midiplayer_parameters', ''),
-                        ('bpmtempo', '120'), ('chordvol', '96'), ('bassvol', '96'),
-                        ('melodyvol', '96'), ('midi_intro', 0), ('version', '1.3.6.4')
+                        ('bpmtempo', 120), ('chordvol', default_midi_volume), ('bassvol', default_midi_volume),
+                        ('melodyvol', default_midi_volume), ('midi_intro', 0), ('version', program_version)
                        ]
 
         # 1.3.6 [SS] 2014-12-16

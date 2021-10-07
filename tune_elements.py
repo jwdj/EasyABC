@@ -636,7 +636,7 @@ class ScoreDirective(AbcElement):
 
 
 class MeasureNumberDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)measurenb (?P<interval>-?\d*)"+ AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)(?:measurenb|barnumbers) (?P<interval>-?\d*)"+ AbcElement.rest_of_line_pattern
     def __init__(self):
         super(MeasureNumberDirective, self).__init__('measurenb', display_name=_('Measure numbering'), description=_('Defines if and how measures are numbered.'))
         for section in ABC_SECTIONS:
