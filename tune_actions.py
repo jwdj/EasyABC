@@ -1121,12 +1121,8 @@ class AbcOctaveChangeAction(ValueChangeAction):
 
 class BaseDecorationChangeAction(ValueChangeAction):
     def __init__(self, name, decoration_values, display_name=None):
-        values = []
-        for mark in decoration_values:
-            value = ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark])
-            values.append(value)
+        values = [ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark]) for mark in decoration_values]
         super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration', display_name=display_name)
-
 
     def is_current_value(self, context, value):
         match = self.get_match(context)
@@ -1142,6 +1138,7 @@ class BaseDecorationChangeAction(ValueChangeAction):
     def get_image_name(mark):
         name_lookup = {
             '.': 'staccato',
+            '!^!': 'marcato',
             '!upbow!': 'u',
             '!downbow!': 'v',
             '!lowermordent!': 'mordent',
@@ -1322,6 +1319,14 @@ class MidiChannelChangeAction(ValueChangeAction):
 
 class MidiDrumInstrumentChangeAction(ValueChangeAction):
     values = [
+        ValueDescription('27', _('High Q'), common=False),
+        ValueDescription('28', _('Slap'), common=False),
+        ValueDescription('29', _('Scratch Push'), common=False),
+        ValueDescription('30', _('Scratch Pull'), common=False),
+        ValueDescription('31', _('Sticks'), common=False),
+        ValueDescription('32', _('Square Click'), common=False),
+        ValueDescription('33', _('Metronome Click'), common=False),
+        ValueDescription('34', _('Metronome Bell'), common=False),
         ValueDescription('35', _('Acoustic Bass Drum')),
         ValueDescription('36', _('Bass Drum 1')),
         ValueDescription('37', _('Side Stick')),
@@ -1369,6 +1374,12 @@ class MidiDrumInstrumentChangeAction(ValueChangeAction):
         ValueDescription('79', _('Open Cuica')),
         ValueDescription('80', _('Mute Triangle')),
         ValueDescription('81', _('Open Triangle')),
+        ValueDescription('82', _('Shaker'), common=False),
+        ValueDescription('83', _('Jingle Bell'), common=False),
+        ValueDescription('84', _('Belltree'), common=False),
+        ValueDescription('85', _('Castanets'), common=False),
+        ValueDescription('86', _('Closed Surdo'), common=False),
+        ValueDescription('87', _('Open Surdo'), common=False),
     ]
     def __init__(self):
         super(MidiDrumInstrumentChangeAction, self).__init__('change_midi_drum_instrument', MidiDrumInstrumentChangeAction.values, matchgroup='druminstrument', display_name=_('Change percussion instrument'))
@@ -1790,7 +1801,8 @@ class InsertDecorationAction(InsertValueAction):
         ValueImageDescription('!fermata!', 'fermata', _('Articulation')),
         ValueImageDescription('!segno!', 'segno', _('Direction')),
         ValueImageDescription('P', 'pralltriller', _('Shortcut symbol'), common=False),
-        ValueImageDescription('!5!', '5', _('Fingering'), common=False)
+        ValueImageDescription('!5!', '5', _('Fingering'), common=False),
+        ValueImageDescription('!editorial!', 'editorial', _('Accidental'), common=False),
     ]
     def __init__(self, name='insert_decoration', matchgroup=None):
         super(InsertDecorationAction, self).__init__(name, InsertDecorationAction.values, matchgroup=matchgroup, display_name=_('Insert decoration'))
@@ -2233,6 +2245,7 @@ class InsertMidiDirectiveAction(InsertValueAction):
     values = [
         ValueDescription(' program 0       % ' + _('Instrument'), _('Set instrument')),
         ValueDescription(' control 7 127   % ' + _('Volume'), _('Set volume')),
+        # ValueDescription(' drum dddd 34 33 33 33 100 100 100 100        % {0}\n%%MIDI drumon'.format(_('Metronome')), _('Turn on metronome')),
         ValueDescription(os.linesep.join(play_chords_cmds), _('Play chords')),
     ]
     def __init__(self):
@@ -2333,7 +2346,7 @@ class InsertAppendFieldActionEmptyLineAction(InsertValueAction):
         ValueDescription('w:', name_to_display_text['words (note aligned)']),
         ValueDescription('W:', name_to_display_text['words (at the end)'], common=False),
         ValueDescription('s:', name_to_display_text['symbol line'], common=False),
-        ValueDescription(r'%%', name_to_display_text['instruction'], common=False),
+        ValueDescription(r'%%', name_to_display_text['instruction']),
     ]
     def __init__(self):
         super(InsertAppendFieldActionEmptyLineAction, self).__init__('insert_append_field_on_empty_line', InsertAppendFieldActionEmptyLineAction.values, display_name=_('Add...'))

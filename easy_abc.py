@@ -5283,6 +5283,10 @@ class MainFrame(wx.Frame):
         f.write(file_header)
         f.write('\n')
         abc = tune.abc
+        if '%%MIDI drummap' in abc:
+            abc = re.sub(r'%%MIDI drummap\s+(?P<note>[_\^][A-Ga-g])\s+(?P<midinote>\d+)', r'%%percmap \g<note> \g<midinote> x', abc)
+            abc = abc.replace('%%MIDI drummap ', '%%percmap ')
+
         if self.settings.get('play_chords') or '%%MIDI gchord' in abc:
             # prepend gchordon to each tune body
             abclines = text_to_lines(abc)

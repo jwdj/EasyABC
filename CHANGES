@@ -588,3 +588,7 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Find in files: selecting tune focused wrong tune sometimes
 - ABC settings: Added 'Separate defaults per voice' checkbox to Voices tab
 - ABC assist supports %%barnumbers (better to use %%measurenb instead)
+- ABC assist supports %%percmap (similar to %%MIDI drummap)
+- General MIDI 2 percussion instruments added to %%MIDI drummap
+- ABC assist supports !marcato! and !editoral!
+

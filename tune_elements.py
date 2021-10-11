@@ -140,6 +140,7 @@ class CodeImageDescription(ValueImageDescription):
 
 decoration_aliases = {
     '!>!'       : '!accent!',
+    '!^!'       : '!marcato!',
     '!emphasis!': '!accent!',
     '!<(!'      : '!crescendo(!',
     '!<)!'      : '!crescendo)!',
@@ -176,6 +177,8 @@ decoration_to_description = {
     '!>!'              : _('accent or emphasis'),
     '!accent!'         : _('accent or emphasis'),
     '!emphasis!'       : _('accent or emphasis'),
+    '!^!'              : _('marcato'),
+    '!marcato!'        : _('marcato'),
     '!fermata!'        : _('fermata or hold'),
     '!invertedfermata!': _('upside down fermata'),
     '!tenuto!'         : _('tenuto'),
@@ -230,6 +233,8 @@ decoration_to_description = {
     '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down'),
     '!ped!'            : _('sustain pedal down'),
     '!ped-up!'         : _('sustain pedal up'),
+    '!editorial!'      : _('editorial accidental above note'),
+    '!courtesy!'       : _('courtesy accidental between parentheses'),
 }
 
 ABC_TUNE_HEADER_NO = 0
@@ -604,7 +609,7 @@ class AbcMidiChannelDirective(AbcElement):
 
 
 class AbcMidiDrumMapDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)" + AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)(?:MIDI drummap|percmap) (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
         for section in ABC_SECTIONS:
@@ -892,6 +897,7 @@ class AbcArticulationDecoration(AbcDecoration):
         '.',
         '!tenuto!',
         '!accent!', '!>!', '!emphasis!',
+        '!marcato!', '!^!',
         '!wedge!',
         '!invertedfermata!',
         '!fermata!',
