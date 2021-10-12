@@ -41,9 +41,9 @@ class ABCStyler:
 
         self.fields = 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ'
         self.ornaments = 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~'
-        self.bar_chars = '|:[.'
+        bar_chars = '|[]:.'
         # go back to default style if next character is \r\n (to avoid some strange syntax highlighting with lyrics at least on mac version)
-        new_line_style_changers = self.bar_chars + '!%"{+' + self.fields + self.ornaments
+        new_line_style_changers = bar_chars + '!%"{+' + self.fields + self.ornaments
         self.style_changers = {
             '\r': new_line_style_changers,
             '\n': new_line_style_changers,
@@ -98,8 +98,9 @@ class ABCStyler:
         end = event.GetPosition()        # this is the last character that needs styling
         line_start = editor.LineFromPosition(start)
         start = editor.PositionFromLine(line_start)
-        state = next_state = STYLE_DEFAULT  #  editor.GetStyleAt(start-1)  # init style
+        state = STYLE_DEFAULT  #  editor.GetStyleAt(start-1)  # init style
         text_length = editor.GetTextLength()
+        next_state = None
         old_state = state
         try:
             editor.StartStyling(start, 31)   # only style the text style bits
@@ -110,17 +111,18 @@ class ABCStyler:
         ch = chr(get_char_at(i))
 
         buffer_pos = start + 1
-        buffer_size = min(65536, end-start)
-        next_buffer = get_text_range(buffer_pos, min(buffer_pos + buffer_size, text_length))
-        next_buffer = list(map(chr, next_buffer))
-        buffer_pos += len(next_buffer)
-
-        char_count = 0
+        buffer_size = min(50000, end-start)
+        count = 0
         style_changer = None
         non_style_changer = None
         while True:
+            next_buffer = get_text_range(buffer_pos, min(buffer_pos + buffer_size, text_length))
+            next_buffer = list(map(chr, next_buffer))
+            buffer_pos += len(next_buffer)
+            if buffer_pos >= text_length:
+                next_buffer.append('\x00')  # add a dummy character so the last actual character gets processed too
             for chNext in next_buffer:
-                if (not style_changer or ch in style_changer) or (non_style_changer and not ch in non_style_changer):
+                if (not style_changer or ch in style_changer) and (not non_style_changer or not ch in non_style_changer):
                     style_changer = None
                     if non_style_changer:
                         non_style_changer = None
@@ -165,6 +167,8 @@ class ABCStyler:
                     elif state in (STYLE_ORNAMENT_EXCL, STYLE_ORNAMENT_PLUS, STYLE_GRACE):
                         if style_per_char.get(ch) == state:
                             next_state = STYLE_DEFAULT
+                    elif state == STYLE_COMMENT_SPECIAL and chPrev == '%':
+                        style_changer = style_changers['%%']
                     elif state in (STYLE_FIELD_VALUE, STYLE_LYRICS, STYLE_COMMENT_SPECIAL):
                         if ch == '%' and chPrev != '\\':
                             state = STYLE_COMMENT_NORMAL
@@ -186,27 +190,24 @@ class ABCStyler:
                                 next_state = STYLE_DEFAULT
                             else:
                                 style_changer = style_changers[ch]  # when " is escaped with \ then look for next ""
-                    elif state == STYLE_COMMENT_SPECIAL and chPrev == '%':
-                        style_changer = style_changers['%%']
                     else:
                         state == STYLE_DEFAULT
 
                 if old_state != state:
-                    set_styling(char_count, old_state)
-                    char_count = 0
-                    old_state = next_state = state
+                    set_styling(count, old_state)
+                    count = 0
+                    old_state = state
 
-                state = next_state
+                if next_state is not None:
+                    state = next_state
+                    next_state = None
 
-                char_count += 1
-                chPrev, ch = ch, chNext
+                count += 1
+                chPrev = ch
+                ch = chNext
 
             if buffer_pos >= end:
                 break
 
-            next_buffer = get_text_range(buffer_pos, min(buffer_pos + buffer_size, text_length))
-            next_buffer = list(map(chr, next_buffer))
-            buffer_pos += len(next_buffer)
-
         # final style
-        set_styling(char_count, old_state)
+        set_styling(count, old_state)

@@ -3990,7 +3990,7 @@ class MainFrame(wx.Frame):
 
         # p09 include line numbering in the edit window. 2014-10-14 [SS]
         self.editor.SetMarginLeft(15)
-        self.editor.SetMarginWidth(1,40)
+        self.editor.SetMarginWidth(1,50)
         self.editor.SetMarginType(1,stc.STC_MARGIN_NUMBER)
 
         # 1.3.6.2 [JWdJ] 2015-02
@@ -4158,15 +4158,18 @@ class MainFrame(wx.Frame):
     def current_file(self, value):
         self._current_file = value
         if value:
-            recent_files = self.settings.get('recentfiles', '').split('|')
-            if recent_files[0] != value:
-                if value in recent_files:
-                    recent_files.remove(value)
-                recent_files.insert(0, value)
-                if len(recent_files) > 10:
-                    recent_files = recent_files[:10]
-                self.settings['recentfiles'] = '|'.join(recent_files)
-                self.update_recent_files_menu()
+            self.add_recent_file(value)
+
+    def add_recent_file(self, value):
+        recent_files = self.settings.get('recentfiles', '').split('|')
+        if recent_files[0] != value:
+            if value in recent_files:
+                recent_files.remove(value)
+            recent_files.insert(0, value)
+            if len(recent_files) > 10:
+                recent_files = recent_files[:10]
+            self.settings['recentfiles'] = '|'.join(recent_files)
+            self.update_recent_files_menu()
 
     def OnPageSetup(self, evt):
         psdd = wx.PageSetupDialogData(self.printData)
@@ -5891,6 +5894,7 @@ class MainFrame(wx.Frame):
 
             f.write(s)
             f.close()
+            self.add_recent_file(self.current_file)
             self.editor.SetSavePoint()
 
     def save_as(self, directory=None):
@@ -7890,7 +7894,7 @@ class MainFrame(wx.Frame):
         set_style(self.styler.STYLE_COMMENT_NORMAL, "fore:#AAAAAA,face:%s,italic,size:%d" % (font, size))
         set_style(self.styler.STYLE_COMMENT_SPECIAL, "fore:#888888,face:%s,italic,size:%d" % (font, size))
         # Bar
-        set_style(self.styler.STYLE_BAR, "fore:#00007F,face:%s,bold,size:%d" % (font, size))
+        set_style(self.styler.STYLE_BAR, "fore:#000099,face:%s,bold,size:%d" % (font, size))
         # Field
         set_style(self.styler.STYLE_FIELD,                "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
         set_style(self.styler.STYLE_FIELD_VALUE,          "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
