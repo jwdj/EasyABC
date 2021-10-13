@@ -13,11 +13,6 @@
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-PY3 = sys.version_info.major > 2
-if PY3:
-    xrange = range
-
 
 class ABCStyler:
     def __init__(self, styled_text_ctrl):
@@ -41,25 +36,22 @@ class ABCStyler:
 
         self.fields = 'ABCDEFGHIJKLMmNOPQRrSsTUVWwXYZ'
         self.ornaments = 'HIJKLMNOPQRSTUVWhijklmnopqrstuvw~'
-        bar_chars = '|[]:.'
         # go back to default style if next character is \r\n (to avoid some strange syntax highlighting with lyrics at least on mac version)
-        new_line_style_changers = bar_chars + '!%"{+' + self.fields + self.ornaments
         self.style_changers = {
-            '\r': new_line_style_changers,
-            '\n': new_line_style_changers,
-            ':': '\n%',
-            '%': '\n',
-            '%%': '\n%',
-            '!': '!\n%',
-            '+': '+\n%',
-            '{': '}\n%',
-            '[': ']\n%',
-            '"': '"\n%',
+            self.STYLE_FIELD_VALUE: '\n%',
+            self.STYLE_COMMENT_NORMAL: '\n',
+            self.STYLE_COMMENT_SPECIAL: '\n%',
+            self.STYLE_ORNAMENT_EXCL: '!\n%',
+            self.STYLE_ORNAMENT_PLUS: '+\n%',
+            self.STYLE_GRACE: '}\n%',
+            self.STYLE_CHORD: ']\n%',
+            self.STYLE_EMBEDDED_FIELD_VALUE: ']\n%',
+            self.STYLE_STRING: '"\n%',
+            self.STYLE_DEFAULT: '|[:.!%"{+\n' + self.ornaments
         }
-        self.non_style_changers = {
+        self.style_keepers = {
             self.STYLE_BAR: '|[]:1234',
             self.STYLE_ORNAMENT: self.ornaments,
-            self.STYLE_COMMENT_SPECIAL: '%'
         }
         self.style_per_char = {
             '!': self.STYLE_ORNAMENT_EXCL,
@@ -87,7 +79,7 @@ class ABCStyler:
         STYLE_CHORD = self.STYLE_CHORD
         style_changers = self.style_changers
         style_per_char = self.style_per_char
-        non_style_changers = self.non_style_changers
+        style_keepers = self.style_keepers
         fields = self.fields
         ornaments = self.ornaments
         editor = self.e
@@ -111,10 +103,10 @@ class ABCStyler:
         ch = chr(get_char_at(i))
 
         buffer_pos = start + 1
-        buffer_size = min(50000, end-start)
+        buffer_size = min(100000, end-start)
         count = 0
         style_changer = None
-        non_style_changer = None
+        style_keeper = None
         while True:
             next_buffer = get_text_range(buffer_pos, min(buffer_pos + buffer_size, text_length))
             next_buffer = list(map(chr, next_buffer))
@@ -122,76 +114,76 @@ class ABCStyler:
             if buffer_pos >= text_length:
                 next_buffer.append('\x00')  # add a dummy character so the last actual character gets processed too
             for chNext in next_buffer:
-                if (not style_changer or ch in style_changer) and (not non_style_changer or not ch in non_style_changer):
+                if (not style_changer or ch in style_changer) and (not style_keeper or not ch in style_keeper):
                     style_changer = None
-                    if non_style_changer:
-                        non_style_changer = None
+                    if style_keeper:
+                        style_keeper = None
                         state = STYLE_DEFAULT
 
                     if ch in '\r\n':
                         state = STYLE_DEFAULT
-                        style_changer = style_changers[ch]
                     elif state == STYLE_DEFAULT:
                         if chPrev in '\n[\x00' and ch in fields and chNext == ':':
                             if chPrev == '[':
                                 state = STYLE_EMBEDDED_FIELD   # field on the [M:3/4] form
                             elif ch in 'wW':
                                 state = STYLE_LYRICS
-                                style_changer = style_changers[':']
+                                style_changer = style_changers[STYLE_FIELD_VALUE]
                             elif ch == 'X':
                                 state = STYLE_FIELD_INDEX
-                                style_changer = style_changers[':']
+                                style_changer = style_changers[STYLE_FIELD_VALUE]
                             else:
                                 state = STYLE_FIELD
                         elif ch == '|' or (ch in ':.' and chNext in '|:') or (ch == '[' and chNext in '1234'):
                             state = STYLE_BAR
-                            non_style_changer = non_style_changers[state]
+                            style_keeper = style_keepers[state]
                         elif ch in '!+{':
                             state = style_per_char[ch]
-                            style_changer = style_changers[ch]
+                            style_changer = style_changers[state]
                         elif ch == '%':
                             if chNext == '%' and chPrev in '\n\x00':
                                 state = STYLE_COMMENT_SPECIAL
                             else:
                                 state = STYLE_COMMENT_NORMAL
-                                style_changer = style_changers[ch]
+                                style_changer = style_changers[state]
                         elif ch == '"':
                             state = STYLE_STRING
-                            style_changer = style_changers[ch]
+                            style_changer = style_changers[state]
                         elif ch in ornaments:
                             state = STYLE_ORNAMENT
-                            non_style_changer = non_style_changers[state]
+                            style_keeper = style_keepers[state]
                         elif chPrev == '[':
                             state = STYLE_CHORD
-                            style_changer = style_changers[chPrev]
+                            style_changer = style_changers[state]
                     elif state in (STYLE_ORNAMENT_EXCL, STYLE_ORNAMENT_PLUS, STYLE_GRACE):
                         if style_per_char.get(ch) == state:
                             next_state = STYLE_DEFAULT
                     elif state == STYLE_COMMENT_SPECIAL and chPrev == '%':
-                        style_changer = style_changers['%%']
+                        style_changer = style_changers[state]
                     elif state in (STYLE_FIELD_VALUE, STYLE_LYRICS, STYLE_COMMENT_SPECIAL):
                         if ch == '%' and chPrev != '\\':
                             state = STYLE_COMMENT_NORMAL
-                            style_changer = style_changers[ch]
+                            style_changer = style_changers[state]
                     elif state in (STYLE_CHORD, STYLE_EMBEDDED_FIELD_VALUE):
                         if ch == ']':
                             state = STYLE_DEFAULT
                     elif state == STYLE_FIELD:
                         if ch == ':':
                             next_state = STYLE_FIELD_VALUE
-                            style_changer = style_changers[ch]
+                            style_changer = style_changers[next_state]
                     elif state == STYLE_EMBEDDED_FIELD:
                         if ch == ':':
                             next_state = STYLE_EMBEDDED_FIELD_VALUE
-                            style_changer = style_changers['[']
+                            style_changer = style_changers[next_state]
                     elif state == STYLE_STRING:
                         if ch == '"':
                             if chPrev != '\\':
                                 next_state = STYLE_DEFAULT
                             else:
-                                style_changer = style_changers[ch]  # when " is escaped with \ then look for next ""
+                                style_changer = style_changers[state]  # when " is escaped with \ then look for next ""
                     else:
-                        state == STYLE_DEFAULT
+                        state = STYLE_DEFAULT
+                        style_changer = style_changers[state]
 
                 if old_state != state:
                     set_styling(count, old_state)

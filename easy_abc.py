@@ -6204,10 +6204,10 @@ class MainFrame(wx.Frame):
             self.msg.ShowText(execmessages)
             self.msg.Show()
         else:
-            self.msg.ShowText(execmessages)
+            win.ShowText(execmessages)
             # 1.3.6.1 [JWdJ] 2015-01-30 When messages window is lost it will be focused again
-            self.msg.Iconize(False)
-            self.msg.Raise()
+            win.Iconize(False)
+            win.Raise()
 
     def OnShowMessages(self, evt):
         self.ShowMessages()
@@ -6469,8 +6469,8 @@ class MainFrame(wx.Frame):
             self.settingsbook = MyNoteBook(self, self.settings, self.statusbar)
             self.settingsbook.Show()
         else:
-            self.settingsbook.Iconize(False)
-            self.settingsbook.Raise()
+            win.Iconize(False)
+            win.Raise()
 
     def OnChangeFont(self, evt):
         font = wx.GetFontFromUser(self, self.editor.GetFont(), _('Select a font for the ABC editor'))
