@@ -3823,7 +3823,7 @@ class SearchFilesThread(threading.Thread):
             found_tune_positions = {}
             for abckey, words in search_part:
                 convert_line = lambda s: s
-                if abckey in ['w:', 'W:']:
+                if abckey in ('w:', 'W:'):
                     convert_line = lyrics_to_text
 
                 loc = 0
@@ -5109,6 +5109,12 @@ class MainFrame(wx.Frame):
         filename = filename + file_extension
         return filename
 
+    def OnExportToClipboard(self, evt):
+        abc = os.linesep.join(tune.abc for tune in self.GetSelectedTunes(add_file_header=False))
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(abc))
+            wx.TheClipboard.Close()
+
     def OnExportMidi(self, evt):
         self.export_tunes(_('Midi file'), '.mid', self.export_midi, only_selected=True)
 
@@ -6004,6 +6010,7 @@ class MainFrame(wx.Frame):
             (_('Move up'), '', self.OnMoveTuneUp),
             (_('Move down'), '', self.OnMoveTuneDown),
             (),
+            (_('Copy'), '', self.OnExportToClipboard),
             (_('Export to &MIDI...'), '', self.OnExportMidi),
             (_('Export to &PDF...'), '', self.OnExportPDF),
             (_('Export to &one PDF...'), '', self.OnExportSelectedToSinglePDF, self.add_to_multi_list),
