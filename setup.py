@@ -27,7 +27,9 @@ include_files = [os.path.join('locale', 'sv', 'LC_MESSAGES', 'easyabc.po'),
                  os.path.join('locale', 'ja', 'LC_MESSAGES', 'easyabc.po'),
                  os.path.join('locale', 'ja', 'LC_MESSAGES', 'easyabc.mo'),
                  os.path.join('locale', 'it', 'LC_MESSAGES', 'easyabc.po'),
-                 os.path.join('locale', 'it', 'LC_MESSAGES', 'easyabc.mo')] + \
+                 os.path.join('locale', 'it', 'LC_MESSAGES', 'easyabc.mo'),
+                 os.path.join('locale', 'zh_CN', 'LC_MESSAGES', 'easyabc.po'),
+                 os.path.join('locale', 'zh_CN', 'LC_MESSAGES', 'easyabc.mo')] + \
                  glob.glob(os.path.join('img', '*.*')) + glob.glob(os.path.join('sound', '*.*'))
 
 if sys.platform == "darwin":
@@ -62,6 +64,7 @@ if sys.platform == "darwin":
                   ('locale/nl', []), ('locale/nl/LC_MESSAGES', glob.glob(os.path.join('locale/nl/LC_MESSAGES/*'))),
                   ('locale/ja', []), ('locale/ja/LC_MESSAGES', glob.glob(os.path.join('locale/ja/LC_MESSAGES/*'))),
                   ('locale/it', []), ('locale/it/LC_MESSAGES', glob.glob(os.path.join('locale/it/LC_MESSAGES/*'))),
+                  ('locale/zh_CN', []), ('locale/zh_CN/LC_MESSAGES', glob.glob(os.path.join('locale/zh_CN/LC_MESSAGES/*'))),
                   ]
 
     setup(name="EasyABC",
