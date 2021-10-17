@@ -85,7 +85,7 @@ class ABCStyler:
         editor = self.e
         get_char_at = editor.GetCharAt
         get_text_range = editor.GetTextRangeRaw
-        set_styling = editor.SetStyling
+        set_styling = editor.SetStyleBytes
         start = editor.GetEndStyled()    # this is the first character that needs styling
         end = event.GetPosition()        # this is the last character that needs styling
         line_start = editor.LineFromPosition(start)
@@ -93,7 +93,6 @@ class ABCStyler:
         state = STYLE_DEFAULT  #  editor.GetStyleAt(start-1)  # init style
         text_length = editor.GetTextLength()
         next_state = None
-        old_state = state
         try:
             editor.StartStyling(start, 31)   # only style the text style bits
         except:
@@ -104,10 +103,11 @@ class ABCStyler:
 
         buffer_pos = start + 1
         buffer_size = min(100000, end-start)
-        count = 0
+        styles = bytearray(buffer_size)
         style_changer = None
         style_keeper = None
         while True:
+            count = 0
             next_buffer = get_text_range(buffer_pos, min(buffer_pos + buffer_size, text_length))
             next_buffer = list(map(chr, next_buffer))
             buffer_pos += len(next_buffer)
@@ -185,21 +185,16 @@ class ABCStyler:
                         state = STYLE_DEFAULT
                         style_changer = style_changers[state]
 
-                if old_state != state:
-                    set_styling(count, old_state)
-                    count = 0
-                    old_state = state
+                styles[count] = state
+                count += 1
 
                 if next_state is not None:
                     state = next_state
                     next_state = None
 
-                count += 1
                 chPrev = ch
                 ch = chNext
 
+            set_styling(count, bytes(styles))
             if buffer_pos >= end:
                 break
-
-        # final style
-        set_styling(count, old_state)

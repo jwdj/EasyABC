@@ -584,7 +584,7 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - New: Export to HTML interactive.
     Exports the tunes using Jef Moine's excellent abc2svg. (thanks go to Seymour Shlien for this idea he already implemented in https://runabc.sourceforge.io/)
 - Open most recent file on startup [mist]
-- 10% faster syntax highlighting
+- 40% faster syntax highlighting
 - Find in files: selecting tune focused wrong tune sometimes
 - ABC settings: Added 'Separate defaults per voice' checkbox to Voices tab
 - ABC assist supports %%barnumbers (better to use %%measurenb instead)
