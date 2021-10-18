@@ -34,7 +34,6 @@ program_name = 'EasyABC ' + program_version
 
 import sys
 
-from wx.core import VERTICAL
 PY3 = sys.version_info >= (3,0,0)
 
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
@@ -5293,7 +5292,8 @@ class MainFrame(wx.Frame):
         f.write('\n')
         abc = tune.abc
         if '%%MIDI drummap' in abc:
-            abc = re.sub(r'%%MIDI drummap\s+(?P<note>[_\^][A-Ga-g])\s+(?P<midinote>\d+)', r'%%percmap \g<note> \g<midinote> x', abc)
+            abc = re.sub(r'%%MIDI drummap\s+(?P<note>\^[A-Ga-g])\s+(?P<midinote>\d+)', r'%%percmap \g<note> \g<midinote> x', abc)
+            abc = re.sub(r'%%MIDI drummap\s+(?P<note>_[A-Ga-g])\s+(?P<midinote>\d+)', r'%%percmap \g<note> \g<midinote> circle-x', abc)
             abc = abc.replace('%%MIDI drummap ', '%%percmap ')
 
         if self.settings.get('play_chords') or '%%MIDI gchord' in abc:

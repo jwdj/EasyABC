@@ -13,6 +13,8 @@
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+PY3 = sys.version_info >= (3,0,0)
 
 class ABCStyler:
     def __init__(self, styled_text_ctrl):
@@ -109,9 +111,12 @@ class ABCStyler:
         while True:
             count = 0
             next_buffer = get_text_range(buffer_pos, min(buffer_pos + buffer_size, text_length))
-            next_buffer = list(map(chr, next_buffer))
+            if PY3:
+                next_buffer = list(map(chr, next_buffer))
             buffer_pos += len(next_buffer)
             if buffer_pos >= text_length:
+                if not PY3:
+                    next_buffer = list(next_buffer)
                 next_buffer.append('\x00')  # add a dummy character so the last actual character gets processed too
             for chNext in next_buffer:
                 if (not style_changer or ch in style_changer) and (not style_keeper or not ch in style_keeper):
