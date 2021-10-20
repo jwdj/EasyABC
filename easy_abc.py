@@ -2012,14 +2012,15 @@ class MyNoteBook(wx.Frame):
         nb = wx.Notebook(p)
         # 1.3.6.4 [SS] 2015-05-26 added statusbar
         abcsettings = AbcFileSettingsFrame(nb, settings, statusbar, parent.mc)
-        chordpage = MyChordPlayPage(nb, settings)
+        self.chordpage = MyChordPlayPage(nb, settings)
         self.voicepage = MyVoicePage(nb, settings)
         # 1.3.6.1 [SS] 2015-02-02
         abcm2pspage = MyAbcm2psPage(nb, settings, abcsettings)
         xmlpage    = MusicXmlPage(nb, settings)
         colorsettings = ColorSettingsFrame(nb, settings)
         nb.AddPage(abcm2pspage, _("Abcm2ps"))
-        nb.AddPage(chordpage, _("Abc2midi"))
+        self.chordpage_id = nb.PageCount
+        nb.AddPage(self.chordpage, _("Abc2midi"))
         self.voicepage_id = nb.PageCount
         nb.AddPage(self.voicepage, _("Voices"))
         nb.AddPage(xmlpage, _("MusicXML"))
@@ -2035,6 +2036,8 @@ class MyNoteBook(wx.Frame):
     def OnPageChanged(self, event):
         if event.GetSelection() == self.voicepage_id:
             self.voicepage.FillControls()
+        elif event.GetSelection() == self.chordpage_id:
+            self.chordpage.FillControls()
         event.Skip()
 
 
@@ -2271,9 +2274,9 @@ class MyChordPlayPage (wx.Panel):
 
         # 1.3.6.4 [SS] 2015-05-28 shrunk width from 250 to 200
         self.chkPlayChords = wx.CheckBox(self, wx.ID_ANY, _('Play chords'))
-        self.cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.cmbMidiChordProgram = wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.cmbMidiBassProgram = wx.ComboBox(self, wx.ID_ANY, choices=general_midi_instruments, size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiChordProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.cmbMidiBassProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
         #1.3.6 [SS] 2014-11-15
 
         #1.3.6.4 [SS] 2015-06-10
@@ -2391,13 +2394,6 @@ class MyChordPlayPage (wx.Panel):
         self.slidertuning.SetToolTip(wx.ToolTip(tuning_toolTip))
         self.sliderVol.SetToolTip(wx.ToolTip(vol_toolTip))
 
-        try:
-            self.cmbMidiProgram.Select(self.settings.get('midi_program', default_midi_instrument))
-            self.cmbMidiChordProgram.Select(self.settings.get('midi_chord_program', 25))
-            self.cmbMidiBassProgram.Select(self.settings.get('midi_bass_program', 25))
-        except:
-            pass
-
         #1.3.6 [SS] 2014-11-24
         self.chkPlayChords.Bind(wx.EVT_CHECKBOX, self.OnPlayChords)
         self.nodynamics.Bind(wx.EVT_CHECKBOX, self.OnNodynamics)
@@ -2429,6 +2425,25 @@ class MyChordPlayPage (wx.Panel):
         self.SetAutoLayout(True)
         self.Fit()
         self.Layout()
+        self.controls_initialized = False
+
+    def FillControls(self):
+        if self.controls_initialized:
+            return
+
+        instruments = general_midi_instruments
+        self.cmbMidiProgram.Append(instruments)
+        self.cmbMidiChordProgram.Append(instruments)
+        self.cmbMidiBassProgram.Append(instruments)
+        try:
+            self.cmbMidiProgram.Select(self.settings.get('midi_program', default_midi_instrument))
+            self.cmbMidiChordProgram.Select(self.settings.get('midi_chord_program', 25))
+            self.cmbMidiBassProgram.Select(self.settings.get('midi_bass_program', 25))
+        except:
+            pass
+
+        self.controls_initialized = True
+
 
     def OnPlayChords(self, evt):
         self.settings['play_chords'] = self.chkPlayChords.GetValue()
