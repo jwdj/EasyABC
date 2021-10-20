@@ -22,7 +22,7 @@ try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import types, sys, os, re, datetime
 
-VERSION = 231
+VERSION = 233
 
 python3 = sys.version_info[0] > 2
 lmap = lambda f, xs: list (map (f, xs))   # eager map for python 3
@@ -1614,8 +1614,9 @@ class MusicXml:
                     s.mkBarline (maat, 'right', lev + 1, style='light-heavy')
                 elif bar[0] == '&': overlay = 1
             elif x.name == 'tup':
-                if len (x.t) == 3:  n, into, nts = x.t
-                else:               n, into, nts = x.t[0], 0, 0
+                if   len (x.t) == 3: n, into, nts = x.t
+                elif len (x.t) == 2: n, into, nts = x.t + [0]
+                else:                n, into, nts = x.t[0], 0, 0
                 if into == 0: into = 3 if n in [2,4,8] else 2
                 if nts == 0: nts = n
                 s.tmnum, s.tmden, s.ntup = n, into, nts
@@ -2093,25 +2094,29 @@ def xml2mxl (pad, fnm, data):   # write xml data to compressed .mxl file
     f.close ()
     info ('%s written' % outfile, warn=0)
 
-def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False, fOpt=False):
+def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False, fOpt=False):  # not used, backwards compatibility
     score = mxm.parse (abc_string, rOpt, bOpt, fOpt)
-    xmldoc = fixDoctype (score)
-    writefile (pad, fnm, xmldoc, mxl, tOpt)
+    writefile (pad, fnm, '', score, mxl, tOpt)
 
-def writefile (pad, fnm, xmldoc, mxlOpt, tOpt=False):
+def writefile (pad, fnm, fnmNum, xmldoc, mxlOpt, tOpt=False):
     ipad, ifnm = os.path.split (fnm)                    # base name of input path is
-    if tOpt: ifnm = mxm.title.split ('\n')[0].replace (',','_').replace ("'",'_').replace ('?','_')
+    if tOpt:
+        x = xmldoc.findtext ('work/work-title', 'no_title')
+        ifnm = x.replace (',','_').replace ("'",'_').replace ('?','_')
+    else:
+        ifnm += fnmNum
+    xmlstr = fixDoctype (xmldoc)
     if pad:
         if not mxlOpt or mxlOpt in ['a', 'add']:
             outfnm = os.path.join (pad, ifnm + '.xml')  # joined with path from -o option
             outfile = open (outfnm, 'w')
-            outfile.write (xmldoc)
+            outfile.write (xmlstr)
             outfile.close ()
             info ('%s written' % outfnm, warn=0)
-        if mxlOpt: xml2mxl (pad, ifnm, xmldoc)          # also write a compressed version
+        if mxlOpt: xml2mxl (pad, ifnm, xmlstr)          # also write a compressed version
     else:
         outfile = sys.stdout
-        outfile.write (xmldoc)
+        outfile.write (xmlstr)
         outfile.write ('\n')
 
 def readfile (fnmext, errmsg='read error: '):
@@ -2134,10 +2139,15 @@ def expand_abc_include (abctxt):
 
 abc_header, abc_voice, abc_scoredef, abc_percmap = abc_grammar () # compute grammars only once
 mxm = MusicXml ()               # same for instance of MusicXml
-def getXmlScores (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # added by David Randolph
-    xml_strings = []
+
+def getXmlScores (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # not used, backwards compatibility
+    return [fixDoctype (xml_doc) for xml_doc in
+        getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False)]
+
+def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # added by David Randolph
+    xml_docs = []
     abctext = expand_abc_include (abc_string)
-    fragments =  abctext.split ('X:')
+    fragments = re.split ('^\s*X:', abctext, flags=re.M)
     preamble = fragments [0]    # tunes can be preceeded by formatting instructions
     tunes = fragments[1:]
     if not tunes and preamble: tunes, preamble = ['1\n' + preamble], ''  # tune without X:
@@ -2152,13 +2162,12 @@ def getXmlScores (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False)
             deler = reduce (ggd, ss + [21]) # greatest common divisor of all durations
             for i, d in enumerate (ds): d.text = str (ss [i] // deler)
             for d in score.iter ('divisions'): d.text = str (int (d.text) // deler)
-            xml_str = fixDoctype (score)
-            xml_strings.append (xml_str)
+            xml_docs.append (score)
         except ParseException:
             pass         # output already printed
         except Exception as err:
             info ('an exception occurred.\n%s' % err)
-    return xml_strings
+    return xml_docs
 
 #----------------
 # Main Program
@@ -2212,8 +2221,8 @@ if __name__ == '__main__':
             continue
         abctext = readfile (fnmext)
         skip, num = options.m
-        xml_strings = getXmlScores (abctext, skip, num, options.r, options.b, options.f)
-        for itune, xmldoc in enumerate (xml_strings):
-            fnmNum = '%s%02d' % (fnm, itune + 1) if len (xml_strings) > 1 else fnm
-            writefile (pad, fnmNum, xmldoc, options.mxl, options.t)
+        xml_docs = getXmlDocs (abctext, skip, num, options.r, options.b, options.f)
+        for itune, xmldoc in enumerate (xml_docs):
+            fnmNum = '%02d' % (itune + 1) if len (xml_docs) > 1 else ''
+            writefile (pad, fnm, fnmNum, xmldoc, options.mxl, options.t)
     info ('done in %.2f secs' % (time.time () - t_start))

@@ -592,3 +592,4 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - General MIDI 2 percussion instruments added to %%MIDI drummap
 - ABC assist supports !marcato! and !editoral!
 - Added Copy to Tune list right button menu
+- Update to abc2xml version 233
