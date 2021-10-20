@@ -484,6 +484,8 @@ def remove_non_note_fragments(abc, exclude_grace_notes=False):
 
 def get_notes_from_abc(abc, exclude_grace_notes=False):
     ''' returns a list of (start-offset, end-offset, abc-note-text) tuples for ABC notes/rests '''
+    if not isinstance(abc, str):
+        abc = abc.encode()
 
     abc = remove_non_note_fragments(abc, exclude_grace_notes)
 
