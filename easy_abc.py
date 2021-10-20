@@ -8418,7 +8418,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="https://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="https://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
 <li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python by <a href="https://wim.vree.org/svgParse/index.html">Willem Vree</a>)</li>
 <li>Thanks to Guido Gonzato for providing the fields and command reference.
-<li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german) and Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch).</li>
+<li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german), Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch) and Wu&nbsp;Xiaotian&nbsp;(chinese).</li>
 <li>Universal binaries of abcm2ps and abc2midi for OSX are available thanks to Chuck&nbsp;Boody.</li>
 </ul>
 
