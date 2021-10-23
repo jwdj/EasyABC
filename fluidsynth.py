@@ -42,7 +42,7 @@ if platform.system() == 'Windows':
         lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
     lib_locations = [lib]
 else:
-    lib_locations = ['libfluidsynth.so.3', 'libfluidsynth.so.2']
+    lib_locations = ['./libfluidsynth.so.3', 'libfluidsynth.so.3', './libfluidsynth.so.2', 'libfluidsynth.so.2']
 
 i = 0
 while i < len(lib_locations):

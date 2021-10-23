@@ -106,7 +106,6 @@ except ImportError:
     # sys.stderr.write(traceback.format_exc())
     fluidsynth_available = False
 
-from wxmediaplayer import *
 from xml2abc_interface import xml_to_abc, abc_to_xml
 from midi2abc import midi_to_abc, Note, duration2abc
 from generalmidi import general_midi_instruments
@@ -3186,12 +3185,12 @@ class MusicXmlPage(wx.Panel):
         credit     = wx.StaticText(self, wx.ID_ANY, _('credit filter'))
         ulength    = wx.StaticText(self, wx.ID_ANY, _('unit length'))
 
-        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY, size=(300,20))
-        self.maxchars = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
-        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
-        self.voltaval = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
-        self.creditval = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
-        self.unitval  = wx.TextCtrl(self, wx.ID_ANY, size=(40,20))
+        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY)
+        self.maxchars = wx.TextCtrl(self, wx.ID_ANY)
+        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY)
+        self.voltaval = wx.TextCtrl(self, wx.ID_ANY)
+        self.creditval = wx.TextCtrl(self, wx.ID_ANY)
+        self.unitval  = wx.TextCtrl(self, wx.ID_ANY)
         self.chkXmlCompressed = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlUnfold = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlMidi = wx.CheckBox(self, wx.ID_ANY, '')
@@ -3244,6 +3243,8 @@ class MusicXmlPage(wx.Panel):
         box.Add(gridsizer1,0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=border)
         box.Add(gridsizer2,0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=border)
 
+        flags=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
+
         gridsizer1.Add(heading,(1,1))
 
         gridsizer2.Add((1,20))
@@ -3252,38 +3253,38 @@ class MusicXmlPage(wx.Panel):
         gridsizer2.Add(abc2xml,0,0,0)
         gridsizer2.Add((1,1))
 
-        gridsizer2.Add(compressed,0,0,0)
-        gridsizer2.Add(self.chkXmlCompressed,0,0,0)
+        gridsizer2.Add(compressed, flag=flags, border=border)
+        gridsizer2.Add(self.chkXmlCompressed, flag=flags, border=border)
 
         gridsizer2.Add((1,20))
         gridsizer2.Add((1,20))
 
-        gridsizer2.Add(xml2abc,0,0,0)
+        gridsizer2.Add(xml2abc, flag=flags, border=border)
         gridsizer2.Add((1,1))
 
-        gridsizer2.Add(unfold,0,0,0)
-        gridsizer2.Add(self.chkXmlUnfold,0,0,0)
+        gridsizer2.Add(unfold, flag=flags, border=border)
+        gridsizer2.Add(self.chkXmlUnfold, flag=flags, border=border)
 
-        gridsizer2.Add(mididata,0,0,0)
-        gridsizer2.Add(self.chkXmlMidi,0,0,0)
+        gridsizer2.Add(mididata, flag=flags, border=border)
+        gridsizer2.Add(self.chkXmlMidi, flag=flags, border=border)
 
-        gridsizer2.Add(volta,0,0,0)
-        gridsizer2.Add(self.voltaval,0,0,0)
+        gridsizer2.Add(volta, flag=flags, border=border)
+        gridsizer2.Add(self.voltaval, flag=flags, border=border)
 
-        gridsizer2.Add(numchar,0,0,0)
-        gridsizer2.Add(self.maxchars,0,0,0)
+        gridsizer2.Add(numchar, flag=flags, border=border)
+        gridsizer2.Add(self.maxchars, flag=flags, border=border)
 
-        gridsizer2.Add(numbars,0,0,0)
-        gridsizer2.Add(self.maxbars,0,0,0)
+        gridsizer2.Add(numbars, flag=flags, border=border)
+        gridsizer2.Add(self.maxbars, flag=flags, border=border)
 
-        gridsizer2.Add(credit,0,0,0)
-        gridsizer2.Add(self.creditval,0,0,0)
+        gridsizer2.Add(credit, flag=flags, border=border)
+        gridsizer2.Add(self.creditval, flag=flags, border=border)
 
-        gridsizer2.Add(ulength,0,0,0)
-        gridsizer2.Add(self.unitval,0,0,0)
+        gridsizer2.Add(ulength, flag=flags, border=border)
+        gridsizer2.Add(self.unitval, flag=flags, border=border)
 
-        gridsizer2.Add(xmlpage,0,0,0)
-        gridsizer2.Add(self.XmlPage,0,0,0)
+        gridsizer2.Add(xmlpage, flag=flags, border=border)
+        gridsizer2.Add(self.XmlPage, flag=flags, border=border)
 
         self.SetSizer(box)
         self.Fit()
@@ -3974,6 +3975,7 @@ class MainFrame(wx.Frame):
         if self.mc is None:
             try:
                 backend = None
+                from wxmediaplayer import WxMediaPlayer
                 if wx.Platform == "__WXMAC__":
                     backend = wx.media.MEDIABACKEND_QUICKTIME
                 elif wx.Platform == "__WXMSW__":
@@ -4790,12 +4792,18 @@ class MainFrame(wx.Frame):
         self.toolbar.AddControl(abc_assist, label=_('ABC assist'))
         self.Bind(wx.EVT_BUTTON, self.OnToolAbcAssist, abc_assist) # 1.3.6.2 [JWdJ] 2015-03
 
-        ornamentations = self.toolbar.AddSimpleTool(self.id_ornamentations, "", wx.Image(os.path.join(image_path, 'toolbar_ornamentations.png')).ConvertToBitmap(), _('Note ornaments'))
-        dynamics = self.toolbar.AddSimpleTool(self.id_dynamics, "", wx.Image(os.path.join(image_path, 'toolbar_dynamics.png')).ConvertToBitmap(), _('Dynamics'))
-        directions = self.toolbar.AddSimpleTool(self.id_directions, "", wx.Image(os.path.join(image_path, 'toolbar_directions.png')).ConvertToBitmap(), _('Directions'))
+        # ornamentations = self.toolbar.AddSimpleTool(self.id_ornamentations, "", wx.Image(os.path.join(image_path, 'toolbar_ornamentations.png')).ConvertToBitmap(), _('Note ornaments'))
+        # dynamics = self.toolbar.AddSimpleTool(self.id_dynamics, "", wx.Image(os.path.join(image_path, 'toolbar_dynamics.png')).ConvertToBitmap(), _('Dynamics'))
+        # directions = self.toolbar.AddSimpleTool(self.id_directions, "", wx.Image(os.path.join(image_path, 'toolbar_directions.png')).ConvertToBitmap(), _('Directions'))
+
+        # self.Bind(wx.EVT_TOOL, self.OnToolDynamics, dynamics)
+        # self.Bind(wx.EVT_TOOL, self.OnToolOrnamentation, ornamentations)
+        # self.Bind(wx.EVT_TOOL, self.OnToolDirections, directions)
+
         self.toolbar.AddSeparator()
 
-        self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, 1000, 500, 3000, (30, 60), (130, 22))
+        self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, value=1000, minValue=500, maxValue=3000, size=(130, -1), style=wx.SL_HORIZONTAL)
+
         wx_slider_set_tick_freq(self.zoom_slider, 10)
         self.Bind(wx.EVT_SLIDER, self.OnZoomSlider, self.zoom_slider)
         self.zoom_slider.Bind(wx.EVT_LEFT_DOWN, self.OnZoomSliderClick)
@@ -4806,10 +4814,10 @@ class MainFrame(wx.Frame):
             self.cur_page_combo.Select(0)
         self.Bind(wx.EVT_COMBOBOX, self.OnPageSelected, self.cur_page_combo)
         # 1.3.6.3 [SS] 2015-05-03
-        self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, 0, -100, 100, (-1, -1), (130, 22))
+        self.bpm_slider = self.add_slider_to_toolbar(_('Tempo'), False, value=0, minValue=-100, maxValue=100, size=(130, -1))
         if wx.Platform == "__WXMSW__":
             self.bpm_slider.SetTick(0)  # place a tick in the middle for neutral tempo
-        self.progress_slider = self.add_slider_to_toolbar(_('Play position'), False, 0, 0, 100, (-1, -1), (130, 22))
+        self.progress_slider = self.add_slider_to_toolbar(_('Play position'), False, value=0, minValue=0, maxValue=100, size=(130, -1))
 
         self.loop_check = self.add_checkbox_to_toolbar(_('Loop'))
         self.loop_check.Bind(wx.EVT_CHECKBOX, self.OnChangeLoopPlayback)
@@ -4817,7 +4825,7 @@ class MainFrame(wx.Frame):
         self.follow_score_check = self.add_checkbox_to_toolbar(_('Follow score'))
         self.follow_score_check.Bind(wx.EVT_CHECKBOX, self.OnChangeFollowScore)
 
-        self.timing_slider = self.add_slider_to_toolbar('', False, 0, -1000, 1000, (-1, -1), (130, 22))
+        self.timing_slider = self.add_slider_to_toolbar('', False, value=0, minValue=-1000, maxValue=1000, size=(130, -1))
         self.timing_slider.Bind(wx.EVT_SLIDER, self.OnChangeTiming)
         self.timing_slider.Bind(wx.EVT_LEFT_DOWN, self.OnTimingSliderClick)
 
@@ -4825,9 +4833,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_SLIDER, self.OnBpmSlider, self.bpm_slider)
         self.bpm_slider.Bind(wx.EVT_LEFT_DOWN, self.OnBpmSliderClick)
 
-        self.Bind(wx.EVT_TOOL, self.OnToolDynamics, dynamics)
-        self.Bind(wx.EVT_TOOL, self.OnToolOrnamentation, ornamentations)
-        self.Bind(wx.EVT_TOOL, self.OnToolDirections, directions)
         play.Bind(wx.EVT_LEFT_DOWN, self.OnToolPlay)
         play.Bind(wx.EVT_LEFT_DCLICK, self.OnToolPlayLoop)
         self.Bind(wx.EVT_BUTTON, self.OnToolStop, stop)
@@ -5714,17 +5719,17 @@ class MainFrame(wx.Frame):
             self.search_files_panel.focus_find_what()
             self.search_files_panel.clear_results()
 
-    def OnToolDynamics(self, evt):
-        try: self.toolbar.PopupMenu(self.popup_dynamics)
-        except wx._core.PyAssertionError: pass
+    # def OnToolDynamics(self, evt):
+    #    try: self.toolbar.PopupMenu(self.popup_dynamics)
+    #    except wx._core.PyAssertionError: pass
 
-    def OnToolOrnamentation(self, evt):
-        try: self.toolbar.PopupMenu(self.popup_ornaments)
-        except wx._core.PyAssertionError: pass
+    # def OnToolOrnamentation(self, evt):
+    #    try: self.toolbar.PopupMenu(self.popup_ornaments)
+    #    except wx._core.PyAssertionError: pass
 
-    def OnToolDirections(self, evt):
-        try: self.toolbar.PopupMenu(self.popup_directions)
-        except wx._core.PyAssertionError: pass
+    # def OnToolDirections(self, evt):
+    #    try: self.toolbar.PopupMenu(self.popup_directions)
+    #    except wx._core.PyAssertionError: pass
 
     def CanClose(self, dont_ask = False):
         if self.editor.GetModify():
@@ -6084,9 +6089,9 @@ class MainFrame(wx.Frame):
         directions = 'coda segno D.C. D.S. fine barline repeat_left repeat_right repeat_both repeat1 repeat2'.split()
 
         self.multi_tunes_menu_items = []
-        self.popup_ornaments = self.create_symbols_popup_menu(ornaments)
-        self.popup_dynamics = self.create_symbols_popup_menu(dynamics)
-        self.popup_directions = self.create_symbols_popup_menu(directions)
+        # self.popup_ornaments = self.create_symbols_popup_menu(ornaments)
+        # self.popup_dynamics = self.create_symbols_popup_menu(dynamics)
+        # self.popup_directions = self.create_symbols_popup_menu(directions)
 
         transpose_menu = create_menu([], parent=self)
         for i in reversed(range(-12, 12+1)):
@@ -6156,11 +6161,11 @@ class MainFrame(wx.Frame):
                 (_("&Paste") + "\tCtrl+V", _("Paste clipboard contents"), self.OnPaste),
                 (_("&Delete"), _("Delete the selection"), self.OnDelete),
                 (),
-                (_("&Insert musical symbol"), [
-                    (_('Note ornaments'), self.popup_ornaments),
-                    (_('Directions'), self.popup_directions), # 1.3.6.1 [SS] 2015-01-22
-                    (_('Dynamics'), self.popup_dynamics)]),
-                (),
+                # (_("&Insert musical symbol"), [
+                #     (_('Note ornaments'), self.popup_ornaments),
+                #     (_('Directions'), self.popup_directions), # 1.3.6.1 [SS] 2015-01-22
+                #     (_('Dynamics'), self.popup_dynamics)]),
+                # (),
                 (_("&Transpose"), transpose_menu),
                 (_("&Change note length"), [
                     (_('Double note lengths') + '\tCtrl+Shift++', '', self.OnDoubleL),
@@ -7186,7 +7191,8 @@ class MainFrame(wx.Frame):
 
     def GrayUngray(self, evt=None):
         editMenu = self.GetMenuBar().GetMenu(1)
-        undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
+        # undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
+        undo, redo, _, cut, copy, paste, delete, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
         undo.Enable(self.editor.CanUndo())
         redo.Enable(self.editor.CanRedo())
 
