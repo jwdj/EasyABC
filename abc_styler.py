@@ -160,8 +160,11 @@ class ABCStyler:
                         elif chPrev == '[':
                             state = STYLE_CHORD
                             style_changer = style_changers[state]
-                    elif state in (STYLE_ORNAMENT_EXCL, STYLE_ORNAMENT_PLUS, STYLE_GRACE):
+                    elif state in (STYLE_ORNAMENT_EXCL, STYLE_ORNAMENT_PLUS):
                         if style_per_char.get(ch) == state:
+                            next_state = STYLE_DEFAULT
+                    elif state == STYLE_GRACE:
+                        if ch == '}':
                             next_state = STYLE_DEFAULT
                     elif state == STYLE_COMMENT_SPECIAL and chPrev == '%':
                         style_changer = style_changers[state]
