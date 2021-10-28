@@ -609,7 +609,7 @@ class AbcMidiChannelDirective(AbcElement):
 
 
 class AbcMidiDrumMapDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)(?:MIDI drummap|percmap) (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)" + AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)(?:MIDI drummap|percmap)\s+(?P<note>[_^]*\w[,']*)\s+(?P<druminstrument>\d+)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
         for section in ABC_SECTIONS:
@@ -617,7 +617,7 @@ class AbcMidiDrumMapDirective(AbcElement):
 
 
 class AbcMidiVolumeDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)MIDI (?:control 7|chordvol|bassvol) (?P<volume>\d*)" + AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)MIDI (?:control 7|chordvol|bassvol)\s+(?P<volume>\d*)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiVolumeDirective, self).__init__('MIDI_volume', display_name=_('Volume'), description=_('Volume for current voice.'))
         for section in ABC_SECTIONS:
