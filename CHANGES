@@ -599,3 +599,6 @@ different panes. Tie/untie option added for notes. Broken rhythm
   On Linux (Gnome) these menus were empty and ABC Assist does a better job of inserting symbols
 - Fixed sliders on toolbar (Linux, Raspberry Pi)
 
+1.3.8.5
+- Export MIDI no longer includes the markers which are used for follow score
+

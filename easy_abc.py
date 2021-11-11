@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-program_version = '1.3.8.4'
+program_version = '1.3.8.5'
 program_name = 'EasyABC ' + program_version
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
@@ -1097,7 +1097,7 @@ def make_abc_introduction(abccode, voicelist):
 
 
 # 1.3.6  [SS] simplified the calling sequence 2014-11-15
-def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier, midi_file_name=None):
+def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier, midi_file_name=None, add_follow_score_markers=False):
     global execmessages, visible_abc_code
 
     abc_code = process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier)
@@ -1107,7 +1107,7 @@ def AbcToMidi(abc_code, header, cache_dir, settings, statusbar, tempo_multiplier
     if midi_file_name is None:
         midi_file_name = os.path.abspath(os.path.join(cache_dir, 'temp%s.midi' % abc_tune.tune_id))
         # midi_file_name = generate_temp_file_name(cache_dir, '.midi')
-    midi_file = abc_to_midi(abc_code, settings, midi_file_name)
+    midi_file = abc_to_midi(abc_code, settings, midi_file_name, add_follow_score_markers)
     # P09 2014-10-26 [SS]
     MyInfoFrame.update_text()
 
@@ -1373,12 +1373,12 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
 
 
 # 1.3.6.3 [JWDJ] 2015-04-21 split up AbcToMidi into 2 functions: preprocessing (process_abc_for_midi) and actual midi generation (abc_to_midi)
-def abc_to_midi(abc_code, settings, midi_file_name):
+def abc_to_midi(abc_code, settings, midi_file_name, add_follow_score_markers):
     global execmessages
 
     abc2midi_path = settings.get('abc2midi_path')
     cmd = [abc2midi_path, '-', '-o', midi_file_name]
-    cmd = add_abc2midi_options(cmd, settings)
+    cmd = add_abc2midi_options(cmd, settings, add_follow_score_markers)
     execmessages += '\nAbcToMidi\n' + " ".join(cmd)
     input_abc = abc_code + os.linesep * 2
     stdout_value, stderr_value, returncode = get_output_from_process(cmd, input=input_abc)
@@ -1393,7 +1393,7 @@ def abc_to_midi(abc_code, settings, midi_file_name):
     return midi_file_name
 
 # 1.3.6 [SS] 2014-11-24
-def add_abc2midi_options(cmd,settings):
+def add_abc2midi_options(cmd, settings, add_follow_score_markers):
     if str2bool(settings['barfly']):
         cmd.append('-BF')
     if str2bool(settings['nofermatas']):
@@ -1406,7 +1406,7 @@ def add_abc2midi_options(cmd,settings):
     if settings['tuning'] != '440':
         cmd.append('-TT %s' % settings['tuning'])
     # 1.3.6.4 [JWDJ] 2016-06-22
-    if not settings['midiplayer_path']:
+    if add_follow_score_markers:
         cmd.append('-EA')
     return cmd
 
@@ -7257,8 +7257,10 @@ class MainFrame(wx.Frame):
 
         tempo_multiplier = self.get_tempo_multiplier()
 
+        follow_score = not self.settings['midiplayer_path']
         # 1.3.6 [SS] 2014-11-15 2014-12-08
-        self.current_midi_tune = AbcToMidi(abc, tune.header , self.cache_dir, self.settings, self.statusbar, tempo_multiplier)
+        self.current_midi_tune = AbcToMidi(abc, tune.header, self.cache_dir, self.settings, self.statusbar, tempo_multiplier, \
+            add_follow_score_markers=follow_score)
         self.applied_tempo_multiplier = tempo_multiplier
         # 1.3.7 [SS] 2016-01-05 in case abc2midi crashes
         midi_file = None
