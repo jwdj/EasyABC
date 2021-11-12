@@ -3934,6 +3934,7 @@ class MainFrame(wx.Frame):
         self.settingsbook = None
         self.find_data.SetFlags(wx.FR_DOWN)
         self.execmessage_time = datetime.now() # 1.3.6 [SS] 2014-12-11
+        self.is_fullscreen = False
 
         self.load_settings()
         settings = self.settings
@@ -4130,7 +4131,6 @@ class MainFrame(wx.Frame):
         self.statusbar.SetStatusText(_('This is the status bar. Check it occasionally.'))
         execmessages = _('You are running {0} on {1}').format(program_name, wx.Platform)
         execmessages += '\n' + _('You can get the latest version on') + ' https://sourceforge.net/projects/easyabc/'
-
 
     def update_controls_using_settings(self):
         # p09 Enable the play button if midiplayer_path is defined. 2014-10-14 [SS]
@@ -5573,7 +5573,12 @@ class MainFrame(wx.Frame):
             self.MoveTune(selected_index, selected_index + 1)
 
     def OnMusicPaneDoubleClick(self, evt):
+        self.toggle_fullscreen(evt)
         self.editor.SetFocus()
+
+    def toggle_fullscreen(self, evt):
+        self.is_fullscreen = not self.is_fullscreen
+        self.ShowFullScreen(self.is_fullscreen, style=wx.FULLSCREEN_ALL)
 
     def OnMusicPaneKeyDown(self, evt):
         c = evt.GetKeyCode()
@@ -6111,6 +6116,9 @@ class MainFrame(wx.Frame):
         append_menu_item(view_menu, _("&Use default editor font"), "", self.OnUseDefaultFont)
         view_menu.AppendSeparator()
         append_menu_item(view_menu, _("&Reset window layout to default"), "", self.OnResetView)
+        view_menu.AppendSeparator()
+        append_menu_item(view_menu, _("&Full screen") + '\tShift+Alt+F', "", self.toggle_fullscreen)
+
         #self.append_menu_item(view_menu, _("&Maximize/restore musical score pane") + "\tCtrl+M", "", self.OnToggleMusicPaneMaximize)
 
         self.recent_menu = create_menu([], parent=self)
