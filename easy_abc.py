@@ -4616,7 +4616,7 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def OnPlayTimer(self, evt):
-        if not self.is_closed and self.progress_slider.Parent.Shown:
+        if not self.is_closed:
             if self.mc.is_playing:
                 self.started_playing = True
 
