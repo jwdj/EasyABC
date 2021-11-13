@@ -601,4 +601,8 @@ different panes. Tie/untie option added for notes. Broken rhythm
 
 1.3.8.5
 - Export MIDI no longer includes the markers which are used for follow score
-- Double click on score panel toggles full screen mode (Shift-Alt-F)
+- Added tablet mode: when music score is maximized
+    - Right click on score panel toggles full screen mode (Shift-Alt-F)
+    - Left click on right quarter of the screen turns to next page
+    - Left click on left quarter of the screen turns to previous page
+- Fixed: follow score stopped working when screen in portrait mode

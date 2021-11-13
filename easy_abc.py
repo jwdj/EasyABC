@@ -3935,6 +3935,7 @@ class MainFrame(wx.Frame):
         self.find_data.SetFlags(wx.FR_DOWN)
         self.execmessage_time = datetime.now() # 1.3.6 [SS] 2014-12-11
         self.is_fullscreen = False
+        self.score_is_maximized = False
 
         self.load_settings()
         settings = self.settings
@@ -4045,6 +4046,8 @@ class MainFrame(wx.Frame):
         #self.manager.AddPane(self.error_msg, self.error_pane)
         self.manager.AddPane(self.abc_assist_panel, self.assist_pane)
         self.manager.Bind(aui.EVT_AUI_PANE_CLOSE, self.__onPaneClose)
+        self.manager.Bind(aui.EVT_AUI_PANE_MAXIMIZE, self.__onPaneMaximize)
+        self.manager.Bind(aui.EVT_AUI_PANE_RESTORE, self.__onPaneRestore)
 
         self.manager.Update()
 
@@ -4089,6 +4092,9 @@ class MainFrame(wx.Frame):
         self.editor.CmdKeyAssign(ord('+'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.editor.CmdKeyAssign(ord('-'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
         self.music_pane.Bind(wx.EVT_LEFT_DCLICK, self.OnMusicPaneDoubleClick)
+        self.music_pane.Bind(wx.EVT_LEFT_DOWN, self.OnMusicPaneClick)
+        self.music_pane.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickMusicPane)
+
         #self.music_pane.Bind(wx.EVT_KEY_DOWN, self.OnMusicPaneKeyDown)
 
         self.load_and_apply_settings(load_window_size_pos=True)
@@ -5572,8 +5578,29 @@ class MainFrame(wx.Frame):
             self.tune_list.DeselectAll()
             self.MoveTune(selected_index, selected_index + 1)
 
+    def OnMusicPaneClick(self, evt):
+        if self.score_is_maximized:
+            width, height = self.music_pane.Size
+            x, y = evt.Position
+            threshold = width / 4
+            new_page = -1
+
+            if x < threshold:
+                new_page = self.current_page_index - 1
+            elif x > (width - threshold):
+                new_page = self.current_page_index + 1
+
+            if 0 <= new_page < self.current_svg_tune.page_count and new_page != self.current_page_index:
+                self.select_page(new_page)
+                return
+
+        evt.Skip()
+
+    def OnRightClickMusicPane(self, evt):
+        if self.score_is_maximized:
+            self.toggle_fullscreen(evt)
+
     def OnMusicPaneDoubleClick(self, evt):
-        self.toggle_fullscreen(evt)
         self.editor.SetFocus()
 
     def toggle_fullscreen(self, evt):
@@ -5723,6 +5750,14 @@ class MainFrame(wx.Frame):
         if evt.pane.window == self.search_files_panel:
             self.search_files_panel.focus_find_what()
             self.search_files_panel.clear_results()
+
+    def __onPaneMaximize(self, evt):
+        if evt.pane.window == self.music_pane:
+            self.score_is_maximized = True
+
+    def __onPaneRestore(self, evt):
+        if evt.pane.window == self.music_pane:
+            self.score_is_maximized = False
 
     # def OnToolDynamics(self, evt):
     #    try: self.toolbar.PopupMenu(self.popup_dynamics)
