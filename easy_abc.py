@@ -5582,13 +5582,44 @@ class MainFrame(wx.Frame):
         if self.score_is_maximized:
             width, height = self.music_pane.Size
             x, y = evt.Position
-            threshold = width / 4
+            x_threshold = width / 3
+            y_threshold = height / 3
             new_page = -1
+            tune_list = self.tune_list
+            total_tunes = tune_list.GetItemCount()
 
-            if x < threshold:
+            if x < x_threshold:
+                # previous page
                 new_page = self.current_page_index - 1
-            elif x > (width - threshold):
+                if new_page < 0:
+                    new_page += self.current_svg_tune.page_count
+            elif x > (width - x_threshold):
+                # next page
                 new_page = self.current_page_index + 1
+                if new_page >= self.current_svg_tune.page_count:
+                    new_page = 0
+            elif y < y_threshold:
+                # previous tune
+                new_tune = tune_list.GetFirstSelected()
+                if new_tune < 0:
+                    new_tune = 0
+                else:
+                    new_tune -= 1
+                if new_tune < 0:
+                    new_tune = total_tunes - 1
+                tune_list.DeselectAll()
+                tune_list.Select(new_tune)
+            elif y > (height - y_threshold):
+                # next tune
+                new_tune = tune_list.GetFirstSelected()
+                if new_tune < 0:
+                    new_tune = 0
+                else:
+                    new_tune += 1
+                if new_tune >= total_tunes:
+                    new_tune = 0
+                tune_list.DeselectAll()
+                tune_list.Select(new_tune)
 
             if 0 <= new_page < self.current_svg_tune.page_count and new_page != self.current_page_index:
                 self.select_page(new_page)
