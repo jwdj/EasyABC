@@ -5605,8 +5605,8 @@ class MainFrame(wx.Frame):
                     new_tune = 0
                 else:
                     new_tune -= 1
-                if new_tune < 0:
-                    new_tune = total_tunes - 1
+                    if new_tune < 0:
+                        new_tune = total_tunes - 1
                 tune_list.DeselectAll()
                 tune_list.Select(new_tune)
             elif y > (height - y_threshold):
@@ -5616,8 +5616,8 @@ class MainFrame(wx.Frame):
                     new_tune = 0
                 else:
                     new_tune += 1
-                if new_tune >= total_tunes:
-                    new_tune = 0
+                    if new_tune >= total_tunes:
+                        new_tune = 0
                 tune_list.DeselectAll()
                 tune_list.Select(new_tune)
 

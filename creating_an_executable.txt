@@ -4,8 +4,8 @@ EasyABC comes with setup.py to create easy_abc.exe and setupEasyABC.iss to creat
 You first need to be able to run easy_abc.py using Python.
 See using_EasyABC_in_Windows.txt for that.
 
-Then you will also need to install on your computer the program Inno Setup 6 and the python package cx_Freeze:
-Inno Setup can be downloaded here: https://jrsoftware.org/
+Then you will also need to install on your computer the program Inno Setup 5 and the python package cx_Freeze:
+Inno Setup 5 can be downloaded here: https://jrsoftware.org/
 
 And cx_Freeze can be installed using:
 python -m pip install --upgrade cx_Freeze
