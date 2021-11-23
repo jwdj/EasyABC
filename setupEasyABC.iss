@@ -9,7 +9,7 @@
 ; Seymour Shlien
 
 #define MyAppName "EasyABC"
-#define MyAppVersion "1.3.8.5"
+#define MyAppVersion "1.3.8.6"
 #define MyAppPublisher "Seymour Shlien"
 #define MyAppURL "ifdo.ca/~seymour/easy/"
 #define MyAppExeName "easy_abc.exe"
@@ -28,7 +28,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\{#MyAppName}
+DefaultDirName={commonpf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 LicenseFile={#MyBuildFolder}\gpl-license.txt
 OutputBaseFilename=EasyABC-{#MyAppVersion}
@@ -42,6 +42,18 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
+[InstallDelete]
+Type: files; Name: "{app}\easy_abc.exe"
+Type: files; Name: "{app}\easy_abc.zip"
+Type: files; Name: "{app}\wx*.dll"
+Type: files; Name: "{app}\*.pyd"
+Type: files; Name: "{app}\easy_abc.exe.manifest"
+Type: files; Name: "{app}\python27.dll"
+Type: files; Name: "{app}\pywintypes27.dll"
+Type: files; Name: "{app}\sqlite3.dll"
+Type: files; Name: "{app}\library.zip"
+Type: filesandordirs; Name: "{app}\Microsoft.VC90.CRT"
+
 [Files]
 Source: "{#MyBuildFolder}\easy_abc.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyBuildFolder}\gpl-license.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -52,12 +64,7 @@ Source: "{#MyBuildFolder}\VCRUNTIME140.dll"; DestDir: "{app}"; Flags: ignorevers
 Source: "{#MyBuildFolder}\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\bin\*"; DestDir: "{app}\bin\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\img\*"; DestDir: "{app}\img\"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#MyBuildFolder}\locale\da\*"; DestDir: "{app}\locale\da\"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#MyBuildFolder}\locale\fr\*"; DestDir: "{app}\locale\fr\"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#MyBuildFolder}\locale\it\*"; DestDir: "{app}\locale\it\"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#MyBuildFolder}\locale\nl\*"; DestDir: "{app}\locale\nl\"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#MyBuildFolder}\locale\ja\*"; DestDir: "{app}\locale\ja\"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#MyBuildFolder}\locale\sv\*"; DestDir: "{app}\locale\sv\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyBuildFolder}\locale\*"; DestDir: "{app}\locale\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\sound\*"; DestDir: "{app}\sound\"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

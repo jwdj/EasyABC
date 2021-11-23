@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-program_version = '1.3.8.5'
+program_version = '1.3.8.6'
 program_name = 'EasyABC ' + program_version
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
@@ -2013,10 +2013,10 @@ class MyNoteBook(wx.Frame):
         nb = wx.Notebook(p)
         # 1.3.6.4 [SS] 2015-05-26 added statusbar
         abcsettings = AbcFileSettingsFrame(nb, settings, statusbar, parent.mc)
+        abcm2pspage = MyAbcm2psPage(nb, settings, abcsettings)
         self.chordpage = MyChordPlayPage(nb, settings)
         self.voicepage = MyVoicePage(nb, settings)
         # 1.3.6.1 [SS] 2015-02-02
-        abcm2pspage = MyAbcm2psPage(nb, settings, abcsettings)
         xmlpage    = MusicXmlPage(nb, settings)
         colorsettings = ColorSettingsFrame(nb, settings)
         nb.AddPage(abcm2pspage, _("Abcm2ps"))
@@ -2073,14 +2073,6 @@ class AbcFileSettingsFrame(wx.Panel):
         else:
             self.exe_file_mask = '*'
 
-        self.restore_settings = wx.Button(self, wx.ID_ANY, _('Restore settings')) # 1.3.6.3 [JWDJ] 2015-04-25 renamed
-        check_toolTip = _('Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when blank')
-        self.restore_settings.SetToolTip(wx.ToolTip(check_toolTip))
-
-        # 1.3.6.3 [SS] 2015-04-29
-        extraplayerparam = wx.StaticText(self, wx.ID_ANY, _("Extra MIDI player parameters"))
-        self.extras = wx.TextCtrl(self, wx.ID_ANY, size=(200, 22))
-
         sizer = rcs.RowColSizer()
         if wx.Platform == "__WXMAC__":
             sizer.Add(wx.StaticText(self, wx.ID_ANY, _('File paths to required executables') + ':'), row=0, col=0, colspan=2, flag=wx.ALL, border=border)
@@ -2133,10 +2125,18 @@ class AbcFileSettingsFrame(wx.Panel):
 
         self.chkIncludeHeader = wx.CheckBox(self, wx.ID_ANY, _('Include file header when rendering tunes'))
 
+        # 1.3.6.3 [SS] 2015-04-29
+        extraplayerparam = wx.StaticText(self, wx.ID_ANY, _("Extra MIDI player parameters"))
+        self.extras = wx.TextCtrl(self, wx.ID_ANY, size=(200, 22))
+
         midiplayer_params_sizer = rcs.RowColSizer()
         midiplayer_params_sizer.Add(self.chkIncludeHeader, row=0, col=0, colspan=2, flag=wx.ALL, border=border)
         midiplayer_params_sizer.Add(extraplayerparam, row=1, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         midiplayer_params_sizer.Add(self.extras, row=1, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+
+        self.restore_settings = wx.Button(self, wx.ID_ANY, _('Restore settings')) # 1.3.6.3 [JWDJ] 2015-04-25 renamed
+        check_toolTip = _('Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when blank')
+        self.restore_settings.SetToolTip(wx.ToolTip(check_toolTip))
 
         # build settings dialog with the previously defined box
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2274,11 +2274,22 @@ class MyChordPlayPage (wx.Panel):
         self.settings = settings
 
         # 1.3.6.4 [SS] 2015-05-28 shrunk width from 250 to 200
-        self.chkPlayChords = wx.CheckBox(self, wx.ID_ANY, _('Play chords'))
         self.cmbMidiProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        #1.3.6.4 [SS] 2015-07-08
+        self.sliderVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
+                                size=(128, -1), style=wx.SL_HORIZONTAL)
+        self.Voltxt = wx.StaticText(self, wx.ID_ANY, " ")
+
         self.cmbMidiChordProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        #1.3.6.4 [SS] 2015-06-07
+        self.sliderChordVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
+                                size=(128, -1), style=wx.SL_HORIZONTAL)
+        self.ChordVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
+
         self.cmbMidiBassProgram = wx.ComboBox(self, wx.ID_ANY, choices=[], size=(200, 26), style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        #1.3.6 [SS] 2014-11-15
+        self.sliderBassVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
+                                size=(128, -1), style=wx.SL_HORIZONTAL)
+        self.BassVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
 
         #1.3.6.4 [SS] 2015-06-10
         self.sliderbeatsperminute = wx.Slider(self, value=120, minValue=60, maxValue=240,
@@ -2291,19 +2302,8 @@ class MyChordPlayPage (wx.Panel):
         self.transposetxt      = wx.StaticText(self, wx.ID_ANY, " ")
         self.tuningtxt         = wx.StaticText(self, wx.ID_ANY, " ")
 
-        #1.3.6.4 [SS] 2015-07-08
-        self.sliderVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
-                                size=(128, -1), style=wx.SL_HORIZONTAL)
-        self.Voltxt = wx.StaticText(self, wx.ID_ANY, " ")
-        #1.3.6.4 [SS] 2015-06-07
-        self.sliderChordVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
-                                size=(128, -1), style=wx.SL_HORIZONTAL)
-        self.ChordVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
-        self.sliderBassVol = wx.Slider(self, value=default_midi_volume, minValue=0, maxValue=127,
-                                size=(128, -1), style=wx.SL_HORIZONTAL)
-        self.BassVoltxt = wx.StaticText(self, wx.ID_ANY, " ")
-
         #1.3.6 [SS] 2014-11-21
+        self.chkPlayChords = wx.CheckBox(self, wx.ID_ANY, _('Play chords'))
         self.nodynamics = wx.CheckBox(self, wx.ID_ANY, _('Ignore Dynamics'))
         self.nofermatas = wx.CheckBox(self, wx.ID_ANY, _('Ignore Fermatas'))
         self.nograce    = wx.CheckBox(self, wx.ID_ANY, _('No Grace Notes'))
@@ -2801,7 +2801,6 @@ class MyAbcm2psPage(wx.Panel):
         headingtxt = _('The options in this page controls how the music score is displayed.\n\n')
         heading = wx.StaticText(self, wx.ID_ANY, headingtxt)
 
-
         clean      = wx.StaticText(self, wx.ID_ANY, _("No page settings"))
         defaults   = wx.StaticText(self, wx.ID_ANY, _("EasyABC defaults"))
         numberbars = wx.StaticText(self, wx.ID_ANY, _("Include bar numbers"))
@@ -2816,6 +2815,14 @@ class MyAbcm2psPage(wx.Panel):
         pagewidth = wx.StaticText(self, wx.ID_ANY, _("Page width (cm)"))
         pageheight = wx.StaticText(self, wx.ID_ANY, _("Page height (cm)"))
 
+        scalefact  = wx.StaticText(self, wx.ID_ANY, _("Scale factor (eg. 0.8)"))
+        self.chkm2psclean = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psdef   = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psbar = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psref = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2pslyr = wx.CheckBox(self, wx.ID_ANY, '')
+        self.chkm2psend = wx.CheckBox(self, wx.ID_ANY, '')
+
         extras = wx.StaticText(self, wx.ID_ANY, _("Extra parameters"))
         self.extras = wx.TextCtrl(self, wx.ID_ANY, size=(350, 22))
         formatf = wx.StaticText(self, wx.ID_ANY, _("Format file"))
@@ -2829,13 +2836,6 @@ class MyAbcm2psPage(wx.Panel):
 
         self.browsef = wx.Button(self, wx.ID_ANY, _('Browse...'), size = (-1, 22))
 
-        scalefact  = wx.StaticText(self, wx.ID_ANY, _("Scale factor (eg. 0.8)"))
-        self.chkm2psclean = wx.CheckBox(self, wx.ID_ANY, '')
-        self.chkm2psdef   = wx.CheckBox(self, wx.ID_ANY, '')
-        self.chkm2psbar = wx.CheckBox(self, wx.ID_ANY, '')
-        self.chkm2psref = wx.CheckBox(self, wx.ID_ANY, '')
-        self.chkm2pslyr = wx.CheckBox(self, wx.ID_ANY, '')
-        self.chkm2psend = wx.CheckBox(self, wx.ID_ANY, '')
         self.leftmargin  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
         self.rightmargin = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
         self.topmargin = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
@@ -3175,25 +3175,25 @@ class MusicXmlPage(wx.Panel):
         heading    = wx.StaticText(self, wx.ID_ANY, headingtxt)
         abc2xml    = wx.StaticText(self, wx.ID_ANY, _("abc2xml options"))
         compressed = wx.StaticText(self, wx.ID_ANY, _('Compressed xml'))
-        xmlpage    = wx.StaticText(self, wx.ID_ANY, _('Page settings'))
+        xml2abc    = wx.StaticText(self, wx.ID_ANY, _('xml2abc option'))
         unfold     = wx.StaticText(self, wx.ID_ANY, _('Unfold Repeats'))
         mididata   = wx.StaticText(self, wx.ID_ANY, _('Midi Data'))
         volta      = wx.StaticText(self, wx.ID_ANY, _('Volta type setting'))
-        xml2abc    = wx.StaticText(self, wx.ID_ANY, _('xml2abc option'))
         numchar    = wx.StaticText(self, wx.ID_ANY, _('characters/line'))
         numbars    = wx.StaticText(self, wx.ID_ANY, _('bars per line'))
         credit     = wx.StaticText(self, wx.ID_ANY, _('credit filter'))
         ulength    = wx.StaticText(self, wx.ID_ANY, _('unit length'))
+        xmlpage    = wx.StaticText(self, wx.ID_ANY, _('Page settings'))
 
-        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxchars = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY)
-        self.voltaval = wx.TextCtrl(self, wx.ID_ANY)
-        self.creditval = wx.TextCtrl(self, wx.ID_ANY)
-        self.unitval  = wx.TextCtrl(self, wx.ID_ANY)
         self.chkXmlCompressed = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlUnfold = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlMidi = wx.CheckBox(self, wx.ID_ANY, '')
+        self.voltaval = wx.TextCtrl(self, wx.ID_ANY)
+        self.maxchars = wx.TextCtrl(self, wx.ID_ANY)
+        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY)
+        self.creditval = wx.TextCtrl(self, wx.ID_ANY)
+        self.unitval  = wx.TextCtrl(self, wx.ID_ANY)
+        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY)
 
         self.chkXmlCompressed.SetValue(self.settings.get('xmlcompressed',False))
         self.chkXmlUnfold.SetValue(self.settings.get('xmlunfold',False))
@@ -4094,8 +4094,7 @@ class MainFrame(wx.Frame):
         self.music_pane.Bind(wx.EVT_LEFT_DCLICK, self.OnMusicPaneDoubleClick)
         self.music_pane.Bind(wx.EVT_LEFT_DOWN, self.OnMusicPaneClick)
         self.music_pane.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickMusicPane)
-
-        #self.music_pane.Bind(wx.EVT_KEY_DOWN, self.OnMusicPaneKeyDown)
+        # self.music_pane.Bind(wx.EVT_KEY_DOWN, self.OnMusicPaneKeyDown)
 
         self.load_and_apply_settings(load_window_size_pos=True)
         self.restore_settings()
@@ -5648,6 +5647,8 @@ class MainFrame(wx.Frame):
             self.transpose_selected_note(1)
         elif c == wx.WXK_DOWN and evt.CmdDown():
             self.transpose_selected_note(-1)
+        else:
+            evt.Skip()
 
     def OnRightClickList(self, evt):
         self.selected_tune = self.tunes[evt.Index]
@@ -7274,12 +7275,15 @@ class MainFrame(wx.Frame):
             mni.Enable(self.mni_TA_active.IsChecked())
 
     def OnUpdate(self, evt):
-        if evt.GetKeyCode() == 344: #F5
+        c = evt.GetKeyCode()
+        if c == wx.WXK_ESCAPE and self.is_fullscreen:
+            self.toggle_fullscreen(evt)
+        elif c == 344: #F5
             self.refresh_tunes()
-        elif evt.GetKeyCode() == 345: #F6
+        elif c == 345: #F6
             self.OnToolPlay(evt)
             self.play_button.Refresh()
-        elif evt.GetKeyCode() == 346: #F7
+        elif c == 346: #F7
             self.OnToolStop(evt)
         else:
             evt.Skip()

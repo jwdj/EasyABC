@@ -608,3 +608,10 @@ different panes. Tie/untie option added for notes. Broken rhythm
     - Left click on bottom third of the screen turns to next tune
     - Left click on top third of the screen turns to previous tune
 - Fixed: follow score stopped working when screen in portrait mode
+
+1.3.8.6
+- The installer now removes old files from a previous installation (1.3.8 or older)
+  This fixes the 'ImportError: DLL load failed while importing _html' error some users experienced.
+- Updated FluidSynth Windows binaries to latest version (2.2.4)
+- Fixed tab order in ABC settings menu
+- Escape key exits full screen mode
