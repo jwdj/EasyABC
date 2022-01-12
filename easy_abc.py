@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-program_version = '1.3.8.6'
+program_version = '1.3.8.7'
 program_name = 'EasyABC ' + program_version
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
@@ -35,6 +35,10 @@ program_name = 'EasyABC ' + program_version
 import sys
 
 PY3 = sys.version_info >= (3,0,0)
+if not PY3:
+    print("Python 2 is no longer supported. Please use:")
+    print("   python3 easy_abc.py")
+    exit()
 
 abcm2ps_default_encoding = 'utf-8'  ## 'latin-1'
 import codecs

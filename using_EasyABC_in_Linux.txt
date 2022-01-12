@@ -10,7 +10,7 @@ Please note that if you wish to run Nils Liberg's original
 version, EasyABC 1.3.5, you will need to find an old version of
 abcm2ps.
 
-EasyABC has migrated from Python 2 to Python 3. Python 2 should still work however.
+EasyABC has migrated from Python 2 to Python 3. Python 2 is no longer supported.
 
 easy_abc.py expects to be started from it's installation directory
 in order to find its data files. If you start it from some other working
@@ -22,7 +22,7 @@ EasyABC supports both FluidSynth 2 and the mediaplayer from wxPython, but most u
 We have tested EasyABC on Linux Mint 20 using Virtual Box 6.1 and on a Raspberry Pi
 The steps we had to do are as follows:
 
-sudo apt install abcmidi abcm2ps fluid-soundfont-gm python3-wxgtk4.0
+sudo apt install abcmidi abcm2ps fluid-soundfont-gm python3-wxgtk4.0 python3-pyparsing
 
 unzip Downloads/EasyABC-master.zip
 mv EasyABC-master/ EasyABC
