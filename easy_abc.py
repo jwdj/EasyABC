@@ -931,6 +931,8 @@ def AbcToPDF(settings, abc_code, header, cache_dir, extra_params='', abcm2ps_pat
     #if generate_toc:
     #    add_table_of_contents_to_postscript_file(ps_file)
 
+    gs_path = unicode(gs_path)
+
     # convert ps to pdf
     # p09 we already checked for gs_path in restore_settings() 2014-10-14
     cmd2 = [gs_path, '-sDEVICE=pdfwrite', '-sOutputFile=%s' % pdf_file, '-dBATCH', '-dNOPAUSE', ps_file]
@@ -1563,9 +1565,9 @@ class MusicPrintout(wx.Printout):
                 renderer.update_buffer(page)
                 if self.painted_on_screen:
                     renderer.draw(page)
+                    dc.DrawBitmap(renderer.buffer, 0, 0)
                 else:
                     renderer.draw(page, dc=dc)
-                dc.DrawBitmap(renderer.buffer, 0, 0)
             else:
                 renderer.zoom = 1.0
                 renderer.update_buffer(page)
@@ -6146,7 +6148,7 @@ class MainFrame(wx.Frame):
         self.mni_TA_active = append_menu_item(menu, _("&Active") + '\tCtrl+T', "", self.GrayUngray, kind=wx.ITEM_CHECK)
         menu.AppendSeparator()
         self.mni_TA_auto_case = append_menu_item(menu, _("Automatic uppercase/lowercase"), "", None, kind=wx.ITEM_CHECK)
-        self.mni_TA_do_re_mi = append_menu_item(menu, _("&Do-re-mi mode") + "\tCtrl+D", "", self.OnDoReMiModeChange, kind=wx.ITEM_CHECK)
+        self.mni_TA_do_re_mi = append_menu_item(menu, _("&Do-re-mi mode"), "", self.OnDoReMiModeChange, kind=wx.ITEM_CHECK)
         self.mni_TA_add_note_durations = append_menu_item(menu, _("Add note &durations"), "", None, kind=wx.ITEM_CHECK)
 
         add_bar_menu = create_menu([], parent=self)
@@ -6792,6 +6794,8 @@ class MainFrame(wx.Frame):
 
         c = unichr(evt.GetUnicodeKey())
         p1, p2 = editor.GetSelection()
+        no_selection = p1 == p2
+
         # 1.3.6.2 [JWdJ] 2015-02
         line, caret = editor.GetCurLine()
         is_inside_field = len(line)>=2 and line[1] == ':' and re.match(r'[A-Za-z\+]', line[0]) or line.startswith('%')
@@ -6802,6 +6806,9 @@ class MainFrame(wx.Frame):
         at_end_of_line = not line[caret:].strip(' \r\n|:][')
         use_typing_assist = self.mni_TA_active.IsChecked()
         if use_typing_assist and in_music_code:
+            if c == '-' and no_selection:
+                self.AddTextWithUndo('- ')
+
             if c == ' ':
                 try:
                     self.FixNoteDurations()
@@ -8363,7 +8370,7 @@ class MainFrame(wx.Frame):
             elif wx.Platform == '__WXGTK__':
                 try:
                     gs_path = subprocess.check_output(["which", "gs"])
-                    settings['gs_path'] = gs_path[0:-1]
+                    settings['gs_path'] = unicode(gs_path[0:-1])
                 except:
                     settings['gs_path'] = ''
             #1.3.6.1 [SS] 2014-01-13
