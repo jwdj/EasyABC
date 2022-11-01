@@ -619,3 +619,6 @@ different panes. Tie/untie option added for notes. Broken rhythm
 1.3.8.7
 - Removed pyparsing.py (use 'pip install pyparsing' or 'sudo apt install python3-pyparsing' to fix pyparsing errors)
 - Added message that Python 2 is no longer supported
+- Removed shortcut (ctrl-D) for DoReMi-mode since it is too easy to accidentally switch it on
+- Fixed: Some users could not export a PDF because the ghostscript path was a byte string instead of a unicode string. Now the path is coverted to unicode.
+- Fixed: Printing caused a black page.
