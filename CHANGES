@@ -622,3 +622,4 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Removed shortcut (ctrl-D) for DoReMi-mode since it is too easy to accidentally switch it on
 - Fixed: Some users could not export a PDF because the ghostscript path was a byte string instead of a unicode string. Now the path is coverted to unicode.
 - Fixed: Printing caused a black page.
+- Fixed: Render issue with Python 3.10 (cast to int was needed, thanks robertmuth) https://github.com/jwdj/EasyABC/issues/53
