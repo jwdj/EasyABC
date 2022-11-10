@@ -8370,7 +8370,7 @@ class MainFrame(wx.Frame):
             elif wx.Platform == '__WXGTK__':
                 try:
                     gs_path = subprocess.check_output(["which", "gs"])
-                    settings['gs_path'] = unicode(gs_path[0:-1])
+                    settings['gs_path'] = gs_path #unicode(gs_path[0:-1])
                 except:
                     settings['gs_path'] = ''
             #1.3.6.1 [SS] 2014-01-13
@@ -8779,7 +8779,7 @@ class MyApp(wx.App):
             self.frame.Show(True)
             self.SetTopWindow(self.frame)
 
-            # 1.3.8.4 [mist] Load most recent file
+            # 1.3.8.4 [mist13] Load most recent file
             if not path:
                 recent_file = self.settings.get('recentfiles', '').split('|')[0]
                 if recent_file and os.path.exists(recent_file):
