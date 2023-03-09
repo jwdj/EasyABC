@@ -4480,7 +4480,6 @@ class MainFrame(wx.Frame):
 
     def stop_playing(self):
         self.mc.Stop()
-        self.mc.Load('NONEXISTANT_FILE____.mid') # be sure the midi file is released 2014-10-25 [SS]
         self.play_button.SetBitmap(self.play_bitmap)
         self.play_button.Refresh()
         self.progress_slider.SetValue(0)
@@ -5797,17 +5796,17 @@ class MainFrame(wx.Frame):
         if evt.pane.window == self.music_pane:
             self.score_is_maximized = False
 
-    # def OnToolDynamics(self, evt):
-    #    try: self.toolbar.PopupMenu(self.popup_dynamics)
-    #    except wx._core.PyAssertionError: pass
+    def OnToolDynamics(self, evt):
+       try: self.toolbar.PopupMenu(self.popup_dynamics)
+       except wx._core.PyAssertionError: pass
 
-    # def OnToolOrnamentation(self, evt):
-    #    try: self.toolbar.PopupMenu(self.popup_ornaments)
-    #    except wx._core.PyAssertionError: pass
+    def OnToolOrnamentation(self, evt):
+       try: self.toolbar.PopupMenu(self.popup_ornaments)
+       except wx._core.PyAssertionError: pass
 
-    # def OnToolDirections(self, evt):
-    #    try: self.toolbar.PopupMenu(self.popup_directions)
-    #    except wx._core.PyAssertionError: pass
+    def OnToolDirections(self, evt):
+       try: self.toolbar.PopupMenu(self.popup_directions)
+       except wx._core.PyAssertionError: pass
 
     def CanClose(self, dont_ask = False):
         if self.editor.GetModify():
@@ -6167,9 +6166,9 @@ class MainFrame(wx.Frame):
         directions = 'coda segno D.C. D.S. fine barline repeat_left repeat_right repeat_both repeat1 repeat2'.split()
 
         self.multi_tunes_menu_items = []
-        # self.popup_ornaments = self.create_symbols_popup_menu(ornaments)
-        # self.popup_dynamics = self.create_symbols_popup_menu(dynamics)
-        # self.popup_directions = self.create_symbols_popup_menu(directions)
+        self.popup_ornaments = self.create_symbols_popup_menu(ornaments)
+        self.popup_dynamics = self.create_symbols_popup_menu(dynamics)
+        self.popup_directions = self.create_symbols_popup_menu(directions)
 
         transpose_menu = create_menu([], parent=self)
         for i in reversed(range(-12, 12+1)):
@@ -6242,11 +6241,11 @@ class MainFrame(wx.Frame):
                 (_("&Paste") + "\tCtrl+V", _("Paste clipboard contents"), self.OnPaste),
                 (_("&Delete"), _("Delete the selection"), self.OnDelete),
                 (),
-                # (_("&Insert musical symbol"), [
-                #     (_('Note ornaments'), self.popup_ornaments),
-                #     (_('Directions'), self.popup_directions), # 1.3.6.1 [SS] 2015-01-22
-                #     (_('Dynamics'), self.popup_dynamics)]),
-                # (),
+                (_("&Insert musical symbol"), [
+                    (_('Note ornaments'), self.popup_ornaments),
+                    (_('Directions'), self.popup_directions), # 1.3.6.1 [SS] 2015-01-22
+                    (_('Dynamics'), self.popup_dynamics)]),
+                (),
                 (_("&Transpose"), transpose_menu),
                 (_("&Change note length"), [
                     (_('Double note lengths') + '\tCtrl+Shift++', '', self.OnDoubleL),
@@ -7277,8 +7276,7 @@ class MainFrame(wx.Frame):
 
     def GrayUngray(self, evt=None):
         editMenu = self.GetMenuBar().GetMenu(1)
-        # undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
-        undo, redo, _, cut, copy, paste, delete, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
+        undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
         undo.Enable(self.editor.CanUndo())
         redo.Enable(self.editor.CanRedo())
 
