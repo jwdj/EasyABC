@@ -487,9 +487,6 @@ def remove_non_note_fragments(abc, exclude_grace_notes=False):
 
 def get_notes_from_abc(abc, exclude_grace_notes=False):
     ''' returns a list of (start-offset, end-offset, abc-note-text) tuples for ABC notes/rests '''
-    if not isinstance(abc, str):
-        abc = abc.encode()
-
     abc = remove_non_note_fragments(abc, exclude_grace_notes)
 
     # find and return ABC notes (including the text ranges)
@@ -4287,7 +4284,7 @@ class MainFrame(wx.Frame):
         if tune:
             position, end_position = tune.offset_start, tune.offset_end
             if end_position > position and len(self.selected_note_descs) > 2: ## and False:
-                text = self.editor.GetTextRange(position, end_position).encode('utf-8', 'ignore')
+                text = self.editor.GetTextRange(position, end_position)
                 notes = get_notes_from_abc(text)
                 num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
 
@@ -4319,7 +4316,6 @@ class MainFrame(wx.Frame):
                 pieces.append(text[pos:])
                 text = ''.join(pieces)
 
-                text = text.decode('utf-8')
                 # for some strange reason the MIDI sequence seems to be cut-off in the end if the last note is short
                 # adding a silent extra note seems to fix this
                 text = text + os.linesep + '%%MIDI control 7 0' + os.linesep + 'A2'
