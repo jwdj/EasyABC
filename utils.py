@@ -3,7 +3,10 @@ import os, os.path
 
 def get_application_path():
     if getattr(sys, 'frozen', False):
-        return os.path.dirname(sys.executable)
+        if sys.platform == "darwin":
+            return os.path.dirname(sys.argv[0])
+        else:
+            return os.path.dirname(sys.executable)
     elif __file__:
         return os.path.dirname(os.path.abspath(__file__))
     else:

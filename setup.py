@@ -1,16 +1,16 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 # setup.py
 from distutils.core import setup
 import sys
 import glob
 import os.path
-if sys.version_info.major > 2:
+if sys.version_info >= (3,0,0):
     basestring = str
 
-version = '1.3.8'
+version = '1.3.8.7'
 description = "EasyABC"
 long_description = "Nils Liberg's EasyABC 1.3.8 (Seymour Shlien)"
-url = 'http://www.nilsliberg.se/ksp/easyabc/'
+url = 'https://sourceforge.net/projects/easyabc/'
 author = 'Nils Liberg'
 
 options = {}
@@ -27,7 +27,9 @@ include_files = [os.path.join('locale', 'sv', 'LC_MESSAGES', 'easyabc.po'),
                  os.path.join('locale', 'ja', 'LC_MESSAGES', 'easyabc.po'),
                  os.path.join('locale', 'ja', 'LC_MESSAGES', 'easyabc.mo'),
                  os.path.join('locale', 'it', 'LC_MESSAGES', 'easyabc.po'),
-                 os.path.join('locale', 'it', 'LC_MESSAGES', 'easyabc.mo')] + \
+                 os.path.join('locale', 'it', 'LC_MESSAGES', 'easyabc.mo'),
+                 os.path.join('locale', 'zh_CN', 'LC_MESSAGES', 'easyabc.po'),
+                 os.path.join('locale', 'zh_CN', 'LC_MESSAGES', 'easyabc.mo')] + \
                  glob.glob(os.path.join('img', '*.*')) + glob.glob(os.path.join('sound', '*.*'))
 
 if sys.platform == "darwin":
@@ -62,6 +64,7 @@ if sys.platform == "darwin":
                   ('locale/nl', []), ('locale/nl/LC_MESSAGES', glob.glob(os.path.join('locale/nl/LC_MESSAGES/*'))),
                   ('locale/ja', []), ('locale/ja/LC_MESSAGES', glob.glob(os.path.join('locale/ja/LC_MESSAGES/*'))),
                   ('locale/it', []), ('locale/it/LC_MESSAGES', glob.glob(os.path.join('locale/it/LC_MESSAGES/*'))),
+                  ('locale/zh_CN', []), ('locale/zh_CN/LC_MESSAGES', glob.glob(os.path.join('locale/zh_CN/LC_MESSAGES/*'))),
                   ]
 
     setup(name="EasyABC",
@@ -95,30 +98,42 @@ else:
                      'bin\\FluidSynth\\X86\\libglib-2.0-0.dll',
                      'bin\\FluidSynth\\X86\\libgobject-2.0-0.dll',
                      'bin\\FluidSynth\\X86\\libgthread-2.0-0.dll',
-                     'bin\\FluidSynth\\X86\\libinstpatch-2.dll',				 
+                     'bin\\FluidSynth\\X86\\libinstpatch-2.dll',
                      'reference.txt',
                      'gpl-license.txt',
-                     'easy_abc.exe.manifest',
-                     'Microsoft.VC90.CRT\\Microsoft.VC90.CRT.manifest',
-                     'Microsoft.VC90.CRT\\msvcm90.dll',
-                     'Microsoft.VC90.CRT\\msvcp90.dll',
-                     'Microsoft.VC90.CRT\\msvcr90.dll']
+                     ]
 
     # 1.3.7.1 [JWDJ] to maintain the folder structure make a tuple with same source and target path
     include_files = [x for x in include_files if not isinstance(x, basestring)] + [(x, x) for x in include_files if isinstance(x, basestring)] # maintain folder structure
 
-    options["build_exe"] = {'excludes': ['Tkinter','tcl','tk','_ssl', 'email'],   #, 'numpy.linalg.lapack_lite',  'numpy.random.mtrand.pyd', 'numpy.fft.fftpack_lite.pyd'],
-                        'includes': ['mechanize', 'urllib', 'socket', 'win32api', 'win32process'],
+    excludes = ['tkinter','tcl','tk','unittest','multiprocessing','pydoc_data',
+        'curses', 'distutils', 'json', 'lib2to3', 'html5lib', 'numpy',
+        'pkg_resources', 'setuptools', 'webencodings', 'pygame',
+        'ssl', 'bz2', 'lzma',
+        # 'email',  # needed by urllib
+    ]
+    includes = [
+        # 'mechanize',
+        # 'socket',
+        'urllib', 'win32api', 'win32process']
+
+    # after running build.bat there should be no folders in build\exe.win32-3.8\lib
+    # if there are folders then add the names to the excludes because the packages are probably not necessary for EasyABC
+    # the packages that are necessary should be in zip_include_pkgs to reduce files (the files will be included in library.zip)
+    zip_include_pkgs = ['wx', 'xml', 'collections', 'ctypes', 'email', 'encodings', 'html', 'http', 'importlib', 'logging', 'midi', 'urllib']
+
+    options["build_exe"] = {'excludes': excludes,
+                        'includes': includes,
                         'optimize': 1,
+                        # 'no_compress': True,
+                        'include_msvcr': True,
+                        'zip_include_packages' : ','.join(zip_include_pkgs),
                         'include_files': include_files }
 
     executables = [Executable(
         script="easy_abc.py",
         base=base,
-        icon=icon,
-        copyDependentFiles = True,
-        appendScriptToExe = False,
-        appendScriptToLibrary = False,
+        icon=icon
     )]
 
     setup(name="EasyABC",

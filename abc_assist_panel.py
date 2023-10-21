@@ -6,18 +6,10 @@ import wx.html
 import webbrowser
 
 try:
-    from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
-    from urllib.request import urlopen, Request, urlretrieve
-    from urllib.error import HTTPError, URLError
+    from urllib.parse import parse_qsl  # py3
 except ImportError:
-    from urlparse import urlparse, urlunparse, parse_qsl # py2
-    from urllib import urlencode, urlretrieve, quote
-    from urllib2 import urlopen, Request, HTTPError, URLError
+    from urlparse import parse_qsl  # py2
 
-try:
-    from html import escape  # py3
-except ImportError:
-    from cgi import escape  # py2
 
 class AbcAssistControl(object):
     def __init__(self, parent, element):

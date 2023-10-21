@@ -1,18 +1,20 @@
-#, fuzzy
+#
+# Wu Xiaotian <yetist@gmail.com>, 2021.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"POT-Creation-Date: 2021-10-28 21:26+0200\n"
-"PO-Revision-Date: 2016-09-06 09:44+0200\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: en\n"
+"Project-Id-Version: unnamed project\n"
+"POT-Creation-Date: 2021-10-28 21:37+0200\n"
+"PO-Revision-Date: 2021-10-28 21:38+0200\n"
+"Last-Translator: Wu Xiaotian <yetist@gmail.com>\n"
+"Language-Team: Chinese - China <yetist@gmail.com>\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.0.3\n"
-"X-Poedit-Basepath: ..\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Basepath: ../../..\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Poedit-SearchPath-0: easy_abc.py\n"
 "X-Poedit-SearchPath-1: tune_actions.py\n"
 "X-Poedit-SearchPath-2: tune_elements.py\n"
@@ -21,76 +23,78 @@ msgstr ""
 #: easy_abc.py:8056
 #, python-format
 msgid "%(program)s exited abnormally (errorcode %(error)#8x)"
-msgstr ""
+msgstr "%(program)s 异常退出 (错误代码 %(error)#8x)"
 
 #: easy_abc.py:902
 msgid "Disassembled Midi File"
-msgstr ""
+msgstr "反编译 Midi 文件"
 
 #: easy_abc.py:908
 msgid ""
 "Cannot find the executable midi2abc. Be sure it is in your bin folder and "
 "its path is defined in ABC Setup/File Settings."
 msgstr ""
+"找不到可执行文件 midi2abc。请确保它在您的 bin 文件夹中，并且其路径在 ABC 设"
+"置/文件设置中定义。"
 
 #: easy_abc.py:908 easy_abc.py:4546 easy_abc.py:6273 easy_abc.py:8019
 msgid "Error"
-msgstr ""
+msgstr "错误"
 
 #: easy_abc.py:1119 easy_abc.py:8041
 #, python-brace-format
 msgid "{0} reported some errors"
-msgstr ""
+msgstr "{0} 报告了一些错误"
 
 #: easy_abc.py:1121 easy_abc.py:8043
 #, python-brace-format
 msgid "{0} reported some warnings"
-msgstr ""
+msgstr "{0} 报告了一些警告"
 
 #: easy_abc.py:1471
 #, python-format
 msgid "Error during conversion of %(filename)s: %(error)s"
-msgstr ""
+msgstr "%(filename)s 转换过程中出错：%(error)s"
 
 #: easy_abc.py:1492
 msgid "EasyABC music"
-msgstr ""
+msgstr "EasyABC 音乐"
 
 #: easy_abc.py:1895
 msgid "Field"
-msgstr ""
+msgstr "字段"
 
 #: easy_abc.py:1896
 msgid "Description"
-msgstr ""
+msgstr "描述"
 
 #: easy_abc.py:1921
 msgid "Generate incipits file..."
-msgstr ""
+msgstr "生成初始文件..."
 
 #: easy_abc.py:1925
 msgid "Number of bars to extract:"
-msgstr ""
+msgstr "要提取的小节数："
 
 #: easy_abc.py:1926
 msgid "Maximum number of repeats to extract:"
-msgstr ""
+msgstr "要提取的最大重复次数："
 
 #: easy_abc.py:1927
 msgid "Maximum number of titles/subtitles to extract:"
-msgstr ""
+msgstr "要提取的最大标题/字幕数量："
 
 #: easy_abc.py:1928
 msgid "Fields to sort by (eg. T):"
-msgstr ""
+msgstr "排序依据的字段（例如 T）："
 
 #: easy_abc.py:1929
 msgid "Number of rows per column:"
-msgstr ""
+msgstr "每列的行数："
 
 #: easy_abc.py:1934
 msgid "&Two column output"
-msgstr ""
+msgstr "两列输出(&T)"
 
 #: easy_abc.py:1953 easy_abc.py:2756 easy_abc.py:3346 easy_abc.py:3410
 #: easy_abc.py:8464
@@ -99,129 +103,129 @@ msgstr ""
 
 #: easy_abc.py:1954 easy_abc.py:2757 easy_abc.py:3347 easy_abc.py:3411
 msgid "&Cancel"
-msgstr ""
+msgstr "取消(&C)"
 
 #: easy_abc.py:2010
 msgid "Abc settings"
-msgstr ""
+msgstr "Abc 设置"
 
 #: easy_abc.py:2022
 msgid "Abcm2ps"
-msgstr ""
+msgstr "Abcm2ps"
 
 #: easy_abc.py:2024
 msgid "Abc2midi"
-msgstr ""
+msgstr "Abc2midi"
 
 #: easy_abc.py:2026
 msgid "Voices"
-msgstr ""
+msgstr "声部"
 
 #: easy_abc.py:2027 easy_abc.py:5242 easy_abc.py:5788
 msgid "MusicXML"
-msgstr ""
+msgstr "MusicXML"
 
 #: easy_abc.py:2028
 msgid "File Settings"
-msgstr ""
+msgstr "文件设置"
 
 #: easy_abc.py:2029
 msgid "Colors"
-msgstr ""
+msgstr "颜色"
 
 #: easy_abc.py:2059
 msgid "abcm2ps executable:"
-msgstr ""
+msgstr "abcm2ps 可执行文件："
 
 #: easy_abc.py:2059
 msgid "This executable is used to display the music"
-msgstr ""
+msgstr "可执行文件用于显示乐谱"
 
 #: easy_abc.py:2060
 msgid "abc2midi executable:"
-msgstr ""
+msgstr "abc2midi 可执行文件："
 
 #: easy_abc.py:2060
 msgid "This executable is used to make the midi file"
-msgstr ""
+msgstr "可执行文件用于生成 midi 文件"
 
 #: easy_abc.py:2061
 msgid "abc2abc executable:"
-msgstr ""
+msgstr "abc2abc 可执行文件："
 
 #: easy_abc.py:2061
 msgid "This executable is used to transpose the music"
-msgstr ""
+msgstr "此可执行文件用于移调音乐"
 
 #: easy_abc.py:2063
 msgid "midi2abc executable:"
-msgstr ""
+msgstr "midi2abc 可执行文件："
 
 #: easy_abc.py:2063
 msgid "This executable is used to disassemble the output midi file"
-msgstr ""
+msgstr "可执行文件用于反编译输出的 midi 文件"
 
 #: easy_abc.py:2064
 msgid "ghostscript executable:"
-msgstr ""
+msgstr "ghostscript 可执行文件："
 
 #: easy_abc.py:2064
 msgid "This executable is used to create PDF files"
-msgstr ""
+msgstr "可执行文件用于创建 PDF 文件"
 
 #: easy_abc.py:2065
 msgid "nwc2xml executable:"
-msgstr ""
+msgstr "nwc2xml 可执行文件："
 
 #: easy_abc.py:2065
 msgid "For NoteWorthy Composer - Windows only"
-msgstr ""
+msgstr "对于 NoteWorthy Composer - 仅限 Windows"
 
 #: easy_abc.py:2066
 msgid "midiplayer:"
-msgstr ""
+msgstr "midi 播放器:"
 
 #: easy_abc.py:2066
 msgid "Your preferred MIDI player"
-msgstr ""
+msgstr "您的首选 MIDI 播放器"
 
 #: easy_abc.py:2067
 msgid "SoundFont:"
-msgstr ""
+msgstr "声音字体："
 
 #: easy_abc.py:2067
 msgid "Your preferred SoundFont (.sf2)"
-msgstr ""
+msgstr "你首选的 SoundFont (.sf2)"
 
 #: easy_abc.py:2076
 msgid "Restore settings"
-msgstr ""
+msgstr "恢复设置"
 
 #: easy_abc.py:2077
 msgid ""
 "Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when "
 "blank"
-msgstr ""
+msgstr "当空白时恢复默认的 abcm2ps, abc2midi, abc2abc, ghostscript 文件路径"
 
 #: easy_abc.py:2081
 msgid "Extra MIDI player parameters"
-msgstr ""
+msgstr "额外的 MIDI 播放器参数"
 
 #: easy_abc.py:2086 easy_abc.py:2131
 msgid "File paths to required executables"
-msgstr ""
+msgstr "所需可执行文件的文件路径"
 
 #: easy_abc.py:2115 easy_abc.py:2830
 msgid "Browse..."
-msgstr ""
+msgstr "浏览..."
 
 #: easy_abc.py:2134
 msgid "Include file header when rendering tunes"
-msgstr ""
+msgstr "渲染乐谱时包含文件头"
 
 #: easy_abc.py:2171
 msgid "Choose a file"
-msgstr ""
+msgstr "选择文件"
 
 #: easy_abc.py:2225
 msgid ""
@@ -231,18 +235,22 @@ msgid ""
 "You can do this by selecting the entry box, cntr-A to select all and cntr-X "
 "to delete. If this was not done, click Cancel first and then try again."
 msgstr ""
+"此按钮会将可执行文件（abcmp2s、abc2midi 等）的一些路径恢复为默认值。为了让程"
+"序知道要恢复哪些路径，您需要在继续之前将这些路径设为空白。您可以这样做这通过"
+"选择输入框，cntr-A 选择全部和 cntr-X 删除。如果没有这样做，请先单击取消，然后"
+"再试一次。"
 
 #: easy_abc.py:2229 easy_abc.py:3084 easy_abc.py:6477
 msgid "Proceed?"
-msgstr ""
+msgstr "继续？"
 
 #: easy_abc.py:2277 tune_actions.py:2249
 msgid "Play chords"
-msgstr ""
+msgstr "演奏和弦"
 
 #: easy_abc.py:2307
 msgid "Ignore Dynamics"
-msgstr ""
+msgstr "忽略力度"
 
 #: easy_abc.py:2308
 msgid "Ignore Fermatas"
@@ -258,47 +266,59 @@ msgstr ""
 
 #: easy_abc.py:2311
 msgid "Count in"
-msgstr ""
+msgstr "计入"
 
 #: easy_abc.py:2314
 msgid "gchord pattern"
 msgstr ""
 
 #: easy_abc.py:2319
+#, fuzzy
+#| msgid "Instrument for playback: "
 msgid "Instrument for playback"
-msgstr ""
+msgstr "播放乐器："
 
 #: easy_abc.py:2323
+#, fuzzy
+#| msgid "Instrument for chord's playback: "
 msgid "Instrument for chord's playback"
-msgstr ""
+msgstr "和弦播放的乐器："
 
 #: easy_abc.py:2327
+#, fuzzy
+#| msgid "Instrument for bass chord's playback: "
 msgid "Instrument for bass chord's playback"
-msgstr ""
+msgstr "低音和弦播放的乐器："
 
 #: easy_abc.py:2333
+#, fuzzy
+#| msgid "Default Tempo: "
 msgid "Default Tempo"
-msgstr ""
+msgstr "默认速度："
 
 #: easy_abc.py:2336
+#, fuzzy
+#| msgid "Transposition: "
 msgid "Transposition"
-msgstr ""
+msgstr "变调："
 
 #: easy_abc.py:2339
+#, fuzzy
+#| msgid "Warning"
 msgid "Tuning"
-msgstr ""
+msgstr "警告"
 
 #: easy_abc.py:2374
 msgid "Quarter notes per minute"
-msgstr ""
+msgstr "每分钟四分音符"
 
 #: easy_abc.py:2375
 msgid "Volume level for chordal accompaniment"
-msgstr ""
+msgstr "和弦伴奏的音量级别"
 
 #: easy_abc.py:2376
 msgid "Volume level for bass accompaniment"
-msgstr ""
+msgstr "贝司伴奏的音量级别"
 
 #: easy_abc.py:2377
 msgid ""
@@ -308,11 +328,11 @@ msgstr ""
 
 #: easy_abc.py:2378
 msgid "Dynamic markings like ff mp pp etc. are ignored if enabled"
-msgstr ""
+msgstr "如果启用，力度记号如 ff mp pp 等将被忽略"
 
 #: easy_abc.py:2379
 msgid "Fermata markings are ignored if enabled"
-msgstr ""
+msgstr "如果启用 Fermata 标记将被忽略"
 
 #: easy_abc.py:2380
 msgid "Grace notes are ignored if enabled"
@@ -320,19 +340,19 @@ msgstr ""
 
 #: easy_abc.py:2381
 msgid "Transpose by the number of semitones"
-msgstr ""
+msgstr "按半音数量变调"
 
 #: easy_abc.py:2382
 msgid "Frequency of A in Hz"
-msgstr ""
+msgstr "A 的频率 (Hz)"
 
 #: easy_abc.py:2383
 msgid "Two rest bars before music starts"
-msgstr ""
+msgstr "音乐开始前的 2 小节休止"
 
 #: easy_abc.py:2384
 msgid "Volume of melody line if the tune does not have any voices"
-msgstr ""
+msgstr "如果乐谱没有任何声部，旋律线的音量"
 
 #: easy_abc.py:2418
 msgid ""
@@ -352,54 +372,71 @@ msgid ""
 "I -> G,,\n"
 "J -> B,"
 msgstr ""
+"f = fundamental\n"
+"c = chord\n"
+"z = 休止\n"
+"\n"
+"for chord C:\n"
+"f -> C,,\n"
+"c -> [C,E,G]\n"
+"g -> C\n"
+"h -> E\n"
+"i -> G\n"
+"j -> B\n"
+"G -> C,,\n"
+"H -> E,,\n"
+"I -> G,,\n"
+"J -> B,"
 
 #: easy_abc.py:2538
+#, fuzzy
+#| msgid "Separates measures."
 msgid "Separate defaults per voice"
-msgstr ""
+msgstr "拆分小节"
 
 #: easy_abc.py:2543
 msgid "Default instrument:"
-msgstr ""
+msgstr "默认乐器："
 
 #: easy_abc.py:2544
 msgid "Main Volume:"
-msgstr ""
+msgstr "主音量:"
 
 #: easy_abc.py:2545
 msgid "L/R Balance:"
-msgstr ""
+msgstr "左/右平衡:"
 
 #: easy_abc.py:2578
 #, python-format
 msgid "Voice n.%d: "
-msgstr ""
+msgstr "第 %d 声部："
 
 #: easy_abc.py:2601
 msgid "&Reset"
-msgstr ""
+msgstr "重置(&R)"
 
 #: easy_abc.py:2615
 msgid ""
 "The instrument for all voices is set to the default midi program. The volume "
 "and pan are set to 96/64."
-msgstr ""
+msgstr "所有声音的乐器都设置为默认的 MIDI 程序。音量和声像设置为 96/64。"
 
 #: easy_abc.py:2710
 msgid "Midi device settings"
-msgstr ""
+msgstr "Midi 设备设置"
 
 #: easy_abc.py:2715
 msgid "Input device"
-msgstr ""
+msgstr "输入设备"
 
 #: easy_abc.py:2716
 msgid "Output device"
-msgstr ""
+msgstr "输出设备"
 
 #: easy_abc.py:2718 easy_abc.py:2720 tune_actions.py:955 tune_actions.py:1062
 #: tune_actions.py:2162
 msgid "None"
-msgstr ""
+msgstr "没有"
 
 #: easy_abc.py:2801
 msgid ""
@@ -409,106 +446,106 @@ msgstr ""
 
 #: easy_abc.py:2805
 msgid "No page settings"
-msgstr ""
+msgstr "没有页面设置"
 
 #: easy_abc.py:2806
 msgid "EasyABC defaults"
-msgstr ""
+msgstr "EasyABC 默认值"
 
 #: easy_abc.py:2807
 msgid "Include bar numbers"
-msgstr ""
+msgstr "包含小节编号"
 
 #: easy_abc.py:2808
 msgid "Add X reference number"
-msgstr ""
+msgstr "增加 X 参考号"
 
 #: easy_abc.py:2809
 msgid "Suppress lyrics"
-msgstr ""
+msgstr "隐藏歌词"
 
 #: easy_abc.py:2810
 msgid "Ignore line ends"
-msgstr ""
+msgstr "忽略行尾"
 
 #: easy_abc.py:2811
 msgid "Left margin (cm)"
-msgstr ""
+msgstr "左边距 (厘米)"
 
 #: easy_abc.py:2812
 msgid "Right margin (cm)"
-msgstr ""
+msgstr "右边距 (厘米)"
 
 #: easy_abc.py:2813
 msgid "Top margin (cm)"
-msgstr ""
+msgstr "上边距 (厘米)"
 
 #: easy_abc.py:2814
 msgid "Bottom margin (cm)"
-msgstr ""
+msgstr "底边距 (厘米)"
 
 #: easy_abc.py:2816
 msgid "Page width (cm)"
-msgstr ""
+msgstr "页面宽度 (cm)"
 
 #: easy_abc.py:2817
 msgid "Page height (cm)"
-msgstr ""
+msgstr "页面高度（厘米）"
 
 #: easy_abc.py:2819
 msgid "Extra parameters"
-msgstr ""
+msgstr "额外参数"
 
 #: easy_abc.py:2821
 msgid "Format file"
-msgstr ""
+msgstr "格式化文件"
 
 #: easy_abc.py:2832
 msgid "Scale factor (eg. 0.8)"
-msgstr ""
+msgstr "缩放比例（例如 0.8）"
 
 #: easy_abc.py:2847 easy_abc.py:2848 easy_abc.py:2849 easy_abc.py:2850
 #: easy_abc.py:2851 easy_abc.py:2852
 #, python-brace-format
 msgid "The default is {0}"
-msgstr ""
+msgstr "默认为 {0}"
 
 #: easy_abc.py:2853
 msgid "Additional command line parameters to abcm2ps"
-msgstr ""
+msgstr "abcm2ps 的附加命令行参数"
 
 #: easy_abc.py:2854
 msgid "Right click the mouse to remove all choices"
-msgstr ""
+msgstr "右击鼠标移除所有选项"
 
 #: easy_abc.py:2864
 msgid "Use the factory page settings of EasyABC"
-msgstr ""
+msgstr "使用 EasyABC 的出厂页面设置"
 
 #: easy_abc.py:2866
 msgid "Do not add page settings"
-msgstr ""
+msgstr "不要添加页面设置"
 
 #: easy_abc.py:2909
 #, python-brace-format
 msgid "Scales the separation between staff lines. Recommended value is {0}."
-msgstr ""
+msgstr "缩放五线谱之间的间隔。推荐值为 {0}。"
 
 #: easy_abc.py:3084
 msgid "This will remove the selections in the combobox."
-msgstr ""
+msgstr "这将删除组合框中的选择。"
 
 #: easy_abc.py:3101
 msgid "Find PostScript format file"
-msgstr ""
+msgstr "查找 PostScript 格式文件"
 
 #: easy_abc.py:3136
 msgid "Note highlight color"
-msgstr ""
+msgstr "音符高亮颜色"
 
 #: easy_abc.py:3148
 msgid "Color of selected note or currently playing note"
-msgstr ""
+msgstr "所选音符或当前播放音符的颜色"
 
 #: easy_abc.py:3173
 msgid ""
@@ -526,23 +563,23 @@ msgstr ""
 
 #: easy_abc.py:3176
 msgid "abc2xml options"
-msgstr ""
+msgstr "abc2xml 选项"
 
 #: easy_abc.py:3177
 msgid "Compressed xml"
-msgstr ""
+msgstr "压缩的 xml"
 
 #: easy_abc.py:3178
 msgid "Page settings"
-msgstr ""
+msgstr "页面设置"
 
 #: easy_abc.py:3179
 msgid "Unfold Repeats"
-msgstr ""
+msgstr "展开重复"
 
 #: easy_abc.py:3180
 msgid "Midi Data"
-msgstr ""
+msgstr "MIDI 数据"
 
 #: easy_abc.py:3181
 msgid "Volta type setting"
@@ -550,15 +587,15 @@ msgstr ""
 
 #: easy_abc.py:3182
 msgid "xml2abc option"
-msgstr ""
+msgstr "xml2abc 选项"
 
 #: easy_abc.py:3183
 msgid "characters/line"
-msgstr ""
+msgstr "字符/行"
 
 #: easy_abc.py:3184
 msgid "bars per line"
-msgstr ""
+msgstr "每行小节数"
 
 #: easy_abc.py:3185
 msgid "credit filter"
@@ -566,17 +603,17 @@ msgstr ""
 
 #: easy_abc.py:3186
 msgid "unit length"
-msgstr ""
+msgstr "单位长度"
 
 #: easy_abc.py:3209
 msgid "When checked, abc2xml produces compressed xml files with extension mxl."
-msgstr ""
+msgstr "选中时，abc2xml 生成扩展名为 mxl 的压缩 xml 文件。"
 
 #: easy_abc.py:3211
 msgid ""
 "When checked, xml2abc turns off repeat translation and instead unfolds "
 "simple repeats."
-msgstr ""
+msgstr "选中时，xml2abc 会关闭重复翻译，而是展开简单的重复。"
 
 #: easy_abc.py:3213
 msgid ""
@@ -592,6 +629,9 @@ msgid ""
 "left, right, top and bottom margins to 1.2 cm. If the page format is blank, "
 "default values are assumed."
 msgstr ""
+"页面格式包括 6 个数字，例如 0.7,25,15,1.2,1.2,1.2,1.2 设置缩放比例为 0.7，页"
+"面高度为 25 厘米，页面宽度为 15 厘米，左、右、上下边距为 1.2 厘米。如果页面格"
+"式为空白，则采用默认值。"
 
 #: easy_abc.py:3217
 msgid ""
@@ -599,24 +639,31 @@ msgid ""
 "characters. The default is 100 characters. An integer number of bars, at "
 "least one, is always output."
 msgstr ""
+"除非 CPL 为 0，否则它将 ABC 输出的最大长度设置为 CPL 字符。默认值为 100 个字"
+"符。总是输出整数个小节，至少为 1 个。"
 
 #: easy_abc.py:3219
 msgid ""
 "When not zero, BPL sets the number of bars per line. If both CPL and BPL is "
 "given, only CPL is used."
 msgstr ""
+"当不为零时，BPL 设置每行小节的数量。如果同时给出 CPL 和 BPL，则只使用 CPL。"
 
 #: easy_abc.py:3221
 msgid ""
 "This filter tries to eliminate redundant T: fields. A higher level (up to 6) "
 "does less filtering. The default is 0 which filters as much as possible."
 msgstr ""
+"这个过滤器试图消除多余的 T: 字段。更高的级别（最多 6 个）过滤更少。默认值为 "
+"0，它尽可能多地过滤。"
 
 #: easy_abc.py:3223
 msgid ""
 "Unless D is 0, it sets the unit length for the output to abc field command "
 "L: 1/D. This overrides the computation of the optimal unit length."
 msgstr ""
+"除非 D 为 0，否则它将输出的单位长度设置为 abc 字段命令 L: 1/D。这会覆盖最佳单"
+"位长度的计算。"
 
 #: easy_abc.py:3225
 #, python-format
@@ -632,11 +679,11 @@ msgstr ""
 
 #: easy_abc.py:3323
 msgid "ABC Options"
-msgstr ""
+msgstr "ABC 选项"
 
 #: easy_abc.py:3328 tune_actions.py:958
 msgid "Key signature"
-msgstr ""
+msgstr "调号模式"
 
 #: easy_abc.py:3329 easy_abc.py:4771
 msgid "Metre"
@@ -644,19 +691,19 @@ msgstr ""
 
 #: easy_abc.py:3330
 msgid "Default note length"
-msgstr ""
+msgstr "默认音符时值"
 
 #: easy_abc.py:3331 easy_abc.py:3524 easy_abc.py:4001
 msgid "Title"
-msgstr ""
+msgstr "标题"
 
 #: easy_abc.py:3332
 msgid "Bars per line"
-msgstr ""
+msgstr "每行小节数"
 
 #: easy_abc.py:3333
 msgid "Numbers of notes in anacrusis"
-msgstr ""
+msgstr "anacrusis 中的音符数量"
 
 #: easy_abc.py:3341
 msgid "Detect triplets"
@@ -668,11 +715,11 @@ msgstr ""
 
 #: easy_abc.py:3343
 msgid "Use slurs on triplets"
-msgstr ""
+msgstr "在三连音上使用连线"
 
 #: easy_abc.py:3344
 msgid "Use slurs on eights (useful for some waltzes)"
-msgstr ""
+msgstr "在八度上使用连线（对某些华尔兹很有用）"
 
 #: easy_abc.py:3345
 msgid "Use slurs on first pair of sixteenth (useful for some 16th polskas)"
@@ -680,27 +727,27 @@ msgstr ""
 
 #: easy_abc.py:3400
 msgid "Errors"
-msgstr ""
+msgstr "错误"
 
 #: easy_abc.py:3449
 msgid "Converting..."
-msgstr ""
+msgstr "正在转换..."
 
 #: easy_abc.py:3517
 msgid "Find what"
-msgstr ""
+msgstr "查找内容"
 
 #: easy_abc.py:3524 tune_actions.py:2102 tune_elements.py:81
 msgid "Composer"
-msgstr ""
+msgstr "作曲家"
 
 #: easy_abc.py:3524
 msgid "Lyrics"
-msgstr ""
+msgstr "歌词"
 
 #: easy_abc.py:3532
 msgid "Sort by title"
-msgstr ""
+msgstr "按照名称排序"
 
 #: easy_abc.py:3537
 msgid "Look in"
@@ -708,280 +755,286 @@ msgstr ""
 
 #: easy_abc.py:3548
 msgid "Cancel"
-msgstr ""
+msgstr "取消"
 
 #: easy_abc.py:3550
 msgid "Find All"
-msgstr ""
+msgstr "查找全部"
 
 #: easy_abc.py:3573
 msgid "When selecting"
-msgstr ""
+msgstr "选择时"
 
 #: easy_abc.py:3573
 msgid "Open file"
-msgstr ""
+msgstr "打开文件"
 
 #: easy_abc.py:3573
 msgid "Copy tune to editor"
-msgstr ""
+msgstr "复制乐谱到编辑器"
 
 #: easy_abc.py:3636
 msgid "Open"
-msgstr ""
+msgstr "打开"
 
 #: easy_abc.py:3645
 msgid "Invalid path"
-msgstr ""
+msgstr "无效路径"
 
 #: easy_abc.py:3645
 msgid "Please enter a valid path to start looking for ABC-files."
-msgstr ""
+msgstr "请输入一个有效的路径来开始寻找 ABC 文件。"
 
 #: easy_abc.py:3669
 #, python-brace-format
 msgid "Found {0} results"
-msgstr ""
+msgstr "找到 {0} 个结果"
 
 #: easy_abc.py:3748
 #, python-brace-format
 msgid "Next {0} results"
-msgstr ""
+msgstr "接下来的 {0} 个结果"
 
 #: easy_abc.py:3888 easy_abc.py:4149 easy_abc.py:5460 tune_actions.py:1614
 #: tune_actions.py:2299
 msgid "Untitled"
-msgstr ""
+msgstr "无标题"
 
 #: easy_abc.py:4000
 msgid "No."
-msgstr ""
+msgstr "序号"
 
 #: easy_abc.py:4023 easy_abc.py:8177
 msgid "ABC errors"
-msgstr ""
+msgstr "ABC 错误"
 
 #: easy_abc.py:4030 easy_abc.py:4790 easy_abc.py:4791 easy_abc.py:4792
 #: easy_abc.py:8178
 msgid "ABC assist"
-msgstr ""
+msgstr "ABC 辅助面板"
 
 #: easy_abc.py:4034 easy_abc.py:8175
 msgid "Tune list"
-msgstr ""
+msgstr "乐谱列表"
 
 #: easy_abc.py:4035 easy_abc.py:8174
 msgid "ABC code"
-msgstr ""
+msgstr "ABC 源码"
 
 #: easy_abc.py:4036 easy_abc.py:8176
 msgid "Musical score"
-msgstr ""
+msgstr "乐谱"
 
 #: easy_abc.py:4130
 msgid "This is the status bar. Check it occasionally."
-msgstr ""
+msgstr "这是状态栏。偶尔检查一下。"
 
 #: easy_abc.py:4131
 #, python-brace-format
 msgid "You are running {0} on {1}"
-msgstr ""
+msgstr "您正在 {1} 上运行 {0}"
 
 #: easy_abc.py:4132
 msgid "You can get the latest version on"
-msgstr ""
+msgstr "您可以获得最新版本"
 
 #: easy_abc.py:4260
 msgid "EasyABC - print preview"
-msgstr ""
+msgstr "EasyABC - 打印预览"
 
 #: easy_abc.py:4272
 msgid ""
 "There was a problem printing.\n"
 "Perhaps your current printer is not set correctly?"
 msgstr ""
+"打印时出现问题。\n"
+"可能当前打印机没有设置正确？"
 
 #: easy_abc.py:4272
 msgid "Printing"
-msgstr ""
+msgstr "正在打印"
 
 #: easy_abc.py:4545
 #, python-format
 msgid "Unable to load %s: Unsupported format?"
-msgstr ""
+msgstr "无法加载 %s： 不支持的格式?"
 
 #: easy_abc.py:4770
 msgid "Beats per minute"
-msgstr ""
+msgstr "每分钟的节拍数"
 
 #: easy_abc.py:4805
 msgid "Zoom"
-msgstr ""
+msgstr "缩放"
 
 #: easy_abc.py:4812
 msgid "Page"
-msgstr ""
+msgstr "页面"
 
 #: easy_abc.py:4817 tune_actions.py:2110 tune_elements.py:94
 msgid "Tempo"
-msgstr ""
+msgstr "节奏"
 
 #: easy_abc.py:4820
 msgid "Play position"
-msgstr ""
+msgstr "播放位置"
 
 #: easy_abc.py:4822
 msgid "Loop"
-msgstr ""
+msgstr "循环"
 
 #: easy_abc.py:4825
 msgid "Follow score"
-msgstr ""
+msgstr "跟随乐谱"
 
 #: easy_abc.py:4893 easy_abc.py:6073
 msgid "&Do-re-mi mode"
-msgstr ""
+msgstr "哆来咪模式(&D)"
 
 #: easy_abc.py:5024
 msgid "incipits"
-msgstr ""
+msgstr "初始化"
 
 #: easy_abc.py:5049 easy_abc.py:5745
 msgid "Error: there was some trouble saving the file."
-msgstr ""
+msgstr "错误：保存文件时出现问题。"
 
 #: easy_abc.py:5049 easy_abc.py:5745
 msgid "File could not be saved properly"
-msgstr ""
+msgstr "文件无法正确保存"
 
 #: easy_abc.py:5055
 msgid "Which field(s) do you want to sort the tunes by? (eg. T for title)"
-msgstr ""
+msgstr "您想根据哪个字段对乐谱进行排序？（例如：T 表示标题）"
 
 #: easy_abc.py:5055
 msgid "Sort tunes"
-msgstr ""
+msgstr "排序乐谱"
 
 #: easy_abc.py:5068
 msgid "Please specify the index of the first tune: "
-msgstr ""
+msgstr "请指定第一首曲子的索引："
 
 #: easy_abc.py:5068
 msgid "Renumber X: fields"
-msgstr ""
+msgstr "重新编号 X：字段"
 
 #: easy_abc.py:5098 easy_abc.py:6176
 msgid "Find in Files"
-msgstr ""
+msgstr "在文件中查找"
 
 #: easy_abc.py:5140 easy_abc.py:5144 easy_abc.py:5787
 msgid "Midi file"
-msgstr ""
+msgstr "Midi 文件"
 
 #: easy_abc.py:5162
 msgid "Wave file"
-msgstr ""
+msgstr "Wave 文件"
 
 #: easy_abc.py:5164
 msgid ""
 "Both the FluidSynth library and a valid SoundFont (see menu Settings -> ABC "
 "Settings -> File settings) are required for exporting to a wave file."
 msgstr ""
+"导出到波形文件需要 FluidSynth 库和有效的 SoundFont（参见菜单设置 -> ABC 设置 "
+"-> 文件设置）。"
 
 #: easy_abc.py:5165
 msgid "Unable to export"
-msgstr ""
+msgstr "无法导出"
 
 #: easy_abc.py:5175
 #, python-brace-format
 msgid "Failed to create {0}"
-msgstr ""
+msgstr "未能创建 {0}"
 
 #: easy_abc.py:5207
 msgid ""
 "EasyABC needs an external program called GhostScript to generate PDFs. You "
 "can get it from https://www.ghostscript.com/download/"
 msgstr ""
+"EasyABC 需要一个名为 GhostScript 的外部程序来生成 PDF。你可以从 https://www."
+"ghostscript.com/download/ 获取它"
 
 #: easy_abc.py:5207 easy_abc.py:5211 easy_abc.py:8225 easy_abc.py:8236
 #: easy_abc.py:8248 easy_abc.py:8260 easy_abc.py:8269 easy_abc.py:8294
 msgid "Warning"
-msgstr ""
+msgstr "警告"
 
 #: easy_abc.py:5211
 msgid "ghostscript was not found here. Go to settings and indicate the path"
-msgstr ""
+msgstr "没有找到ghostscript。进入设置并指明路径"
 
 #: easy_abc.py:5215
 msgid "PDF file"
-msgstr ""
+msgstr "PDF 文件"
 
 #: easy_abc.py:5218
 msgid "SVG file"
-msgstr ""
+msgstr "SVG 文件"
 
 #: easy_abc.py:5245
 msgid "Compressed MusicXML"
-msgstr ""
+msgstr "压缩的 MusicXML"
 
 #: easy_abc.py:5260
 #, python-brace-format
 msgid "Error during conversion of X:{0} (\"{1}\"): {2}"
-msgstr ""
+msgstr "转换 X:{0} 时出错：(\"{1}\")：{2}"
 
 #: easy_abc.py:5271 easy_abc.py:5340 easy_abc.py:5343
 msgid "HTML file"
-msgstr ""
+msgstr "HTML 文件"
 
 #: easy_abc.py:5274
 msgid "HTML file (interactive)"
-msgstr ""
+msgstr "HTML 文件（交互式）"
 
 #: easy_abc.py:5355
 msgid "Export all tunes as ..."
-msgstr ""
+msgstr "将所有乐谱导出为..."
 
 #: easy_abc.py:5355
 msgid "Epub file"
-msgstr ""
+msgstr "Epub 文件"
 
 #: easy_abc.py:5416 easy_abc.py:5769 easy_abc.py:5786 easy_abc.py:5929
 msgid "ABC file"
-msgstr ""
+msgstr "ABC 文件"
 
 #: easy_abc.py:5438
 msgid "Export tune as ..."
-msgstr ""
+msgstr "导出乐谱 ..."
 
 #: easy_abc.py:5452
 #, python-brace-format
 msgid "{0} was written"
-msgstr ""
+msgstr "{0} 已写入"
 
 #: easy_abc.py:5496
 msgid "Choose a directory..."
-msgstr ""
+msgstr "选择一个目录..."
 
 #: easy_abc.py:5508
 #, python-brace-format
 msgid "{0} files to create"
-msgstr ""
+msgstr "要创建的 {0} 个文件"
 
 #: easy_abc.py:5514
 msgid "Exporting"
-msgstr ""
+msgstr "导出"
 
 #: easy_abc.py:5514
 msgid "Remaining time"
-msgstr ""
+msgstr "剩余时间"
 
 #: easy_abc.py:5538
 msgid "Export completed"
-msgstr ""
+msgstr "导出完成"
 
 #: easy_abc.py:5540
 msgid "Export failed"
-msgstr ""
+msgstr "导出失败"
 
 #: easy_abc.py:5637
 msgid ""
@@ -989,30 +1042,32 @@ msgid ""
 "midiplayer path in Settings -> ABC Settings -> File Settings to regain the "
 "looping ability when you double click the play button"
 msgstr ""
+"使用外部 midi 播放器时无法循环播放。在设置 -> ABC 设置 -> 文件设置中清空 "
+"midiplayer 路径，以在双击播放按钮时重新获得循环播放功能"
 
 #: easy_abc.py:5637
 msgid "Looping unavailable"
-msgstr ""
+msgstr "循环不可用"
 
 #: easy_abc.py:5770 easy_abc.py:5790
 msgid "Any file"
-msgstr ""
+msgstr "任何文件"
 
 #: easy_abc.py:5772
 msgid "Open ABC file"
-msgstr ""
+msgstr "打开 ABC 文件"
 
 #: easy_abc.py:5785
 msgid "Any music file"
-msgstr ""
+msgstr "任何音乐文件"
 
 #: easy_abc.py:5789
 msgid "Noteworthy Composer file"
-msgstr ""
+msgstr "值得注意的作曲家文件"
 
 #: easy_abc.py:5792
 msgid "Import and add tune"
-msgstr ""
+msgstr "导入并添加乐谱"
 
 #: easy_abc.py:5815
 msgid ""
@@ -1021,29 +1076,32 @@ msgid ""
 "in order for you to load the file and safely save changes to it. Do you want "
 "EasyABC to add this for you automatically?"
 msgstr ""
+"这个 ABC 文件似乎是使用 UTF-8 编码的，但没有说明这一事实。强烈建议添加一个 I:"
+"abc-charset 字段，以便您加载文件并安全地保存对它的更改。你想让 EasyABC 自动为"
+"你添加这个吗？"
 
 #: easy_abc.py:5817
 msgid "Add abc-charset field?"
-msgstr ""
+msgstr "增加 abc-charset 字段？"
 
 #: easy_abc.py:5842
 msgid ""
 "Could not find file.\n"
 "It may have been moved or deleted. Choose File,Open to locate it."
-msgstr ""
+msgstr "找不到文件。它可能已被移动或删除。选择文件，打开以找到它。"
 
 #: easy_abc.py:5842
 msgid "File not found"
-msgstr ""
+msgstr "找不到文件"
 
 #: easy_abc.py:5888
 #, python-format
 msgid "Do you want to save your changes to %s?"
-msgstr ""
+msgstr "您想保存对 %s 的修改吗？"
 
 #: easy_abc.py:5889
 msgid "Save changes?"
-msgstr ""
+msgstr "保存更改？"
 
 #: easy_abc.py:5909
 #, python-format
@@ -1053,537 +1111,542 @@ msgid ""
 "to using UTF-8 as your character encoding (recommended)? (choosing No may "
 "cause some of these characters to be replaced by '?' when they are saved)"
 msgstr ""
+"此文档包含无法使用当前字符编码 (%(encoding)s) 表示的字符（例如 %(ABC)s）。您"
+"想改用 UTF-8 作为字符编码吗（推荐）？（选择否可能会导致其中一些字符在保存时"
+"被 '?' 替换）"
 
 #: easy_abc.py:5913
 msgid "Switch to UTF-8 encoding?"
-msgstr ""
+msgstr "切换到 UTF-8 编码？"
 
 #: easy_abc.py:5934
 #, python-format
 msgid "Save ABC file %s"
-msgstr ""
+msgstr "保存 ABC 文件 %s"
 
 #: easy_abc.py:5942
 msgid "The file already exists. Do you want to overwrite the existing file?"
-msgstr ""
+msgstr "文件已经存在。你想覆盖现有文件吗？"
 
 #: easy_abc.py:5943
 msgid "Overwrite existing file?"
-msgstr ""
+msgstr "覆盖现有的文件？"
 
 #: easy_abc.py:5967
 msgid "abc2abc error/warnings: "
-msgstr ""
+msgstr "abc2abc 错误/警告："
 
 #: easy_abc.py:5968
 msgid "Abc2abc error message"
-msgstr ""
+msgstr "Abc2abc 错误信息"
 
 #: easy_abc.py:6032
 msgid "Move up"
-msgstr ""
+msgstr "上移"
 
 #: easy_abc.py:6033
 msgid "Move down"
-msgstr ""
+msgstr "下移"
 
 #: easy_abc.py:6035
+#, fuzzy
+#| msgid "&Copy"
 msgid "Copy"
-msgstr ""
+msgstr "复制(&C)"
 
 #: easy_abc.py:6036
 msgid "Export to &MIDI..."
-msgstr ""
+msgstr "导出到 MIDI(&M) ..."
 
 #: easy_abc.py:6037
 msgid "Export to &PDF..."
-msgstr ""
+msgstr "导出到 PDF(&P) ... "
 
 #: easy_abc.py:6038
 msgid "Export to &one PDF..."
-msgstr ""
+msgstr "导出为一个 PDF(&o)... "
 
 #: easy_abc.py:6039
 msgid "Export to &SVG..."
-msgstr ""
+msgstr "导出到 SVG(&S) ..."
 
 #: easy_abc.py:6040
 msgid "Export to &HTML..."
-msgstr ""
+msgstr "导出到 HTML(&H) ..."
 
 #: easy_abc.py:6041
 msgid "Export to HTML (&interactive)..."
-msgstr ""
+msgstr "导出到交互式 HTML(&I) ..."
 
 #: easy_abc.py:6042
 msgid "Export to Music&XML..."
-msgstr ""
+msgstr "导出到 MusicXML(&X) ..."
 
 #: easy_abc.py:6043
 msgid "Export to &ABC..."
-msgstr ""
+msgstr "导出到 ABC(&A) ..."
 
 #: easy_abc.py:6044
 msgid "Export to &Wave..."
-msgstr ""
+msgstr "导出到 Wave(&W) ..."
 
 #: easy_abc.py:6070
 msgid "&Active"
-msgstr ""
+msgstr "激活(&A)"
 
 #: easy_abc.py:6072
 msgid "Automatic uppercase/lowercase"
-msgstr ""
+msgstr "自动大写/小写"
 
 #: easy_abc.py:6074
 msgid "Add note &durations"
-msgstr ""
+msgstr "增加注释和持续时间"
 
 #: easy_abc.py:6077
 msgid "Disabled"
-msgstr ""
+msgstr "禁用"
 
 #: easy_abc.py:6078
 msgid "Using spacebar"
-msgstr ""
+msgstr "使用空小节"
 
 #: easy_abc.py:6079
 msgid "Automatic"
-msgstr ""
+msgstr "自动"
 
 #: easy_abc.py:6080
 msgid "Add &bar"
-msgstr ""
+msgstr "增加小节(&B)"
 
 #: easy_abc.py:6082
 msgid "Add &matching right symbol: ), ], } and \""
-msgstr ""
+msgstr "增加匹配右符号(&M)：)、]、}和\""
 
 #: easy_abc.py:6099
 #, python-format
 msgid "Down %d semitones"
-msgstr ""
+msgstr "向下 %d 个半音"
 
 #: easy_abc.py:6103
 #, python-format
 msgid "Up %d semitones"
-msgstr ""
+msgstr "向上 %d 个半音"
 
 #: easy_abc.py:6106
 msgid "&Refresh music"
-msgstr ""
+msgstr "刷新音乐(&R)"
 
 #: easy_abc.py:6107
 msgid "&Automatically refresh music as I type"
-msgstr ""
+msgstr "在我输入时自动刷新音乐(&A)"
 
 #: easy_abc.py:6109
 msgid "&Use reduced margins when displaying tunes on screen"
-msgstr ""
+msgstr "在屏幕上显示曲调时使用缩小的边距(&U)"
 
 #: easy_abc.py:6110
 msgid "&Change editor font..."
-msgstr ""
+msgstr "更改编辑器字体(&C)"
 
 #: easy_abc.py:6111
 msgid "&Use default editor font"
-msgstr ""
+msgstr "使用默认编辑器字体(&U)"
 
 #: easy_abc.py:6113
 msgid "&Reset window layout to default"
-msgstr ""
+msgstr "将窗口布局重置为默认值(&R)"
 
 #: easy_abc.py:6119
 msgid "&File"
-msgstr ""
+msgstr "文件(&F)"
 
 #: easy_abc.py:6120
 msgid "&New"
-msgstr ""
+msgstr "新建(&N)"
 
 #: easy_abc.py:6120
 msgid "Create a new file"
-msgstr ""
+msgstr "创建一个新文件"
 
 #: easy_abc.py:6121
 msgid "&Open..."
-msgstr ""
+msgstr "打开(&O)..."
 
 #: easy_abc.py:6121
 msgid "Open an existing file"
-msgstr ""
+msgstr "打开一个现有文件"
 
 #: easy_abc.py:6122
 msgid "&Close"
-msgstr ""
+msgstr "关闭(&C)"
 
 #: easy_abc.py:6122
 msgid "Close the current file"
-msgstr ""
+msgstr "关闭当前文件"
 
 #: easy_abc.py:6124
 msgid "&Import and add..."
-msgstr ""
+msgstr "导入并添加(&I)..."
 
 #: easy_abc.py:6124
 msgid ""
 "Import a song in ABC, Midi or MusicXML format and add it to the current "
 "document."
-msgstr ""
+msgstr "导入 ABC、Midi 或 MusicXML 格式的乐谱并将其添加到当前文档中。"
 
 #: easy_abc.py:6126
 msgid "&Export selected"
-msgstr ""
+msgstr "选择导出(&E)"
 
 #: easy_abc.py:6127
 msgid "as &PDF..."
-msgstr ""
+msgstr "作为 PDF(&P)..."
 
 #: easy_abc.py:6128
 msgid "as one &PDF..."
-msgstr ""
+msgstr "作为一个 PDF(&P)..."
 
 #: easy_abc.py:6129 easy_abc.py:6139
 msgid "as &MIDI..."
-msgstr ""
+msgstr "作为 MIDI(&M)..."
 
 #: easy_abc.py:6130
 msgid "as &SVG..."
-msgstr ""
+msgstr "作为 SVG(&S)..."
 
 #: easy_abc.py:6131 easy_abc.py:6140
 msgid "as &HTML..."
-msgstr ""
+msgstr "作为 HTML(&H)..."
 
 #: easy_abc.py:6132 easy_abc.py:6141
 msgid "as HTML (&interactive)..."
-msgstr ""
+msgstr "作为交互式 HTML(&I)..."
 
 #: easy_abc.py:6133 easy_abc.py:6143
 msgid "as Music&XML..."
-msgstr ""
+msgstr "作为 MusicXML(&X)..."
 
 #: easy_abc.py:6134
 msgid "as A&BC..."
-msgstr ""
+msgstr "作为 ABC(&B)..."
 
 #: easy_abc.py:6135
 msgid "as &Wave..."
-msgstr ""
+msgstr "作为 Wave(&W)..."
 
 #: easy_abc.py:6136
 msgid "Export &all"
-msgstr ""
+msgstr "导出所有(&A)"
 
 #: easy_abc.py:6137
 msgid "as a &PDF Book..."
-msgstr ""
+msgstr "作为 PDF 书(&P)..."
 
 #: easy_abc.py:6138
 msgid "as PDF &Files..."
-msgstr ""
+msgstr "作为 PDF 文件(&F)..."
 
 #: easy_abc.py:6145
 msgid "&Save"
-msgstr ""
+msgstr "保存(&S)"
 
 #: easy_abc.py:6145
 msgid "Save the active file"
-msgstr ""
+msgstr "保存活动文件"
 
 #: easy_abc.py:6146
 msgid "Save &As..."
-msgstr ""
+msgstr "另存为(&A)..."
 
 #: easy_abc.py:6146
 msgid "Save the active file with a new filename"
-msgstr ""
+msgstr "用新文件名保存活动文件"
 
 #: easy_abc.py:6148
 msgid "&Print..."
-msgstr ""
+msgstr "打印(&P)..."
 
 #: easy_abc.py:6148
 msgid "Print the selected tune"
-msgstr ""
+msgstr "打印选定的乐谱"
 
 #: easy_abc.py:6149
 msgid "&Print preview"
-msgstr ""
+msgstr "打印预览(&P)"
 
 #: easy_abc.py:6150
 msgid "P&age Setup..."
-msgstr ""
+msgstr "页面设置(&A)"
 
 #: easy_abc.py:6150
 msgid "Change the printer and printing options"
-msgstr ""
+msgstr "更改打印机和打印选项"
 
 #: easy_abc.py:6152
 msgid "&Recent files"
-msgstr ""
+msgstr "最近的文件(&R)"
 
 #: easy_abc.py:6154
 msgid "&Quit"
-msgstr ""
+msgstr "退出(&Q)"
 
 #: easy_abc.py:6154
 msgid "Exit the application (prompt to save files)"
-msgstr ""
+msgstr "退出应用程序（提示保存文件）"
 
 #: easy_abc.py:6155
 msgid "&Edit"
-msgstr ""
+msgstr "编辑(&E)"
 
 #: easy_abc.py:6156
 msgid "&Undo"
-msgstr ""
+msgstr "撤销(&U)"
 
 #: easy_abc.py:6156
 msgid "Undo the last action"
-msgstr ""
+msgstr "撤消上次操作"
 
 #: easy_abc.py:6157
 msgid "&Redo"
-msgstr ""
+msgstr "恢复(&R)"
 
 #: easy_abc.py:6157
 msgid "Redo the last action"
-msgstr ""
+msgstr "重做最后一个动作"
 
 #: easy_abc.py:6159
 msgid "&Cut"
-msgstr ""
+msgstr "剪切(&C)"
 
 #: easy_abc.py:6159
 msgid "Cut the selection and put it on the clipboard"
-msgstr ""
+msgstr "剪切选择并将其放在剪贴板上"
 
 #: easy_abc.py:6160
 msgid "&Copy"
-msgstr ""
+msgstr "复制(&C)"
 
 #: easy_abc.py:6160
 msgid "Copy the selection and put it on the clipboard"
-msgstr ""
+msgstr "复制选择并将其放在剪贴板上"
 
 #: easy_abc.py:6161
 msgid "&Paste"
-msgstr ""
+msgstr "粘贴(&P)"
 
 #: easy_abc.py:6161
 msgid "Paste clipboard contents"
-msgstr ""
+msgstr "粘贴剪贴板内容"
 
 #: easy_abc.py:6162
 msgid "&Delete"
-msgstr ""
+msgstr "刪除(&D)"
 
 #: easy_abc.py:6162
 msgid "Delete the selection"
-msgstr ""
+msgstr "删除选择内容"
 
 #: easy_abc.py:6169
 msgid "&Transpose"
-msgstr ""
+msgstr "移调(&T)"
 
 #: easy_abc.py:6170
 msgid "&Change note length"
-msgstr ""
+msgstr "更改音符长度(&C)"
 
 #: easy_abc.py:6171
 msgid "Double note lengths"
-msgstr ""
+msgstr "双倍音符时值"
 
 #: easy_abc.py:6172
 msgid "Halve note lengths"
-msgstr ""
+msgstr "减半音符长度"
 
 #: easy_abc.py:6173
 msgid "A&lign bars"
-msgstr ""
+msgstr "对齐小节(&L)"
 
 #: easy_abc.py:6175
 msgid "&Find..."
-msgstr ""
+msgstr "查找(&F)..."
 
 #: easy_abc.py:6177
 msgid "Find &Next"
-msgstr ""
+msgstr "查找下一个(&N)"
 
 #: easy_abc.py:6178
 msgid "&Replace..."
-msgstr ""
+msgstr "替换(&R)..."
 
 #: easy_abc.py:6180
 msgid "&Select all"
-msgstr ""
+msgstr "全选(&S)"
 
 #: easy_abc.py:6181
 msgid "&Settings"
-msgstr ""
+msgstr "设置(S)"
 
 #: easy_abc.py:6182
 msgid "&ABC settings"
-msgstr ""
+msgstr "ABC 设置(&A)"
 
 #: easy_abc.py:6183
 msgid "&Midi device settings"
-msgstr ""
+msgstr "Midi 设备设置(&M)"
 
 #: easy_abc.py:6184
 msgid "ABC &typing assistance"
-msgstr ""
+msgstr "ABC 打字帮助(&T)"
 
 #: easy_abc.py:6186
 msgid "&Clear cache"
-msgstr ""
+msgstr "清除缓存(&C)"
 
 #: easy_abc.py:6187
 msgid "Cold &restart"
-msgstr ""
+msgstr "冷启动(&R)"
 
 #: easy_abc.py:6188
 msgid "&Tools"
-msgstr ""
+msgstr "工具(&T)"
 
 #: easy_abc.py:6189
 msgid "Generate &incipits file..."
-msgstr ""
+msgstr "生成初始文件(&I)..."
 
 #: easy_abc.py:6190
 msgid "&View incipits..."
-msgstr ""
+msgstr "查看初始文件(&V)..."
 
 #: easy_abc.py:6192
 msgid "&Renumber X: fields..."
-msgstr ""
+msgstr "重新编号 X: 字段(&R)..."
 
 #: easy_abc.py:6193
 msgid "&Sort tunes..."
-msgstr ""
+msgstr "排序乐谱(&S)..."
 
 #: easy_abc.py:6194
 msgid "&View"
-msgstr ""
+msgstr "视图(&V)"
 
 #: easy_abc.py:6195
 msgid "&Internals"
-msgstr ""
+msgstr "内部结构(&I)"
 
 #: easy_abc.py:6196 easy_abc.py:8500
 msgid "Messages"
-msgstr ""
+msgstr "消息"
 
 #: easy_abc.py:6196
 msgid "Show warnings and errors"
-msgstr ""
+msgstr "显示警告和错误"
 
 #: easy_abc.py:6197
 msgid "Input processed tune"
-msgstr ""
+msgstr "输入已处理的乐谱"
 
 #: easy_abc.py:6198
 msgid "Output midi file"
-msgstr ""
+msgstr "输出 midi 文件"
 
 #: easy_abc.py:6199
 msgid "Show settings status"
-msgstr ""
+msgstr "显示设置状态"
 
 #: easy_abc.py:6200
 msgid "&Help"
-msgstr ""
+msgstr "帮助(&H)"
 
 #: easy_abc.py:6201
 msgid "&Show fields and commands reference"
-msgstr ""
+msgstr "显示字段和命令参考(&S)"
 
 #: easy_abc.py:6203
 msgid "&EasyABC Help"
-msgstr ""
+msgstr "EasyABC 帮助(&E)"
 
 #: easy_abc.py:6203
 msgid "Link to EasyABC Website"
-msgstr ""
+msgstr "链接到 EasyABC 网站"
 
 #: easy_abc.py:6204
 msgid "&ABC Standard Version 2.1"
-msgstr ""
+msgstr "ABC 标准版本 2.1 (&A)"
 
 #: easy_abc.py:6204
 msgid "Link to the ABC Standard version 2.1"
-msgstr ""
+msgstr "链接到 ABC 标准 2.1 版"
 
 #: easy_abc.py:6205
 msgid "&Learn ABC"
-msgstr ""
+msgstr "学习ABC (&L)"
 
 #: easy_abc.py:6205
 msgid "Link to the ABC notation website"
-msgstr ""
+msgstr "链接到 ABC 符号网站"
 
 #: easy_abc.py:6206
 msgid "&Abcm2ps help"
-msgstr ""
+msgstr "Abcm2ps 帮助(&A)"
 
 #: easy_abc.py:6206
 msgid "Link to the Abcm2ps website"
-msgstr ""
+msgstr "链接到 Abcm2ps 网站"
 
 #: easy_abc.py:6207
 msgid "&Abc2midi help"
-msgstr ""
+msgstr "Abc2midi 帮助(&A)"
 
 #: easy_abc.py:6207
 msgid "Link to the Abc2midi website"
-msgstr ""
+msgstr "链接到 Abc2midi 网站"
 
 #: easy_abc.py:6208
 msgid "ABC &Quick Reference Card"
-msgstr ""
+msgstr "ABC 快速参考卡(&Q)"
 
 #: easy_abc.py:6208
 msgid "Link to a PDF with the most common ABC commands"
-msgstr ""
+msgstr "链接到通用 ABC 命令的 PDF"
 
 #: easy_abc.py:6210
 msgid "&Check for update..."
-msgstr ""
+msgstr "检查更新(&C)…"
 
 #: easy_abc.py:6210
 msgid "Link to EasyABC download page"
-msgstr ""
+msgstr "EasyABC 下载页面的链接"
 
 #: easy_abc.py:6212 easy_abc.py:8461
 msgid "About EasyABC"
-msgstr ""
+msgstr "关于 EasyABC"
 
 #: easy_abc.py:6273
 msgid "You need to create the midi file by playing the tune"
-msgstr ""
+msgstr "您需要通过播放曲子来创建 MIDI 文件"
 
 #: easy_abc.py:6306 easy_abc.py:6383 easy_abc.py:6409
 msgid "Find"
-msgstr ""
+msgstr "查找"
 
 #: easy_abc.py:6311
 msgid "Find & Replace"
-msgstr ""
+msgstr "查找和替换(&R)"
 
 #: easy_abc.py:6358
 #, python-format
 msgid "%d occurrences successfully replaced."
-msgstr ""
+msgstr "成功替换了 %d 次"
 
 #: easy_abc.py:6360 easy_abc.py:6383 easy_abc.py:6409
 #, python-format
 msgid "Cannot find \"%s\""
-msgstr ""
+msgstr "找不到 “%s”"
 
 #: easy_abc.py:6361
 msgid "Replace All"
-msgstr ""
+msgstr "全部替换"
 
 #: easy_abc.py:6462
 #, python-format
@@ -1591,214 +1654,218 @@ msgid ""
 "This will remove %(count)s temporary files stored in the directory %(dir)s "
 "that in total use %(size).2f MB of your disk space. Proceed?"
 msgstr ""
+"这将删除 %(count)s 个存储在目录 %(dir)s 中的临时文件，这些文件总共使用了 "
+"%(size).2f MB 的磁盘空间。继续吗？"
 
 #: easy_abc.py:6463
 msgid "Clear cache?"
-msgstr ""
+msgstr "清除缓存？"
 
 #: easy_abc.py:6475
 msgid ""
 "This will close EasyAbc and put it in a state so that it starts with default "
 "settings.i.e. the file settings1.3 will be deleted."
 msgstr ""
+"这将关闭 EasyAbc 并将其置于以默认设置启动的状态。即文件 settings1.3 将被删"
+"除。"
 
 #: easy_abc.py:6505
 msgid "Select a font for the ABC editor"
-msgstr ""
+msgstr "为 ABC 编辑器选择字体"
 
 #: easy_abc.py:6513
 msgid "ABC fields and commands reference"
-msgstr ""
+msgstr "ABC 字段和命令参考"
 
 #: easy_abc.py:7997
 msgid "nwc2xml error"
-msgstr ""
+msgstr "nwc2xml 错误"
 
 #: easy_abc.py:8073
 msgid "Name of tune"
-msgstr ""
+msgstr "乐谱名称"
 
 #: easy_abc.py:8225
 msgid ""
 "abcm2ps was not found here. You need it to view the music. Go to settings "
 "and indicate the path."
-msgstr ""
+msgstr "此处未找到 abcm2ps。您需要它来查看音乐。转到设置并指明路径。"
 
 #: easy_abc.py:8236
 msgid ""
 "abc2midi was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
-msgstr ""
+msgstr "此处未找到 abc2midi。您需要它来播放音乐。进入设置并指明路径。"
 
 #: easy_abc.py:8248
 msgid ""
 "midi2abc was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
-msgstr ""
+msgstr "这里没有找到midi2abc。你需要它来播放音乐。进入设置并指明路径。"
 
 #: easy_abc.py:8260
 msgid ""
 "abc2abc was not found here. You need it to transpose the music. Go to "
 "settings and indicate the path."
-msgstr ""
+msgstr "此处未找到 abc2abc。您需要它来移调音乐。转到设置并指明路径。"
 
 #: easy_abc.py:8269
 msgid ""
 "The midiplayer was not found. You will not be able to play the MIDI file."
-msgstr ""
+msgstr "找不到 midiplayer。您将无法播放 MIDI 文件。"
 
 #: easy_abc.py:8293
 #, python-format
 msgid "The executable %s could not be found"
-msgstr ""
+msgstr "无法找到可执行文件 %s"
 
 #: easy_abc.py:8528
 msgid "Processed Abc Tune"
-msgstr ""
+msgstr "已处理的 Abc 乐谱"
 
 #: tune_actions.py:286
 msgid "Less options"
-msgstr ""
+msgstr "更少的选项"
 
 #: tune_actions.py:288
 msgid "More options"
-msgstr ""
+msgstr "更多选项"
 
 #: tune_actions.py:427
 msgid "Convert to annotation"
-msgstr ""
+msgstr "转换为注释"
 
 #: tune_actions.py:461
 msgid "No accidental"
-msgstr ""
+msgstr "无临时变音记号"
 
 #: tune_actions.py:462
 msgid "Natural"
-msgstr ""
+msgstr "还原号"
 
 #: tune_actions.py:463
 msgid "Sharp"
-msgstr ""
+msgstr "升号"
 
 #: tune_actions.py:464
 msgid "Flat"
-msgstr ""
+msgstr "降号"
 
 #: tune_actions.py:465
 msgid "Double sharp"
-msgstr ""
+msgstr "重升号"
 
 #: tune_actions.py:466
 msgid "Double flat"
-msgstr ""
+msgstr "重降号"
 
 #: tune_actions.py:467
 msgid "Half sharp"
-msgstr ""
+msgstr "半升号(四分之一升号)"
 
 #: tune_actions.py:468
 msgid "Half flat"
-msgstr ""
+msgstr "半降号(四分之一降号)"
 
 #: tune_actions.py:469
 msgid "Sharp and a half"
-msgstr ""
+msgstr "四分之三升号"
 
 #: tune_actions.py:470
 msgid "Flat and a half"
-msgstr ""
+msgstr "四分之三降号"
 
 #: tune_actions.py:473
 msgid "Change accidental"
-msgstr ""
+msgstr "改变临时变音记号"
 
 #: tune_actions.py:478
 msgid "Common time (4/4)"
-msgstr ""
+msgstr "普通拍子 (4/4)"
 
 #: tune_actions.py:479
 msgid "Cut time (2/2)"
-msgstr ""
+msgstr "缩短时间 (2/2)"
 
 #: tune_actions.py:480
 msgid "2/4"
-msgstr ""
+msgstr "2/4"
 
 #: tune_actions.py:481
 msgid "3/4"
-msgstr ""
+msgstr "3/4"
 
 #: tune_actions.py:482
 msgid "4/4"
-msgstr ""
+msgstr "4/4"
 
 #: tune_actions.py:483
 msgid "6/4"
-msgstr ""
+msgstr "6/4"
 
 #: tune_actions.py:484
 msgid "6/8"
-msgstr ""
+msgstr "6/8"
 
 #: tune_actions.py:485
 msgid "9/8"
-msgstr ""
+msgstr "9/8"
 
 #: tune_actions.py:486
 msgid "12/8"
-msgstr ""
+msgstr "12/8"
 
 #: tune_actions.py:489
 msgid "Change meter"
-msgstr ""
+msgstr "改变节拍"
 
 #: tune_actions.py:494 tune_actions.py:506
 msgid "half note"
-msgstr ""
+msgstr "二分音符"
 
 #: tune_actions.py:495 tune_actions.py:508
 msgid "quarter note"
-msgstr ""
+msgstr "四分音符"
 
 #: tune_actions.py:496 tune_actions.py:509
 msgid "eighth note"
-msgstr ""
+msgstr "八分音符"
 
 #: tune_actions.py:497 tune_actions.py:510
 msgid "sixteenth note"
-msgstr ""
+msgstr "十六分音符"
 
 #: tune_actions.py:500 tune_actions.py:513
 msgid "Change note length"
-msgstr ""
+msgstr "改变音符长度"
 
 #: tune_actions.py:505
 msgid "three quarter note"
-msgstr ""
+msgstr "四分之三音符"
 
 #: tune_actions.py:507
 msgid "three eighth note"
-msgstr ""
+msgstr "八分之三音符"
 
 #: tune_actions.py:518
 msgid "Change second note length"
-msgstr ""
+msgstr "更改第二个音符长度"
 
 #: tune_actions.py:523
 msgid "Only name"
-msgstr ""
+msgstr "仅名称"
 
 #: tune_actions.py:524
 msgid "Only speed"
-msgstr ""
+msgstr "仅速度"
 
 #: tune_actions.py:525
 msgid "Name & speed"
-msgstr ""
+msgstr "名称和速度"
 
 #: tune_actions.py:528
 msgid "Change tempo notation"
-msgstr ""
+msgstr "更改节拍符号"
 
 #: tune_actions.py:566
 msgid "Larghissimo"
@@ -1806,7 +1873,7 @@ msgstr ""
 
 #: tune_actions.py:567
 msgid "Grave"
-msgstr ""
+msgstr "反引号"
 
 #: tune_actions.py:568
 msgid "Lento"
@@ -1814,19 +1881,19 @@ msgstr ""
 
 #: tune_actions.py:569
 msgid "Largo"
-msgstr ""
+msgstr "缓慢地"
 
 #: tune_actions.py:570
 msgid "Adagio"
-msgstr ""
+msgstr "慢板"
 
 #: tune_actions.py:571
 msgid "Adagietto"
-msgstr ""
+msgstr "柔板"
 
 #: tune_actions.py:572
 msgid "Andante"
-msgstr ""
+msgstr "缓慢地"
 
 #: tune_actions.py:573
 msgid "Andantino"
@@ -1834,23 +1901,23 @@ msgstr ""
 
 #: tune_actions.py:574
 msgid "Moderato"
-msgstr ""
+msgstr "中板"
 
 #: tune_actions.py:575
 msgid "Allegretto"
-msgstr ""
+msgstr "快板(Allegretto)"
 
 #: tune_actions.py:576
 msgid "Allegro"
-msgstr ""
+msgstr "快板(Allegro)"
 
 #: tune_actions.py:577
 msgid "Vivace"
-msgstr ""
+msgstr "活泼"
 
 #: tune_actions.py:578
 msgid "Presto"
-msgstr ""
+msgstr "急板"
 
 #: tune_actions.py:579
 msgid "Prestissimo"
@@ -1858,99 +1925,99 @@ msgstr ""
 
 #: tune_actions.py:582
 msgid "Change tempo name"
-msgstr ""
+msgstr "更改速度名称"
 
 #: tune_actions.py:587
 msgid "Note up"
-msgstr ""
+msgstr "音符上移"
 
 #: tune_actions.py:588
 msgid "Note down"
-msgstr ""
+msgstr "音符下移"
 
 #: tune_actions.py:589
 msgid "Third up"
-msgstr ""
+msgstr "上移三度"
 
 #: tune_actions.py:590
 msgid "Third down"
-msgstr ""
+msgstr "下移三度"
 
 #: tune_actions.py:591 tune_actions.py:1105 tune_actions.py:1115
 msgid "Octave up"
-msgstr ""
+msgstr "上移八度"
 
 #: tune_actions.py:592 tune_actions.py:1106 tune_actions.py:1116
 msgid "Octave down"
-msgstr ""
+msgstr "下移八度"
 
 #: tune_actions.py:596
 msgid "Change pitch"
-msgstr ""
+msgstr "改变音高"
 
 #: tune_actions.py:664
 msgid "Change duration"
-msgstr ""
+msgstr "更改持续时间"
 
 #: tune_actions.py:791
 msgid "One measure"
-msgstr ""
+msgstr "一小节"
 
 #: tune_actions.py:792
 msgid "Double measures"
-msgstr ""
+msgstr "双小节"
 
 #: tune_actions.py:793
 msgid "Half measures"
-msgstr ""
+msgstr "半小节"
 
 #: tune_actions.py:794
 msgid "Increase measures"
-msgstr ""
+msgstr "增加小节"
 
 #: tune_actions.py:795
 msgid "Decrease measures"
-msgstr ""
+msgstr "减少小节"
 
 #: tune_actions.py:796
 msgid "Normal rest"
-msgstr ""
+msgstr "普通休息"
 
 #: tune_actions.py:807 tune_actions.py:821
 msgid "Default length"
-msgstr ""
+msgstr "默认长度"
 
 #: tune_actions.py:808 tune_actions.py:822
 msgid "Halve note length"
-msgstr ""
+msgstr "减半音符长度"
 
 #: tune_actions.py:809 tune_actions.py:823
 msgid "Double note length"
-msgstr ""
+msgstr "双倍音符长度"
 
 #: tune_actions.py:810 tune_actions.py:824
 msgid "Dotted note"
-msgstr ""
+msgstr "附点音符"
 
 #: tune_actions.py:811 tune_actions.py:825
 msgid "This note dotted, next note halved"
-msgstr ""
+msgstr "此音符加点，下个音符时值减半"
 
 #: tune_actions.py:812 tune_actions.py:826
 msgid "This note halved, next note dotted"
-msgstr ""
+msgstr "本音符时值减半，下个音符加点"
 
 #: tune_actions.py:813
 msgid "Tie / untie"
-msgstr ""
+msgstr "启用平滑"
 
 #: tune_actions.py:827
 msgid "Whole measure"
-msgstr ""
+msgstr "整小节"
 
 #: tune_actions.py:835 tune_actions.py:1783
 msgid "Optional sharp"
-msgstr ""
+msgstr "可选升号"
 
 #: tune_actions.py:836 tune_actions.py:1784
 msgid "Optional natural"
@@ -1958,7 +2025,7 @@ msgstr ""
 
 #: tune_actions.py:837 tune_actions.py:1785
 msgid "Optional flat"
-msgstr ""
+msgstr "可选降号"
 
 #: tune_actions.py:838
 msgid "Ritenuto"
@@ -1966,159 +2033,159 @@ msgstr ""
 
 #: tune_actions.py:841
 msgid "Change annotation"
-msgstr ""
+msgstr "改变注释"
 
 #: tune_actions.py:847
 msgid "Above"
-msgstr ""
+msgstr "上方"
 
 #: tune_actions.py:848
 msgid "Below"
-msgstr ""
+msgstr "下方"
 
 #: tune_actions.py:849
 msgid "Left"
-msgstr ""
+msgstr "左侧"
 
 #: tune_actions.py:850
 msgid "Right"
-msgstr ""
+msgstr "右侧"
 
 #: tune_actions.py:851
 msgid "Auto"
-msgstr ""
+msgstr "自动"
 
 #: tune_actions.py:854
 msgid "Position"
-msgstr ""
+msgstr "位置"
 
 #: tune_actions.py:859
 msgid "Bar line"
-msgstr ""
+msgstr "小节线"
 
 #: tune_actions.py:860
 msgid "Double bar line"
-msgstr ""
+msgstr "双小节线"
 
 #: tune_actions.py:861
 msgid "Thin-thick double bar line"
-msgstr ""
+msgstr "细粗小节线"
 
 #: tune_actions.py:862
 msgid "Dotted bar"
-msgstr ""
+msgstr "圆点小节线"
 
 #: tune_actions.py:863
 msgid "Thick-thin double bar line"
-msgstr ""
+msgstr "粗细小节线"
 
 #: tune_actions.py:864
 msgid "Start of repeated section"
-msgstr ""
+msgstr "重复部分的开始"
 
 #: tune_actions.py:865
 msgid "End of repeated section"
-msgstr ""
+msgstr "重复部分结束"
 
 #: tune_actions.py:866
 msgid "First ending"
-msgstr ""
+msgstr "第一个结尾"
 
 #: tune_actions.py:867
 msgid "Second ending"
-msgstr ""
+msgstr "第二个结尾"
 
 #: tune_actions.py:868
 msgid "Both end and start of repetition"
-msgstr ""
+msgstr "重复的结束和开始"
 
 #: tune_actions.py:869 tune_elements.py:954
 msgid "Voice overlay"
-msgstr ""
+msgstr "声部叠加"
 
 #: tune_actions.py:870
 msgid "Invisible bar"
-msgstr ""
+msgstr "隐形小节"
 
 #: tune_actions.py:873
 msgid "Change bar"
-msgstr ""
+msgstr "改变小节"
 
 #: tune_actions.py:878 tune_actions.py:887
 msgid "Visible"
-msgstr ""
+msgstr "可见"
 
 #: tune_actions.py:879 tune_actions.py:888
 msgid "Hidden"
-msgstr ""
+msgstr "隐藏"
 
 #: tune_actions.py:882 tune_actions.py:891
 msgid "Visibility"
-msgstr ""
+msgstr "可见状态"
 
 #: tune_actions.py:896
 msgid "Appoggiatura"
-msgstr ""
+msgstr "倚音"
 
 #: tune_actions.py:897
 msgid "Acciaccatura"
-msgstr ""
+msgstr "碎音"
 
 #: tune_actions.py:900
 msgid "Appoggiatura/acciaccatura"
-msgstr ""
+msgstr "倚音/碎音"
 
 #: tune_actions.py:942
 msgid "6 sharps"
-msgstr ""
+msgstr "6 个升号"
 
 #: tune_actions.py:943
 msgid "5 sharps"
-msgstr ""
+msgstr "5 个升号"
 
 #: tune_actions.py:944
 msgid "4 sharps"
-msgstr ""
+msgstr "4 个升号"
 
 #: tune_actions.py:945
 msgid "3 sharps"
-msgstr ""
+msgstr "3 个升号"
 
 #: tune_actions.py:946
 msgid "2 sharps"
-msgstr ""
+msgstr "2 个升号"
 
 #: tune_actions.py:947
 msgid "1 sharp"
-msgstr ""
+msgstr "1 个升号"
 
 #: tune_actions.py:948
 msgid "0 sharps/flats"
-msgstr ""
+msgstr "0 个升降号"
 
 #: tune_actions.py:949
 msgid "1 flat"
-msgstr ""
+msgstr "1 个降号"
 
 #: tune_actions.py:950
 msgid "2 flats"
-msgstr ""
+msgstr "2 个降号"
 
 #: tune_actions.py:951
 msgid "3 flats"
-msgstr ""
+msgstr "3 个降号"
 
 #: tune_actions.py:952
 msgid "4 flats"
-msgstr ""
+msgstr "4 个降号"
 
 #: tune_actions.py:953
 msgid "5 flats"
-msgstr ""
+msgstr "5 个降号"
 
 #: tune_actions.py:954
 msgid "6 flats"
-msgstr ""
+msgstr "6 个降号"
 
 #: tune_actions.py:1006
 msgid "Major (Ionian)"
@@ -2142,7 +2209,7 @@ msgstr ""
 
 #: tune_actions.py:1011
 msgid "Lydian"
-msgstr ""
+msgstr "吕底亚语"
 
 #: tune_actions.py:1012
 msgid "Locrian"
@@ -2150,100 +2217,100 @@ msgstr ""
 
 #: tune_actions.py:1015
 msgid "Mode"
-msgstr ""
+msgstr "模式"
 
 #: tune_actions.py:1053 tune_actions.py:1094 tune_actions.py:1104
 #: tune_actions.py:1114
 msgid "Default"
-msgstr ""
+msgstr "默认"
 
 #: tune_actions.py:1054
 msgid "Treble clef"
-msgstr ""
+msgstr "高音谱号"
 
 #: tune_actions.py:1055
 msgid "Bass clef"
-msgstr ""
+msgstr "低音谱号"
 
 #: tune_actions.py:1056
 msgid "Tenor clef"
-msgstr ""
+msgstr "次中音谱号"
 
 #: tune_actions.py:1057
 msgid "Alto clef"
-msgstr ""
+msgstr "次高音谱号"
 
 #: tune_actions.py:1058
 msgid "Soprano clef"
-msgstr ""
+msgstr "女高音谱号"
 
 #: tune_actions.py:1059
 msgid "Mezzo-soprano clef"
-msgstr ""
+msgstr "女中音谱号"
 
 #: tune_actions.py:1060
 msgid "Baritone clef"
-msgstr ""
+msgstr "上低音谱号"
 
 #: tune_actions.py:1061
 msgid "Percussion clef"
-msgstr ""
+msgstr "打击乐谱号"
 
 #: tune_actions.py:1065
 msgid "Clef"
-msgstr ""
+msgstr "低音谱号"
 
 #: tune_actions.py:1095
 msgid "Octave higher (8va)"
-msgstr ""
+msgstr "高八度 (8va)"
 
 #: tune_actions.py:1096
 msgid "Octave lower (8va bassa)"
-msgstr ""
+msgstr "低八度 (8va bassa)"
 
 #: tune_actions.py:1099
 msgid "Staff transpose"
-msgstr ""
+msgstr "五线谱移调"
 
 #: tune_actions.py:1109
 msgid "Playback transpose"
-msgstr ""
+msgstr "播放移调"
 
 #: tune_actions.py:1119
 msgid "Octave shift"
-msgstr ""
+msgstr "八度偏移"
 
 #: tune_actions.py:1155
 msgid "Change dynamics mark"
-msgstr ""
+msgstr "改变力度标记"
 
 #: tune_actions.py:1160
 msgid "Change fingering"
-msgstr ""
+msgstr "换指法"
 
 #: tune_actions.py:1165
 msgid "Change ornament"
-msgstr ""
+msgstr "改变装饰"
 
 #: tune_actions.py:1170
 msgid "Change direction marker"
-msgstr ""
+msgstr "改变反复记号"
 
 #: tune_actions.py:1175
 msgid "Change articulation marker"
-msgstr ""
+msgstr "改变发音记号"
 
 #: tune_actions.py:1180
 msgid "Change chord"
-msgstr ""
+msgstr "改变和弦"
 
 #: tune_actions.py:1213
 msgid "Major"
-msgstr ""
+msgstr "大调"
 
 #: tune_actions.py:1214
 msgid "Minor"
-msgstr ""
+msgstr "小调"
 
 #: tune_actions.py:1215
 msgid "Diminished"
@@ -2255,7 +2322,7 @@ msgstr ""
 
 #: tune_actions.py:1217
 msgid "Suspended"
-msgstr ""
+msgstr "已暂停"
 
 #: tune_actions.py:1218
 msgid "Suspended (2nd)"
@@ -2263,15 +2330,15 @@ msgstr ""
 
 #: tune_actions.py:1219
 msgid "Seventh"
-msgstr ""
+msgstr "七度"
 
 #: tune_actions.py:1220
 msgid "Major seventh"
-msgstr ""
+msgstr "大七度"
 
 #: tune_actions.py:1222
 msgid "Minor seventh"
-msgstr ""
+msgstr "小七度"
 
 #: tune_actions.py:1224
 msgid "Augmented seventh"
@@ -2283,11 +2350,11 @@ msgstr ""
 
 #: tune_actions.py:1226
 msgid "Major sixth"
-msgstr ""
+msgstr "大六度"
 
 #: tune_actions.py:1227
 msgid "Minor sixth"
-msgstr ""
+msgstr "小六度"
 
 #: tune_actions.py:1228
 msgid "Half-diminished seventh"
@@ -2295,7 +2362,7 @@ msgstr ""
 
 #: tune_actions.py:1230
 msgid "Power-chord (no third)"
-msgstr ""
+msgstr "强力和弦（无三度）"
 
 #: tune_actions.py:1231
 msgid "Seventh suspended"
@@ -2323,31 +2390,31 @@ msgstr ""
 
 #: tune_actions.py:1246
 msgid "Change chord name"
-msgstr ""
+msgstr "更改和弦名称"
 
 #: tune_actions.py:1254
 msgid "Root position"
-msgstr ""
+msgstr "根位置"
 
 #: tune_actions.py:1255
 msgid "First inversion"
-msgstr ""
+msgstr "第一次反复"
 
 #: tune_actions.py:1256
 msgid "Second inversion"
-msgstr ""
+msgstr "第二次反复"
 
 #: tune_actions.py:1259
 msgid "Change bass note"
-msgstr ""
+msgstr "改变低音音符"
 
 #: tune_actions.py:1267 tune_actions.py:2174
 msgid "Normal"
-msgstr ""
+msgstr "普通的"
 
 #: tune_actions.py:1268
 msgid "Dashed"
-msgstr ""
+msgstr "虚线"
 
 #: tune_actions.py:1271
 msgid "Change slur"
@@ -2355,19 +2422,21 @@ msgstr ""
 
 #: tune_actions.py:1276
 msgid "Change redefinable symbol"
-msgstr ""
+msgstr "更改可重新定义的符号"
 
 #: tune_actions.py:1302
 msgid "Change instrument"
-msgstr ""
+msgstr "换乐器"
 
 #: tune_actions.py:1313
 msgid "Change channel"
-msgstr ""
+msgstr "改变声道"
 
 #: tune_actions.py:1322
+#, fuzzy
+#| msgid "High Tom"
 msgid "High Q"
-msgstr ""
+msgstr "高音嗵鼓"
 
 #: tune_actions.py:1323
 msgid "Slap"
@@ -2382,8 +2451,10 @@ msgid "Scratch Pull"
 msgstr ""
 
 #: tune_actions.py:1326
+#, fuzzy
+#| msgid "Side Stick"
 msgid "Sticks"
-msgstr ""
+msgstr "敲鼓边"
 
 #: tune_actions.py:1327
 msgid "Square Click"
@@ -2399,155 +2470,155 @@ msgstr ""
 
 #: tune_actions.py:1330
 msgid "Acoustic Bass Drum"
-msgstr ""
+msgstr "传统低音大鼓"
 
 #: tune_actions.py:1331
 msgid "Bass Drum 1"
-msgstr ""
+msgstr "低音鼓 1"
 
 #: tune_actions.py:1332
 msgid "Side Stick"
-msgstr ""
+msgstr "敲鼓边"
 
 #: tune_actions.py:1333
 msgid "Acoustic Snare"
-msgstr ""
+msgstr "原声军鼓"
 
 #: tune_actions.py:1334
 msgid "Hand Clap"
-msgstr ""
+msgstr "拍手"
 
 #: tune_actions.py:1335
 msgid "Electric Snare"
-msgstr ""
+msgstr "电子小鼓"
 
 #: tune_actions.py:1336
 msgid "Low Floor Tom"
-msgstr ""
+msgstr "低音落地嗵鼓"
 
 #: tune_actions.py:1337
 msgid "Closed Hi Hat"
-msgstr ""
+msgstr "弱音踩镲"
 
 #: tune_actions.py:1338
 msgid "High Floor Tom"
-msgstr ""
+msgstr "高音落地嗵鼓"
 
 #: tune_actions.py:1339
 msgid "Pedal Hi-Hat"
-msgstr ""
+msgstr "踏踩镲"
 
 #: tune_actions.py:1340
 msgid "Low Tom"
-msgstr ""
+msgstr "低音嗵鼓"
 
 #: tune_actions.py:1341
 msgid "Open Hi-Hat"
-msgstr ""
+msgstr "开音踩镲"
 
 #: tune_actions.py:1342
 msgid "Low-Mid Tom"
-msgstr ""
+msgstr "中低音嗵鼓"
 
 #: tune_actions.py:1343
 msgid "Hi Mid Tom"
-msgstr ""
+msgstr "中高音嗵鼓"
 
 #: tune_actions.py:1344
 msgid "Crash Cymbal 1"
-msgstr ""
+msgstr "吊镲 1"
 
 #: tune_actions.py:1345
 msgid "High Tom"
-msgstr ""
+msgstr "高音嗵鼓"
 
 #: tune_actions.py:1346
 msgid "Ride Cymbal 1"
-msgstr ""
+msgstr "节奏钹 1"
 
 #: tune_actions.py:1347
 msgid "Chinese Cymbal"
-msgstr ""
+msgstr "中国钹"
 
 #: tune_actions.py:1348
 msgid "Ride Bell"
-msgstr ""
+msgstr "钟镲"
 
 #: tune_actions.py:1349
 msgid "Tambourine"
-msgstr ""
+msgstr "铃鼓"
 
 #: tune_actions.py:1350
 msgid "Splash Cymbal"
-msgstr ""
+msgstr "响钹"
 
 #: tune_actions.py:1351
 msgid "Cowbell"
-msgstr ""
+msgstr "牛铃"
 
 #: tune_actions.py:1352
 msgid "Crash Cymbal 2"
-msgstr ""
+msgstr "吊镲 2"
 
 #: tune_actions.py:1353
 msgid "Vibraslap"
-msgstr ""
+msgstr "颤音叉"
 
 #: tune_actions.py:1354
 msgid "Ride Cymbal 2"
-msgstr ""
+msgstr "节奏钹 2"
 
 #: tune_actions.py:1355
 msgid "Hi Bongo"
-msgstr ""
+msgstr "高音邦戈鼓"
 
 #: tune_actions.py:1356
 msgid "Low Bongo"
-msgstr ""
+msgstr "低音邦戈鼓"
 
 #: tune_actions.py:1357
 msgid "Mute Hi Conga"
-msgstr ""
+msgstr "闷高音康加鼓"
 
 #: tune_actions.py:1358
 msgid "Open Hi Conga"
-msgstr ""
+msgstr "开高音康加鼓"
 
 #: tune_actions.py:1359
 msgid "Low Conga"
-msgstr ""
+msgstr "低音康加鼓"
 
 #: tune_actions.py:1360
 msgid "High Timbale"
-msgstr ""
+msgstr "高音廷巴鼓"
 
 #: tune_actions.py:1361
 msgid "Low Timbale"
-msgstr ""
+msgstr "低音廷巴鼓"
 
 #: tune_actions.py:1362
 msgid "High Agogo"
-msgstr ""
+msgstr "高音Agogo"
 
 #: tune_actions.py:1363
 msgid "Low Agogo"
-msgstr ""
+msgstr "低音Agogo"
 
 #: tune_actions.py:1364
 msgid "Cabasa"
-msgstr ""
+msgstr "铁沙铃"
 
 #: tune_actions.py:1365
 msgid "Maracas"
-msgstr ""
+msgstr "砂槌"
 
 #: tune_actions.py:1366
 msgid "Short Whistle"
-msgstr ""
+msgstr "短口哨"
 
 #: tune_actions.py:1367
 msgid "Long Whistle"
-msgstr ""
+msgstr "长口哨"
 
 #: tune_actions.py:1368
 msgid "Short Guiro"
@@ -2559,39 +2630,41 @@ msgstr ""
 
 #: tune_actions.py:1370
 msgid "Claves"
-msgstr ""
+msgstr "响棒"
 
 #: tune_actions.py:1371
 msgid "Hi Wood Block"
-msgstr ""
+msgstr "高音响板"
 
 #: tune_actions.py:1372
 msgid "Low Wood Block"
-msgstr ""
+msgstr "低音响板"
 
 #: tune_actions.py:1373
 msgid "Mute Cuica"
-msgstr ""
+msgstr "弱音Cuica鼓"
 
 #: tune_actions.py:1374
 msgid "Open Cuica"
-msgstr ""
+msgstr "响Cuica鼓"
 
 #: tune_actions.py:1375
 msgid "Mute Triangle"
-msgstr ""
+msgstr "弱音三角铁"
 
 #: tune_actions.py:1376
 msgid "Open Triangle"
-msgstr ""
+msgstr "响三角铁"
 
 #: tune_actions.py:1377
 msgid "Shaker"
 msgstr ""
 
 #: tune_actions.py:1378
+#, fuzzy
+#| msgid "Ride Bell"
 msgid "Jingle Bell"
-msgstr ""
+msgstr "钟镲"
 
 #: tune_actions.py:1379
 msgid "Belltree"
@@ -2606,55 +2679,57 @@ msgid "Closed Surdo"
 msgstr ""
 
 #: tune_actions.py:1382
+#, fuzzy
+#| msgid "Open Cuica"
 msgid "Open Surdo"
-msgstr ""
+msgstr "响Cuica鼓"
 
 #: tune_actions.py:1385
 msgid "Change percussion instrument"
-msgstr ""
+msgstr "更换打击乐器"
 
 #: tune_actions.py:1391
 msgid "Muted"
-msgstr ""
+msgstr "静音"
 
 #: tune_actions.py:1404
 msgid "Change volume"
-msgstr ""
+msgstr "调整音量"
 
 #: tune_actions.py:1421 tune_actions.py:1422 tune_actions.py:1423
 #: tune_actions.py:1424 tune_actions.py:1425 tune_actions.py:1429
 #: tune_actions.py:1430 tune_actions.py:1431 tune_actions.py:1432
 #: tune_actions.py:1433
 msgid "Preset"
-msgstr ""
+msgstr "预设"
 
 #: tune_actions.py:1426 tune_actions.py:1434
 msgid "Custom"
-msgstr ""
+msgstr "自定义"
 
 #: tune_actions.py:1437
 msgid "Change guitar pattern"
-msgstr ""
+msgstr "更改吉他模式"
 
 #: tune_actions.py:1452
 msgid "Fundamental"
-msgstr ""
+msgstr "基础"
 
 #: tune_actions.py:1453 tune_elements.py:1024
 msgid "Chord"
-msgstr ""
+msgstr "和弦"
 
 #: tune_actions.py:1454 tune_elements.py:1043
 msgid "Rest"
-msgstr ""
+msgstr "休止符"
 
 #: tune_actions.py:1455
 msgid "Double duration"
-msgstr ""
+msgstr "时值加倍"
 
 #: tune_actions.py:1456
 msgid "Fundamental plus chord"
-msgstr ""
+msgstr "基础和弦"
 
 #: tune_actions.py:1457 tune_actions.py:1461
 msgid "Lowest note"
@@ -2662,7 +2737,7 @@ msgstr ""
 
 #: tune_actions.py:1458 tune_actions.py:1462
 msgid "Second note"
-msgstr ""
+msgstr "第二个音符"
 
 #: tune_actions.py:1459 tune_actions.py:1463
 msgid "Third note"
@@ -2670,12 +2745,12 @@ msgstr ""
 
 #: tune_actions.py:1460 tune_actions.py:1464
 msgid "Fourth note"
-msgstr ""
+msgstr "第四个音符"
 
 #: tune_actions.py:1461 tune_actions.py:1462 tune_actions.py:1463
 #: tune_actions.py:1464
 msgid "an octave higher"
-msgstr ""
+msgstr "高八度"
 
 #: tune_actions.py:1467
 msgid "Insert pattern"
@@ -2683,11 +2758,11 @@ msgstr ""
 
 #: tune_actions.py:1472
 msgid "Change time"
-msgstr ""
+msgstr "改变时间"
 
 #: tune_actions.py:1477
 msgid "Double time"
-msgstr ""
+msgstr "双倍时间"
 
 #: tune_actions.py:1480
 msgid "Half time"
@@ -2696,103 +2771,105 @@ msgstr ""
 #: tune_actions.py:1527
 #, python-brace-format
 msgid "Learn {0}..."
-msgstr ""
+msgstr "学习{0}..."
 
 #: tune_actions.py:1530
 msgid "more"
-msgstr ""
+msgstr "更多"
 
 #: tune_actions.py:1593
 msgid "Full ABC specification"
-msgstr ""
+msgstr "完整的 ABC 规范"
 
 #: tune_actions.py:1605
 msgid "New tune"
-msgstr ""
+msgstr "新乐谱"
 
 #: tune_actions.py:1615
 msgid "Unknown composer"
-msgstr ""
+msgstr "未知作曲家"
 
 #: tune_actions.py:1633
 msgid "New tune with multiple voices"
-msgstr ""
+msgstr "多声部新乐谱"
 
 #: tune_actions.py:1659
 msgid "New drum score"
-msgstr ""
+msgstr "新的鼓乐谱"
 
 #: tune_actions.py:1683
 msgid "Add voice"
-msgstr ""
+msgstr "增加声部"
 
 #: tune_actions.py:1699
 msgid "Replace invalid characters"
-msgstr ""
+msgstr "替换无效字符"
 
 #: tune_actions.py:1721
 msgid "New line"
-msgstr ""
+msgstr "换行"
 
 #: tune_actions.py:1736
 msgid "Space"
-msgstr ""
+msgstr "空格"
 
 #: tune_actions.py:1752
 msgid "New note/rest"
-msgstr ""
+msgstr "新音符/休止符"
 
 #: tune_actions.py:1781 tune_elements.py:968 tune_elements.py:1034
 msgid "Chord symbol"
-msgstr ""
+msgstr "和弦符号"
 
 #: tune_actions.py:1782
 msgid "Between parenthesis"
-msgstr ""
+msgstr "在括号之间"
 
 #: tune_actions.py:1788
 msgid "Insert annotation or chord"
-msgstr ""
+msgstr "插入注释或和弦"
 
 #: tune_actions.py:1799 tune_elements.py:850
 msgid "Dynamics"
-msgstr ""
+msgstr "力度记号"
 
 #: tune_actions.py:1800 tune_elements.py:874
 msgid "Ornament"
-msgstr ""
+msgstr "装饰音记号"
 
 #: tune_actions.py:1801 tune_elements.py:916
 msgid "Articulation"
-msgstr ""
+msgstr "奏法记号"
 
 #: tune_actions.py:1802 tune_elements.py:892
 msgid "Direction"
-msgstr ""
+msgstr "反复记号"
 
 #: tune_actions.py:1803
 msgid "Shortcut symbol"
-msgstr ""
+msgstr "快捷方式符号"
 
 #: tune_actions.py:1804 tune_elements.py:856
 msgid "Fingering"
-msgstr ""
+msgstr "指法记号"
 
 #: tune_actions.py:1805
+#, fuzzy
+#| msgid "No accidental"
 msgid "Accidental"
-msgstr ""
+msgstr "无临时变音记号"
 
 #: tune_actions.py:1808
 msgid "Insert decoration"
-msgstr ""
+msgstr "插入装饰音"
 
 #: tune_actions.py:1819
 msgid "Add slur"
-msgstr ""
+msgstr "增加连线"
 
 #: tune_actions.py:1830
 msgid "Add bar"
-msgstr ""
+msgstr "增加小节"
 
 #: tune_actions.py:1872
 msgid "Combine using beam"
@@ -2800,7 +2877,7 @@ msgstr ""
 
 #: tune_actions.py:1884
 msgid "Combine to chord"
-msgstr ""
+msgstr "结合和弦"
 
 #: tune_actions.py:1896
 msgid "Make triplets"
@@ -2808,23 +2885,23 @@ msgstr ""
 
 #: tune_actions.py:1908
 msgid "Show single voice"
-msgstr ""
+msgstr "显示单声部"
 
 #: tune_actions.py:1942
 msgid "Show all voices"
-msgstr ""
+msgstr "显示所有声部"
 
 #: tune_actions.py:1961
 msgid "Show additional voice"
-msgstr ""
+msgstr "显示额外的声部"
 
 #: tune_actions.py:1993
 msgid "Hide voice"
-msgstr ""
+msgstr "隐藏声部"
 
 #: tune_actions.py:2031
 msgid "Group together on same stave"
-msgstr ""
+msgstr "在同一个谱表上组合在一起"
 
 #: tune_actions.py:2044
 msgid "Brace together"
@@ -2836,15 +2913,15 @@ msgstr ""
 
 #: tune_actions.py:2062
 msgid "Toggle continued bar lines"
-msgstr ""
+msgstr "切换连续的小节线"
 
 #: tune_actions.py:2079
 msgid "Simplify note"
-msgstr ""
+msgstr "简化音符"
 
 #: tune_actions.py:2101 tune_elements.py:80
 msgid "Book"
-msgstr ""
+msgstr "书"
 
 #: tune_actions.py:2103 tune_elements.py:82
 msgid "Discography"
@@ -2852,163 +2929,165 @@ msgstr ""
 
 #: tune_actions.py:2104 tune_elements.py:83
 msgid "File url"
-msgstr ""
+msgstr "文件地址"
 
 #: tune_actions.py:2105 tune_elements.py:84
 msgid "Group"
-msgstr ""
+msgstr "组合"
 
 #: tune_actions.py:2106 tune_elements.py:85
 msgid "History"
-msgstr ""
+msgstr "历史"
 
 #: tune_actions.py:2107 tune_elements.py:91
 msgid "Notes"
-msgstr ""
+msgstr "音符"
 
 #: tune_actions.py:2108 tune_elements.py:92
 msgid "Origin"
-msgstr ""
+msgstr "来源"
 
 #: tune_actions.py:2109 tune_elements.py:93
 msgid "Parts"
-msgstr ""
+msgstr "分谱"
 
 #: tune_actions.py:2111 tune_elements.py:95
 msgid "Rhythm"
-msgstr ""
+msgstr "节奏"
 
 #: tune_actions.py:2112 tune_elements.py:97
 msgid "Source"
-msgstr ""
+msgstr "源代码"
 
 #: tune_actions.py:2113 tune_elements.py:99
 msgid "Tune title"
-msgstr ""
+msgstr "乐谱标题"
 
 #: tune_actions.py:2114 tune_elements.py:102
 msgid "Words (note aligned)"
-msgstr ""
+msgstr "歌词（对齐音符）"
 
 #: tune_actions.py:2115 tune_elements.py:103
 msgid "Words (at the end)"
-msgstr ""
+msgstr "歌词（结尾）"
 
 #: tune_actions.py:2116 tune_elements.py:104
 msgid "Reference number"
-msgstr ""
+msgstr "参考编号"
 
 #: tune_actions.py:2117 tune_elements.py:105
 msgid "Transcription"
-msgstr ""
+msgstr "转录"
 
 #: tune_actions.py:2120
+#, fuzzy
+#| msgid "Field"
 msgid "Fields"
-msgstr ""
+msgstr "字段"
 
 #: tune_actions.py:2147 tune_actions.py:2151 tune_actions.py:2152
 msgid "Page width"
-msgstr ""
+msgstr "页面宽度"
 
 #: tune_actions.py:2148
 msgid "Page height"
-msgstr ""
+msgstr "页面高度"
 
 #: tune_actions.py:2149
 msgid "Top margin"
-msgstr ""
+msgstr "上边距"
 
 #: tune_actions.py:2150
 msgid "Bottom margin"
-msgstr ""
+msgstr "底边距"
 
 #: tune_actions.py:2153
 msgid "Staff width"
-msgstr ""
+msgstr "五线谱宽度"
 
 #: tune_actions.py:2154
 msgid "Page orientation"
-msgstr ""
+msgstr "页面方向"
 
 #: tune_actions.py:2157
 msgid "Change page format"
-msgstr ""
+msgstr "更改页面格式"
 
 #: tune_actions.py:2163
 msgid "Start of every line"
-msgstr ""
+msgstr "每一行的开始"
 
 #: tune_actions.py:2164
 msgid "Every measure"
-msgstr ""
+msgstr "每个小节"
 
 #: tune_actions.py:2165
 msgid "Every 4 measures"
-msgstr ""
+msgstr "每 4 小节"
 
 #: tune_actions.py:2166
 msgid "Every 5 measures"
-msgstr ""
+msgstr "每 5 小节"
 
 #: tune_actions.py:2169
 msgid "Show measure numbers"
-msgstr ""
+msgstr "显示小节号"
 
 #: tune_actions.py:2175
 msgid "Boxed"
-msgstr ""
+msgstr "外框"
 
 #: tune_actions.py:2178
 msgid "Show measure box"
-msgstr ""
+msgstr "显示小节边框"
 
 #: tune_actions.py:2183
 msgid "Zero"
-msgstr ""
+msgstr "零"
 
 #: tune_actions.py:2184
 msgid "One"
-msgstr ""
+msgstr "一"
 
 #: tune_actions.py:2187
 msgid "First measure number"
-msgstr ""
+msgstr "第一个小节编号"
 
 #: tune_actions.py:2192
 msgid "Title font"
-msgstr ""
+msgstr "标题字体"
 
 #: tune_actions.py:2193
 msgid "Subtitle font"
-msgstr ""
+msgstr "字幕字体"
 
 #: tune_actions.py:2194
 msgid "Composer font"
-msgstr ""
+msgstr "作曲家字体"
 
 #: tune_actions.py:2195
 msgid "Parts font"
-msgstr ""
+msgstr "分谱字体"
 
 #: tune_actions.py:2196
 msgid "Tempo font"
-msgstr ""
+msgstr "节奏字体"
 
 #: tune_actions.py:2197
 msgid "Guitar chord font"
-msgstr ""
+msgstr "吉他和弦字体"
 
 #: tune_actions.py:2198
 msgid "Annotation font"
-msgstr ""
+msgstr "注释字体"
 
 #: tune_actions.py:2199
 msgid "Info font"
-msgstr ""
+msgstr "信息字体"
 
 #: tune_actions.py:2200
 msgid "Text font"
-msgstr ""
+msgstr "文本字体"
 
 #: tune_actions.py:2201
 msgid "Vocal font"
@@ -3016,103 +3095,105 @@ msgstr ""
 
 #: tune_actions.py:2202
 msgid "Words font"
-msgstr ""
+msgstr "歌词字体"
 
 #: tune_actions.py:2203
 msgid "Custom font 1"
-msgstr ""
+msgstr "自定义字体1"
 
 #: tune_actions.py:2204
 msgid "Custom font 2"
-msgstr ""
+msgstr "自定义字体2"
 
 #: tune_actions.py:2205
 msgid "Custom font 3"
-msgstr ""
+msgstr "自定义字体3"
 
 #: tune_actions.py:2206
 msgid "Custom font 4"
-msgstr ""
+msgstr "自定义字体4"
 
 #: tune_actions.py:2209
 msgid "Change font directive"
-msgstr ""
+msgstr "改变字体指令"
 
 #: tune_actions.py:2214 tune_actions.py:2224
 msgid "Page scale factor"
-msgstr ""
+msgstr "页面缩放比例"
 
 #: tune_actions.py:2215
 msgid "Staff scale factor"
-msgstr ""
+msgstr "五线谱缩放比例"
 
 #: tune_actions.py:2218
 msgid "Change scale directive"
-msgstr ""
+msgstr "更改比例指令"
 
 #: tune_actions.py:2223 tune_elements.py:638
 msgid "Score layout"
-msgstr ""
+msgstr "乐谱布局"
 
 #: tune_actions.py:2225 tune_elements.py:646
 msgid "Measure numbering"
-msgstr ""
+msgstr "小节号"
 
 #: tune_actions.py:2226 tune_elements.py:654
+#, fuzzy
+#| msgid "Hide voice"
 msgid "Hide fields"
-msgstr ""
+msgstr "隐藏声部"
 
 #: tune_actions.py:2227
 msgid "Playback"
-msgstr ""
+msgstr "播放"
 
 #: tune_actions.py:2230
 msgid "Insert directive"
-msgstr ""
+msgstr "插入指令"
 
 #: tune_actions.py:2238 tune_elements.py:591
 msgid "Chord instrument"
-msgstr ""
+msgstr "和弦乐器"
 
 #: tune_actions.py:2239
 msgid "Chord volume"
-msgstr ""
+msgstr "和弦音量"
 
 #: tune_actions.py:2240 tune_elements.py:598
 msgid "Bass instrument"
-msgstr ""
+msgstr "低音乐器"
 
 #: tune_actions.py:2241
 msgid "Bass volume"
-msgstr ""
+msgstr "低音音量"
 
 #: tune_actions.py:2243
 msgid "Accompaniment pattern (optional). Place after line with M:"
-msgstr ""
+msgstr "伴奏模式（可选）。放在带有 M 的行之后："
 
 #: tune_actions.py:2246 tune_elements.py:584
 msgid "Instrument"
-msgstr ""
+msgstr "乐器"
 
 #: tune_actions.py:2246
 msgid "Set instrument"
-msgstr ""
+msgstr "设置乐器"
 
 #: tune_actions.py:2247 tune_elements.py:622
 msgid "Volume"
-msgstr ""
+msgstr "音量"
 
 #: tune_actions.py:2247
 msgid "Set volume"
-msgstr ""
+msgstr "设置音量"
 
 #: tune_actions.py:2252
 msgid "Insert playback directive"
-msgstr ""
+msgstr "插入播放指令"
 
 #: tune_actions.py:2257
 msgid "break between syllables within a word"
-msgstr ""
+msgstr "在一个单词中的音节之间换行"
 
 #: tune_actions.py:2258
 msgid "previous syllable is to be held for an extra note"
@@ -3120,91 +3201,91 @@ msgstr ""
 
 #: tune_actions.py:2259
 msgid "one note is skipped (* is equivalent to a blank syllable)"
-msgstr ""
+msgstr "跳过一个音符（* 相当于一个空白音节）"
 
 #: tune_actions.py:2260
 msgid "appears as a space; aligns multiple words under one note"
-msgstr ""
+msgstr "显示为一个空格；在一个音符下对齐多个单词"
 
 #: tune_actions.py:2261
 msgid "appears as hyphen; aligns multiple syllables under one note"
-msgstr ""
+msgstr "显示为连字符；在一个音符下对齐多个音节"
 
 #: tune_actions.py:2262 tune_actions.py:2271
 msgid "advances to the next bar"
-msgstr ""
+msgstr "前进到下一个小节"
 
 #: tune_actions.py:2265 tune_actions.py:2274
 msgid "Insert align symbol"
-msgstr ""
+msgstr "插入对齐符号"
 
 #: tune_actions.py:2270
 msgid "one note is skipped"
-msgstr ""
+msgstr "一个音符被跳过了"
 
 #: tune_actions.py:2279 tune_actions.py:2312 tune_actions.py:2331
 msgid "Key / clef"
-msgstr ""
+msgstr "调号/谱号"
 
 #: tune_actions.py:2284 tune_actions.py:2338
 msgid "Change..."
-msgstr ""
+msgstr "修改..."
 
 #: tune_actions.py:2315 tune_actions.py:2352
 msgid "Add..."
-msgstr ""
+msgstr "增加..."
 
 #: tune_actions.py:2373
 msgid "Remove"
-msgstr ""
+msgstr "移除"
 
 #: tune_elements.py:78
 msgid "Staff layout"
-msgstr ""
+msgstr "五线谱布局"
 
 #: tune_elements.py:79
 msgid "Area"
-msgstr ""
+msgstr "面积"
 
 #: tune_elements.py:86
 msgid "Instruction"
-msgstr ""
+msgstr "说明"
 
 #: tune_elements.py:87
 msgid "Key"
-msgstr ""
+msgstr "调号"
 
 #: tune_elements.py:88
 msgid "Unit note length"
-msgstr ""
+msgstr "单位音符时值"
 
 #: tune_elements.py:89
 msgid "Meter"
-msgstr ""
+msgstr "节拍"
 
 #: tune_elements.py:90
 msgid "Macro"
-msgstr ""
+msgstr "宏"
 
 #: tune_elements.py:96
 msgid "Remark"
-msgstr ""
+msgstr "备注"
 
 #: tune_elements.py:98
 msgid "Symbol line"
-msgstr ""
+msgstr "符号行"
 
 #: tune_elements.py:100
 msgid "User defined"
-msgstr ""
+msgstr "用户定义"
 
 #: tune_elements.py:101
 msgid "Voice"
-msgstr ""
+msgstr "声部"
 
 #: tune_elements.py:153
 msgid "staccato mark"
-msgstr ""
+msgstr "断奏记号"
 
 #: tune_elements.py:154 tune_elements.py:171
 msgid "Irish roll"
@@ -3217,27 +3298,27 @@ msgstr ""
 #: tune_elements.py:156 tune_elements.py:177 tune_elements.py:178
 #: tune_elements.py:179
 msgid "accent or emphasis"
-msgstr ""
+msgstr "重音或强调"
 
 #: tune_elements.py:157
 msgid "lowermordent"
-msgstr ""
+msgstr "下波音"
 
 #: tune_elements.py:158 tune_elements.py:221
 msgid "coda"
-msgstr ""
+msgstr "结尾"
 
 #: tune_elements.py:159
 msgid "uppermordent"
-msgstr ""
+msgstr "上波音"
 
 #: tune_elements.py:160 tune_elements.py:220
 msgid "segno"
-msgstr ""
+msgstr "反复记号(segno)"
 
 #: tune_elements.py:161 tune_elements.py:164
 msgid "trill"
-msgstr ""
+msgstr "颤音"
 
 #: tune_elements.py:162 tune_elements.py:197
 msgid "down-bow"
@@ -3249,23 +3330,23 @@ msgstr ""
 
 #: tune_elements.py:165
 msgid "start of an extended trill"
-msgstr ""
+msgstr "延长颤音的开始"
 
 #: tune_elements.py:166
 msgid "end of an extended trill"
-msgstr ""
+msgstr "延长颤音结束"
 
 #: tune_elements.py:167
 msgid "lower mordent"
-msgstr ""
+msgstr "下行波音"
 
 #: tune_elements.py:168
 msgid "upper mordent"
-msgstr ""
+msgstr "上行波音"
 
 #: tune_elements.py:169
 msgid "mordent"
-msgstr ""
+msgstr "波音"
 
 #: tune_elements.py:170
 msgid "pralltriller"
@@ -3289,7 +3370,7 @@ msgstr ""
 
 #: tune_elements.py:176
 msgid "arpeggio"
-msgstr ""
+msgstr "琶音"
 
 #: tune_elements.py:180 tune_elements.py:181
 msgid "marcato"
@@ -3309,31 +3390,31 @@ msgstr ""
 
 #: tune_elements.py:185
 msgid "no finger"
-msgstr ""
+msgstr "无手指"
 
 #: tune_elements.py:186
 msgid "thumb"
-msgstr ""
+msgstr "拇指"
 
 #: tune_elements.py:187
 msgid "index finger"
-msgstr ""
+msgstr "食指"
 
 #: tune_elements.py:188
 msgid "middle finger"
-msgstr ""
+msgstr "中指"
 
 #: tune_elements.py:189
 msgid "ring finger"
-msgstr ""
+msgstr "无名指"
 
 #: tune_elements.py:190
 msgid "little finger"
-msgstr ""
+msgstr "小指"
 
 #: tune_elements.py:191 tune_elements.py:192
 msgid "left-hand pizzicato"
-msgstr ""
+msgstr "左手拨弦"
 
 #: tune_elements.py:193
 msgid "snap-pizzicato"
@@ -3341,7 +3422,7 @@ msgstr ""
 
 #: tune_elements.py:194
 msgid "slide up to a note"
-msgstr ""
+msgstr "向上滑动到一个音符"
 
 #: tune_elements.py:195
 msgid "staccatissimo or spiccato"
@@ -3349,134 +3430,134 @@ msgstr ""
 
 #: tune_elements.py:198
 msgid "open string or harmonic"
-msgstr ""
+msgstr "打开弦乐或和声"
 
 #: tune_elements.py:199
 msgid "cello thumb symbol"
-msgstr ""
+msgstr "大提琴拇指符号"
 
 #: tune_elements.py:200
 msgid "breath mark"
-msgstr ""
+msgstr "呼吸记号"
 
 #: tune_elements.py:201
 msgid "pianissimo possibile"
-msgstr ""
+msgstr "超级弱"
 
 #: tune_elements.py:202
 msgid "pianississimo"
-msgstr ""
+msgstr "极弱"
 
 #: tune_elements.py:203
 msgid "pianissimo"
-msgstr ""
+msgstr "非常弱"
 
 #: tune_elements.py:204
 msgid "piano"
-msgstr ""
+msgstr "弱"
 
 #: tune_elements.py:205
 msgid "mezzopiano"
-msgstr ""
+msgstr "中弱"
 
 #: tune_elements.py:206
 msgid "mezzoforte"
-msgstr ""
+msgstr "中强"
 
 #: tune_elements.py:207
 msgid "forte"
-msgstr ""
+msgstr "强"
 
 #: tune_elements.py:208
 msgid "fortissimo"
-msgstr ""
+msgstr "非常强"
 
 #: tune_elements.py:209
 msgid "fortississimo"
-msgstr ""
+msgstr "极强"
 
 #: tune_elements.py:210
 msgid "fortissimo possibile"
-msgstr ""
+msgstr "超级强"
 
 #: tune_elements.py:211
 msgid "sforzando"
-msgstr ""
+msgstr "sfz"
 
 #: tune_elements.py:212 tune_elements.py:213
 msgid "start of a < crescendo mark"
-msgstr ""
+msgstr "< 渐强标记的开始"
 
 #: tune_elements.py:214 tune_elements.py:215
 msgid "end of a < crescendo mark"
-msgstr ""
+msgstr "< 渐强标记的结束"
 
 #: tune_elements.py:216 tune_elements.py:217
 msgid "start of a > diminuendo mark"
-msgstr ""
+msgstr "< 渐弱标记的开始"
 
 #: tune_elements.py:218 tune_elements.py:219
 msgid "end of a > diminuendo mark"
-msgstr ""
+msgstr "> 渐弱标记的结束"
 
 #: tune_elements.py:222
 msgid "the letters D.S. (=Da Segno)"
-msgstr ""
+msgstr "跳转到 Segno 记号"
 
 #: tune_elements.py:223
 msgid "the letters D.C. (=either Da Coda or Da Capo)"
-msgstr ""
+msgstr "从头反复"
 
 #: tune_elements.py:224
 msgid "the word \"Da\" followed by a Coda sign"
-msgstr ""
+msgstr "单词 \"Da\" 后跟一个 Coda 符号"
 
 #: tune_elements.py:225
 msgid "the words \"Da Capo\""
-msgstr ""
+msgstr "单词\"Da Capo\""
 
 #: tune_elements.py:226
 msgid "the words \"D.C. al Coda\""
-msgstr ""
+msgstr "单词\"D.C. al Coda\""
 
 #: tune_elements.py:227
 msgid "the words \"D.C. al Fine\""
-msgstr ""
+msgstr "单词\"D.C. al Fine\""
 
 #: tune_elements.py:228
 msgid "the words \"D.S. al Coda\""
-msgstr ""
+msgstr "单词\"D.S. al Coda\""
 
 #: tune_elements.py:229
 msgid "the words \"D.S. al Fine\""
-msgstr ""
+msgstr "单词\"D.S. al Fine\""
 
 #: tune_elements.py:230
 msgid "the word \"fine\""
-msgstr ""
+msgstr "终止记号"
 
 #: tune_elements.py:231
 msgid "vertical line on the upper part of the staff"
-msgstr ""
+msgstr "五线谱上部的垂直线"
 
 #: tune_elements.py:232
 msgid ""
 "vertical line on the upper part of the staff, extending down to the centre "
 "line"
-msgstr ""
+msgstr "五线谱上部的垂直线，向下延伸到中心线"
 
 #: tune_elements.py:233
 msgid ""
 "vertical line on the upper part of the staff, extending 3/4 of the way down"
-msgstr ""
+msgstr "五线谱上部的垂直线，向下延伸 3/4"
 
 #: tune_elements.py:234
 msgid "sustain pedal down"
-msgstr ""
+msgstr "踩下延音踏板"
 
 #: tune_elements.py:235
 msgid "sustain pedal up"
-msgstr ""
+msgstr "延音踏板向上"
 
 #: tune_elements.py:236
 msgid "editorial accidental above note"
@@ -3488,11 +3569,11 @@ msgstr ""
 
 #: tune_elements.py:508
 msgid "Unknown"
-msgstr ""
+msgstr "未知"
 
 #: tune_elements.py:560 tune_elements.py:706
 msgid "Stylesheet directive"
-msgstr ""
+msgstr "样式表指令"
 
 #: tune_elements.py:560 tune_elements.py:712
 #, python-format
@@ -3500,70 +3581,75 @@ msgid ""
 "A stylesheet directive is a line that starts with %%, followed by a "
 "directive that gives instructions to typesetting or player programs."
 msgstr ""
+"样式表指令是一行以 %% 开头，后跟一个指令，用于提供排版或播放器程序的指令。"
 
 #: tune_elements.py:578
 msgid "MIDI directive"
-msgstr ""
+msgstr "MIDI 指令"
 
 #: tune_elements.py:578
 msgid "A directive that gives instructions to player programs."
-msgstr ""
+msgstr "向播放器程序提供指令的指令。"
 
 #: tune_elements.py:584
 msgid "Sets the instrument for a MIDI channel."
-msgstr ""
+msgstr "为 MIDI 通道设置乐器。"
 
 #: tune_elements.py:591
 msgid "Sets the instrument for playing chords."
-msgstr ""
+msgstr "设置演奏和弦的乐器。"
 
 #: tune_elements.py:598
 msgid "Sets the instrument for the base."
-msgstr ""
+msgstr "为贝斯设置乐器。"
 
 #: tune_elements.py:606
 msgid "Channel"
-msgstr ""
+msgstr "声道"
 
 #: tune_elements.py:606
 msgid "Sets the MIDI channel for the current voice."
-msgstr ""
+msgstr "设置当前声音的 MIDI 通道。"
 
 #: tune_elements.py:614
 msgid "Drum mapping"
-msgstr ""
+msgstr "鼓映射"
 
 #: tune_elements.py:614
 msgid "Maps a note to an instrument."
-msgstr ""
+msgstr "将音符映射到乐器"
 
 #: tune_elements.py:622
 msgid "Volume for current voice."
-msgstr ""
+msgstr "当前声部音量"
 
 #: tune_elements.py:630
 msgid "Guitar chords"
-msgstr ""
+msgstr "吉他和弦"
 
 #: tune_elements.py:630
 msgid "Play guitar chords"
-msgstr ""
+msgstr "弹吉他和弦"
 
 #: tune_elements.py:638
 msgid "Defines which staves are displayed."
-msgstr ""
+msgstr "定义显示哪些谱表"
 
 #: tune_elements.py:646
 msgid "Defines if and how measures are numbered."
-msgstr ""
+msgstr "定义小节号是否/怎样显示"
 
 #: tune_elements.py:654
+#, fuzzy
+#| msgid "Defines which staves are displayed."
 msgid "Defines which fields should be hidden."
-msgstr ""
+msgstr "定义显示哪些谱表"
 
 #: tune_elements.py:662
+#, fuzzy
+#| msgid "Show all voices"
 msgid "Show fields"
-msgstr ""
+msgstr "显示所有声部"
 
 #: tune_elements.py:662
 msgid "Defines which fields should be shown."
@@ -3571,30 +3657,30 @@ msgstr ""
 
 #: tune_elements.py:691
 msgid "ABC version"
-msgstr ""
+msgstr "ABC 版本"
 
 #: tune_elements.py:691
 msgid ""
 "It starts with the version of the ABC specification this file conforms to."
-msgstr ""
+msgstr "它以该文件符合的 ABC 规范的版本开始。"
 
 #: tune_elements.py:699
 msgid "Comment"
-msgstr ""
+msgstr "注释"
 
 #: tune_elements.py:723
 msgid "Beam"
-msgstr ""
+msgstr "符杠"
 
 #: tune_elements.py:723
 msgid ""
 "Back quotes ` may be used freely between notes to be beamed, to increase "
 "legibility."
-msgstr ""
+msgstr "可以在要传送的音符之间自由使用反引号 `，以提高可读性。"
 
 #: tune_elements.py:730
 msgid "Welcome to EasyABC"
-msgstr ""
+msgstr "欢迎使用 EasyABC"
 
 #: tune_elements.py:731
 msgid ""
@@ -3602,64 +3688,67 @@ msgid ""
 "to help by providing hints and actions. But remember, typing is usually "
 "faster."
 msgstr ""
+"从头开始创建 abc 文件可能很困难。\n"
+"这个辅助面板会尝试通过提供提示和操作来提供帮助。\n"
+"但请记住，打字通常会更快。"
 
 #: tune_elements.py:747 tune_elements.py:760
 msgid "Empty line"
-msgstr ""
+msgstr "空行"
 
 #: tune_elements.py:747
 msgid "An empty line separates tunes."
-msgstr ""
+msgstr "空行分隔乐谱"
 
 #: tune_elements.py:754
 msgid "Empty line in header"
-msgstr ""
+msgstr "文件头中有空行"
 
 #: tune_elements.py:754
 msgid ""
 "More directives can be added here in the tune header. After K: the music "
 "code begins."
-msgstr ""
+msgstr "可以在乐谱标头中添加更多指令。在 K: 之后是音乐代码的开始。"
 
 #: tune_elements.py:760
 msgid "Notes, rests, or directives can be added."
-msgstr ""
+msgstr "可以添加注释、休止符或指令。"
 
 #: tune_elements.py:766
 msgid "File header"
-msgstr ""
+msgstr "文件头"
 
 #: tune_elements.py:766
 msgid ""
 "Everything above the first X: is the file header. The directives here apply "
 "to all the tunes that follow."
-msgstr ""
+msgstr "第一个 X: 之上的所有内容都是文件头。 这里的指令适用于所有之后的乐谱。"
 
 #: tune_elements.py:780
 msgid "Whitespace"
-msgstr ""
+msgstr "空白"
 
 #: tune_elements.py:780
 msgid ""
 "Space is used to improve legibility and to prevent notes from sharing the "
 "same beam."
-msgstr ""
+msgstr "空格用于提高易读性并防止音符共享同一个符杆。"
 
 #: tune_elements.py:786 tune_elements.py:1035
 msgid "Annotation"
-msgstr ""
+msgstr "注释"
 
 #: tune_elements.py:793
 msgid "Chord symbol or annotation"
-msgstr ""
+msgstr "和弦符号或注释"
 
 #: tune_elements.py:799
 msgid "Slur"
-msgstr ""
+msgstr "连句线"
 
 #: tune_elements.py:805
 msgid "Typesetting extra space"
-msgstr ""
+msgstr "排版额外空间"
 
 #: tune_elements.py:805
 msgid ""
@@ -3667,10 +3756,12 @@ msgid ""
 "chord symbols and decorations can be attached to it, to separate them from "
 "notes."
 msgstr ""
+"y 可用于在周围的音符之间添加额外的空间； 此外，可以附加和弦符号和装饰，以将它"
+"们与音符分开。"
 
 #: tune_elements.py:811
 msgid "Redefinable symbol"
-msgstr ""
+msgstr "可重新定义的符号"
 
 #: tune_elements.py:811
 msgid ""
@@ -3681,11 +3772,11 @@ msgstr ""
 
 #: tune_elements.py:836
 msgid "Unknown symbol"
-msgstr ""
+msgstr "未知符号"
 
 #: tune_elements.py:936
 msgid "Tuplet"
-msgstr ""
+msgstr "连音"
 
 #: tune_elements.py:936
 msgid "Duplets, triplets, quadruplets, etc."
@@ -3693,11 +3784,11 @@ msgstr ""
 
 #: tune_elements.py:942
 msgid "Bar"
-msgstr ""
+msgstr "小节"
 
 #: tune_elements.py:942
 msgid "Separates measures."
-msgstr ""
+msgstr "拆分小节"
 
 #: tune_elements.py:948
 msgid "Variant ending"
@@ -3705,7 +3796,7 @@ msgstr ""
 
 #: tune_elements.py:948
 msgid "To play a different ending each time"
-msgstr ""
+msgstr "每次播放不同的结尾"
 
 #: tune_elements.py:954
 msgid ""
@@ -3715,49 +3806,66 @@ msgid ""
 "the preceding one. This may only be used to add one complete bar's worth of "
 "music for each &. "
 msgstr ""
+"& 操作符可用于在一个小节内临时叠加多个声部。每个 & 操作符将音乐的时间点设置回"
+"一个小节线，其后的音符形成一个与前一个平行的临时声部。这只能用于为每个 & 添加"
+"一个完整的小节音乐。"
 
 #: tune_elements.py:960
 msgid "Invalid character"
-msgstr ""
+msgstr "无效字符"
 
 #: tune_elements.py:960
 msgid "This character is not allowed within the body of an abc tune."
-msgstr ""
+msgstr "这个字符不允许出现在 abc 曲调的正文中。"
 
 #: tune_elements.py:994 tune_elements.py:1033
 msgid "Grace notes"
-msgstr ""
+msgstr "花音/装饰音"
 
 #: tune_elements.py:1010
 msgid "Note group"
-msgstr ""
+msgstr "音符组"
 
 #: tune_elements.py:1018
 msgid "Note or chord"
-msgstr ""
+msgstr "音符或和弦"
 
 #: tune_elements.py:1031
 msgid "Note"
-msgstr ""
+msgstr "音符"
 
 #: tune_elements.py:1050
 msgid "Measure rest"
-msgstr ""
+msgstr "小节休止"
 
 #: tune_elements.py:1057
 msgid "Multiple notes/chords"
-msgstr ""
+msgstr "多个音符/和弦"
 
 #: tune_elements.py:1064
 msgid "Multiple notes"
-msgstr ""
+msgstr "多个音符"
 
 #: tune_elements.py:1071
 msgid "Backslash"
-msgstr ""
+msgstr "反斜杠"
 
 #: tune_elements.py:1071
 msgid ""
 "In abc music code, by default, line-breaks in the code generate line-breaks "
 "in the typeset score and these can be suppressed by using a backslash."
 msgstr ""
+"在 abc 音乐代码中，默认情况下，代码中的换行符会在排版乐谱中生成换行符，这些可"
+"以通过使用反斜杠来抑制。"
+
+#~ msgid "Xml"
+#~ msgstr "Xml"
+
+#~ msgid "Note ornaments"
+#~ msgstr "音符装饰"
+
+#~ msgid "Directions"
+#~ msgstr "反复记号"
+
+#~ msgid "&Insert musical symbol"
+#~ msgstr "插入音乐符号(&I)"

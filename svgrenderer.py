@@ -620,7 +620,7 @@ class SvgRenderer(object):
                     #     wxpen.Style(wx.USER_DASH)
                     wxpen.Join(wx.JOIN_MITER)
                 else:
-                    wxpen = wx.Pen(wx_colour(svg_stroke), line_width)
+                    wxpen = wx.Pen(wx_colour(svg_stroke), int(line_width))
                     if linecap == 'butt':
                         wxpen.SetCap(wx.CAP_BUTT)
                     elif linecap == 'round':
@@ -810,7 +810,7 @@ class SvgRenderer(object):
                     elif fi == 'italic':
                         font_style = wx.FONTSTYLE_ITALIC
                     elif fi.endswith('px'):
-                        font_size = float(fi[0:-2])
+                        font_size = int(float(fi[0:-2]))
                     elif fi in ['serif','sans-serif','monospace','bookman']:
                         svg_font_family = fi
 

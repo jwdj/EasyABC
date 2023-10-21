@@ -14,35 +14,39 @@ is_linux = sys.platform.startswith('linux')
 class FluidSynthPlayer(MidiPlayer):
     def __init__(self, sf2_path):
         super(FluidSynthPlayer, self).__init__()
-        self.fs = F.Synth(gain=0.7, bsize=2048) # make a synth
+        self.fs = F.Synth(gain=1.0, bsize=2048) # make a synth
 
         driver = None
         if is_linux:
             driver = 'pulseaudio'
 
         self.fs.start(driver)  # set default output driver and start clock
+        self.soundfont_path = sf2_path
         self.sfid = self.fs.sfload(sf2_path)
         self.fs.program_select(0, self.sfid, 0, 0)
         self.p = F.Player(self.fs)   # make a new player
         self.duration_in_ticks = 0   # length of midi file
         self.pause_time = 0        # time in midi ticks where player stopped
+        self.pending_soundfont = None
 
-    def set_soundfont(self, sf2_path):         # load another sound font
-        self.sf2 = sf2_path
-        if self.sfid >= 0:
-            self.fs.sfunload(self.sfid)
-        self.sfid = self.fs.sfload(sf2_path)
-        if self.sfid < 0: return 0     # not a sf2 file
-        self.fs.program_select(0, self.sfid, 0, 0)
-        self.pause_time = 0       # resume playing at time == 0
-        return 1
+    def set_soundfont(self, sf2_path, load_on_play=False):         # load another sound font
+        if self.is_playing or load_on_play:
+            self.pending_soundfont = sf2_path
+        else:
+            self.soundfont_path = sf2_path
+            if self.sfid >= 0:
+                self.fs.sfunload(self.sfid)
+            self.sfid = self.fs.sfload(sf2_path)
+            if self.sfid < 0:
+                return 0     # not a sf2 file
+            self.fs.program_select(0, self.sfid, 0, 0)
+            return 1
 
     def Load(self, path):          # load a midi file
         self.reset()              # reset the player, empty the playlist
         self.pause_time = 0       # resume playing at time == 0
         if os.path.exists(path):
             success = self.p.add(path)           # add file to playlist
-            self.p.play()
             self.OnAfterLoad.fire()
             return True
         return False
@@ -55,6 +59,10 @@ class FluidSynthPlayer(MidiPlayer):
     def Play(self):
         if self.is_playing:
             return
+        if self.pending_soundfont:
+            if self.pending_soundfont != self.soundfont_path and os.path.exists(self.pending_soundfont):
+                self.set_soundfont(self.pending_soundfont)
+            self.pending_soundfont = None
 
         self.p.play(self.pause_time)
         self.pause_time = 0
@@ -79,6 +87,23 @@ class FluidSynthPlayer(MidiPlayer):
     def Tell(self):
         ticks = self.p.get_ticks() # get play position in midi ticks
         return ticks
+
+    def render_to_file(self, midi_path, output_path):
+        fs = F.Synth(gain=1.0, bsize=2048, output_path=output_path)
+        soundfont_path = self.pending_soundfont
+        if not soundfont_path:
+            soundfont_path = self.soundfont_path
+        sfid = fs.sfload(soundfont_path)
+        if sfid < 0:
+            return 0     # not a sf2 file
+        fs.program_select(0, sfid, 0, 0)
+        player = F.Player(fs)   # make a new one
+        player.add(midi_path)
+        player.play()
+        samples = player.renderLoop()
+        # print(samples)
+        player.delete()
+        fs.delete()
 
     def dispose(self):             # free some memory
         self.p.delete()

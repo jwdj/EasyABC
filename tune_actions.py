@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import re
 import os
 import sys
+import traceback
 
 PY3 = sys.version_info.major > 2
 
@@ -158,6 +159,7 @@ class ValueChangeAction(AbcAction):
         self.relative_selection = None
         self.show_non_common = False
         self.show_current_value = False
+        self.multiple_items_can_apply = False
 
     def can_execute(self, context, params=None):
         show_non_common = params.get('show_non_common')
@@ -234,9 +236,9 @@ class ValueChangeAction(AbcAction):
         if self.show_current_value:
             current_value = self.get_current_value(context)
             if current_value and current_value.strip():
-                description = next([v.description for v in self.get_values(context) if v.value == current_value])
-                if description:
-                    text = description
+                descriptions = [v.description for v in self.get_values(context) if v.value == current_value]
+                if descriptions:
+                    text = descriptions[0]
                 else:
                     text = current_value
 
@@ -317,7 +319,12 @@ class ValueChangeAction(AbcAction):
                         image_html = html_image(value.image_name, desc)
                         columns.append(self.enclose_action_url(action_url, image_html))
                     if can:
-                        columns.append(self.enclose_action_url(action_url, desc))
+                        if self.multiple_items_can_apply:
+                            html = url_tuple_to_href(self.enclose_action_url(action_url, desc))
+                            html = self.html_selected_item(context, value.value, html)
+                            columns.append(html)
+                        else:
+                            columns.append(self.enclose_action_url(action_url, desc))
                     else:
                         columns.append(self.html_selected_item(context, value.value, desc))
         elif isinstance(value, list):
@@ -579,6 +586,8 @@ class PitchAction(ValueChangeAction):
     pitch_values = [
         ValueDescription('noteup', _('Note up')),
         ValueDescription('notedown', _('Note down')),
+        ValueDescription('thirdup', _('Third up'), common=False),
+        ValueDescription('thirddown', _('Third down'), common=False),
         ValueDescription("'", _('Octave up')),
         ValueDescription(",", _('Octave down'))
     ]
@@ -594,9 +603,9 @@ class PitchAction(ValueChangeAction):
             note = context.get_matchgroup('note')
             octave = context.get_matchgroup('octave')
             note_no = self.octave_abc_to_number(note, octave)
-            if value == "'" or value == 'noteup':
+            if value == "'" or value == 'noteup' or value == 'thirdup':
                 return note_no < 4*7
-            elif value == ',' or value == 'notedown':
+            elif value == ',' or value == 'notedown' or value == 'thirddown':
                 return note_no > -4*7
             return False
 
@@ -613,6 +622,10 @@ class PitchAction(ValueChangeAction):
                 note_no += 1
             elif value == 'notedown':
                 note_no -= 1
+            elif value == 'thirdup':
+                note_no += 2
+            elif value == 'thirddown':
+                note_no -= 2
             elif value == "'":
                 note_no += 7
             elif value == ',':
@@ -910,6 +923,19 @@ class KeyChangeAction(ValueChangeAction):
     def is_current_value(self, context, value):
         return True
 
+    @staticmethod
+    def abc_key_to_number(tonic, mode):
+        middle_idx = len(key_ladder) // 2
+        try:
+            tonic_idx = key_ladder.index(tonic)
+        except ValueError:
+            return None
+
+        mode_idx = KeyChangeAction.abc_mode_to_number(mode)
+
+        if tonic_idx >= 0 and mode_idx is not None:
+            return tonic_idx - middle_idx - mode_idx
+
 
 class KeySignatureChangeAction(KeyChangeAction):
     values = [
@@ -948,22 +974,9 @@ class KeySignatureChangeAction(KeyChangeAction):
             return tonic != value
         else:
             value = int(value)
-            middle_idx = len(key_ladder) // 2
-            try:
-                tonic_idx = key_ladder.index(tonic)
-            except ValueError:
-                return True
-
             mode = context.get_matchgroup('mode')
-            mode_idx = self.abc_mode_to_number(mode)
-            if mode_idx is None:
-                return False
-
-            if tonic_idx >= 0 and mode_idx is not None:
-                current_value = tonic_idx - middle_idx - mode_idx
-                return current_value != value
-            else:
-                return True
+            current_value = self.abc_key_to_number(tonic, mode)
+            return current_value != value
 
     def execute(self, context, params=None):
         value = params.get('value')
@@ -1108,12 +1121,8 @@ class AbcOctaveChangeAction(ValueChangeAction):
 
 class BaseDecorationChangeAction(ValueChangeAction):
     def __init__(self, name, decoration_values, display_name=None):
-        values = []
-        for mark in decoration_values:
-            value = ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark])
-            values.append(value)
+        values = [ValueImageDescription(mark, self.get_image_name(mark), decoration_to_description[mark]) for mark in decoration_values]
         super(BaseDecorationChangeAction, self).__init__(name, values, 'decoration', display_name=display_name)
-
 
     def is_current_value(self, context, value):
         match = self.get_match(context)
@@ -1129,6 +1138,7 @@ class BaseDecorationChangeAction(ValueChangeAction):
     def get_image_name(mark):
         name_lookup = {
             '.': 'staccato',
+            '!^!': 'marcato',
             '!upbow!': 'u',
             '!downbow!': 'v',
             '!lowermordent!': 'mordent',
@@ -1167,25 +1177,35 @@ class ArticulationDecorationChangeAction(BaseDecorationChangeAction):
 
 class ChordNoteChangeAction(ValueChangeAction):
     def __init__(self):
-        super(ChordNoteChangeAction, self).__init__('change_chord_note', [], 'chordnote', display_name=_('Change chord'))
+        super(ChordNoteChangeAction, self).__init__('change_chord_note', [], 'chordsymbol', display_name=_('Change chord'))
+        self.show_current_value = True
+
+    def contains_only_common(self, values):
+        return False
 
     def get_values(self, context):
-        i = key_ladder.index('C') # todo: retrieve from K:
-        values = [
+        try:
+            (tonic, mode) = AbcTune(context.tune).initial_tonic_and_mode
+            i = KeyChangeAction.abc_key_to_number(tonic, mode) - 2 + len(key_ladder) // 2
+        except:
+            i = key_ladder.index('C')
+
+        return [
             self.get_value_for_chord(i),
             self.get_value_for_chord(i-1),
             self.get_value_for_chord(i+1),
-            self.get_value_for_chord(i+3),
-            self.get_value_for_chord(i+2),
-            self.get_value_for_chord(i+4),
-            self.get_value_for_chord(i+5),
+            self.get_value_for_chord(i+1, '7', common=False),
+            self.get_value_for_chord(i+3, 'm'),
+            self.get_value_for_chord(i+2, 'm'),
+            self.get_value_for_chord(i+4, 'm'),
+            self.get_value_for_chord(i+4, '7', common=False),
+            self.get_value_for_chord(i+5, 'dim', common=False),
         ]
-        return values
 
     @staticmethod
-    def get_value_for_chord(index):
-        chord = key_ladder[index]
-        return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D'))
+    def get_value_for_chord(index, suffix = '', common=True):
+        chord = key_ladder[index] + suffix
+        return ValueDescription(chord, chord.replace('#', u'\u266F').replace('b', u'\u266D'), common=common)
 
 
 class ChordNameChangeAction(ValueChangeAction):
@@ -1299,6 +1319,14 @@ class MidiChannelChangeAction(ValueChangeAction):
 
 class MidiDrumInstrumentChangeAction(ValueChangeAction):
     values = [
+        ValueDescription('27', _('High Q'), common=False),
+        ValueDescription('28', _('Slap'), common=False),
+        ValueDescription('29', _('Scratch Push'), common=False),
+        ValueDescription('30', _('Scratch Pull'), common=False),
+        ValueDescription('31', _('Sticks'), common=False),
+        ValueDescription('32', _('Square Click'), common=False),
+        ValueDescription('33', _('Metronome Click'), common=False),
+        ValueDescription('34', _('Metronome Bell'), common=False),
         ValueDescription('35', _('Acoustic Bass Drum')),
         ValueDescription('36', _('Bass Drum 1')),
         ValueDescription('37', _('Side Stick')),
@@ -1346,6 +1374,12 @@ class MidiDrumInstrumentChangeAction(ValueChangeAction):
         ValueDescription('79', _('Open Cuica')),
         ValueDescription('80', _('Mute Triangle')),
         ValueDescription('81', _('Open Triangle')),
+        ValueDescription('82', _('Shaker'), common=False),
+        ValueDescription('83', _('Jingle Bell'), common=False),
+        ValueDescription('84', _('Belltree'), common=False),
+        ValueDescription('85', _('Castanets'), common=False),
+        ValueDescription('86', _('Closed Surdo'), common=False),
+        ValueDescription('87', _('Open Surdo'), common=False),
     ]
     def __init__(self):
         super(MidiDrumInstrumentChangeAction, self).__init__('change_midi_drum_instrument', MidiDrumInstrumentChangeAction.values, matchgroup='druminstrument', display_name=_('Change percussion instrument'))
@@ -1380,6 +1414,80 @@ class MidiVolumeChangeAction(ValueChangeAction):
             rows.append('[{0}{1}]'.format('|' * volume_bar, u'&#x2005;' * (volume_bars - volume_bar)))
             rows.append('<br>')
         return rows
+
+
+class MidiGuitarChordChangeAction(ValueChangeAction):
+    values_even = [
+        ValueDescription('fcfc', _('Preset') + ' 1'),
+        ValueDescription('c',   _('Preset') + ' 2'),
+        ValueDescription('fc', _('Preset') + ' 3'),
+        ValueDescription('f3c3c2', _('Preset') + ' 4'),
+        ValueDescription('GIHI', _('Preset') + ' 5'),
+        ValueDescription('', _('Custom')),
+    ]
+    values_odd = [
+        ValueDescription('fccfcc', _('Preset') + ' 1'),
+        ValueDescription('c',   _('Preset') + ' 2'),
+        ValueDescription('fcc', _('Preset') + ' 3'),
+        ValueDescription('fc', _('Preset') + ' 4'),
+        ValueDescription('GIIHII', _('Preset') + ' 5'),
+        ValueDescription('', _('Custom')),
+    ]
+    def __init__(self):
+        super(MidiGuitarChordChangeAction, self).__init__('change_gchord', [], matchgroup='pattern', display_name=_('Change guitar pattern'))
+        self.show_current_value = True
+
+    def get_values(self, context):
+        try:
+            metre, default_len = AbcTune(context.tune_header).get_metre_and_default_length()
+            if metre.numerator % 3 == 0:
+                return MidiGuitarChordChangeAction.values_odd
+        except:
+            pass
+        return MidiGuitarChordChangeAction.values_even
+
+
+class MidiGuitarChordInsertAction(InsertValueAction):
+    values = [
+        CodeDescription('f', _('Fundamental')),
+        CodeDescription('c', _('Chord')),
+        CodeDescription('z', _('Rest')),
+        CodeDescription('2', _('Double duration')),
+        CodeDescription('b', _('Fundamental plus chord'), common=False),
+        CodeDescription('G', _('Lowest note'), common=False),
+        CodeDescription('H', _('Second note'), common=False),
+        CodeDescription('I', _('Third note'), common=False),
+        CodeDescription('J', _('Fourth note'), common=False),
+        CodeDescription('g', _('Lowest note') + ' ' + _('an octave higher'), common=False),
+        CodeDescription('h', _('Second note') + ' ' + _('an octave higher'), common=False),
+        CodeDescription('i', _('Third note') + ' ' + _('an octave higher'), common=False),
+        CodeDescription('j', _('Fourth note') + ' ' + _('an octave higher'), common=False),
+    ]
+    def __init__(self):
+        super(MidiGuitarChordInsertAction, self).__init__('insert_gchord', MidiGuitarChordInsertAction.values, matchgroup='pattern', display_name=_('Insert pattern'))
+
+
+class MidiGuitarChordTimeAction(ValueChangeAction):
+    def __init__(self):
+        super(MidiGuitarChordTimeAction, self).__init__('time_gchord', [], matchgroup='pattern', display_name=_('Change time'))
+
+    def get_values(self, context):
+        values = []
+        current_value = self.get_current_value(context)
+        values.append(ValueDescription('/', _('Double time')))
+        l = len(current_value)
+        if l >= 2 and current_value[:l // 2] == current_value[l // 2:]:
+            values.append(ValueDescription('2', _('Half time')))
+        return values
+
+    def execute(self, context, params=None):
+        value = params.get('value', '')
+        current_value = self.get_current_value(context)
+        if value == '/':
+            new_text = current_value + current_value
+        else:
+            new_text = current_value[:len(current_value) // 2]
+        context.replace_match_text(new_text, self.matchgroup) # , tune_scope=self.get_tune_scope())
 
 
 ##################################################################################################
@@ -1693,7 +1801,8 @@ class InsertDecorationAction(InsertValueAction):
         ValueImageDescription('!fermata!', 'fermata', _('Articulation')),
         ValueImageDescription('!segno!', 'segno', _('Direction')),
         ValueImageDescription('P', 'pralltriller', _('Shortcut symbol'), common=False),
-        ValueImageDescription('!5!', '5', _('Fingering'), common=False)
+        ValueImageDescription('!5!', '5', _('Fingering'), common=False),
+        ValueImageDescription('!editorial!', 'editorial', _('Accidental'), common=False),
     ]
     def __init__(self, name='insert_decoration', matchgroup=None):
         super(InsertDecorationAction, self).__init__(name, InsertDecorationAction.values, matchgroup=matchgroup, display_name=_('Insert decoration'))
@@ -1806,7 +1915,7 @@ class ShowSingleVoiceAction(ValueChangeAction):
         return values
 
     def can_execute(self, context, params=None):
-        tune = AbcTune(context.tune)
+        tune = AbcTune(context.tune or '')
         voice = params.get('value', '')
         if len(tune.get_voice_ids()) > 1 and not self.is_current_value(context, voice):
             return True
@@ -1833,7 +1942,7 @@ class ShowAllVoicesAction(AbcAction):
         super(ShowAllVoicesAction, self).__init__('show_all_voices', display_name=_('Show all voices'))
 
     def can_execute(self, context, params=None):
-        tune = AbcTune(context.tune)
+        tune = AbcTune(context.tune or '')
         all_voices = tune.get_voice_ids()
         shown_voices = get_words(context.inner_text)
         hidden_voices = [v for v in all_voices if v not in shown_voices]
@@ -1860,7 +1969,7 @@ class ShowVoiceAction(ValueChangeAction):
         return values
 
     def can_execute(self, context, params=None):
-        return True
+        return context.tune is not None
 
     def execute(self, context, params=None):
         voice = params.get('value', '')
@@ -1987,6 +2096,52 @@ class SimplifyNoteAction(AbcAction):
         return number_to_note(num)
 
 
+class PickFieldsAction(ValueChangeAction):
+    values = [
+        CodeDescription('B', _('Book'                ), common=False),
+        CodeDescription('C', _('Composer'            )),
+        CodeDescription('D', _('Discography'         ), common=False),
+        CodeDescription('F', _('File url'            ), common=False),
+        CodeDescription('G', _('Group'               ), common=False),
+        CodeDescription('H', _('History'             ), common=False),
+        CodeDescription('N', _('Notes'               ), common=False),
+        CodeDescription('O', _('Origin'              )),
+        CodeDescription('P', _('Parts'               )),
+        CodeDescription('Q', _('Tempo'               )),
+        CodeDescription('R', _('Rhythm'              )),
+        CodeDescription('S', _('Source'              ), common=False),
+        CodeDescription('T', _('Tune title'          )),
+        CodeDescription('w', _('Words (note aligned)')),
+        CodeDescription('W', _('Words (at the end)'  )),
+        CodeDescription('X', _('Reference number'    ), common=False),
+        CodeDescription('Z', _('Transcription'       ), common=False),
+    ]
+    def __init__(self):
+        super(PickFieldsAction, self).__init__('pick_fields', PickFieldsAction.values, display_name=_('Fields'), matchgroup='fields')
+        self.multiple_items_can_apply = True
+
+    def is_current_value(self, context, value):
+        current_value = self.get_current_value(context)
+        return value in current_value
+
+    def can_execute(self, context, params=None):
+        return True
+
+    def execute(self, context, params=None):
+        value = params.get('value')
+        if value:
+            current_value = (self.get_current_value(context) or '').replace('_', '')
+            if value in current_value:
+                new_text = current_value.replace(value, '')
+            else:
+                new_text = current_value + value
+            if not new_text:
+                new_text = '_'
+            context.replace_matchgroups([('fields', new_text)])
+        else:
+            super(PickFieldsAction, self).execute(context, params)
+
+
 class PageFormatDirectiveChangeAction(ValueChangeAction):
     values = [
         ValueDescription('pagewidth', _('Page width')),
@@ -2068,6 +2223,7 @@ class InsertDirectiveAction(InsertValueAction):
         ValueDescription('score', _('Score layout')),
         ValueDescription('pagescale 1.0', _('Page scale factor')),
         ValueDescription('measurenb 0', _('Measure numbering')),
+        ValueDescription('writefields PQ false', _('Hide fields')),
         ValueDescription('MIDI', _('Playback')),
     ]
     def __init__(self):
@@ -2078,9 +2234,19 @@ class InsertDirectiveAction(InsertValueAction):
 
 
 class InsertMidiDirectiveAction(InsertValueAction):
+    play_chords_cmds = (
+        r' chordprog 24    % ' + _('Chord instrument'),
+        r'%%MIDI chordvol 64       % ' + _('Chord volume'),
+        r'%%MIDI bassprog 24       % ' + _('Bass instrument'),
+        r'%%MIDI bassvol 64        % ' + _('Bass volume'),
+        r'%%MIDI gchordon',
+        r'%%MIDI gchord c          % ' + _('Accompaniment pattern (optional). Place after line with M:')
+    )
     values = [
         ValueDescription(' program 0       % ' + _('Instrument'), _('Set instrument')),
         ValueDescription(' control 7 127   % ' + _('Volume'), _('Set volume')),
+        # ValueDescription(' drum dddd 34 33 33 33 100 100 100 100        % {0}\n%%MIDI drumon'.format(_('Metronome')), _('Turn on metronome')),
+        ValueDescription(os.linesep.join(play_chords_cmds), _('Play chords')),
     ]
     def __init__(self):
         super(InsertMidiDirectiveAction, self).__init__('insert_midi_directive', InsertMidiDirectiveAction.values, display_name=_('Insert playback directive'))
@@ -2134,14 +2300,14 @@ class InsertFieldInHeaderAction(InsertValueAction):
         ValueDescription('C:', name_to_display_text['composer']),
         ValueDescription('M:4/4', name_to_display_text['meter']),
         ValueDescription('L:1/4', name_to_display_text['unit note length']),
-        ValueDescription('Q:', name_to_display_text['tempo']),
-        ValueDescription('V:', name_to_display_text['voice']),
+        ValueDescription('Q:1/4=120', name_to_display_text['tempo']),
+        ValueDescription('V:1', name_to_display_text['voice']),
         ValueDescription(r'%%', name_to_display_text['instruction']),
         ValueDescription('I:', name_to_display_text['instruction'], common=False),
         ValueDescription('O:', name_to_display_text['origin'], common=False),
         ValueDescription('R:', name_to_display_text['rhythm'], common=False),
         ValueDescription('r:', name_to_display_text['remark'], common=False),
-        ValueDescription('U:', name_to_display_text['user defined'], common=False),
+        ValueDescription('U: T = !trill!', name_to_display_text['user defined'], common=False),
         ValueDescription('Z:', name_to_display_text['transcription'], common=False),
         ValueDescription('K:', _('Key / clef')),
     ]
@@ -2150,7 +2316,7 @@ class InsertFieldInHeaderAction(InsertValueAction):
 
     def get_values(self, context):
         tune_header = context.tune_header
-        return [vd for vd in self.supported_values if vd.value in [r'%%', 'V:'] or vd.value not in tune_header]
+        return [vd for vd in self.supported_values if vd.value in [r'%%', 'V:1'] or vd.value not in tune_header]
 
 
     # def execute(self, context, params=None):
@@ -2180,7 +2346,7 @@ class InsertAppendFieldActionEmptyLineAction(InsertValueAction):
         ValueDescription('w:', name_to_display_text['words (note aligned)']),
         ValueDescription('W:', name_to_display_text['words (at the end)'], common=False),
         ValueDescription('s:', name_to_display_text['symbol line'], common=False),
-        ValueDescription(r'%%', name_to_display_text['instruction'], common=False),
+        ValueDescription(r'%%', name_to_display_text['instruction']),
     ]
     def __init__(self):
         super(InsertAppendFieldActionEmptyLineAction, self).__init__('insert_append_field_on_empty_line', InsertAppendFieldActionEmptyLineAction.values, display_name=_('Add...'))
@@ -2321,6 +2487,9 @@ class AbcActionHandlers(object):
             MidiChannelChangeAction(),
             MidiDrumInstrumentChangeAction(),
             MidiVolumeChangeAction(),
+            MidiGuitarChordChangeAction(),
+            MidiGuitarChordInsertAction(),
+            MidiGuitarChordTimeAction(),
             InsertDirectiveAction(),
             InsertMidiDirectiveAction(),
             ShowVoiceAction(),
@@ -2333,6 +2502,7 @@ class AbcActionHandlers(object):
             ToggleContinuedBarlinesAction(),
             MeasureNumberingChangeAction(),
             SimplifyNoteAction(),
+            PickFieldsAction(),
         ])
 
         new_tune_actions = ['new_tune', '', 'new_multivoice_tune', '', 'new_drum_tune']
@@ -2346,7 +2516,7 @@ class AbcActionHandlers(object):
             'Whitespace'             : self.create_handler(['new_note', 'insert_field', 'remove']),
             'Note'                   : self.create_handler(['simplify_note', 'new_note', 'change_accidental', 'change_note_duration', 'change_pitch', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Rest'                   : self.create_handler(['new_note', 'change_rest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
-            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_rest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
+            'Measure rest'           : self.create_handler(['new_note', 'change_measurerest_duration', 'change_measurerest_visibility', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
             'Bar'                    : self.create_handler(['change_bar', 'remove']),
             'Annotation'             : self.create_handler(['change_annotation', 'change_annotation_position', 'fix_characters', 'remove']),
             'Chord'                  : self.create_handler(['new_note', 'change_note_duration', 'add_decoration_to_note', 'add_annotation_or_chord_to_note', 'insert_field', 'remove']),
@@ -2376,9 +2546,12 @@ class AbcActionHandlers(object):
             'MIDI_channel'           : self.create_handler(['change_midi_channel']),
             'MIDI_drummap'           : self.create_handler(['change_midi_drum_instrument']),
             'MIDI_volume'            : self.create_handler(['change_midi_volume']),
+            'MIDI_gchord'            : self.create_handler(['change_gchord', 'insert_gchord', 'time_gchord']),
             'MIDI'                   : self.create_handler(['insert_midi_directive']),
             'score'                  : self.create_handler(['show_single_voice', 'hide_voice', 'show_voice', 'show_all_voices', 'toggle_continued_barlines', 'group_together', 'brace_together', 'bracket_together']),
             'measurenb'              : self.create_handler(['change_measurenb']),
+            'show_fields'            : self.create_handler(['pick_fields']),
+            'hide_fields'            : self.create_handler(['pick_fields']),
         }
 
         for key in ['V:', 'K:']:

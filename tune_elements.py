@@ -6,13 +6,12 @@ import sys
 PY3 = sys.version_info.major > 2
 
 try:
-    from urllib.parse import urlparse, urlencode, urlunparse, parse_qsl, quote # py3
-    from urllib.request import urlopen, Request, urlretrieve
+    from urllib.parse import quote # py3
+    from urllib.request import urlopen
     from urllib.error import HTTPError, URLError
-except ImportError:
-    from urlparse import urlparse, urlunparse, parse_qsl # py2
-    from urllib import urlencode, urlretrieve, quote
-    from urllib2 import urlopen, Request, HTTPError, URLError
+except ImportError: # py2
+    from urllib import quote
+    from urllib2 import urlopen, HTTPError, URLError
 
 import logging
 from collections import namedtuple
@@ -141,6 +140,7 @@ class CodeImageDescription(ValueImageDescription):
 
 decoration_aliases = {
     '!>!'       : '!accent!',
+    '!^!'       : '!marcato!',
     '!emphasis!': '!accent!',
     '!<(!'      : '!crescendo(!',
     '!<)!'      : '!crescendo)!',
@@ -177,6 +177,8 @@ decoration_to_description = {
     '!>!'              : _('accent or emphasis'),
     '!accent!'         : _('accent or emphasis'),
     '!emphasis!'       : _('accent or emphasis'),
+    '!^!'              : _('marcato'),
+    '!marcato!'        : _('marcato'),
     '!fermata!'        : _('fermata or hold'),
     '!invertedfermata!': _('upside down fermata'),
     '!tenuto!'         : _('tenuto'),
@@ -231,6 +233,8 @@ decoration_to_description = {
     '!longphrase!'     : _('vertical line on the upper part of the staff, extending 3/4 of the way down'),
     '!ped!'            : _('sustain pedal down'),
     '!ped-up!'         : _('sustain pedal up'),
+    '!editorial!'      : _('editorial accidental above note'),
+    '!courtesy!'       : _('courtesy accidental between parentheses'),
 }
 
 ABC_TUNE_HEADER_NO = 0
@@ -605,7 +609,7 @@ class AbcMidiChannelDirective(AbcElement):
 
 
 class AbcMidiDrumMapDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)MIDI drummap (?P<note>[_^]*\w[,']*) (?P<druminstrument>\d+)" + AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)(?:MIDI drummap|percmap)\s+(?P<note>[_^]*\w[,']*)\s+(?P<druminstrument>\d+)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiDrumMapDirective, self).__init__('MIDI_drummap', display_name=_('Drum mapping'), description=_('Maps a note to an instrument.'))
         for section in ABC_SECTIONS:
@@ -613,11 +617,19 @@ class AbcMidiDrumMapDirective(AbcElement):
 
 
 class AbcMidiVolumeDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)MIDI control 7 (?P<volume>\d*)" + AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)MIDI (?:control 7|chordvol|bassvol)\s+(?P<volume>\d*)" + AbcElement.rest_of_line_pattern
     def __init__(self):
         super(AbcMidiVolumeDirective, self).__init__('MIDI_volume', display_name=_('Volume'), description=_('Volume for current voice.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = AbcMidiVolumeDirective.pattern
+
+
+class AbcMidiGuitarChordDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)MIDI gchord (?P<pattern>\w*)" + AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(AbcMidiGuitarChordDirective, self).__init__('MIDI_gchord', display_name=_('Guitar chords'), description=_('Play guitar chords'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = AbcMidiGuitarChordDirective.pattern
 
 
 class ScoreDirective(AbcElement):
@@ -629,11 +641,27 @@ class ScoreDirective(AbcElement):
 
 
 class MeasureNumberDirective(AbcElement):
-    pattern = r"(?m)^(?:%%|I:)measurenb (?P<interval>-?\d*)"+ AbcElement.rest_of_line_pattern
+    pattern = r"(?m)^(?:%%|I:)(?:measurenb|barnumbers) (?P<interval>-?\d*)"+ AbcElement.rest_of_line_pattern
     def __init__(self):
         super(MeasureNumberDirective, self).__init__('measurenb', display_name=_('Measure numbering'), description=_('Defines if and how measures are numbered.'))
         for section in ABC_SECTIONS:
             self._search_pattern[section] = MeasureNumberDirective.pattern
+
+
+class HideFieldsDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)writefields\s+(?P<fields>[A-Za-z_]+)\s+(?:0|false)"+ AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(HideFieldsDirective, self).__init__('hide_fields', display_name=_('Hide fields'), description=_('Defines which fields should be hidden.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = HideFieldsDirective.pattern
+
+
+class ShowFieldsDirective(AbcElement):
+    pattern = r"(?m)^(?:%%|I:)writefields\s+(?P<fields>[A-Za-z]+)"+ AbcElement.rest_of_line_pattern
+    def __init__(self):
+        super(ShowFieldsDirective, self).__init__('show_fields', display_name=_('Show fields'), description=_('Defines which fields should be shown.'))
+        for section in ABC_SECTIONS:
+            self._search_pattern[section] = ShowFieldsDirective.pattern
 
 
 class Abcm2psDirective(AbcElement):
@@ -869,6 +897,7 @@ class AbcArticulationDecoration(AbcDecoration):
         '.',
         '!tenuto!',
         '!accent!', '!>!', '!emphasis!',
+        '!marcato!', '!^!',
         '!wedge!',
         '!invertedfermata!',
         '!fermata!',
@@ -1138,8 +1167,11 @@ class AbcStructure(object):
             AbcMidiChannelDirective(),
             AbcMidiDrumMapDirective(),
             AbcMidiVolumeDirective(),
+            AbcMidiGuitarChordDirective(),
             ScoreDirective(),
             MeasureNumberDirective(),
+            HideFieldsDirective(),
+            ShowFieldsDirective(),
             directive,
             AbcComment(),
             AbcBeam(),

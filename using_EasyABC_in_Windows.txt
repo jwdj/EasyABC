@@ -1,65 +1,33 @@
-To get easy_abc.py running on Windows you need to have Python 2.7.10,
-and wxPython3.0-win32-3.0.2.0-py27 installed on your system.
+Python 2 is no longer supported (EasyABC 1.3.8 was the last version that supports Python 2)
 
-You can download Python 2.7 from
-https://www.python.org/downloads/release/python-2710/
-and wxPython from
-http://www.wxpython.org/download.php#msw
-or more specific
-https://sourceforge.net/projects/wxpython/files/wxPython/3.0.2.0/wxPython3.0-win32-3.0.2.0-py27.exe/download
-
-In addition you need to install pyparsing-2.0.1-win32-py2.7 and
-pywin32-219.win32-py2.7.
-https://sourceforge.net/projects/pywin32/
-https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/pywin32-221.win32-py2.7.exe/download
-
-Python has a package installer called pip. It is located in the Scripts-folder (C:\Python27\Scripts)
-But don't use it to install wxPython or pywin32.
-
-python -m pip install --upgrade pip
-pip install pygame
-pip install pyparsing
-
-If you are running easy_abc.py from a DOS command window, you
-should first execute an autoexec.bat file which contains
-
-set path=%path%;C:\python27;C:\python27\Scripts
-set PYTHONPATH=C:\python27\Lib
-
-You need to run the autoexec.bat each time you start up a DOS
-command window.
-
-Alternatively you can start easy_abc.py from a Python IDE which
-should set the path automatically.
-
-
-----------------------------------------------------------------------------------------------------------------------------------------------
-As of EasyABC 1.3.7.4 it is also possible to use Python 3.
-The most features are working with the Python 3 version, but uploading tunes (Swedish only) is not possible because the mechanize package is still not ported to Python 3.
-
-You can download Python 3.7 from
+You can download Python 3.8 from
 https://www.python.org/downloads/
 
-set path=C:\Python37;C:\Python37\Scripts;%path%
-set PYTHONPATH=C:\Python37\Lib
+To start 'python' and 'pip' easily both executable should be in the PATH variable. For example:
 
-Python has a package installer called pip. It is located in the Scripts-folder (C:\Python37\Scripts)
+set path=C:\Python38;C:\Python38\Scripts;%path%
+set PYTHONPATH=C:\Python38\Lib
 
-pip install pyparsing
-pip install pygame
-pip install pywin32
+Python has a package installer called pip. It is located in the Scripts-folder (C:\Python38\Scripts)
+
+pip install -U pyparsing
+pip install -U pygame
+pip install -U pywin32
 from an elevated command prompt (run as administrator):
-    python.exe Scripts\pywin32_postinstall.py -install 
+    python.exe Scripts\pywin32_postinstall.py -install
 
 pip install -U wxPython
 
 (If that does not work: Download .whl file from https://pypi.org/project/wxPython/#files and run
-pip install "D:\Downloads\wxPython-4.0.6-cp37-cp37m-win32.whl"
+pip install "C:\Downloads\wxPython-4.1.1-cp38-cp38-win32.whl"
 )
 
 Now EasyABC can be started using:
 python easy_abc.py
 
+Alternatively you can start easy_abc.py from a Python IDE which
+should set the path automatically.
 
-
-
+When dashed barlines (.|) are displayed as normal barlines then try:
+pip install wxPython==4.0.7.post2
+(see https://github.com/wxWidgets/Phoenix/issues/2011)

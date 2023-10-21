@@ -1,44 +1,32 @@
-This note describes how to create a Windows PC executable of easy_abc.
+This note describes how to create a Windows PC executable of easy_abc.py
 
-You can find a tutorial on the site http://www.py2exe.org/index.cgi/Tutorial
-which is somewhat accurate.
+EasyABC comes with setup.py to create easy_abc.exe and setupEasyABC.iss to create an installer.
+You first need to be able to run easy_abc.py using Python.
+See using_EasyABC_in_Windows.txt for that.
 
-easy_abc comes with setup.py which is used to create easy_abc.exe.
+Then you will also need to install on your computer the program Inno Setup 6 and the python package cx_Freeze:
+Inno Setup 6 can be downloaded here: https://jrsoftware.org/
 
-You will also need to install on your computer, py2exe, cx_Freeze-*.win32.py2.7,
-and mechanize. They are all found on http://sourceforge.net. Ensure that these
-scripts go into the folder linked to PYTHONPATH.
+And cx_Freeze can be installed using:
+python -m pip install --upgrade cx_Freeze
 
 Copy all the executables, abc2abc.exe, abc2midi.exe, abcm2ps.exe,
 nwc2xml.exe, and zlibwapi.dll into the bin folder. You can find nwc2xml.exe
 and zlibwapi.dll in the older easy_abc install.
 
-Copy the folder Microsoft.VC90.CRT into your easyabc_source_code... folder.
+Make sure the environment variables PYTHON and PYTHONPATH are set correctly.
 
-Open a command window, CD to the folder easyabc_source_code... and set the
+Open a command window, go to the folder easyabc_source_code... and set the
 PYTHON and PYTHONPATH using the autoexec.bat file.  You should now be
-ready.
+ready to run:
 
-python setup.py install
+build.bat
 
 You should see lots of messages and an executable with other files
-should be put into the folder build/exe.win32-27/ which you will find
-in the easy_source_code... folder.
+should be put into the folder build/exe.win32-38/
 
 I found that executable runs fine on Windows 7 64-bit but,
 I did not get it to run on my Windows XP laptop.
 
-The package also comes with setup.iss which is a script for running
-the Inno Setup Compiler which is freely available. The setup.iss
-file should no longer be used since it assumes a build/exe.win32-26/
-created by Python2.6 rather than Python2.7. Instead you should
-use setupEasy07.iss which I created recently. You will also
-require Inno Setup installed on your PC. See the header of text
-file setupEasy07.iss.
 
-I also created an install script for the "nullsoft scriptable install
-system 2.46" (NSIS) before discovering Inno Setup. I have left the
-script here easyabc.nsi but I now prefer Inno Setup which appears
-to be the standard.
-
-Seymour Shlien
+Seymour Shlien & Jan Wybren de Jong

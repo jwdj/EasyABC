@@ -11,8 +11,9 @@ if PY3:
 field_pattern = r'[A-Za-z\+]:'
 meter_pattern = r'M:\s*(?:(\d+)/(\d+)|(C\|?))'
 unitlength_pattern = r'^L:\s*(\d+)/(\d+)'
-voice_pattern = r'(?m)(?:^V:\s*(?P<name>\w+).*$\n|\[V:\s*(?P<inlinename>\w+)[^\]]*\])'
+voice_pattern = r'(?m)(?:^V:\s*(?P<voice_id>\w+).*$|\[V:\s*(?P<inline_voice_id>\w+)[^\]]*\])'
 comment_pattern = r'(?m)(?<!\\)%.*$'
+empty_line_pattern = r'(?m)^\s*$'
 
 meter_re = re.compile(meter_pattern)
 unitlength_re = re.compile(unitlength_pattern)
@@ -21,13 +22,23 @@ inline_unitlength_re = re.compile('\[{0}\]'.format(unitlength_pattern))
 abc_field_re = re.compile(field_pattern)
 voice_re = re.compile(voice_pattern)
 comment_re = re.compile(comment_pattern)
+empty_line_re = re.compile(empty_line_pattern)
+
 
 def find_start_of_tune(abc_text, pos):
+    """ A tune always starts with X: """
     while pos > 0:
         pos = abc_text.rfind('X:', 0, pos)
         if pos <= 0 or abc_text[pos - 1] == '\n':
             break
     return pos
+
+def find_end_of_tune(abc_text, pos):
+    """ A tune ends with an empty line or when end of file """
+    match = empty_line_re.search(abc_text, pos)
+    if match:
+        return match.start()
+    return len(abc_text)
 
 def strip_comments(abc_text):
     return comment_re.sub('', abc_text)
@@ -131,17 +142,17 @@ class AbcTune(object):
         self.note_line_indices = note_line_indices
 
     def get_voice_ids(self):
-        return [m.group('name') or m.group('inlinename') for m in voice_re.finditer(self.tune_header)]
+        return [m.group('voice_id') or m.group('inline_voice_id') for m in voice_re.finditer('\n'.join(self.tune_header))]
 
     def get_abc_per_voice(self):
         if self.__abc_per_voice is None:
             if self.tune_body_start_line_index:
-                abc_body = self.tune_body
+                abc_body = '\n'.join(self.tune_body)
                 voices = defaultdict(unicode)
                 last_voice_id = ''
                 start_index = 0
                 for m in voice_re.finditer(abc_body):
-                    voice_id = m.group('name') or m.group('inlinename')
+                    voice_id = m.group('voice_id') or m.group('inline_voice_id')
                     abc = abc_body[start_index:m.start()]
                     voices[last_voice_id] += abc
                     start_index = m.end()
@@ -163,14 +174,21 @@ class AbcTune(object):
 
     @property
     def tune_body(self):
-        return '\n'.join(self.abc_lines[self.tune_body_start_line_index:])
+        return self.abc_lines[self.tune_body_start_line_index:]
 
     @property
     def tune_header(self):
         end_line = None
         if self.tune_body_start_line_index is not None:
             end_line = self.tune_body_start_line_index
-        return '\n'.join(self.abc_lines[self.tune_header_start_line_index:end_line])
+        return self.abc_lines[self.tune_header_start_line_index:end_line]
+
+    @property
+    def initial_tonic_and_mode(self):
+        key_line = self.tune_header[-1]
+        m = re.match(r'K: ?(?P<tonic>(?:[A-G][b#]?|none)) ?(?P<mode>(?:[MmDdPpLl][A-Za-z]*)?)', key_line)
+        if m:
+            return (m.group('tonic'), m.group('mode'))
 
     def get_metre_and_default_length(self):
         lines = self.abc_lines
