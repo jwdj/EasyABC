@@ -5,6 +5,7 @@ import io
 import os.path
 import time
 import sys
+
 PY3 = sys.version_info.major > 2
 from midiplayer import MidiPlayer
 import fluidsynth as F
@@ -19,6 +20,8 @@ class FluidSynthPlayer(MidiPlayer):
         driver = None
         if is_linux:
             driver = 'pulseaudio'
+        if sys.platform == "darwin":
+            driver = 'coreaudio'
 
         self.fs.start(driver)  # set default output driver and start clock
         self.soundfont_path = sf2_path
@@ -89,7 +92,8 @@ class FluidSynthPlayer(MidiPlayer):
         return ticks
 
     def render_to_file(self, midi_path, output_path):
-        fs = F.Synth(gain=1.0, bsize=2048, output_path=output_path)
+        #fs = F.Synth(gain=1.0, bsize=2048, output_path=output_path)
+        fs = F.Synth(gain=1.0, bsize=2048)
         soundfont_path = self.pending_soundfont
         if not soundfont_path:
             soundfont_path = self.soundfont_path
@@ -100,6 +104,7 @@ class FluidSynthPlayer(MidiPlayer):
         player = F.Player(fs)   # make a new one
         player.add(midi_path)
         player.play()
+        player.set_render_mode (sfnm, 'oga')  # vorbis file with name sfnm
         samples = player.renderLoop()
         # print(samples)
         player.delete()

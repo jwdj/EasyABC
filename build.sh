@@ -7,5 +7,11 @@ for file in `ls -1 locale/`; do
    mkdir "dist/EasyABC.app/Contents/Resources/$file.lproj" 
 done
 mkdir "dist/EasyABC.app/Contents/Resources/English.lproj"   
-#force to have executable binary as py2app remove the executable flag
-chmod +x dist/EasyABC.app/Contents/Resources/bin/*
+
+#FAU 20240103: there shall be no executable within Resources folder. Need to move them to Helpers or MacOS
+
+mkdir dist/EasyABC.app/Contents/Helpers
+cp bin/* dist/EasyABC.app/Contents/Helpers
+
+#FAU 20240105: Ghostscript library introduced directly by py2app doesn't seem to work thus force addition manually after build
+cp mac_libs_gs/*.dylib dist/EasyABC.app/Contents/Frameworks

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # setup.py
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 import sys
 import glob
 import os.path
@@ -42,6 +43,7 @@ if sys.platform == "darwin":
                          'compressed'     : 0,
         #                 'excludes': ['Tkinter','tcl','tk','_ssl', 'email'],
                          'excludes': ['Tkinter','tcl','tk','_ssl', 'pygame', 'pygame.pypm'],
+                         'frameworks': glob.glob(os.path.join('mac_libs', '*.dylib')),
         #                 'includes': ['mechanize', 'urllib', 'socket', 'pygame.pypm' ],
                          'includes': ['mechanize', 'urllib', 'socket' ],
                          'packages': ['wx'],
@@ -54,7 +56,8 @@ if sys.platform == "darwin":
                                    }
                          }
     data_files = [('.', ['reference.txt', 'gpl-license.txt']),
-                  ('bin', ['bin/abc2midi', 'bin/abcm2ps', 'bin/abc2abc', 'bin/nwc2xml', 'bin/midi2abc']),
+                  #('bin', ['bin/abc2midi', 'bin/abcm2ps', 'bin/abc2abc', 'bin/nwc2xml', 'bin/midi2abc']),
+                  #('bin/mac_libs', glob.glob(os.path.join('bin/mac_libs', '*.*'))),
                   ('img', glob.glob(os.path.join('img', '*.*'))),
                   ('sound', glob.glob(os.path.join('sound', '*.*'))),
                   ('locale', []),
