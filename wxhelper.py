@@ -29,7 +29,7 @@ def append_submenu(menu, label, submenu):
 
 
 def append_menu_item(menu, label, description, handler, kind=wx.ITEM_NORMAL, id=-1, bitmap=None):
-    menu_item = wx.MenuItem(menu, -1, label, description, kind)
+    menu_item = wx.MenuItem(menu, id=wx.ID_ANY, text=label, helpString=description, kind=kind)
     if bitmap is not None:
         menu_item.SetBitmap(bitmap)
     if WX4:

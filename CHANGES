@@ -627,3 +627,5 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Added 'Insert musical symbol' again to the menu again which was removed in 1.3.8.4. Although ABC Assist can insert musical with less hassle, some users really like the old
   menu version. For Linux (Gnome) users these menus are still empty but that is caused by Gnome, not EasyABC.
 - Fixed: Playing selection gave an error: AttributeError: 'bytes' object has no attribute 'encode'  (https://github.com/jwdj/EasyABC/issues/69)
+- Fixed: Now automatic insertion of bars (|) only when no text is selected
+
