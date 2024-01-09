@@ -48,6 +48,8 @@ if PY3:
     unichr = chr
     xrange = range
     def unicode(s):
+        if isinstance(s, bytes):
+            return s.decode()  # assumes utf-8
         return s
     max_int = sys.maxsize
     basestring = str
@@ -6861,18 +6863,19 @@ class MainFrame(wx.Frame):
         if use_typing_assist and in_music_code:
             if c == '-' and no_selection:
                 self.AddTextWithUndo('- ')
+                return
 
             if c == ' ':
                 try:
                     self.FixNoteDurations()
-                    if self.add_bar_if_needed():
+                    if no_selection and self.add_bar_if_needed():
                         return
                     else:
                         evt.Skip()
                 except Exception:
                     evt.Skip()
                     raise
-            elif self.mni_TA_add_bar_auto.IsChecked() and c not in "-/<,'1234567890\"!":
+            elif self.mni_TA_add_bar_auto.IsChecked() and no_selection and c not in "-/<,'1234567890\"!":
                 if c in '|]&':
                     if c == ']':
                         bar_text = '|]'
