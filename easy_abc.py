@@ -4,7 +4,7 @@ program_version = '1.3.8.7'
 program_name = 'EasyABC ' + program_version
 
 # Copyright (C) 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
-# Copyright (C) 2015-2021 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
+# Copyright (C) 2015-2024 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -6799,10 +6799,10 @@ class MainFrame(wx.Frame):
         if is_inside_field:
             evt.Skip()
             return
-
+        is_inside_chord = self.position_is_in_chord(cur_pos)
         at_end_of_line = not line[caret:].strip(' \r\n|:][')
         use_typing_assist = self.mni_TA_active.IsChecked()
-        if use_typing_assist and in_music_code:
+        if use_typing_assist and in_music_code and not is_inside_chord:
             if c == '-' and no_selection:
                 self.AddTextWithUndo('- ')
                 return
@@ -7160,7 +7160,11 @@ class MainFrame(wx.Frame):
     def position_is_music_code(self, position):
         style_at = self.editor.GetStyleAt
         return style_at(position) == self.styler.STYLE_DEFAULT \
-            and style_at(position-1) not in (self.styler.STYLE_EMBEDDED_FIELD_VALUE, self.styler.STYLE_EMBEDDED_FIELD)
+            and style_at(position-1) not in (self.styler.STYLE_EMBEDDED_FIELD_VALUE, self.styler.STYLE_EMBEDDED_FIELD, self.styler.STYLE_COMMENT_NORMAL)
+
+    def position_is_in_chord(self, position):
+        style_at = self.editor.GetStyleAt
+        return style_at(position-1) == self.styler.STYLE_CHORD
 
     def OnKeyDownEvent(self, evt):
         # temporary work-around for what seems to be a scintilla bug on Mac:

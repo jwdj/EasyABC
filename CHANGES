@@ -629,3 +629,4 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Fixed: Playing selection gave an error: AttributeError: 'bytes' object has no attribute 'encode'  (https://github.com/jwdj/EasyABC/issues/69)
 - Fixed: Now automatic insertion of bars (|) only when no text is selected
 - Fixed: FluidSynth issues on 64 bit Mac (thanks Mark)
+- Fixed: No bars added within chords or comment
