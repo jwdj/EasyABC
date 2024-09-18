@@ -8371,7 +8371,7 @@ class MainFrame(wx.Frame):
             elif wx.Platform == '__WXGTK__':
                 try:
                     gs_path = subprocess.check_output(["which", "gs"])
-                    settings['gs_path'] = unicode(gs_path[0:-1])
+                    settings['gs_path'] = gs_path[0:-1].decode()
                 except:
                     settings['gs_path'] = ''
             #1.3.6.1 [SS] 2014-01-13
