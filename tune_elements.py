@@ -1081,7 +1081,7 @@ class AbcStructure(object):
     @staticmethod
     def get_sections(cwd):
         # [1.3.6.2 [JWDJ] bugfix This fixes 'str>ng' in Fields and Command Reference
-        reference_content = io.open(os.path.join(cwd, 'reference.txt'), 'rU', encoding='latin-1').read()
+        reference_content = io.open(os.path.join(cwd, 'reference.txt'), 'r', encoding='latin-1').read()
         if AbcStructure.replace_regexes is None:
             AbcStructure.replace_regexes = [
                 (re.compile(r'\bh((?:bass/chord|length|logical|string|int|fl-?\n?oat\s?|command|str|text|vol|h|n|char|clef|bass|chord)\d*\s?(?: (?:string|int|float)\d*?)*)i\b'), r'<\1>'),  # enclose types with < and >
