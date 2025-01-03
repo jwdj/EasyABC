@@ -22,7 +22,7 @@ try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import types, sys, os, re, datetime
 
-VERSION = 233
+VERSION = 245
 
 python3 = sys.version_info[0] > 2
 lmap = lambda f, xs: list (map (f, xs))   # eager map for python 3
@@ -31,16 +31,27 @@ if python3:
     list_type = list
     str_type = str
     uni_type = str
+    stdin = sys.stdin.buffer if sys.stdin else None  # read binary if stdin available!
 else:
     int_type = types.IntType
     list_type = types.ListType
     str_type = types.StringTypes
     uni_type = types.UnicodeType
+    stdin = sys.stdin
 
+info_list = []  # diagnostic messages
 def info (s, warn=1):
     x = (warn and '-- ' or '') + s
-    try: sys.stderr.write (x + '\n')
-    except: sys.stderr.write (repr (x) + '\n')
+    info_list.append (x + '\n')         # collect messages
+    if __name__ == '__main__':          # only write to stdout when called as main progeam
+        try: sys.stderr.write (x + '\n')
+        except: sys.stderr.write (repr (x) + '\n')
+
+def getInfo (): # get string of diagnostic messages, then clear messages
+    global info_list
+    xs = ''.join (info_list)
+    info_list = []
+    return xs
 
 def abc_grammar ():     # header, voice and lyrics grammar for ABC
     #-----------------------------------------------------------------
@@ -86,13 +97,13 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     # ABC lyric lines (white space sensitive)
     #----------------------------------------
 
-    skip_note   = oneOf ('* - ~')
+    skip_note   = oneOf ('* -')
     extend_note = Literal ('_')
     measure_end = Literal ('|')
-    syl_str     = CharsNotIn ('*~-_| \t\n\\]')
+    syl_str     = CharsNotIn ('*-_| \t\n\\]')
     syl_chars   = Combine (OneOrMore (syl_str | Regex (r'\\.')))
     white       = Word (' \t')
-    syllable    = Combine (Optional ('~') + syl_chars + ZeroOrMore (Literal ('~') + syl_chars)) + Optional ('-')
+    syllable    = syl_chars + Optional ('-')
     lyr_elem    = (syllable | skip_note | extend_note | measure_end) + Optional (white).suppress ()
     lyr_line    = Optional (white).suppress () + ZeroOrMore (lyr_elem)
     
@@ -589,7 +600,7 @@ def splitHeaderVoices (abctext):
         voices.append ((id, voice))
     return header, voices
 
-def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0):
+def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0, is_overlay=0):
     slurs = m2.findall ('note/notations/slur')
     for slr in slurs:
         slrnum = int (slr.get ('number')) + slur_offset 
@@ -606,13 +617,14 @@ def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0):
     dur1 = sum (int (n.find ('duration').text) for n in ns
                 if n.find ('grace') == None and n.find ('chord') == None)
     dur1 -= sum (int (b.text) for b in m1.findall ('backup/duration'))
-    nns, es = 0, []             # nns = number of real notes in m2
+    repbar, nns, es = 0, 0, []  # nns = number of real notes in m2
     for e in list (m2): # scan all elements of m2
         if e.tag == 'attributes':
             if not is_grand: continue # no attribute merging for normal voices
-            else: nns += 1       # but we do merge (clef) attributes for a grand staff
+            else: nns += 1      # but we do merge (clef) attributes for a grand staff
         if e.tag == 'print': continue
         if e.tag == 'note' and (rOpt or e.find ('rest') == None): nns += 1
+        if e.tag == 'barline' and e.find ('repeat') != None: repbar = e;
         es.append (e)           # buffer elements to be merged
     if nns > 0:                 # only merge if m2 contains any real notes
         if dur1 > 0:            # only insert backup if duration of m1 > 0
@@ -620,6 +632,7 @@ def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0):
             addElem (m1, b, level=3)
             addElemT (b, 'duration', str (dur1), level=4)
         for e in es: addElem (m1, e, level=3)   # merge buffered elements of m2
+    elif is_overlay and repbar: addElem (m1, repbar, level=3)   # merge repeat in empty overlay
 
 def mergePartList (parts, rOpt, is_grand=0):    # merge parts, make grand staff when is_grand true
 
@@ -662,11 +675,16 @@ def mergeParts (parts, vids, staves, rOpt, is_grand=0):
             vidsnew.append (vids [pixs[0]])
     return partsnew, vidsnew
 
-def mergePartMeasure (part, msre, ovrlaynum, rOpt):         # merge msre into last measure of part, only for overlays
-    slurs = part.findall ('measure/note/notations/slur')    # find highest slur num in part
-    slur_max = max ([int (slr.get ('number')) for slr in slurs] + [0])
+def mergePartMeasure (part, msre, ovrlaynum, rOpt): # merge msre into last measure of part, only for overlays
+    slur_offset = 0;    # slur numbers determined by the slurstack size (as in a single voice)
     last_msre = list (part)[-1] # last measure in part
-    mergeMeasure (last_msre, msre, slur_max, ovrlaynum, rOpt) # voice offset = s.overlayVNum
+    mergeMeasure (last_msre, msre, slur_offset, ovrlaynum, rOpt, is_overlay=1) # voice offset = s.overlayVNum
+
+def pushSlur (boogStapel, stem):
+    if stem not in boogStapel: boogStapel [stem] = [] # initialize slurstack for stem
+    boognum = sum (map (len, boogStapel.values ())) + 1  # number of open slurs in all (overlay) voices
+    boogStapel [stem].append (boognum)
+    return boognum
 
 def setFristVoiceNameFromGroup (vids, vdefs): # vids = [vid], vdef = {vid -> (name, subname, voicedef)}
     vids = [v for v in vids if v in vdefs]  # only consider defined voices
@@ -826,7 +844,7 @@ class MusicXml:
     def reset (s, fOpt=False):
         s.divisions = 2520  # xml duration of 1/4 note, 2^3 * 3^2 * 5 * 7 => 5,7,9 tuplets
         s.ties = {}         # {abc pitch tuple -> alteration} for all open ties
-        s.slurstack = []    # stack of open slur numbers
+        s.slurstack = {}    # stack of open slur numbers per (overlay) voice
         s.slurbeg = []      # type of slurs to start (when slurs are detected at element-level)
         s.tmnum = 0         # time modification, numerator
         s.tmden = 0         # time modification, denominator
@@ -1059,6 +1077,7 @@ class MusicXml:
     def doNotations (s, n, decos, ptup, alter, tupnotation, tstop, nt, lev):
         slurs = getattr (n, 'slurs', 0) # slur ends
         pts = getattr (n, 'pitches', [])            # all chord notes available in the first note
+        ov = s.overlayVnum                          # current overlay voice number (0 for the main voice)
         if pts:                                     # make list of pitches in chord: [(pitch, octave), ..]
             if type (pts.pitch) == pObj: pts = [pts.pitch]      # chord with one note
             else: pts = [tuple (p.t[-2:]) for p in pts.pitch]   # normal chord
@@ -1074,8 +1093,7 @@ class MusicXml:
             ntelm.remove (e)                        # delete start tie element
             e = [t for t in nts.findall ('tied') if t.get ('type') == 'start'][0]   # get the tied start element
             e.tag = 'slur'                          # convert tie into slur
-            slurnum = len (s.slurstack) + 1
-            s.slurstack.append (slurnum)
+            slurnum = pushSlur (s.slurstack, ov)
             e.set ('number', str (slurnum))
             if slurs: slurs.t.append (')')          # close slur on this note
             else: slurs = pObj ('slurs', [')'])
@@ -1130,14 +1148,13 @@ class MusicXml:
                 if rest: info ('unhandled note decorations: %s' % rest)
         if slurs:           # these are only slur endings
             for d in slurs.t:           # slurs to be closed on this note
-                if not s.slurstack: break    # no more open old slurs
-                slurnum = s.slurstack.pop ()
+                if not s.slurstack.get (ov, 0): break    # no more open old slurs for this (overlay) voice
+                slurnum = s.slurstack [ov].pop ()
                 slur = E.Element ('slur', number='%d' % slurnum, type='stop')
                 addElem (nots, slur, lev + 1)
         while s.slurbeg:    # create slurs beginning on this note
             stp = s.slurbeg.pop (0)
-            slurnum = len (s.slurstack) + 1
-            s.slurstack.append (slurnum)
+            slurnum = pushSlur (s.slurstack, ov)
             ntn = E.Element ('slur', number='%d' % slurnum, type='start')
             if '.' in stp: ntn.set ('line-type', 'dotted')
             if ',' in stp: ntn.set ('placement', 'below')
@@ -1297,6 +1314,7 @@ class MusicXml:
             elif d in ['/-','//-','///-','////-']:  # duplet tremolo sequence
                 s.tmnum, s.tmden, s.ntup, s.trem, s.intrem = 2, 1, 2, len (d) - 1, 1
             elif d in ['/','//','///']: s.trem = - len (d)  # single note tremolo
+            elif d == 'rbstop': s.rbStop = 1;   # sluit een open volta aan het eind van de maat
             else: s.nextdecos.append (d)    # keep annotation for the next note
 
     def doFields (s, maat, fieldmap, lev):
@@ -1578,6 +1596,7 @@ class MusicXml:
         s.msreAlts = {}
         s.ntup, s.trem, s.intrem = -1, 0, 0
         s.acciatura = 0 # next grace element gets acciatura attribute
+        s.rbStop = 0    # sluit een open volta aan het eind van de maat
         overlay = 0
         maat = E.Element ('measure', number = str(i))
         if fieldmap: s.doFields (maat, fieldmap, lev + 1)
@@ -1612,6 +1631,8 @@ class MusicXml:
                     s.mkBarline (maat, 'right', lev + 1, style='none')
                 elif '[' in bar or ']' in bar:
                     s.mkBarline (maat, 'right', lev + 1, style='light-heavy')
+                elif bar == '|' and s.rbStop:   # normale barline hoeft niet, behalve om een volta te stoppen
+                    s.mkBarline (maat, 'right', lev + 1, style='regular')
                 elif bar[0] == '&': overlay = 1
             elif x.name == 'tup':
                 if   len (x.t) == 3: n, into, nts = x.t
@@ -1648,7 +1669,7 @@ class MusicXml:
         return maat, overlay
 
     def mkPart (s, maten, id, lev, attrs, nstaves, rOpt):
-        s.slurstack = []
+        s.slurstack = {}
         s.glisnum = 0;          # xml number attribute for glissandos
         s.slidenum = 0;         # xml number attribute for slides
         s.unitLcur = s.unitL    # set the default unit length at begin of each voice
@@ -2121,7 +2142,8 @@ def writefile (pad, fnm, fnmNum, xmldoc, mxlOpt, tOpt=False):
 
 def readfile (fnmext, errmsg='read error: '):
     try:
-        fobj = open (fnmext, 'rb')
+        if fnmext == '-.abc': fobj = stdin  # see python2/3 differences
+        else: fobj = open (fnmext, 'rb')
         encoded_data = fobj.read ()
         fobj.close ()
         return encoded_data if type (encoded_data) == uni_type else decodeInput (encoded_data)
@@ -2147,7 +2169,7 @@ def getXmlScores (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False)
 def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # added by David Randolph
     xml_docs = []
     abctext = expand_abc_include (abc_string)
-    fragments = re.split ('^\s*X:', abctext, flags=re.M)
+    fragments = re.split (r'^\s*X:', abctext, flags=re.M)
     preamble = fragments [0]    # tunes can be preceeded by formatting instructions
     tunes = fragments[1:]
     if not tunes and preamble: tunes, preamble = ['1\n' + preamble], ''  # tune without X:
@@ -2208,10 +2230,12 @@ if __name__ == '__main__':
         if tag not in mxm.metaTypes: parser.error ('--meta: tag %s is no valid XML creator type' % tag)
         mxm.metaMap [field] = tag
     fnmext_list = []
-    for i in args: fnmext_list += glob (i)
+    for i in args:
+        if i == '-': fnmext_list.append ('-.abc')   # represents standard input
+        else:        fnmext_list += glob (i)
     if not fnmext_list: parser.error ('none of the input files exist')
     t_start = time.time ()
-    for X, fnmext in enumerate (fnmext_list):
+    for fnmext in fnmext_list:
         fnm, ext = os.path.splitext (fnmext)
         if ext.lower () not in ('.abc'):
             info ('skipped input file %s, it should have extension .abc' % fnmext)

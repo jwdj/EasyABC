@@ -659,7 +659,7 @@ class PitchAction(ValueChangeAction):
 
 
 class DurationAction(ValueChangeAction):
-    denominator_re = re.compile('/(\d*)')
+    denominator_re = re.compile(r'/(\d*)')
     def __init__(self, name, values):
         super(DurationAction, self).__init__(name, values, display_name=_('Change duration'))
         self.max_length_denominator = 128
@@ -2033,7 +2033,7 @@ class GroupTogetherAction(JoinTogetherInScoreAction):
     def can_execute(self, context, params=None):
         if super(GroupTogetherAction, self).can_execute(context, params):
             text = context.inner_text
-            for c in '[\{\}]':
+            for c in r'[\{\}]':
                 if c in text:
                     return False
                 return True

@@ -17,8 +17,8 @@ empty_line_pattern = r'(?m)^\s*$'
 
 meter_re = re.compile(meter_pattern)
 unitlength_re = re.compile(unitlength_pattern)
-inline_meter_re = re.compile('\[{0}\]'.format(meter_pattern))
-inline_unitlength_re = re.compile('\[{0}\]'.format(unitlength_pattern))
+inline_meter_re = re.compile(r'\[{0}\]'.format(meter_pattern))
+inline_unitlength_re = re.compile(r'\[{0}\]'.format(unitlength_pattern))
 abc_field_re = re.compile(field_pattern)
 voice_re = re.compile(voice_pattern)
 comment_re = re.compile(comment_pattern)
