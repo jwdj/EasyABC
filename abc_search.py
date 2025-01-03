@@ -9,8 +9,10 @@ remove_non_notes = re.compile(r'(?xm)' + '|'.join([
                r'\%\%beginps(.|\s)+?\%\%endps',  # remove embedded postscript
                r'\%\%begintext(.|\s)+?\%\%endtext',   # remove text
                r'\[\w:.*?\]',    # remove embedded fields
-               r'(?m)^\w:.*?$',  # remove normal fields
-               r'(?m)%.*$',      # remove comments
+               #r'(?m)^\w:.*?$',  # remove normal fields
+               r'^\w:.*?$',  # remove normal fields
+               #r'(?m)%.*$',      # remove comments
+               r'%.*$',      # remove comments
                r'\[\w:.*?\]',    # remove embedded fields
                r'\\"',           # remove escaped " characters
                r'".*?"',         # remove strings
@@ -19,7 +21,7 @@ remove_non_notes = re.compile(r'(?xm)' + '|'.join([
                r'!.+?!',         # remove ornaments like eg. !pralltriller!
                r'\+.+?\+',       # remove ornaments like eg. +pralltriller+
                r'\{.*?\}',       # remove grace notes
-               ]))
+               ]), flags=re.M)
 
 def remove_non_note_fragments(abc):
     # replace non-note fragments of the text by replacing them by spaces (thereby preserving offsets), but keep also bar and repeat symbols
