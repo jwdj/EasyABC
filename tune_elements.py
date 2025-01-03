@@ -64,7 +64,7 @@ Z:|transcription         |yes    |yes    |no     |no     |string
 
 clef_name_pattern = 'treble|bass3|bass|tenor|auto|baritone|soprano|mezzosoprano|alto2|alto1|alto|perc|none|C[1-5]|F[1-5]|G[1-5]'
 simple_note_pattern = "[a-gA-G][',]*"
-clef_pattern = ' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>{1})(?P<stafftranspose>(?:[+^_-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?) *?(?P<score>(?: score={0}{0})?) *?(?P<sound>(?: sound={0}{0})?) *?(?P<shift>(?: shift={0}{0})?) *?(?P<instrument>(?: instrument={0}(?:/{0})?)?)'.format(simple_note_pattern, clef_name_pattern)
+clef_pattern = r' *?(?P<clef>(?: (?P<clefprefix>(?:clef=)?)(?P<clefname>{1})(?P<stafftranspose>(?:[+^_-]8)?))?) *?(?P<octave>(?: octave=-?\d+)?) *?(?P<stafflines>(?: stafflines=\d+)?) *?(?P<playtranspose>(?: transpose=-?\d+)?) *?(?P<score>(?: score={0}{0})?) *?(?P<sound>(?: sound={0}{0})?) *?(?P<shift>(?: shift={0}{0})?) *?(?P<instrument>(?: instrument={0}(?:/{0})?)?)'.format(simple_note_pattern, clef_name_pattern)
 key_ladder = 'Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B#'.split(' ')
 whitespace_chars = u' \r\n\t'
 
@@ -955,7 +955,7 @@ class AbcVoiceOverlay(AbcBodyElement):
 
 
 class AbcInvalidCharacter(AbcBodyElement):
-    pattern = r'[^\d\w\s%s]' % re.escape('!"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~')
+    pattern = r'[^\d\w\s%s]' % re.escape(r'!"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~')
     def __init__(self):
         super(AbcInvalidCharacter, self).__init__('Invalid character', AbcInvalidCharacter.pattern, display_name=_('Invalid character'), description=_("This character is not allowed within the body of an abc tune."))
 
@@ -978,11 +978,11 @@ class AbcBaseNote(AbcBodyElement):
     basic_note_pattern_without_len = r'{0}(?P<note>[A-Ga-g]){1}'.format(accidental_pattern, octave_pattern)
     basic_note_pattern = basic_note_pattern_without_len + length_pattern
 
-    basic_rest_pattern_without_len = '(?P<rest>[zx])'
+    basic_rest_pattern_without_len = r'(?P<rest>[zx])'
     basic_rest_pattern = basic_rest_pattern_without_len + length_pattern
 
-    basic_note_or_rest_pattern = '(?:{0}|{1})'.format(basic_note_pattern_without_len, basic_rest_pattern_without_len) + length_pattern
-    basic_measure_rest_pattern = '(?P<rest>[ZX])(?P<length>(?:[1-9][0-9]*)?)'
+    basic_note_or_rest_pattern = r'(?:{0}|{1})'.format(basic_note_pattern_without_len, basic_rest_pattern_without_len) + length_pattern
+    basic_measure_rest_pattern = r'(?P<rest>[ZX])(?P<length>(?:[1-9][0-9]*)?)'
 
     def __init__(self, name, pattern, display_name=None, description=None):
         super(AbcBaseNote, self).__init__(name, pattern, display_name=display_name, description=description)

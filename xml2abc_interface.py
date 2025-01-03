@@ -76,41 +76,50 @@ def xml_to_abc (filename, options, info_messages = None):
 
     if info_messages is None:   # will contain all information messages of abc2xml,
         info_messages = []      # a real error raises an exception that contains the error message
-    xml2abc.info = lambda message, warn=1: info (info_messages, message, warn)
+    #xml2abc.info = lambda message, warn=1: info (info_messages, message, warn)
 
     results = []
+    info_xml2abc=''
     for L in (4, 8, 16):        # make three passes to determine the shortest translation
         options.d = L
-        abcOut = xml2abc.ABCoutput ('','', X-1, options)
-        abcOut.outfile = StringFile ()
-        xml2abc.abcOut = abcOut
-        xml2abc.fnm = ''
+        #abcOut = xml2abc.ABCoutput ('','', X-1, options)
+        #abcOut.outfile = StringFile ()
+        #xml2abc.abcOut = abcOut
+        #xml2abc.fnm = ''
         if os.path.splitext(filename)[1].lower() == '.mxl':
             z = ZipFile(filename)
-            fobj = z.open([n for n in z.namelist() if n[:4] != 'META' and n[-4:].lower() == '.xml'][0])
+            #fobj = z.open([n for n in z.namelist() if n[:4] != 'META' and n[-4:].lower() == '.xml'][0])
+            for n in z.namelist():          # assume there is always an xml file in a mxl archive !!
+                if (n[:4] != 'META') and ((n[-4:].lower() == '.xml') or (n[-9:].lower() == '.musicxml')):
+                    fobj = z.open (n)
+                    break   # assume only one MusicXML file per archive            
         else:
             fobj = open(filename, 'rb')
 
         while info_messages: info_messages.pop ()
-        xml2abc.Parser (options).parse (fobj)
-        s = abcOut.outfile.getvalue ()
+        #xml2abc.Parser (options).parse (fobj)
+        #s = abcOut.outfile.getvalue ()
+        s, info_xml2abc = xml2abc.vertaal(fobj.read(),u=options.u, b=options.b, n=options.n, c=options.c, v=options.v, d=L, m=options.m, p=options.p)
+        #Allowed parameters for xml2abc:
+        #u=0; b=0; n=0; c=0; v=0; d=0; m=0; x=0; t=0;
+        #stm=0; mnum=-1; p='f'; s=0; j=0; v1=0; ped=0;
 
-        if True:
-            s = re.sub(r'%%MIDI program \d+( \d+)?\n', '', s)              # remove MIDI program data
-            s = re.sub(r'(?m)^ +', '', s)                                  # remove leading spaces on lines
-            s = re.sub(r'(?m)^(?![a-zA-Z]:)([^%\n]+)%\d+\n', r'\1\n', s)   # remove bar number comments
-            if s.count('V:') == 2 and 'V:1 treble' in s:                   # if there is just one voice (two mentions of V: in that case) with standard clef
-                s = re.sub('(?m)^(V:\d+.*\n)', '', s)                      #   remove all V: field lines
-            s = s.replace('V:1 treble nm="Right Hand"\nV:2 treble nm="Left Hand"\nV:1', 'V:1')
-            s = re.sub(r'(:\|]?)\s+\|]', r'\1', s)
-            s = s.replace('|] |]', '|]')
-            s = s.replace(':|[|:', '::')
-            s = s.replace(':||:', '::')
-
-            for long_art, short_name in [('!tenuto!', 't'), ('!invertedturn!', 'i')]:
-                if long_art in s:  # make abc code shorter by using U: field for tenuto
-                    s = s.replace('I:linebreak $', 'I:linebreak $\nU:%s=%s' % (short_name, long_art[1:-1]))
-                    s = s.replace(long_art, short_name)
+        #if True:
+        #    s = re.sub(r'%%MIDI program \d+( \d+)?\n', '', s)              # remove MIDI program data
+        #    s = re.sub(r'(?m)^ +', '', s)                                  # remove leading spaces on lines
+        #    s = re.sub(r'(?m)^(?![a-zA-Z]:)([^%\n]+)%\d+\n', r'\1\n', s)   # remove bar number comments
+        #    if s.count('V:') == 2 and 'V:1 treble' in s:                   # if there is just one voice (two mentions of V: in that case) with standard clef
+        #        s = re.sub(r'(?m)^(V:\d+.*\n)', '', s)                     #   remove all V: field lines
+        #    s = s.replace('V:1 treble nm="Right Hand"\nV:2 treble nm="Left Hand"\nV:1', 'V:1')
+        #    s = re.sub(r'(:\|]?)\s+\|]', r'\1', s)
+        #    s = s.replace('|] |]', '|]')
+        #    s = s.replace(':|[|:', '::')
+        #    s = s.replace(':||:', '::')
+#
+        #    for long_art, short_name in [('!tenuto!', 't'), ('!invertedturn!', 'i')]:
+        #        if long_art in s:  # make abc code shorter by using U: field for tenuto
+        #            s = s.replace('I:linebreak $', 'I:linebreak $\nU:%s=%s' % (short_name, long_art[1:-1]))
+        #            s = s.replace(long_art, short_name)
 
         results.append(s)
 
