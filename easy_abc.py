@@ -934,8 +934,10 @@ def AbcToPDF(settings, abc_code, header, cache_dir, extra_params='', abcm2ps_pat
     # convert ps to pdf
     # p09 we already checked for gs_path in restore_settings() 2014-10-14
     cmd2 = [gs_path, '-sDEVICE=pdfwrite', '-sOutputFile=%s' % pdf_file, '-dBATCH', '-dNOPAUSE', ps_file]
-    # [SS] 2015-04-08
-    if wx.Platform == "__WXMAC__":
+    #FAU:PDF:Manage the case where one put ps2pdf from ghostscript instead of gs directly
+    if 'ps2pdf' in gs_path:
+        cmd2 = [gs_path, ps_file, pdf_file]
+    elif wx.Platform == "__WXMAC__" and int(platform.mac_ver()[0].split('.')[0]) <= 13 and gs_path == '/usr/bin/pstopdf':
         cmd2 = [gs_path, ps_file, '-o', pdf_file]
     if os.path.exists(pdf_file):
         os.remove(pdf_file)
@@ -8367,16 +8369,22 @@ class MainFrame(wx.Frame):
             if wx.Platform == "__WXMSW__":
                 gs_path = get_ghostscript_path()
                 settings['gs_path'] = gs_path
-            elif wx.Platform == '__WXGTK__':
+            #FAU:PDF:pstopdf is not provided by Apple starting from MacOS Sonoma. So in any case look for ghostscript and use /usr/bin/pstopdf only if Mac OS version earlier than Sonoma.
+            #elif wx.Platform == '__WXGTK__':
+            else:
                 try:
                     gs_path = subprocess.check_output(["which", "gs"])
                     settings['gs_path'] = gs_path[0:-1].decode()
                 except:
-                    settings['gs_path'] = ''
+                    if wx.Platform == "__WXMAC__" and int(platform.mac_ver()[0].split('.')[0]) <= 13:
+                        settings['gs_path'] = '/usr/bin/pstopdf'
+                    else:
+                        settings['gs_path'] = ''
             #1.3.6.1 [SS] 2014-01-13
-            elif wx.Platform == "__WXMAC__":
-                gs_path = '/usr/bin/pstopdf'
-                settings['gs_path'] = gs_path
+            #FAU:PDF:pstopdf is not provided by Apple starting from MacOS Sonoma. So merge with Ghostscript in case ghostscript is installed
+            #elif wx.Platform == "__WXMAC__":
+            #    gs_path = '/usr/bin/pstopdf'
+            #    settings['gs_path'] = gs_path
 
         # 1.3.6.1 [SS] 2015-01-12 2015-01-22
         gs_path = settings['gs_path'] #eliminate trailing \n
