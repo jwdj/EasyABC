@@ -6503,7 +6503,9 @@ class MainFrame(wx.Frame):
         show_in_browser('https://sourceforge.net/projects/easyabc/files/EasyABC/')
 
     def OnEasyABCHelp(self, evt):
-        show_in_browser('https://www.nilsliberg.se/ksp/easyabc/')
+        #FAU:HELP:the original page of EasyABC from Nils Libeg is not available anymore, so point to sourceforge guide
+        #show_in_browser('https://www.nilsliberg.se/ksp/easyabc/')
+        show_in_browser('https://easyabc.sourceforge.net')
 
     def OnABCStandard(self, evt):
         show_in_browser('https://abcnotation.com/wiki/abc:standard:v2.1')
@@ -6520,7 +6522,9 @@ class MainFrame(wx.Frame):
         show_in_browser('https://abcmidi.sourceforge.io/')
 
     def OnAbcCheatSheet(self, evt):
-        show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
+        #FAU:HELP:The original ABC Quick Ref is not available changing to a github repository
+        #show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
+        show_in_browser('https://sourceforge.net/projects/easyabc/files/Documentation/ABCquickRefv0_6.pdf/download')
 
     def OnClearCache(self, evt):
         # make sure that any currently played/loaded midi file is released by the media control
