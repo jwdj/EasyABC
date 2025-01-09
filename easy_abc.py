@@ -94,7 +94,6 @@ from wx.lib.scrolledpanel import ScrolledPanel
 import wx.html
 import wx.stc as stc
 import wx.lib.agw.aui as aui
-import wx.lib.rcsizer as rcs
 # import wx.lib.filebrowsebutton as filebrowse # 1.3.6.3 [JWdJ] 2015-04-22
 import wx.lib.platebtn as platebtn
 import wx.lib.mixins.listctrl as listmix
@@ -1926,7 +1925,7 @@ class IncipitsFrame(wx.Dialog):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, _('Generate incipits file...'), wx.DefaultPosition, wx.Size(530, 260))
         self.SetBackgroundColour(dialog_background_colour)
         border = control_margin
-        sizer = box1 = rcs.RowColSizer()
+        sizer = box1 = wx.GridBagSizer()
         lb1 = wx.StaticText(self, wx.ID_ANY, _('Number of bars to extract:'))
         lb2 = wx.StaticText(self, wx.ID_ANY, _('Maximum number of repeats to extract:'))
         lb3 = wx.StaticText(self, wx.ID_ANY, _('Maximum number of titles/subtitles to extract:'))
@@ -1942,17 +1941,17 @@ class IncipitsFrame(wx.Dialog):
         for c in [self.edNumBars, self.edNumRepeats, self.edNumTitles, self.edNumRows, self.edSortFields]:
             c.SetValue(c.GetValue()) # this seems to be needed on OSX
 
-        sizer.Add(lb1,                  row=0, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.edNumBars,       row=0, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(lb2,                  row=1, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.edNumRepeats,    row=1, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(lb3,                  row=2, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.edNumTitles,     row=2, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(lb4,                  row=3, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.edSortFields,    row=3, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.chkTwoColumns,   row=4, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(lb5,                  row=5, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        sizer.Add(self.edNumRows,       row=5, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(lb1,                  pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(self.edNumBars,       pos=(0,1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(lb2,                  pos=(1,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(self.edNumRepeats,    pos=(1,1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(lb3,                  pos=(2,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(self.edNumTitles,     pos=(2,1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(lb4,                  pos=(3,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(self.edSortFields,    pos=(3,1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(self.chkTwoColumns,   pos=(4,1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(lb5,                  pos=(5,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        sizer.Add(self.edNumRows,       pos=(5,1), flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # ok, cancel buttons
         self.ok = wx.Button(self, wx.ID_ANY, _('&Ok'))
@@ -2078,9 +2077,9 @@ class AbcFileSettingsFrame(wx.Panel):
         else:
             self.exe_file_mask = '*'
 
-        sizer = rcs.RowColSizer()
+        sizer = wx.GridBagSizer()
         if wx.Platform == "__WXMAC__":
-            sizer.Add(wx.StaticText(self, wx.ID_ANY, _('File paths to required executables') + ':'), row=0, col=0, colspan=2, flag=wx.ALL, border=border)
+            sizer.Add(wx.StaticText(self, wx.ID_ANY, _('File paths to required executables') + ':'), pos=(0,0), span=(0,2), flag=wx.ALL, border=border)
             r = 1
         else:
             r = 0
@@ -2112,9 +2111,9 @@ class AbcFileSettingsFrame(wx.Panel):
             browse_button = wx.Button(self, wx.ID_ANY, _('Browse...'))
             self.browsebutton_to_control[browse_button] = control
             self.browsebutton_to_wildcard[browse_button] = entry.wildcard
-            sizer.Add(wx.StaticText(self, wx.ID_ANY, entry.display_name), row=r, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-            sizer.Add(control, row=r, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-            sizer.Add(browse_button, row=r, col=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            sizer.Add(wx.StaticText(self, wx.ID_ANY, entry.display_name), pos=(r,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            sizer.Add(control, pos=(r,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+            sizer.Add(browse_button, pos=(r,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
             browse_button.Bind(wx.EVT_BUTTON, self.OnBrowse, browse_button)
 
@@ -2134,10 +2133,10 @@ class AbcFileSettingsFrame(wx.Panel):
         extraplayerparam = wx.StaticText(self, wx.ID_ANY, _("Extra MIDI player parameters"))
         self.extras = wx.TextCtrl(self, wx.ID_ANY, size=(200, 22))
 
-        midiplayer_params_sizer = rcs.RowColSizer()
-        midiplayer_params_sizer.Add(self.chkIncludeHeader, row=0, col=0, colspan=2, flag=wx.ALL, border=border)
-        midiplayer_params_sizer.Add(extraplayerparam, row=1, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midiplayer_params_sizer.Add(self.extras, row=1, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midiplayer_params_sizer = wx.GridBagSizer()
+        midiplayer_params_sizer.Add(self.chkIncludeHeader, pos=(0,0), span=(0,2), flag=wx.ALL, border=border)
+        midiplayer_params_sizer.Add(extraplayerparam, pos=(1,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midiplayer_params_sizer.Add(self.extras, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         self.restore_settings = wx.Button(self, wx.ID_ANY, _('Restore settings')) # 1.3.6.3 [JWDJ] 2015-04-25 renamed
         check_toolTip = _('Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when blank')
@@ -2274,7 +2273,7 @@ class MyChordPlayPage (wx.Panel):
         self.SetBackgroundColour(dialog_background_colour) # 1.3.6.3 [JWDJ] 2014-04-28 same background for all tabs
         gridsizer = wx.FlexGridSizer(20, 4, 2, 2)
         # midi_box to set default instrument for playback
-        midi_box = rcs.RowColSizer()
+        midi_box = wx.GridBagSizer()
         border = control_margin
         self.settings = settings
 
@@ -2321,38 +2320,38 @@ class MyChordPlayPage (wx.Panel):
         gchordchoices = ['default', 'f', 'fzfz', 'gi', 'gihi', 'f4c2', 'ghihgh', 'g2hg2h']
         self.SetGchordChoices(gchordchoices)
 
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Instrument for playback') + ': '), row=0, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.sliderVol, row=0, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.Voltxt, row=0, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.cmbMidiProgram, row=0, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for chord's playback") + ': '), row=1, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.cmbMidiChordProgram, row=1, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.sliderChordVol, row=1, col=2, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.ChordVoltxt, row=1, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for bass chord's playback") + ': '), row=2, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.cmbMidiBassProgram, row=2, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.sliderBassVol, row=2, col=2, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.BassVoltxt, row=2, col=3, flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Instrument for playback') + ': '), pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderVol, pos=(0,2), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.Voltxt, pos=(0,3), flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.cmbMidiProgram, pos=(0,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for chord's playback") + ': '), pos=(1,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.cmbMidiChordProgram, pos=(1,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderChordVol, pos=(1,2), flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.ChordVoltxt, pos=(1,3), flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Instrument for bass chord's playback") + ': '), pos=(2,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.cmbMidiBassProgram, pos=(2,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderBassVol, pos=(2,2), flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.BassVoltxt, pos=(2,3), flag=wx.ALL| wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # 1.3.6.4 [SS] 2015-06-10
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Default Tempo") + ': '), row=3, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.sliderbeatsperminute, row=3, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.beatsperminutetxt, row=3, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Transposition") + ': '), row=4, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.slidertranspose, row=4, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.transposetxt, row=4, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Tuning") + ': '), row=5, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.slidertuning, row=5, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.tuningtxt, row=5, col=2, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Default Tempo") + ': '), pos=(3,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.sliderbeatsperminute, pos=(3,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.beatsperminutetxt, pos=(3,2), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Transposition") + ': '), pos=(4,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.slidertranspose, pos=(4,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.transposetxt, pos=(4,2), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _("Tuning") + ': '), pos=(5,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.slidertuning, pos=(5,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.tuningtxt, pos=(5,2), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        midi_box.Add(self.chkPlayChords, row=6, col=0, flag=wx.ALL | wx.EXPAND, border=border)
-        midi_box.Add(self.nodynamics, row=6, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.nofermatas, row=7, col=0, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.nograce, row=7, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.barfly, row=8, col=0, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.midi_intro, row=8, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(gchordtxt, row=9, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(self.gchordcombo, row=9, col=1, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.chkPlayChords, pos=(6,0), flag=wx.ALL | wx.EXPAND, border=border)
+        midi_box.Add(self.nodynamics, pos=(6,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.nofermatas, pos=(7,0), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.nograce, pos=(7,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.barfly, pos=(8,0), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.midi_intro, pos=(8,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(gchordtxt, pos=(9,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(self.gchordcombo, pos=(9,1), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         self.chkPlayChords.SetValue(self.settings.get('play_chords', False))
         self.slidertranspose.SetValue(self.settings.get('transposition', 0))
@@ -2544,10 +2543,10 @@ class MyVoicePage(wx.Panel):
         separate_defaults_per_voice = settings.get('separate_defaults_per_voice', False)
         self.chkPerVoice.Value = separate_defaults_per_voice
         self.chkPerVoice.Bind(wx.EVT_CHECKBOX, self.OnToggleDefaultsPerVoice)
-        midi_box = rcs.RowColSizer()
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Default instrument:')), row=0, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Main Volume:')), row=0, col=3, colspan=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('L/R Balance:')), row=0, col=6, colspan=2, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box = wx.GridBagSizer()
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Default instrument:')), pos=(0,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Main Volume:')), pos=(0,3), span=(0,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('L/R Balance:')), pos=(0,6), span=(0,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         # For each of the 16th voice, instrument, volume and balance can be set separately
         if PY3:
@@ -2580,18 +2579,18 @@ class MyVoicePage(wx.Panel):
                                                                 wx.ST_NO_AUTORESIZE, size=(30, 20))
             self.textValueMidiControlPanCh_list[channel] = panText
 
-            midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Voice n.%d: ') % channel), row=channel, col=0,
+            midi_box.Add(wx.StaticText(self, wx.ID_ANY, _('Voice n.%d: ') % channel), pos=(channel,0),
                          flag=wx.ALIGN_CENTER_VERTICAL, border=border)
-            midi_box.Add(cmbMidiProgram, row=channel, col=1, flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+            midi_box.Add(cmbMidiProgram, pos=(channel,1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
             #3rd column (col=2) is unused on purpose to leave some space (maybe replaced with some other spacer option later on)
-            midi_box.Add(volumeSlider, row=channel, col=3,
+            midi_box.Add(volumeSlider, pos=(channel,3),
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-            midi_box.Add(volumeText, row=channel, col=4,
+            midi_box.Add(volumeText, pos=(channel,4),
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
             #6th column (col=5) is unused on purpose to leave some space (maybe replaced with some other spacer option later on)
-            midi_box.Add(panSlider, row=channel, col=6,
+            midi_box.Add(panSlider, pos=(channel,6),
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-            midi_box.Add(panText, row=channel, col=7,
+            midi_box.Add(panText, pos=(channel,7),
                          flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
             #Some properties are added to the slider to be able to update the associated text field with value when slider is moved
             volumeSlider.currentchannel=channel
@@ -3135,7 +3134,7 @@ class ColorSettingsFrame(wx.Panel):
         self.SetBackgroundColour(dialog_background_colour)
         border = control_margin
 
-        grid_sizer = rcs.RowColSizer()
+        grid_sizer = wx.GridBagSizer()
 
         note_highlight_color = self.settings.get('note_highlight_color', default_note_highlight_color)
         note_highlight_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color"))
@@ -3147,8 +3146,8 @@ class ColorSettingsFrame(wx.Panel):
             b = int(note_highlight_color[5:7], 16)
             self.note_highlight_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, wx.Colour(r, g, b))
 
-        grid_sizer.Add(note_highlight_color_label, row=0, col=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        grid_sizer.Add(self.note_highlight_color_picker, row=0, col=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(note_highlight_color_label, pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(self.note_highlight_color_picker, pos=(0,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         note_highlight_color_tooltip = _('Color of selected note or currently playing note')
         self.note_highlight_color_picker.SetToolTip(wx.ToolTip(note_highlight_color_tooltip))
@@ -4810,9 +4809,9 @@ class MainFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
 
-        self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, value=1000, minValue=500, maxValue=3000, size=(130, -1), style=wx.SL_HORIZONTAL)
+        self.zoom_slider = self.add_slider_to_toolbar(_('Zoom'), False, value=1000, minValue=500, maxValue=3000, size=(130, -1))
 
-        wx_slider_set_tick_freq(self.zoom_slider, 10)
+        #wx_slider_set_tick_freq(self.zoom_slider, 10)
         self.Bind(wx.EVT_SLIDER, self.OnZoomSlider, self.zoom_slider)
         self.zoom_slider.Bind(wx.EVT_LEFT_DOWN, self.OnZoomSliderClick)
 
@@ -6504,7 +6503,9 @@ class MainFrame(wx.Frame):
         show_in_browser('https://sourceforge.net/projects/easyabc/files/EasyABC/')
 
     def OnEasyABCHelp(self, evt):
-        show_in_browser('https://www.nilsliberg.se/ksp/easyabc/')
+        #FAU:HELP:the original page of EasyABC from Nils Libeg is not available anymore, so point to sourceforge guide
+        #show_in_browser('https://www.nilsliberg.se/ksp/easyabc/')
+        show_in_browser('https://easyabc.sourceforge.net')
 
     def OnABCStandard(self, evt):
         show_in_browser('https://abcnotation.com/wiki/abc:standard:v2.1')
@@ -6521,7 +6522,9 @@ class MainFrame(wx.Frame):
         show_in_browser('https://abcmidi.sourceforge.io/')
 
     def OnAbcCheatSheet(self, evt):
-        show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
+        #FAU:HELP:The original ABC Quick Ref is not available changing to a github repository
+        #show_in_browser('http://www.stephenmerrony.co.uk/uploads/ABCquickRefv0_6.pdf')
+        show_in_browser('https://sourceforge.net/projects/easyabc/files/Documentation/ABCquickRefv0_6.pdf/download')
 
     def OnClearCache(self, evt):
         # make sure that any currently played/loaded midi file is released by the media control
@@ -8070,7 +8073,7 @@ class MainFrame(wx.Frame):
             extension = os.path.splitext(filename)[1].lower()
             p = self.editor.GetLength()
             self.editor.SetSelection(p, p)
-            if extension in ('.xml', '.mxl'):
+            if extension in ('.xml', '.mxl', '.musicxml'):
                 # 1.3.6 [SS] 2014-12-18
                 self.AddTextWithUndo(u'\n%s\n' % xml_to_abc(filename,options,info_messages))
                 execmessages = u'abc_to_xml '+ filename

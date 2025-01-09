@@ -104,7 +104,10 @@ class ABCStyler:
         ch = chr(get_char_at(i))
 
         buffer_pos = start + 1
-        buffer_size = min(100000, end-start)
+        #FAU: In some case of end of line / end of file might end up with a a styles[count] pointing out of range.
+        #FAU: Add +1 in buffer_size
+        #buffer_size = min(100000, end-start)
+        buffer_size = min(100000, end-start+1)
         styles = bytearray(buffer_size)
         style_changer = None
         style_keeper = None
