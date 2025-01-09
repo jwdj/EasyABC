@@ -2067,6 +2067,7 @@ class AbcFileSettingsFrame(wx.Panel):
             PathEntry('midi2abc', _('midi2abc executable:'), _('This executable is used to disassemble the output midi file'), True, None, None),
             PathEntry('gs', _('ghostscript executable:'), _('This executable is used to create PDF files'), False, None, None),
             PathEntry('nwc2xml', _('nwc2xml executable:'), _('For NoteWorthy Composer - Windows only'), False, None, None),
+            PathEntry('ffmpeg', _('ffmpeg executable:'), _('This executable is used to convert music to compressed formats'), False, None, None),
             PathEntry('midiplayer', _('midiplayer:'), _('Your preferred MIDI player'), False, None, self.midiplayer_changed),
             PathEntry('soundfont', _('SoundFont:'), _('Your preferred SoundFont (.sf2)'), False, 'SoundFont (*.sf2;*.sf3)|*.sf2;*.sf3', self.soundfont_changed)
         ]
@@ -5164,10 +5165,25 @@ class MainFrame(wx.Frame):
                 midi_tune.cleanup()
         return False
 
+    def OnExportToMP3(self, evt):
+        if self.uses_fluidsynth:
+            self.export_tunes(_('MP3 file'), '.mp3', self.export_mp3, only_selected=True)
+        else:
+            self.ReportFluidSynthIsMissing()
+
+    def OnExportToAAC(self, evt):
+        if self.uses_fluidsynth:
+            self.export_tunes(_('AAC file'), '.m4a', self.export_aac, only_selected=True)
+        else:
+            self.ReportFluidSynthIsMissing()
+
     def OnExportToWave(self, evt):
-        if fluidsynth_available:
+        if self.uses_fluidsynth:
             self.export_tunes(_('Wave file'), '.wav', self.export_wave, only_selected=True)
         else:
+            self.ReportFluidSynthIsMissing()
+
+    def ReportFluidSynthIsMissing(self):
             wx.MessageBox(_("Both the FluidSynth library and a valid SoundFont (see menu Settings -> ABC Settings -> File settings) are required for exporting to a wave file."),
                           _("Unable to export"), wx.ICON_INFORMATION | wx.OK)
 
@@ -5183,6 +5199,43 @@ class MainFrame(wx.Frame):
             finally:
                 midi_tune.cleanup()
         return False
+
+    def export_mp3(self, tune, filepath):
+        self.export_ffmpeg(tune, filepath)
+
+    def export_aac(self, tune, filepath):
+        self.export_ffmpeg(tune, filepath)
+
+    def export_ffmpeg(self, tune, filepath):
+        global execmessages
+        ffmpeg_path = self.settings['ffmpeg_path']
+        if ffmpeg_path and os.path.exists(ffmpeg_path):
+            base_name, ext = os.path.splitext(filepath)
+            tmp_file = base_name + '.wav'
+            if not self.export_wave(tune, tmp_file):
+                return
+
+            if os.path.exists(tmp_file):
+                cmd = [ffmpeg_path, '-y', '-nostdin', '-i', tmp_file, '-vn', filepath]
+                if ext == '.m4a':
+                    cmd = [ffmpeg_path, '-y', '-nostdin', '-i', tmp_file, '-c:a', 'aac', '-q:a', '0.5', filepath]
+
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                execmessages += '\nffmpeg\n' + " ".join(cmd)
+                stdout_value, stderr_value, returncode = get_output_from_process(cmd)
+                if returncode != 0:
+                    execmessages += stderr_value
+                    execmessages += stdout_value
+                    print(stderr_value)
+                    print(stdout_value)
+                    print(returncode)
+
+                if os.path.exists(tmp_file):
+                    os.remove(tmp_file)
+        else:
+            dlg = wx.MessageDialog(self, _('ffmpeg was not found here. Go to settings and indicate the path'), _('Warning'), wx.OK)
+            dlg.ShowModal()
 
     #Add an export all tunes to individual PDF option
     def OnExportAllPDFFiles(self, evt):
@@ -6115,7 +6168,9 @@ class MainFrame(wx.Frame):
             (_('Export to HTML (&interactive)...'), '', self.OnExportInteractiveHTML),
             (_('Export to Music&XML...'), '', self.OnExportMusicXML),
             (_('Export to &ABC...'), '', self.OnExportToABC),
-            (_('Export to &Wave...'), '', self.OnExportToWave)
+            (_('Export to &Wave...'), '', self.OnExportToWave),
+            (_('Export to &MP3...'), '', self.OnExportToMP3),
+            (_('Export to &AAC...'), '', self.OnExportToAAC)
         ], parent=self)
 
         # global current_locale
@@ -6209,7 +6264,9 @@ class MainFrame(wx.Frame):
                     (_('as HTML (&interactive)...'), '', self.OnExportInteractiveHTML),
                     (_('as Music&XML...'), '', self.OnExportMusicXML),
                     (_('as A&BC...'), '', self.OnExportToABC),
-                    (_('as &Wave...'), '', self.OnExportToWave)]),
+                    (_('as &Wave...'), '', self.OnExportToWave),
+                    (_('as &MP3...'), '', self.OnExportToMP3),
+                    (_('as &AAC...'), '', self.OnExportToAAC)]),
                 (_("Export &all"), [
                     (_('as a &PDF Book...'), '', self.OnExportAllPDF),
                     (_('as PDF &Files...'), '', self.OnExportAllPDFFiles),

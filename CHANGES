@@ -630,3 +630,10 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Fixed: Now automatic insertion of bars (|) only when no text is selected
 - Fixed: FluidSynth issues on 64 bit Mac (thanks Mark)
 - Fixed: No bars added within chords or comment
+
+1.3.8.x
+- New: Export to MP3
+- New: Export to AAC
+- New: file setting: ffmpeg
+- Several fixes to support newer Python versions. (thanks aupfred and all that contributed)
+- Updated xml2abc, abc2xml (aupfred)
