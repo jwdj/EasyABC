@@ -265,7 +265,9 @@ class SvgPage(object):
 
     def select_notes(self, selection_rect):
         in_selection = selection_rect.Contains
-        selected_offsets = set((abc_row, abc_col) for (x, y, abc_row, abc_col, desc) in self.notes if in_selection((x, y)))
+        #FAU wx.Rect Contains needs integer as coordinates
+        #selected_offsets = set((abc_row, abc_col) for (x, y, abc_row, abc_col, desc) in self.notes if in_selection((x, y)))
+        selected_offsets = set((abc_row, abc_col) for (x, y, abc_row, abc_col, desc) in self.notes if in_selection((int(x), int(y))))
         list_of_sets = [self.indices_per_row_col[row][col] for row, col in selected_offsets]
         selected_indices = set().union(*list_of_sets)
         if selected_indices:
