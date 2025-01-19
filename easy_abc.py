@@ -7477,7 +7477,7 @@ class MainFrame(wx.Frame):
         midi_rows = [i + 1 for i in midi_rows]
 
         errors = defaultdict(lambda: defaultdict(int))
-        #FAU: jwdj/EasyABC#99 Starting from commit 9b419e0 of midi2abc, Follow_score not working
+        #FAU: jwdj/EasyABC#99 Starting from commit sshlien/abcmidi@705d9e1f737a2db9fdc615b622bc75204b1bcbee of midi2abc, Follow_score not working
         #FAU: This commit of midi2abc changed the format of CntlParm.
         #FAU: it used to be printf("CntlParm %2d %s = %d\n",chan+1, ctype[control],value);
         #FAU: it is now printf("CntlParm %2d %s = %d %d\n",chan+1, ctype[control],control,value);
