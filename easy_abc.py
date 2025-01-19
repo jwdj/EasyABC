@@ -7477,7 +7477,15 @@ class MainFrame(wx.Frame):
         midi_rows = [i + 1 for i in midi_rows]
 
         errors = defaultdict(lambda: defaultdict(int))
-        pos_re = re.compile(r'^\s*(\d+\.\d+)\s+CntlParm\s+1\s+unknown\s+=\s+(\d+)')
+        #FAU: jwdj/EasyABC#99 Starting from commit 9b419e0 of midi2abc, Follow_score not working
+        #FAU: This commit of midi2abc changed the format of CntlParm.
+        #FAU: it used to be printf("CntlParm %2d %s = %d\n",chan+1, ctype[control],value);
+        #FAU: it is now printf("CntlParm %2d %s = %d %d\n",chan+1, ctype[control],control,value);
+        #FAU: Following regex is expecting only one decimal however an extra one is now present
+        #FAU: To have a regex working for both version, \s*\d* is added
+        #FAU: might need some further check
+        #pos_re = re.compile(r'^\s*(\d+\.\d+)\s+CntlParm\s+1\s+unknown\s+=\s+(\d+)')
+        pos_re = re.compile(r'^\s*(\d+\.\d+)\s+CntlParm\s+1\s+unknown\s+=\s*\d*\s+(\d+)')
         note_re = re.compile(r'^\s*(\d+\.\d+)\s+Note (on|off)\s+(\d+)\s+(\d+)')
         tempo_re = re.compile(r'^\s*(\d+\.\d+)\s+Metatext\s+tempo\s+=\s+(\d+\.\d+)\s+bpm')
         new_track_re = re.compile(r'^Track \d+ contains')
