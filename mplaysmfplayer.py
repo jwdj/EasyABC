@@ -15,6 +15,7 @@ PY3 = sys.version_info.major > 2
 from midiplayer import MidiPlayer
 from mplay.smf_easyabc import read, play, fileinfo, songinfo, beatinfo, lyrics, chordinfo, \
     setsong, channelinfo, setchannel, families, instruments
+    setsong, channelinfo, setchannel, families, instruments, songposition
 
 if sys.platform == 'darwin':
     from mplay.darwinmidi import midiDevice
@@ -54,6 +55,8 @@ class MPlaySMFPlayer(MidiPlayer):
     def Load(self, path):
         if os.path.exists(path):
             self.midi_file = read(path)
+            #FAU:MIDIPLAY: 20250125 Add the call to the EasyABC event
+            self.OnAfterLoad.fire()
             return True
         return False
 
@@ -70,9 +73,14 @@ class MPlaySMFPlayer(MidiPlayer):
 
     #FAU 20201229: Function is added to allow playing on timer Play() is used to keep same interface for EasyABC for the pause feature
     def IdlePlay(self):
-        delta = play(self.midi_file, self.device, False)
-        self.is_really_playing = True
-        return delta
+        if self.is_playing:
+            delta = play(self.midi_file, self.device, False)
+            self.is_really_playing = True
+            #if delta == 0:
+            #    self.OnAfterStop.fire()
+            return delta
+        else:
+            return 0.04
         
     def Pause(self):
         setsong(self.midi_file, action='pause')
@@ -88,10 +96,10 @@ class MPlaySMFPlayer(MidiPlayer):
     def Seek(self, time):
         if time > self.Length() or time < 0:
             return
-        self.midi_file.songposition(time)
-
+        setsong(self.midi_file, goto=time)
+        
     def Length(self):
-        return self.midi_file.playing_time
+        return self.midi_file.playing_time-960
 
     def Tell(self):
         return self.midi_file.getsongposition()
@@ -121,5 +129,11 @@ class MPlaySMFPlayer(MidiPlayer):
     @property
     def unit_is_midi_tick(self):
         return True
+    
+    @property
+    def get_songinfo(self):
+        return songinfo(self.midi_file)
+    
+    
 
 

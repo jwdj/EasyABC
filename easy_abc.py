@@ -4143,7 +4143,7 @@ class MainFrame(wx.Frame):
 
         self.play_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnPlayTimer, self.play_timer)
-        self.play_timer.Start(50) #FAU:MIDIPLAY: Todo need to check if this is still needed
+        self.play_timer.Start(50)
         self.music_update_thread.start()
         self.update_multi_tunes_menu_items()
 
@@ -4492,12 +4492,15 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def play(self):
+        self.play_timer.Start(50)
         if self.settings.get('follow_score', False) and self.current_page_index != 0:
             self.select_page(0)
         wx.CallAfter(self.mc.Play)
 
     def stop_playing(self):
         self.mc.Stop()
+        #FAU:remove highlighted notes
+        self.music_pane.draw_notes_highlighted(None)
         #FAU:MIDIPLAY: play timer can be stopped no need to update progress slider
         self.play_timer.Stop()
         self.play_button.SetBitmap(self.play_bitmap)
@@ -4573,11 +4576,12 @@ class MainFrame(wx.Frame):
                 self.mc.Play() # does not start playing but triggers OnMediaLoaded event
             #FAU:MIDIPLAY: added support for playback for Mac with SMF player For now kept apart from Windows
             #FAU:MIDIPLAY: %%TODO%% verify if can be merged with preceeding if
-            elif wx.Platform == "__WXMAC__":
-                self.mc.Play()
+            #FAU:MIDIPLAY: 20250125 Not needed as correctly started based on OnMediaLoaded
+            #elif wx.Platform == "__WXMAC__":
+            #    self.mc.Play()
                 #FAU:MIDIPLAY: Start timer to be able to have progress bar updated
-                self.play_timer.Start(20)
-                self.play_button.SetBitmap(self.pause_bitmap)
+            #    self.play_timer.Start(20)
+            #    self.play_button.SetBitmap(self.pause_bitmap)
         else:
             wx.MessageBox(_("Unable to load %s: Unsupported format?") % path,
                           _("Error"), wx.ICON_ERROR | wx.OK)
@@ -4588,7 +4592,7 @@ class MainFrame(wx.Frame):
             #    time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
             # self.mc.Seek(self.play_start_offset, wx.FromStart)
             self.play_button.SetBitmap(self.pause_bitmap)
-            self.progress_slider.SetRange(0, self.mc.Length())
+            self.progress_slider.SetRange(0, int(self.mc.Length())) #FAU:MIDIPLAY: mplay might return a float. thus forcing an int
             self.progress_slider.SetValue(0)
             self.OnBpmSlider(None)
             self.update_playback_rate()
@@ -4600,10 +4604,16 @@ class MainFrame(wx.Frame):
         wx.CallAfter(play)
 
     def OnAfterStop(self):
+        self.set_loop_midi_playback(False)
         # 1.3.6.3 [SS] 2015-05-04
         self.stop_playing()
-        self.reset_BpmSlider()
-        self.flip_tempobox(False)
+        #FAU preserve latest bpm choice
+        #self.reset_BpmSlider()
+        #FAU20250125: Do not hide it if supported
+        if self.settings['midiplayer_path']:
+            self.flip_tempobox(False)
+        if wx.Platform != "__WXMSW__":
+            self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
 
     def OnToolRecord(self, evt):
         if self.record_thread and self.record_thread.is_running:
@@ -4622,22 +4632,24 @@ class MainFrame(wx.Frame):
                 self.record_thread.start()
 
     def OnToolStop(self, evt):
-        self.set_loop_midi_playback(False)
-        self.stop_playing()
+        #FAU 20250125: Cleaning, trying to centralised what is common to Stop avoiding of mon to Stop instead of multiple call
+        self.OnAfterStop()
+        #self.set_loop_midi_playback(False)
+        #self.stop_playing()
         # 1.3.6.3 [SS] 2015-04-03
         #self.play_panel.Show(False)
-        self.flip_tempobox(False)
-        self.progress_slider.SetValue(0)
+        #self.flip_tempobox(False)
+        #self.progress_slider.SetValue(0)
         # self.reset_BpmSlider()     #[EPO] 2018-11-20 make sticky - this is new functionality
-        if wx.Platform != "__WXMSW__":
-            self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
+        #if wx.Platform != "__WXMSW__":
+        #    self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
         if self.record_thread and self.record_thread.is_running:
             self.OnToolRecord(None)
-        if self.uses_fluidsynth:
-            self.OnAfterStop()
+        #if self.uses_fluidsynth:
+        #    self.OnAfterStop()
 
     def OnSeek(self, evt):
-        self.mc.Seek(self.progress_slider.GetValue()) #FAU:MIDIPLAY: %%TODO%% verify on Mac if strange behavior still present
+        self.mc.Seek(self.progress_slider.GetValue())
 
     def OnZoomSlider(self, evt):
         old_factor = self.zoom_factor
@@ -4660,26 +4672,28 @@ class MainFrame(wx.Frame):
                 
                 if wx.Platform == "__WXMAC__": #FAU:MIDIPLAY: Used to give the hand to MIDI player
                     delta = self.mc.IdlePlay()
+                    #print(self.mc.get_songinfo)
                     if delta == 0:
                         if self.loop_midi_playback:
                             self.mc.Seek(0)
                         else:
-                            self.stop_playing()
-
+                            self.mc.is_play_started = False
+                
                 offset = self.mc.Tell()
                 if offset >= self.progress_slider.Max:
                     length = self.mc.Length()
                     self.progress_slider.SetRange(0, int(length)) #FAU:MIDIPLAY: mplay might return a float. thus forcing an int
-
+                
                 if self.settings.get('follow_score', False):
                     self.queue_number_follow_score += 1
                     queue_number = self.queue_number_follow_score
-                    wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
-
+                    #wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
+                    self.FollowScore(offset, queue_number)
+                
                 self.progress_slider.SetValue(offset)
-            elif self.started_playing and self.uses_fluidsynth and not self.mc.is_paused:
+            elif self.started_playing and not self.mc.is_paused: #and self.uses_fluidsynth 
                 self.started_playing = False
-                self.OnToolStop(None)
+                wx.CallLater(500, self.OnAfterStop)
 
     def FollowScore(self, offset, queue_number):
         if self.queue_number_follow_score != queue_number:

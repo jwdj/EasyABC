@@ -345,11 +345,10 @@ class SMF:
         for ev in self.ev:
             (at, message, me_type, data) = ev
             if message == 0xff and me_type == 0x51:
-                self.playing_time += (at - start) / self.division * \
-                    tempo / 1000
+                self.playing_time += (at - start) * tempo / self.division / 1000
                 start = at
                 tempo = (data[0] << 16) | (data[1] << 8) | data[2]
-        self.playing_time += (at - start) / self.division * tempo / 1000
+        self.playing_time += (at - start)  * tempo / self.division / 1000
 
     def fileinfo(self):
         hsecs = self.playing_time // 10
@@ -392,7 +391,7 @@ class SMF:
         else:
             now = (time() - self.elapsed_time) * 1000
         ticks = int(now * self.division * 1000 / self.tempo)
-        return ticks
+        return int(ticks)
 
     def beatinfo(self):
         if self.pause != 0:
@@ -461,6 +460,15 @@ class SMF:
                 break
             self.next += 1
 
+    def gotosongposition(self, song_position):
+        #Need to turn off all currently note played otherwise will keep sounding
+        for ch in range(16):
+            self.allnotesoff(ch)
+        self.songposition(song_position)
+        if self.pause != 0:
+            self.pause = time()
+
+    
     def setsong(self, **info):
         #print("FAU setsong")
         if 'shift' in info:
@@ -484,15 +492,13 @@ class SMF:
             self.tempo = 60000000 / self.bpm #* 4 / self.denominator
             self.elapsed_time = now - (now - self.elapsed_time) * \
                 self.tempo / tempo
+        elif 'goto' in info:
+            self.gotosongposition(info['goto']/self.division)
         elif 'bar' in info:
             now = (time() - self.elapsed_time) * 1000
             beat = int(now * 1000 / self.tempo)
             beat += 4 * info['bar'] - (beat % 4)
-            for ch in range(16):
-                self.allnotesoff(ch)
-            self.songposition(beat)
-            if self.pause != 0:
-                self.pause = time()
+            self.gotosongposition(beat)
         elif 'action' in info:
             if info['action'] == 'exit':
                 for ch in range(16):
@@ -668,6 +674,13 @@ def read(path):
 def play(midi, dev, wait=True):
     return midi.play(dev, wait)
 
+#FAU20250125: Added to seek to a position
+#songposition (time-elapsed_time)*1000*division*1000/tempo
+#beat (time-elapsedtime)*1000*1000/tempo
+#playing_time (at_fin - at_start) / self.division * tempo / 1000
+    
+def songposition(midi, song_position):
+    return midi.songposition(song_position/midi.division)
 
 def fileinfo(midi):
     return midi.fileinfo()
