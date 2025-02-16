@@ -4292,13 +4292,15 @@ class MainFrame(wx.Frame):
                 notes = get_notes_from_abc(text)
                 num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
 
+                #FAU: Seems not needed and issue when selecting not on a second page as it is considering all lines from first page as header. jwdj/EasyABC#100
+                #FAU: To be noted it was already removed from OnNoteSelectionChangedDesc
                 # workaround for the fact the abcm2ps returns incorrect row numbers
                 # check the row number of the first note and if it doesn't agree with the actual value
                 # then pretend that we have more or less extra header lines
-                if self.music_pane.current_page.notes: # 1.3.6.2 [JWdJ] 2015-02
-                    actual_first_row = self.music_pane.current_page.notes[0][2]-1
-                    correction = (actual_first_row - first_note_line_index)
-                    num_header_lines += correction
+                #if self.music_pane.current_page.notes: # 1.3.6.2 [JWdJ] 2015-02
+                #    actual_first_row = self.music_pane.current_page.notes[0][2]-1
+                #    correction = (actual_first_row - first_note_line_index)
+                #    num_header_lines += correction
 
                 temp = text.replace('\r\n', ' \n').replace('\r', '\n')  # re.sub(r'\r\n|\r', '\n', text)
                 line_start_offset = [m.start(0) for m in re.finditer(r'(?m)^', temp)]
