@@ -8615,7 +8615,8 @@ class AboutFrame(wx.Dialog):
 </center>
 <p><b>{0}</b><br/>
 an open source ABC editor for Windows, OSX and Linux. It is published under the <a href="https://www.gnu.org/licenses/gpl-2.0.html">GNU Public License</a>. </p>
-<p><center><a href="https://www.nilsliberg.se/ksp/easyabc/">https://www.nilsliberg.se/ksp/easyabc/</a></center></p>
+<p><center>initial repository was at <a href="https://www.nilsliberg.se/ksp/easyabc/">https://www.nilsliberg.se/ksp/easyabc/</a></center></p>
+<p><center>Now documentation available here<a href="https://easyabc.sourceforge.net">https://easyabc.sourceforge.net</a></center></p>
 <p><u>Features</u>:</p>
 <ul style="line-height: 150%; margin-top: 3px;">
   <li> Good ABC standard coverage thanks to internal use of abcm2ps and abc2midi
@@ -8639,6 +8640,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 </ul>
 
 <p><b>EasyABC</b> is brought to you by <b>Nils Liberg</b>, Copyright &copy; 2010-2012.</p>
+<p><b>EasyABC</b> is maintained by <b>Jan Wybren de Jong</b>, <b>Seymour Shlien</b> and  by <b>Fr&eacute;d&eacute;ric Aup&eacute;pin</b> for Mac adaptation</p>
 <p><b>Credits</b> - software components used by EasyABC:</p>
 <ul class="nicelist">
 <li><a href="http://moinejf.free.fr/">abcm2ps</a> for converting ABC code to note images (developed/maintained by Jean-Fran&ccedil;ois Moine)</li>
@@ -8653,7 +8655,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="https://github.com/jheinen/mplay">Python MIDI Player</a> for playing midi on Mac</li>
 <li>Thanks to Guido Gonzato for providing the fields and command reference.
 <li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german), Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch) and Wu&nbsp;Xiaotian&nbsp;(chinese).</li>
-<li>Universal binaries of abcm2ps and abc2midi for OSX are available thanks to Chuck&nbsp;Boody.</li>
+<li>Universal binaries of <a href="https://abcplus.sourceforge.net/#abcm2ps">abcm2ps</a> and <a href="https://abcplus.sourceforge.net/#abcmidi">abc2midi</a> for OSX are available thanks to Chuck&nbsp;Boody and Guido Gonzato</li>
 </ul>
 
 <p><b>Links</b></p>
@@ -8662,7 +8664,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="http://abcplus.sourceforge.net/">abcplus.sourceforge.net</a></li>
 <li><a href="http://moinejf.free.fr/">Jef Moine's abcm2ps page</a></li>
 <li><a href="https://abcmidi.sourceforge.io/">Seymour Shlien's abcMIDI page</a></li>
-<li><a href="http://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (my involvement here is the reason why I implemented the program)</li>
+<li><a href="http://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (initial involvement of Nils here is the reason why he implemented the program)</li>
 </ul>
 </body>
 </html>
