@@ -111,6 +111,11 @@ except ImportError:
     # sys.stderr.write(traceback.format_exc())
     fluidsynth_available = False
 
+#FAU:MIDIPLAY: On Mac, it is possible to interface directly to the Midi syntethiser of mac OS via mplay: https://github.com/jheinen/mplay
+# An adaptation is done to integrate with EasyABC
+if wx.Platform == "__WXMAC__":
+    from mplaysmfplayer import *
+    
 from xml2abc_interface import xml_to_abc, abc_to_xml
 from midi2abc import midi_to_abc, Note, duration2abc
 from generalmidi import general_midi_instruments
@@ -1400,8 +1405,9 @@ def abc_to_midi(abc_code, settings, midi_file_name, add_follow_score_markers):
 
 # 1.3.6 [SS] 2014-11-24
 def add_abc2midi_options(cmd, settings, add_follow_score_markers):
-    if str2bool(settings['barfly']):
-        cmd.append('-BF')
+    #Force BF option flag to be at the last position according to jwdj/EasyABC#86 and sshlien/abcmidi#8
+    #if str2bool(settings['barfly']):
+    #    cmd.append('-BF')
     if str2bool(settings['nofermatas']):
         cmd.append('-NFER')
     if str2bool(settings['nograce']):
@@ -1414,6 +1420,8 @@ def add_abc2midi_options(cmd, settings, add_follow_score_markers):
     # 1.3.6.4 [JWDJ] 2016-06-22
     if add_follow_score_markers:
         cmd.append('-EA')
+    if str2bool(settings['barfly']):
+        cmd.append('-BF')
     return cmd
 
 
@@ -3980,14 +3988,24 @@ class MainFrame(wx.Frame):
             except Exception as e:
                 error_msg = traceback.format_exc()
                 self.mc = None
+                
+        #FAU:MIDIPLAY: on Mac add the ability to interface to System Midi Synth via mplay in case fluidsynth not available or not configured with soundfont
+        if wx.Platform == "__WXMAC__" and self.mc is None:
+            try:
+                self.mc = MPlaySMFPlayer(self)
+            except:
+                error_msg = "Error on loading SMF Midi Player"
+                self.mc = None
 
         if self.mc is None:
             try:
                 backend = None
                 from wxmediaplayer import WxMediaPlayer
-                if wx.Platform == "__WXMAC__":
-                    backend = wx.media.MEDIABACKEND_QUICKTIME
-                elif wx.Platform == "__WXMSW__":
+                #FAU:MIDIPLAY:The Quicktime interface do not manage MIDI File on latest version of Mac so keep only possibility on Windows
+                #if wx.Platform == "__WXMAC__":
+                #    backend = wx.media.MEDIABACKEND_QUICKTIME
+                #elif wx.Platform == "__WXMSW__":
+                if wx.Platform == "__WXMSW__":
                     if platform.release() == 'XP':
                         backend = wx.media.MEDIABACKEND_DIRECTSHOW
                     else:
@@ -4476,12 +4494,17 @@ class MainFrame(wx.Frame):
             evt.Skip()
 
     def play(self):
+        self.play_timer.Start(50)
         if self.settings.get('follow_score', False) and self.current_page_index != 0:
             self.select_page(0)
         wx.CallAfter(self.mc.Play)
 
     def stop_playing(self):
         self.mc.Stop()
+        #FAU:remove highlighted notes
+        self.music_pane.draw_notes_highlighted(None)
+        #FAU:MIDIPLAY: play timer can be stopped no need to update progress slider
+        self.play_timer.Stop()
         self.play_button.SetBitmap(self.play_bitmap)
         self.play_button.Refresh()
         self.progress_slider.SetValue(0)
@@ -4553,6 +4576,14 @@ class MainFrame(wx.Frame):
             if wx.Platform == "__WXMSW__" and platform.release() != 'XP':
                 # 1.3.6.3 [JWDJ] 2015-3 It seems mc.Play() triggers the OnMediaLoaded event
                 self.mc.Play() # does not start playing but triggers OnMediaLoaded event
+            #FAU:MIDIPLAY: added support for playback for Mac with SMF player For now kept apart from Windows
+            #FAU:MIDIPLAY: %%TODO%% verify if can be merged with preceeding if
+            #FAU:MIDIPLAY: 20250125 Not needed as correctly started based on OnMediaLoaded
+            #elif wx.Platform == "__WXMAC__":
+            #    self.mc.Play()
+                #FAU:MIDIPLAY: Start timer to be able to have progress bar updated
+            #    self.play_timer.Start(20)
+            #    self.play_button.SetBitmap(self.pause_bitmap)
         else:
             wx.MessageBox(_("Unable to load %s: Unsupported format?") % path,
                           _("Error"), wx.ICON_ERROR | wx.OK)
@@ -4563,21 +4594,28 @@ class MainFrame(wx.Frame):
             #    time.sleep(0.3) # 1.3.6.4 [JWDJ] on Mac the first note is skipped the first time. hope this helps
             # self.mc.Seek(self.play_start_offset, wx.FromStart)
             self.play_button.SetBitmap(self.pause_bitmap)
-            self.progress_slider.SetRange(0, self.mc.Length())
+            self.progress_slider.SetRange(0, int(self.mc.Length())) #FAU:MIDIPLAY: mplay might return a float. thus forcing an int
             self.progress_slider.SetValue(0)
             self.OnBpmSlider(None)
             self.update_playback_rate()
-            if wx.Platform == "__WXMAC__":
-                self.mc.Seek(0)  # When using wx.media.MEDIABACKEND_QUICKTIME the music starts playing too early (when loading a file)
-                time.sleep(0.5)  # hopefully this fixes the first notes not being played
+            #FAU:MIDIPLAY: The next 'if' was when using MediaCtrl which is not used anymore. Todo: remove the corresponding code if confirmed
+            #if wx.Platform == "__WXMAC__":
+            #    self.mc.Seek(0)  # When using wx.media.MEDIABACKEND_QUICKTIME the music starts playing too early (when loading a file)
+            #    time.sleep(0.5)  # hopefully this fixes the first notes not being played
             self.play()
         wx.CallAfter(play)
 
     def OnAfterStop(self):
+        self.set_loop_midi_playback(False)
         # 1.3.6.3 [SS] 2015-05-04
         self.stop_playing()
-        self.reset_BpmSlider()
-        self.flip_tempobox(False)
+        #FAU preserve latest bpm choice
+        #self.reset_BpmSlider()
+        #FAU20250125: Do not hide it if supported
+        if self.settings['midiplayer_path']:
+            self.flip_tempobox(False)
+        if wx.Platform != "__WXMSW__":
+            self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
 
     def OnToolRecord(self, evt):
         if self.record_thread and self.record_thread.is_running:
@@ -4596,19 +4634,21 @@ class MainFrame(wx.Frame):
                 self.record_thread.start()
 
     def OnToolStop(self, evt):
-        self.set_loop_midi_playback(False)
-        self.stop_playing()
+        #FAU 20250125: Cleaning, trying to centralised what is common to Stop avoiding of mon to Stop instead of multiple call
+        self.OnAfterStop()
+        #self.set_loop_midi_playback(False)
+        #self.stop_playing()
         # 1.3.6.3 [SS] 2015-04-03
         #self.play_panel.Show(False)
-        self.flip_tempobox(False)
-        self.progress_slider.SetValue(0)
+        #self.flip_tempobox(False)
+        #self.progress_slider.SetValue(0)
         # self.reset_BpmSlider()     #[EPO] 2018-11-20 make sticky - this is new functionality
-        if wx.Platform != "__WXMSW__":
-            self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
+        #if wx.Platform != "__WXMSW__":
+        #    self.toolbar.Realize() # 1.3.6.4 [JWDJ] fixes toolbar repaint bug for Windows
         if self.record_thread and self.record_thread.is_running:
             self.OnToolRecord(None)
-        if self.uses_fluidsynth:
-            self.OnAfterStop()
+        #if self.uses_fluidsynth:
+        #    self.OnAfterStop()
 
     def OnSeek(self, evt):
         self.mc.Seek(self.progress_slider.GetValue())
@@ -4631,21 +4671,31 @@ class MainFrame(wx.Frame):
         if not self.is_closed:
             if self.mc.is_playing:
                 self.started_playing = True
-
+                
+                if wx.Platform == "__WXMAC__": #FAU:MIDIPLAY: Used to give the hand to MIDI player
+                    delta = self.mc.IdlePlay()
+                    #print(self.mc.get_songinfo)
+                    if delta == 0:
+                        if self.loop_midi_playback:
+                            self.mc.Seek(0)
+                        else:
+                            self.mc.is_play_started = False
+                
                 offset = self.mc.Tell()
                 if offset >= self.progress_slider.Max:
                     length = self.mc.Length()
-                    self.progress_slider.SetRange(0, length)
-
+                    self.progress_slider.SetRange(0, int(length)) #FAU:MIDIPLAY: mplay might return a float. thus forcing an int
+                
                 if self.settings.get('follow_score', False):
                     self.queue_number_follow_score += 1
                     queue_number = self.queue_number_follow_score
-                    wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
-
+                    #wx.CallLater(1, self.FollowScore, offset, queue_number) #[EPO] 2018-11-20  first arg 0 causes exception
+                    self.FollowScore(offset, queue_number)
+                
                 self.progress_slider.SetValue(offset)
-            elif self.started_playing and self.uses_fluidsynth and not self.mc.is_paused:
+            elif self.started_playing and not self.mc.is_paused: #and self.uses_fluidsynth 
                 self.started_playing = False
-                self.OnToolStop(None)
+                wx.CallLater(500, self.OnAfterStop)
 
     def FollowScore(self, offset, queue_number):
         if self.queue_number_follow_score != queue_number:
@@ -8567,7 +8617,8 @@ class AboutFrame(wx.Dialog):
 </center>
 <p><b>{0}</b><br/>
 an open source ABC editor for Windows, OSX and Linux. It is published under the <a href="https://www.gnu.org/licenses/gpl-2.0.html">GNU Public License</a>. </p>
-<p><center><a href="https://www.nilsliberg.se/ksp/easyabc/">https://www.nilsliberg.se/ksp/easyabc/</a></center></p>
+<p><center>initial repository was at <a href="https://www.nilsliberg.se/ksp/easyabc/">https://www.nilsliberg.se/ksp/easyabc/</a></center></p>
+<p><center>Now documentation available here<a href="https://easyabc.sourceforge.net">https://easyabc.sourceforge.net</a></center></p>
 <p><u>Features</u>:</p>
 <ul style="line-height: 150%; margin-top: 3px;">
   <li> Good ABC standard coverage thanks to internal use of abcm2ps and abc2midi
@@ -8591,6 +8642,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 </ul>
 
 <p><b>EasyABC</b> is brought to you by <b>Nils Liberg</b>, Copyright &copy; 2010-2012.</p>
+<p><b>EasyABC</b> is maintained by <b>Jan Wybren de Jong</b>, <b>Seymour Shlien</b> and  by <b>Fr&eacute;d&eacute;ric Aup&eacute;pin</b> for Mac adaptation</p>
 <p><b>Credits</b> - software components used by EasyABC:</p>
 <ul class="nicelist">
 <li><a href="http://moinejf.free.fr/">abcm2ps</a> for converting ABC code to note images (developed/maintained by Jean-Fran&ccedil;ois Moine)</li>
@@ -8602,9 +8654,10 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="https://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
 <li><a href="https://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="https://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
 <li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python by <a href="https://wim.vree.org/svgParse/index.html">Willem Vree</a>)</li>
+<li><a href="https://github.com/jheinen/mplay">Python MIDI Player</a> for playing midi on Mac</li>
 <li>Thanks to Guido Gonzato for providing the fields and command reference.
 <li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german), Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch) and Wu&nbsp;Xiaotian&nbsp;(chinese).</li>
-<li>Universal binaries of abcm2ps and abc2midi for OSX are available thanks to Chuck&nbsp;Boody.</li>
+<li>Universal binaries of <a href="https://abcplus.sourceforge.net/#abcm2ps">abcm2ps</a> and <a href="https://abcplus.sourceforge.net/#abcmidi">abc2midi</a> for OSX are available thanks to Chuck&nbsp;Boody and Guido Gonzato</li>
 </ul>
 
 <p><b>Links</b></p>
@@ -8613,7 +8666,7 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="http://abcplus.sourceforge.net/">abcplus.sourceforge.net</a></li>
 <li><a href="http://moinejf.free.fr/">Jef Moine's abcm2ps page</a></li>
 <li><a href="https://abcmidi.sourceforge.io/">Seymour Shlien's abcMIDI page</a></li>
-<li><a href="http://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (my involvement here is the reason why I implemented the program)</li>
+<li><a href="http://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (initial involvement of Nils here is the reason why he implemented the program)</li>
 </ul>
 </body>
 </html>
