@@ -265,7 +265,9 @@ class MusicScorePanel(wx.ScrolledWindow):
             #z = self.renderer.zoom
             #dc.Scale(z, z)
             x, y, width, height = self.drag_rect
-            dc.SetPen( dc.CreatePen(wx.Pen(wx_colour('black'), 1.0, style=wx.DOT )) )
+            #FAU Width argument for pen is an int not a float.
+            #dc.SetPen( dc.CreatePen(wx.Pen(wx_colour('black'), 1.0, style=wx.DOT )) )
+            dc.SetPen( dc.CreatePen(wx.Pen(wx_colour('black'), width=1, style=wx.DOT )) )
             dc.SetBrush(dc.CreateBrush(wx.Brush(wx_colour('#fffbc6'), wx.SOLID)))
             path = dc.CreatePath()
             path.MoveToPoint(x, y)
