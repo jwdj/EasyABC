@@ -6778,6 +6778,7 @@ class MainFrame(wx.Frame):
 
         closest_xy = None
         closest_col = -9999
+        note_delta = 9999
         line = self.editor.GetCurrentLine()
         col = self.editor.GetCurrentPos() - self.editor.PositionFromLine(line)
         # 1.3.6.2 [JWdJ] 2015-02
@@ -6786,7 +6787,12 @@ class MainFrame(wx.Frame):
         # 1.3.6.2 [JWdJ] 2015-02
         for i, (x, y, abc_row, abc_col, desc) in enumerate(page.notes):
             abc_row += row_offset
-            if abc_row == line and (abs(col - abc_col) < abs(closest_col - abc_col)):
+            #FAU 20250126: search for the closest while not switching to next one to early
+            #              with if abc_row == line and and (abs(col - abc_col) < abs(closest_col - abc_col))
+            #              as soon as cursor shifted after the letter of note next note was selected even if only duration of previous note
+            #              %%TODO%%: improve to consider highlight only if cursor is in a note?
+            if abc_row == line and col>=abc_col and (abs(col - abc_col)<note_delta): # and (abs(col - abc_col) < abs(closest_col - abc_col))
+                note_delta=abs(col - abc_col)
                 closest_col = abc_col
                 closest_xy = (x, y)
                 if select_closest_note:
@@ -7368,7 +7374,11 @@ class MainFrame(wx.Frame):
         # otherhand, the following function allows the highlighted note
         # in the MusicPane follow the highlighted note in the editor when
         # it is controlled by the keyboard arrow keys. p09
-        #self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=True) #patch p08
+        #FAU 20250126: To avoid to have sort of a race, keep the call but
+        #              only when no action on the music pane to select
+        #              Add a property in music_pane to identify when a drag selection is ongoing
+        if not self.music_pane.mouse_select_ongoing:
+            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=True) #patch p08
 
 
     def OnModified(self, evt):

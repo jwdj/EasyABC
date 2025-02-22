@@ -36,6 +36,8 @@ class MusicScorePanel(wx.ScrolledWindow):
         self.drag_start_x = None
         self.drag_start_y = None
         self.drag_rect = None
+        #FAU 20250120: mouse_select_ongoing positionned to avoid the race with event of selection change in TextCtrl
+        self.mouse_select_ongoing = False
         self.SetVirtualSize((self.buffer_width, self.buffer_height))
         self.SetScrollbars(20, 20, 50, 50)
         # 1.3.6.2 [JWdJ] 2015-02-14 hook events after initializing to prevent unnecessary redraws
@@ -92,6 +94,8 @@ class MusicScorePanel(wx.ScrolledWindow):
 
     def OnLeftButtonDown(self, event):
         if event.LeftDown():
+            #FAU 20250126: mouse_select_ongoing positionned to avoid the race with event of selection change in TextCtrl
+            self.mouse_select_ongoing = True
             self.SetFocus()
             page = self.current_page
             old_selection = page.selected_indices.copy()
@@ -143,6 +147,8 @@ class MusicScorePanel(wx.ScrolledWindow):
             self.drag_rect = None
             self.OnMouseMotion(event)
             self.redraw()
+        #FAU 20250126: mouse_select_ongoing positionned to avoid the race with event of selection change in TextCtrl
+        self.mouse_select_ongoing = False
 
     def OnMouseMotion(self, event):
         page = self.current_page
@@ -162,6 +168,8 @@ class MusicScorePanel(wx.ScrolledWindow):
                 self.SetCursor(self.pointer_cursor)
             else:
                 self.SetCursor(self.cross_cursor)
+            #FAU 20250126: mouse_select_ongoing positionned to avoid the race with event of selection change in TextCtrl
+            self.mouse_select_ongoing = False
 ##        if self.HasCapture():
 ##            x, y = self.get_xy_of_mouse_event(event)
 ##            self.drag_rect = (min(self.drag_start_x, x), min(self.drag_start_y, y), abs(self.drag_start_x-x), abs(self.drag_start_y-y))
@@ -277,7 +285,8 @@ class MusicScorePanel(wx.ScrolledWindow):
             self.Update()
         finally:
             self.redrawing = False
-            self.highlighted_notes = None
+            if not wx.Platform == "__WXMAC__":
+                self.highlighted_notes = None
 
     def Draw(self):
         dc = wx.BufferedDC(None, self.renderer.buffer)
