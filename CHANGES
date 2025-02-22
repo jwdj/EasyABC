@@ -637,5 +637,6 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - New: file setting: ffmpeg
 - Several fixes to support newer Python versions. (thanks aupfred and all that contributed)
 - Updated xml2abc, abc2xml (aupfred)
+- Enable Midi playback for Mac based on Apple DLS Synthetiser thanks to mplay library (aupfred)
 - Fix Musicscore gets blank when clicking on the musicpanel (aupfred)
 - Updated about page and abc reference (aupfred)
