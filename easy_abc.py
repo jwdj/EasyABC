@@ -29,7 +29,7 @@ program_name = 'EasyABC ' + program_version
 #     import faulthandler  # pip install faulthandler
 #     faulthandler.enable()
 # except ImportError:
-#     print('faulthandler not installed. Try: pip install faulthandler')
+#     sys.stderr.write('faulthandler not installed. Try: pip install faulthandler\n')
 #     pass
 
 import sys
@@ -107,7 +107,7 @@ try:
     from fluidsynthplayer import *
     fluidsynth_available = True
 except ImportError:
-    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.')
+    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.\n')
     # sys.stderr.write(traceback.format_exc())
     fluidsynth_available = False
 
@@ -156,7 +156,7 @@ except ImportError:
     try:
         import pypm
     except ImportError:
-        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work')
+        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work\n')
 finally:
     sys.stdout = old_stdout
 
@@ -174,6 +174,7 @@ from abc_tune import *
 
 dialog_background_colour = wx.Colour(245, 244, 235)
 default_note_highlight_color = '#FF7F3F'
+default_note_highlight_follow_color = '#CC00FF'
 control_margin = 6
 default_midi_volume = 96
 default_midi_pan = 64
@@ -3157,12 +3158,21 @@ class ColorSettingsFrame(wx.Panel):
             b = int(note_highlight_color[5:7], 16)
             self.note_highlight_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, wx.Colour(r, g, b))
 
+        note_highlight_follow_color = self.settings.get('note_highlight_follow_color', default_note_highlight_follow_color)
+        note_highlight_follow_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color when follow score"))
+        self.note_highlight_follow_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(note_highlight_follow_color))
+
         grid_sizer.Add(note_highlight_color_label, pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         grid_sizer.Add(self.note_highlight_color_picker, pos=(0,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(note_highlight_follow_color_label, pos=(0,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(self.note_highlight_follow_color_picker, pos=(0,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        note_highlight_color_tooltip = _('Color of selected note or currently playing note')
+        note_highlight_color_tooltip = _('Color of selected note')
         self.note_highlight_color_picker.SetToolTip(wx.ToolTip(note_highlight_color_tooltip))
         self.note_highlight_color_picker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnNoteHighlightColorChanged)
+        note_highlight_follow_color_tooltip = _('Color of currently playing note')
+        self.note_highlight_follow_color_picker.SetToolTip(wx.ToolTip(note_highlight_follow_color_tooltip))
+        self.note_highlight_follow_color_picker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnNoteHighlightFollowColorChanged)
 
         self.SetSizer(grid_sizer)
         self.SetAutoLayout(True)
@@ -3175,6 +3185,11 @@ class ColorSettingsFrame(wx.Panel):
         self.settings['note_highlight_color'] = color
         self.Parent.Parent.Parent.Parent.renderer.highlight_color = color
 
+    def OnNoteHighlightFollowColorChanged(self, evt):
+        wxcolor = self.note_highlight_follow_color_picker.GetColour()
+        color = wxcolor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.settings['note_highlight_follow_color'] = color
+        self.Parent.Parent.Parent.Parent.renderer.highlight_follow_color = color
 
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
@@ -4039,7 +4054,7 @@ class MainFrame(wx.Frame):
         self.editor.SetMarginType(1,stc.STC_MARGIN_NUMBER)
 
         # 1.3.6.2 [JWdJ] 2015-02
-        self.renderer = SvgRenderer(self.settings['can_draw_sharps_and_flats'], self.settings.get('note_highlight_color', default_note_highlight_color))
+        self.renderer = SvgRenderer(self.settings['can_draw_sharps_and_flats'], self.settings.get('note_highlight_color', default_note_highlight_color), self.settings.get('note_highlight_follow_color', default_note_highlight_follow_color))#'#FF0000')
         self.music_pane = MusicScorePanel(self, self.renderer)
         self.music_pane.SetBackgroundColour((255, 255, 255))
         self.music_pane.OnNoteSelectionChangedDesc = self.OnNoteSelectionChangedDesc
@@ -4324,9 +4339,15 @@ class MainFrame(wx.Frame):
                 line_start_offset = [m.start(0) for m in re.finditer(r'(?m)^', temp)]
 
                 selected_note_offsets = []
+                offset_chord = 0
                 for (_, _, abc_row, abc_col, desc) in self.selected_note_descs:
                     abc_row -= num_header_lines
-                    selected_note_offsets.append(line_start_offset[abc_row-1]+abc_col)
+                    note_offset = line_start_offset[abc_row-1]+abc_col
+                    if text[note_offset] == '[':
+                        offset_chord += 1
+                    if text[note_offset+offset_chord+1] == ']':
+                        offset_chord = 0
+                    selected_note_offsets.append(note_offset+offset_chord)
 
                 unselected_note_offsets = [(start_offset, end_offset) for (start_offset, end_offset, _) in notes if not any(p for p in selected_note_offsets if start_offset <= p < end_offset)]
                 unselected_note_offsets.sort()
@@ -4342,7 +4363,7 @@ class MainFrame(wx.Frame):
 
                 # for some strange reason the MIDI sequence seems to be cut-off in the end if the last note is short
                 # adding a silent extra note seems to fix this
-                text = text + os.linesep + '%%MIDI control 7 0' + os.linesep + 'A2'
+                text = text.rstrip()# + '[I:MIDI control 7 0]' + os.linesep + 'A2'
 
                 return (tune, text)
             return (tune, self.editor.GetTextRange(position, end_position))
@@ -4446,7 +4467,6 @@ class MainFrame(wx.Frame):
             # if this was not actually a direct click on a note, but rather in between, then place the cursor just before the closest note
             if close_note_index is not None:
                 self.editor.SetSelectionEnd(self.editor.GetSelectionStart())
-
 
     def transpose_selected_note(self, amount):
         # TODO: finish this code
@@ -4725,7 +4745,7 @@ class MainFrame(wx.Frame):
         self.current_time_slice = current_time_slice
         if current_time_slice.page == self.current_page_index:
             try:
-                self.music_pane.draw_notes_highlighted(current_time_slice.indices)
+                self.music_pane.draw_notes_highlighted(current_time_slice.indices, highlight_follow=True)
             except:
                 pass
                 # self.music_and_score_out_of_sync()
