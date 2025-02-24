@@ -29,7 +29,7 @@ program_name = 'EasyABC ' + program_version
 #     import faulthandler  # pip install faulthandler
 #     faulthandler.enable()
 # except ImportError:
-#     print('faulthandler not installed. Try: pip install faulthandler')
+#     sys.stderr.write('faulthandler not installed. Try: pip install faulthandler\n')
 #     pass
 
 import sys
@@ -107,7 +107,7 @@ try:
     from fluidsynthplayer import *
     fluidsynth_available = True
 except ImportError:
-    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.')
+    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.\n')
     # sys.stderr.write(traceback.format_exc())
     fluidsynth_available = False
 
@@ -156,7 +156,7 @@ except ImportError:
     try:
         import pypm
     except ImportError:
-        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work')
+        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work\n')
 finally:
     sys.stdout = old_stdout
 
@@ -3203,12 +3203,13 @@ class MusicXmlPage(wx.Panel):
         self.chkXmlCompressed = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlUnfold = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlMidi = wx.CheckBox(self, wx.ID_ANY, '')
-        self.voltaval = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxchars = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY)
-        self.creditval = wx.TextCtrl(self, wx.ID_ANY)
-        self.unitval  = wx.TextCtrl(self, wx.ID_ANY)
-        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY)
+        self.voltaval = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.maxchars = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.creditval = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.unitval  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        #FAU Todo: expand option list to latest xml2abc capabilities
 
         self.chkXmlCompressed.SetValue(self.settings.get('xmlcompressed',False))
         self.chkXmlUnfold.SetValue(self.settings.get('xmlunfold',False))
@@ -6362,8 +6363,8 @@ class MainFrame(wx.Frame):
                 (),
                 (_("&Find...") + "\tCtrl+F", '', self.OnFind),
                 (_("Find in Files") + '\tCtrl+Shift+F', '', self.OnSearchDirectories, self.disable_in_exclusive_mode), # 1.3.6 [SS] 2014-11-21
-                (_("Find &Next") + "\tF3", '', self.OnFindNext),
-                (_("&Replace...") + "\tCtrl+H", '', self.OnReplace),
+                (_("Find &Next") + "\t"+("F3" if wx.Platform != '__WXMAC__' else "Ctrl+G"), '', self.OnFindNext),
+                (_("&Replace...") + "\t"+("Ctrl+H" if wx.Platform != "__WXMAC__" else "Alt+Ctrl+F"), '', self.OnReplace),
                 (),
                 (_("&Select all") + "\tCtrl+A", '', self.OnSelectAll)]),
             (_("&Settings") , [
@@ -8868,12 +8869,38 @@ class MyApp(wx.App):
         L.sort(key=lambda f: not f.IsActive()) # make sure an active frame comes first in the list
         return L
 
-    # def MacOpenFile(self, filename):	# [EPO] 2018-11-20 TODO  dup open file creates two frames (why?)
-    #     frame = self.NewMainFrame()
-    #     frame.Show(True)
-    #     self.SetTopWindow(frame)
-    #     ##path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
-    #     frame.load_or_import(filename)
+    def MacOpenFile(self, filename):	# [EPO] 2018-11-20 TODO  dup open file creates two frames (why?)
+        """Called for files dropped on dock icon, or opened via finders context menu"""
+        #dlg = wx.MessageDialog(None,
+        #                       "This app was just asked to open:\n%s\n"%filename,
+        #                       "File Dropped",
+        #                       wx.OK|wx.ICON_INFORMATION)
+        #dlg.ShowModal()
+        #dlg.Destroy()
+        #frame = self.NewMainFrame()
+        #frame.Show(True)
+        #self.SetTopWindow(frame)
+        ##path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
+        #self.frame.load_or_import(filename)
+        if not self.frame.editor.GetModify() and not self.frame.current_file:     # if a new unmodified document
+            self.frame.load(filename)
+        else:
+            self.frame = self.NewMainFrame()
+            self.frame.load(filename)
+            
+    def MacNewFile(self):
+        #dlg = wx.MessageDialog(None,
+        #                       "This app was just asked to launch",
+        #                       "App started",
+        #                       wx.OK|wx.ICON_INFORMATION)
+        #dlg.ShowModal()
+        #dlg.Destroy()
+        recent_file = self.settings.get('recentfiles', '').split('|')[0]
+        if recent_file and os.path.exists(recent_file):
+            path = recent_file
+
+        if path :
+            self.frame.load_or_import(path)
 
     def OnInit(self):
         try:
@@ -8897,6 +8924,7 @@ class MyApp(wx.App):
 
             self.CheckCanDrawSharpFlat()
             options = {}
+            
             path = None
             if len(sys.argv) > 1:
                 if sys.version_info >= (3,0,0): #FAU 20210101: In Python3 there isn't anymore the decode.
@@ -8927,7 +8955,8 @@ class MyApp(wx.App):
                 if recent_file and os.path.exists(recent_file):
                     path = recent_file
 
-            if path:
+            #FAU: on Mac the sys.frozen is set by py2app and pyinstaller and is unset otherwise getattr( sys, 'frozen', False)
+            if path and wx.Platform != "__WXMAC__":
                 self.frame.load_or_import(path)
         except:
             sys.stdout.write(traceback.format_exc())
