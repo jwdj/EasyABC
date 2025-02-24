@@ -3209,6 +3209,7 @@ class MusicXmlPage(wx.Panel):
         self.creditval = wx.TextCtrl(self, wx.ID_ANY)
         self.unitval  = wx.TextCtrl(self, wx.ID_ANY)
         self.XmlPage = wx.TextCtrl(self, wx.ID_ANY)
+        #FAU Todo: expand option list to latest xml2abc capabilities
 
         self.chkXmlCompressed.SetValue(self.settings.get('xmlcompressed',False))
         self.chkXmlUnfold.SetValue(self.settings.get('xmlunfold',False))
