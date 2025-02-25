@@ -6445,9 +6445,9 @@ class MainFrame(wx.Frame):
 
     def OnShowTunesList(self, evt):
         win = wx.FindWindowByName('tuneslistframe')
-        tunes_list = '"index","title","startline"\n'
+        tunes_list = 'index|title|startline\n'
         for i, (index, title, startline) in enumerate(self.tunes):
-            tunes_list = tunes_list +'"'+ str(index) + '","' + str(title) + '","' + str(startline) +'"\n'
+            tunes_list = tunes_list + str(index) + '|' + str(title) + '|' + str(startline) +'\n'
         if win is None:
             self.tuneslist_frame = MyTunesListFrame()
             self.tuneslist_frame.ShowText(tunes_list)
