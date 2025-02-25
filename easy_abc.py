@@ -6383,6 +6383,7 @@ class MainFrame(wx.Frame):
             (_("&Internals"), [ #p09 [SS] 2014-10-22
                 (_("Messages"), _("Show warnings and errors"), self.OnShowMessages),
                 (_("Input processed tune"), '', self.OnShowAbcTune),
+                (_("List of Tunes"), '', self.OnShowTunesList),
                 (_("Output midi file"), '', self.OnShowMidiFile),
                 (_("Show settings status"), '', self.OnShowSettings)]),
             (_("&Help")     , [
@@ -6439,6 +6440,20 @@ class MainFrame(wx.Frame):
         else:
             win.ShowText(visible_abc_code)
             # 1.3.6.1 [SS] 2015-02-01
+            win.Iconize(False)
+            win.Raise()
+
+    def OnShowTunesList(self, evt):
+        win = wx.FindWindowByName('tuneslistframe')
+        tunes_list = '"index","title","startline"\n'
+        for i, (index, title, startline) in enumerate(self.tunes):
+            tunes_list = tunes_list +'"'+ str(index) + '","' + str(title) + '","' + str(startline) +'"\n'
+        if win is None:
+            self.tuneslist_frame = MyTunesListFrame()
+            self.tuneslist_frame.ShowText(tunes_list)
+            self.tuneslist_frame.Show()
+        else:
+            win.ShowText(tunes_list)
             win.Iconize(False)
             win.Raise()
 
@@ -6741,6 +6756,96 @@ class MainFrame(wx.Frame):
                 frame.load_and_apply_settings()
                 frame.InitEditor()
 
+    def closestNoteData(self, page, row_offset, line, col):
+        """Find the NoteData of the closest note to cursor position
+        
+        Parameters
+        ----------
+        page : SvgPage
+            One page of score of SvgPage
+        row_offset : int
+            An offset to align line to a line of note
+        line : int
+            Line where the cursor or selection is in the editor
+        col : int
+            Col where the cursor or selection is in the editor
+            
+        Returns
+        -------
+        closest_note_data : namedTuple NoteData
+            closest NoteData found in the page
+        """
+        
+        closest_note_data = None
+        line -= row_offset
+        # Next variables initialised with a value that should be big enough to find closest
+        closest_col = -9999
+        note_delta = 9999
+        bar_start = bar_start_tmp = 0
+        bar_end = 9999
+        
+        if page.notes_in_row is not None and line in page.notes_in_row:
+            for note_data in page.notes_in_row[line]:
+                # note_type B is a Bar and first listed
+                # need to manage cursor after last bar of the line
+                if note_data.note_type == "B" and bar_start == 0:
+                    if note_data.col > col:
+                        bar_end = min(bar_end,note_data.col)
+                        bar_start = bar_start_tmp
+                    if note_data.col < col:
+                        bar_start_tmp = max(bar_start_tmp,note_data.col)
+                # note_type N is a Note, note_type R is a Rest
+                if (note_data.note_type == "N" or note_data.note_type == "R") and bar_start<=note_data.col<=bar_end and (closest_note_data is None or col>=note_data.col) and (abs(col - note_data.col)<note_delta): 
+                    note_delta=abs(col - note_data.col)
+                    closest_note_data = note_data
+        
+        return closest_note_data
+
+    def FindNotesIndicesBetween2Notes(self, page, note_data_1, note_data_2):
+        """Find the indices of the notes between 2 notes
+        
+        Need to consider the various cases of selection.
+        For now only single selection mode is supported with contiguous selection.
+        Todo: manage multiple selections
+        
+        Parameters
+        ----------
+        page : SvgPage
+            One page of score of SvgPage
+        note_data_1 : namedtuple note_data
+            Note data of the 1st note
+        note_data_2 : namedtuple note_data
+            Note data of the 2nd note
+            
+        Returns
+        -------
+        set_of_indices : set
+            set containing all the indices of notes between two other notes (included)
+        """
+        
+        set_of_indices = set()
+        
+        for row in page.notes_in_row:
+            if row == note_data_1.row and row == note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col>=note_data_1.col and note_data.col<=note_data_2.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+                break
+            if row == note_data_1.row and row < note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col>=note_data_1.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+            elif row > note_data_1.row and row < note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R"):
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+            elif row > note_data_1.row and row == note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col<=note_data_2.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+        
+        return set_of_indices
+        
     def ScrollMusicPaneToMatchEditor(self, select_closest_note=False, select_closest_page=False):
         tune = self.GetSelectedTune()
         if not tune or not self.current_svg_tune:
@@ -8722,6 +8827,27 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
     def OnLinkClicked(self, evt):
         webbrowser.open(evt.GetLinkInfo().GetHref())
         return wx.html.HTML_BLOCK
+
+
+class MyTunesListFrame(wx.Frame):
+    ''' Creates the TextCtrl for displaying the tunes list'''
+    def __init__(self):
+        # 1.3.6.1 [JWdJ] 2014-01-30 Resizing message window fixed
+        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("List of tunes"),style=wx.DEFAULT_FRAME_STYLE,name='tuneslistframe',size=(600,240))
+        # Add a panel so it looks the correct on all platforms
+        self.panel = ScrolledPanel(self)
+        self.basicText = wx.TextCtrl(self.panel, wx.ID_ANY, "",style=wx.TE_MULTILINE | wx.TE_READONLY)
+        # 1.3.6.3 [JWDJ] changed to fixed font so Abcm2ps-messages with a ^ make sense
+        font = wx.Font(10, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        self.basicText.SetFont(font)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.basicText,1, wx.ALL|wx.EXPAND)
+        self.panel.SetSizer(sizer)
+        self.panel.SetupScrolling()
+
+    def ShowText(self,text):
+        self.basicText.Clear()
+        self.basicText.AppendText(text)
 
 
 #p09 2014-10-22
