@@ -644,3 +644,4 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Fix Musicscore gets blank when clicking on the musicpanel (aupfred)
 - Updated about page and abc reference (aupfred)
 - New: distinguishable color for 'select' and 'follow' (aupfred)
+- New: let user define their colors for the editor

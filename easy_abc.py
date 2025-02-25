@@ -175,6 +175,44 @@ from abc_tune import *
 dialog_background_colour = wx.Colour(245, 244, 235)
 default_note_highlight_color = '#FF7F3F'
 default_note_highlight_follow_color = '#CC00FF'
+#default_style_color = {
+#    'style_default_color':'#000000',
+#    'style_chord_color':'#000000',
+#    'style_comment_color':'#AAAAAA',
+#    'style_specialcomment_color':'#888888',
+#    'style_bar_color':'#000099',
+#    'style_field_color':'#8C7853',
+#    'style_fieldvalue_color':'#8C7853',
+#    'style_embeddedfield_color':'#8C7853',
+#    'style_embeddedfieldvalue_color':'#8C7853',
+#    'style_fieldindex_color':'#000000',
+#    'style_string_color':'#7F7F7F',
+#    'style_lyrics_color':'#7F7F7F',
+#    'style_grace_color':'#5a3700',
+#    'style_ornament_color':'#777799',
+#    'style_ornamentplus_color':'#888888',
+#    'style_ornamentexcl_color':'#888888'
+#}
+default_style_color = {
+    'style_default_color':'#131415',
+    'style_chord_color':'#131415',
+    'style_comment_color':'#656E77',
+    'style_specialcomment_color':'#803378',
+#    'style_bar_color':'#535A60',
+    'style_bar_color':'#0000CC',
+    'style_field_color':'#B75501',
+    'style_fieldvalue_color':'#B75501',
+    'style_embeddedfield_color':'#B75501',
+    'style_embeddedfieldvalue_color':'#B75501',
+    'style_fieldindex_color':'#000000',
+    'style_string_color':'#2F6F44',
+    'style_lyrics_color':'#51774e',
+    'style_grace_color':'#5A3700',
+    'style_ornament_color':'#015692',
+    'style_ornamentplus_color':'#015692',
+    'style_ornamentexcl_color':'#015692'
+}
+
 control_margin = 6
 default_midi_volume = 96
 default_midi_pan = 64
@@ -2110,7 +2148,7 @@ class AbcFileSettingsFrame(wx.Panel):
             path_choices = self.append_exe(current_path, path_choices)
             if entry.add_default:
                 path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
-            control = wx.ComboBox(self, wx.ID_ANY, choices=path_choices, style=wx.CB_DROPDOWN)
+            control = wx.ComboBox(self, wx.ID_ANY, size=wx.Size(450,22),choices=path_choices, style=wx.CB_DROPDOWN)
             # [SS] 1.3.6.4 2015-12-23
             if current_path:
                 control.SetValue(current_path)
@@ -2635,7 +2673,7 @@ class MyVoicePage(wx.Panel):
         # add all box to the dialog to be displayed
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.chkPerVoice, flag=wx.ALL, border=border)
-        self.sizer.Add(midi_box, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
+        self.sizer.Add(midi_box, flag=wx.ALL | wx.ALIGN_CENTER, border=border)
         self.sizer.Add(btn_box, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
         self.SetSizer(self.sizer)
@@ -2927,97 +2965,96 @@ class MyAbcm2psPage(wx.Panel):
         # 1.3.6.2 [SS] 2015-04-21
         self.scaleval.Bind(wx.EVT_TEXT, self.OnPSScale, self.scaleval)
 
-        # 1.3.6 [SS] 2014-12-16
-        self.box = wx.BoxSizer(wx.VERTICAL)
-        gridsizer1 = wx.GridBagSizer(vgap = 8,hgap =2)
-        gridsizer2 = wx.FlexGridSizer(0,4,2,2)
-        self.box.Add(gridsizer1,0, wx.ALL | wx.EXPAND, border=border)
-        self.box.Add(gridsizer2,0, wx.ALL | wx.EXPAND, border=border)
+        grid_sizer = wx.GridBagSizer()
+        grid_sizer.Add(heading, pos=(0,0), span=(1,7), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        # 1.3.6.1 [SS] 2015-01-08 2015-01-28
-        self.gridsizer4 = wx.FlexGridSizer(0,3,2,2)
-        self.box.Add(self.gridsizer4,0, wx.ALL | wx.EXPAND, border=border)
-        self.gridsizer3 = wx.FlexGridSizer(0,4,2,2)
-        self.box.Add(self.gridsizer3,0, wx.ALL | wx.EXPAND, border=border)
+        grid_sizer.Add(clean, pos=(1,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psclean, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer1.Add(heading,(1,1))
+        grid_sizer.Add(defaults, pos=(1,4), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psdef, pos=(1,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(clean,0,0,0,0)
-        gridsizer2.Add(self.chkm2psclean,0,0,0,0)
+        grid_sizer.Add(numberbars, pos=(3,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psbar, pos=(3,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(defaults,0,0,0,0)
-        gridsizer2.Add(self.chkm2psdef,0,0,0,0)
+        grid_sizer.Add(refnumbers, pos=(3,4), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psref, pos=(3,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(numberbars,0,0,0,0)
-        gridsizer2.Add(self.chkm2psbar,0,0,0,0)
+        grid_sizer.Add(nolyrics, pos=(4,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2pslyr, pos=(4,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(refnumbers,0,0,0,0)
-        gridsizer2.Add(self.chkm2psref,0,0,0,0)
+        grid_sizer.Add(linends, pos=(4,4), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psend, pos=(4,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(nolyrics,0,0,0,0)
-        gridsizer2.Add(self.chkm2pslyr,0,0,0,0)
+        self.grid_sizer_page_format = wx.GridBagSizer()
+        self.grid_sizer_page_format.Add(leftmarg, pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.leftmargin, pos=(0,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(linends,0,0,0,0)
-        gridsizer2.Add(self.chkm2psend,0,0,0,0)
+        self.grid_sizer_page_format.Add(rightmarg, pos=(0,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.rightmargin, pos=(0,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        # 1.3.6.1 [SS] 2015-01-08
-        self.gridsizer3.Add(leftmarg,0,0,0,0)
-        self.gridsizer3.Add(self.leftmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(topmarg, pos=(1,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.topmargin, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(rightmarg,0,0,0,0)
-        self.gridsizer3.Add(self.rightmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(botmarg, pos=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.botmargin, pos=(1,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(topmarg,0,0,0,0)
-        self.gridsizer3.Add(self.topmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(pagewidth, pos=(2,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.pagewidth, pos=(2,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(botmarg,0,0,0,0)
-        self.gridsizer3.Add(self.botmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(pageheight, pos=(2,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.pageheight, pos=(2,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(pagewidth,0,0,0,0)
-        self.gridsizer3.Add(self.pagewidth,0,0,0,0)
+        self.grid_sizer_page_format.Add(scalefact, pos=(3,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.scaleval, pos=(3,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(pageheight,0,0,0,0)
-        self.gridsizer3.Add(self.pageheight,0,0,0,0)
+        grid_sizer.Add(self.grid_sizer_page_format, pos=(2,1), span=(1,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(scalefact,0,0,0,0)
-        self.gridsizer3.Add(self.scaleval,0,0,0,0)
+        grid_sizer.Add(extras, pos=(5,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.extras, pos=(5,2), span=(1,5), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(formatf, pos=(6,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.formatf, pos=(6,2), span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.browsef, pos=(6,5), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        # 1.3.6.1 [SS] 2015-01-28
-        padding = wx.TOP | wx.RIGHT
-        self.gridsizer4.Add(extras, flag=wx.ALIGN_CENTER_VERTICAL | padding, border=border)
-        self.gridsizer4.Add(self.extras, flag=padding, border=border)
-        self.gridsizer4.Add((1,20))
-        self.gridsizer4.Add(formatf, flag=wx.ALIGN_CENTER_VERTICAL | padding, border=border)
-        self.gridsizer4.Add(self.formatf, flag=padding, border=border)
-        self.gridsizer4.Add(self.browsef, flag=wx.ALIGN_CENTER_VERTICAL | padding, border=border)
-
-
-        self.SetSizer(self.box)
-        self.Fit()
 
         # 1.3.6.1 [SS] 2015-01-08
         if self.settings['abcm2ps_clean'] or self.settings['abcm2ps_defaults']:
-            self.box.Show(self.gridsizer3, show=False)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(False)
         else:
-            self.box.Show(self.gridsizer3, show=True)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(True)
+        self.SetSizer(grid_sizer)
+        self.SetAutoLayout(True)
+        self.Fit()
+        self.Layout()
 
     def OnAbcm2psClean(self, evt):
         self.settings['abcm2ps_clean'] = self.chkm2psclean.GetValue()
         if self.settings['abcm2ps_clean'] or self.settings['abcm2ps_defaults']:
-            self.box.Show(self.gridsizer3, show=False)
+        #    #self.box.Show(self.gridsizer3, show=False)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(False)
         else:
-            self.box.Show(self.gridsizer3, show=True)
+            #self.box.Show(self.gridsizer3, show=True)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(True)
+        self.Layout()
 
     def OnAbcm2psDefaults(self, evt):
         self.settings['abcm2ps_defaults'] = self.chkm2psdef.GetValue()
         if self.settings['abcm2ps_clean'] or self.settings['abcm2ps_defaults']:
-            self.box.Show(self.gridsizer3, show=False)
+        #    self.box.Show(self.gridsizer3, show=False)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(False)
         else:
-            self.box.Show(self.gridsizer3, show=True)
+        #    self.box.Show(self.gridsizer3, show=True)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(True)
+        self.Layout()
 
     def OnAbcm2psBar(self, evt):
         self.settings['abcm2ps_number_bars'] = self.chkm2psbar.GetValue()
-
 
     def OnAbcm2pslyrics(self, evt):
         self.settings['abcm2ps_no_lyrics'] = self.chkm2pslyr.GetValue()
@@ -3027,7 +3064,6 @@ class MyAbcm2psPage(wx.Panel):
 
     def OnAbcm2psend(self, evt):
         self.settings['abcm2ps_ignore_ends'] = self.chkm2psend.GetValue()
-
 
     # 1.3.6.2 [SS] 2015-03-15
     def OnPSScale(self, evt):
@@ -3148,6 +3184,9 @@ class ColorSettingsFrame(wx.Panel):
 
         grid_sizer = wx.GridBagSizer()
 
+        notecolors    = wx.StaticText(self, wx.ID_ANY, _('Colors for note highlighting in music score'))
+        editorcolors  = wx.StaticText(self, wx.ID_ANY, _('Colors of ABC code highlighting in editor'))
+
         note_highlight_color = self.settings.get('note_highlight_color', default_note_highlight_color)
         note_highlight_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color"))
         if PY3:
@@ -3162,10 +3201,12 @@ class ColorSettingsFrame(wx.Panel):
         note_highlight_follow_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color when follow score"))
         self.note_highlight_follow_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(note_highlight_follow_color))
 
-        grid_sizer.Add(note_highlight_color_label, pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        grid_sizer.Add(self.note_highlight_color_picker, pos=(0,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        grid_sizer.Add(note_highlight_follow_color_label, pos=(0,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        grid_sizer.Add(self.note_highlight_follow_color_picker, pos=(0,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(notecolors,pos=(0,0),span=(1,10), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        
+        grid_sizer.Add(note_highlight_color_label, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(self.note_highlight_color_picker, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(note_highlight_follow_color_label, pos=(1,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(self.note_highlight_follow_color_picker, pos=(1,5), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
         note_highlight_color_tooltip = _('Color of selected note')
         self.note_highlight_color_picker.SetToolTip(wx.ToolTip(note_highlight_color_tooltip))
@@ -3173,6 +3214,49 @@ class ColorSettingsFrame(wx.Panel):
         note_highlight_follow_color_tooltip = _('Color of currently playing note')
         self.note_highlight_follow_color_picker.SetToolTip(wx.ToolTip(note_highlight_follow_color_tooltip))
         self.note_highlight_follow_color_picker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnNoteHighlightFollowColorChanged)
+
+        self.style_labels = {
+            'style_default_color':_("Default color"),
+            'style_chord_color':_("Color of chords"),
+            'style_bar_color':_("Color of bars"),
+            'style_comment_color':_("Color of comment"),
+            'style_specialcomment_color':_("Color of instructions/commands"),
+            'style_fieldindex_color':_("Color of field index"),
+            'style_field_color':_("Color of ABC fields"),
+            'style_fieldvalue_color':_("Color of ABC fields value"),
+            'style_embeddedfield_color':_("Color of embedded ABC fields"),
+            'style_embeddedfieldvalue_color':_("Color of embedded ABC fields values"),
+            'style_string_color':_("Color of string"),
+            'style_lyrics_color':_("Color of lyrics"),
+            'style_ornament_color':_("Color of ornament"),
+            'style_ornamentplus_color':_("Color of ornament plus"),
+            'style_ornamentexcl_color':_("Color of ornament excl"),
+            'style_grace_color':_("Color of grace notes")
+        }
+        
+        grid_sizer.Add(editorcolors,pos=(3,0),span=(1,10), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        i=4
+        j=1
+        self.color_picker = {}
+        for key, label in self.style_labels.items():
+            color = self.settings.get(key, default_style_color[key])
+            color_text_label = wx.StaticText(self, wx.ID_ANY, label)
+            self.color_picker[key] = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(color))
+            grid_sizer.Add(color_text_label, pos=(i,j), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            grid_sizer.Add(self.color_picker[key], pos=(i,j+1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            self.color_picker[key].Bind(wx.EVT_COLOURPICKER_CHANGED, lambda evt, temp=key: self.OnFontColorChanged(evt,temp))
+            if j>=7:
+                i+=1
+                j=1
+            else:
+                j+=3
+        
+        self.restore_color = wx.Button(self, wx.ID_ANY, _('Restore default colors'))
+        check_toolTip = _('Restore default colors')
+        self.restore_color.SetToolTip(wx.ToolTip(check_toolTip))
+        
+        grid_sizer.Add(self.restore_color, pos=(i+1,7), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        self.restore_color.Bind(wx.EVT_BUTTON, self.OnRestoreDefaultColors, self.restore_color)
 
         self.SetSizer(grid_sizer)
         self.SetAutoLayout(True)
@@ -3191,6 +3275,30 @@ class ColorSettingsFrame(wx.Panel):
         self.settings['note_highlight_follow_color'] = color
         self.Parent.Parent.Parent.Parent.renderer.highlight_follow_color = color
 
+    def UpdateEditor(self):
+        font_info = self.settings.get('font')
+        if font_info:
+            face, size = font_info[-1], font_info[0]
+            self.Parent.Parent.Parent.Parent.InitEditor(face, size)
+        else:
+            self.Parent.Parent.Parent.Parent.InitEditor()
+
+    def OnFontColorChanged(self, evt, settings_key):
+        wxcolor = self.color_picker[settings_key].GetColour()
+        color = wxcolor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.settings[settings_key] = color
+        self.UpdateEditor()
+        
+    def OnRestoreDefaultColors(self, evt):
+        self.settings['note_highlight_color'] = default_note_highlight_color
+        self.note_highlight_color_picker.SetColour(default_note_highlight_color)
+        self.settings['note_highlight_follow_color'] = default_note_highlight_follow_color
+        self.note_highlight_follow_color_picker.SetColour(default_note_highlight_follow_color)
+        for key, color in default_style_color.items():
+            self.settings[key] = color
+            self.color_picker[key].SetColour(color)
+        self.UpdateEditor()
+
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
 class MusicXmlPage(wx.Panel):
@@ -3200,7 +3308,8 @@ class MusicXmlPage(wx.Panel):
         self.SetBackgroundColour(dialog_background_colour)
         border = control_margin
 
-        headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\nYou find these functions under Files/export and import. Hovering the mouse over\none of the checkboxes will provide more explanation. Further documentation can be found\nin the Readme.txt files which come with the abc2xml.py-??.zip and xml2abc.py-??.zip\ndistributions available from the Wim Vree's web site.\n\n")
+        #headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\nYou find these functions under Files/export and import. Hovering the mouse over\none of the checkboxes will provide more explanation. Further documentation can be found\nin the Readme.txt files which come with the abc2xml.py-??.zip and xml2abc.py-??.zip\ndistributions available from the Wim Vree's web site.\n\n")
+        headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\n\nYou find these functions under Files/export and import. Hovering the mouse over one of the checkboxes will provide more explanation.\nFurther documentation can be found from the Wim Vree's web site.\n")
 
         heading    = wx.StaticText(self, wx.ID_ANY, headingtxt)
         abc2xml    = wx.StaticText(self, wx.ID_ANY, _("abc2xml options"))
@@ -3218,12 +3327,13 @@ class MusicXmlPage(wx.Panel):
         self.chkXmlCompressed = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlUnfold = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlMidi = wx.CheckBox(self, wx.ID_ANY, '')
-        self.voltaval = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxchars = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY)
-        self.creditval = wx.TextCtrl(self, wx.ID_ANY)
-        self.unitval  = wx.TextCtrl(self, wx.ID_ANY)
-        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY)
+        self.voltaval = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.maxchars = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.creditval = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.unitval  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        #FAU Todo: expand option list to latest xml2abc capabilities
 
         self.chkXmlCompressed.SetValue(self.settings.get('xmlcompressed',False))
         self.chkXmlUnfold.SetValue(self.settings.get('xmlunfold',False))
@@ -3266,57 +3376,50 @@ class MusicXmlPage(wx.Panel):
         self.unitval.Bind(wx.EVT_TEXT, self.OnUnitval)
         self.XmlPage.Bind(wx.EVT_TEXT, self.OnXmlPage)
 
-        # 1.3.6 [SS] 2014-12-18
-        box = wx.BoxSizer(wx.VERTICAL)
-        gridsizer1 = wx.GridBagSizer(vgap = 8,hgap =2)
-        gridsizer2 = wx.FlexGridSizer(0,2,2,2)
-        box.Add(gridsizer1,0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=border)
-        box.Add(gridsizer2,0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=border)
+        grid_sizer = wx.GridBagSizer()
+        grid_sizer_abc2xml = wx.GridBagSizer()
+        grid_sizer_xml2abc = wx.GridBagSizer()
 
         flags=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
 
-        gridsizer1.Add(heading,(1,1))
+        grid_sizer.Add(heading, pos=(0,0), span=(1,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add((1,20))
-        gridsizer2.Add((1,20))
+        grid_sizer_abc2xml.Add(abc2xml, pos=(0,0), span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_abc2xml.Add(compressed, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_abc2xml.Add(self.chkXmlCompressed, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(abc2xml,0,0,0)
-        gridsizer2.Add((1,1))
+        grid_sizer_xml2abc.Add(xml2abc, pos=(0,0), span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(compressed, flag=flags, border=border)
-        gridsizer2.Add(self.chkXmlCompressed, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(unfold, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.chkXmlUnfold, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add((1,20))
-        gridsizer2.Add((1,20))
+        grid_sizer_xml2abc.Add(mididata, pos=(2,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.chkXmlMidi, pos=(2,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(xml2abc, flag=flags, border=border)
-        gridsizer2.Add((1,1))
+        grid_sizer_xml2abc.Add(volta, pos=(3,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.voltaval, pos=(3,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(unfold, flag=flags, border=border)
-        gridsizer2.Add(self.chkXmlUnfold, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(numchar, pos=(4,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.maxchars, pos=(4,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(mididata, flag=flags, border=border)
-        gridsizer2.Add(self.chkXmlMidi, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(numbars, pos=(5,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.maxbars, pos=(5,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(volta, flag=flags, border=border)
-        gridsizer2.Add(self.voltaval, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(credit, pos=(6,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.creditval, pos=(6,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(numchar, flag=flags, border=border)
-        gridsizer2.Add(self.maxchars, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(ulength, pos=(7,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.unitval, pos=(7,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(numbars, flag=flags, border=border)
-        gridsizer2.Add(self.maxbars, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(xmlpage, pos=(8,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.XmlPage, pos=(8,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(credit, flag=flags, border=border)
-        gridsizer2.Add(self.creditval, flag=flags, border=border)
-
-        gridsizer2.Add(ulength, flag=flags, border=border)
-        gridsizer2.Add(self.unitval, flag=flags, border=border)
-
-        gridsizer2.Add(xmlpage, flag=flags, border=border)
-        gridsizer2.Add(self.XmlPage, flag=flags, border=border)
-
-        self.SetSizer(box)
+        grid_sizer.Add(grid_sizer_abc2xml, pos=(1,0), flag=wx.ALL | wx.ALIGN_TOP, border=border)
+        grid_sizer.Add(50, 40, pos=(1,1))
+        grid_sizer.Add(grid_sizer_xml2abc, pos=(1,2), flag=wx.ALL | wx.ALIGN_TOP, border=border)
+        
+        self.SetSizer(grid_sizer)
+        self.SetAutoLayout(True)
         self.Fit()
         self.Layout()
 
@@ -8162,29 +8265,29 @@ class MainFrame(wx.Frame):
 
         editor.SetProperty("fold", "0")
         set_style = editor.StyleSetSpec
-        set_style(self.styler.STYLE_DEFAULT, "fore:#000000,face:%s,size:%d" % (font, size))
-        set_style(self.styler.STYLE_CHORD, "fore:#000000,face:%s,size:%d" % (font, size))
+        set_style(self.styler.STYLE_DEFAULT, "fore:%s,face:%s,size:%d" % (self.settings.get('style_default_color',default_style_color['style_default_color']), font, size))
+        set_style(self.styler.STYLE_CHORD, "fore:%s,face:%s,size:%d" % (self.settings.get('style_chord_color',default_style_color['style_chord_color']), font, size))
         # Comments
-        set_style(self.styler.STYLE_COMMENT_NORMAL, "fore:#AAAAAA,face:%s,italic,size:%d" % (font, size))
-        set_style(self.styler.STYLE_COMMENT_SPECIAL, "fore:#888888,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_COMMENT_NORMAL, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_comment_color',default_style_color['style_comment_color']), font, size))
+        set_style(self.styler.STYLE_COMMENT_SPECIAL, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_specialcomment_color',default_style_color['style_specialcomment_color']), font, size))
         # Bar
-        set_style(self.styler.STYLE_BAR, "fore:#000099,face:%s,bold,size:%d" % (font, size))
+        set_style(self.styler.STYLE_BAR, "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_bar_color',default_style_color['style_bar_color']), font, size))
         # Field
-        set_style(self.styler.STYLE_FIELD,                "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
-        set_style(self.styler.STYLE_FIELD_VALUE,          "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
-        set_style(self.styler.STYLE_EMBEDDED_FIELD,       "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
-        set_style(self.styler.STYLE_EMBEDDED_FIELD_VALUE, "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
-        set_style(self.styler.STYLE_FIELD_INDEX,          "fore:#000000,face:%s,bold,underline,size:%d" % (font, size))
+        set_style(self.styler.STYLE_FIELD,                "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_field_color',default_style_color['style_field_color']), font, size))
+        set_style(self.styler.STYLE_FIELD_VALUE,          "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_fieldvalue_color',default_style_color['style_fieldvalue_color']), font, size))
+        set_style(self.styler.STYLE_EMBEDDED_FIELD,       "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_embeddedfield_color',default_style_color['style_embeddedfield_color']), font, size))
+        set_style(self.styler.STYLE_EMBEDDED_FIELD_VALUE, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_embeddedfieldvalue_color',default_style_color['style_embeddedfieldvalue_color']), font, size))
+        set_style(self.styler.STYLE_FIELD_INDEX,          "fore:%s,face:%s,bold,underline,size:%d" % (self.settings.get('style_fieldindex_color',default_style_color['style_fieldindex_color']), font, size))
         # Single quoted string
-        set_style(self.styler.STYLE_STRING, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_STRING, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_string_color',default_style_color['style_string_color']), font, size))
         # Lyrics
-        set_style(self.styler.STYLE_LYRICS, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_LYRICS, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_lyrics_color',default_style_color['style_lyrics_color']), font, size))
 
-        set_style(self.styler.STYLE_GRACE, "fore:#5a3700,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_GRACE, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_grace_color',default_style_color['style_grace_color']), font, size))
 
-        set_style(self.styler.STYLE_ORNAMENT, "fore:#777799,face:%s,bold,size:%d" % (font, size))
-        set_style(self.styler.STYLE_ORNAMENT_PLUS, "fore:#888888,face:%s,size:%d" % (font, size))
-        set_style(self.styler.STYLE_ORNAMENT_EXCL, "fore:#888888,face:%s,size:%d" % (font, size))
+        set_style(self.styler.STYLE_ORNAMENT, "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_ornament_color',default_style_color['style_ornament_color']), font, size))
+        set_style(self.styler.STYLE_ORNAMENT_PLUS, "fore:%s,face:%s,size:%d" % (self.settings.get('style_ornamentplus_color',default_style_color['style_ornamentplus_color']), font, size))
+        set_style(self.styler.STYLE_ORNAMENT_EXCL, "fore:%s,face:%s,size:%d" % (self.settings.get('style_ornamentexcl_color',default_style_color['style_ornamentexcl_color']), font, size))
 
         editor.SetModEventMask(wx.stc.STC_MODEVENTMASKALL & ~(wx.stc.STC_MOD_CHANGESTYLE | wx.stc.STC_PERFORMED_USER)) # [1.3.7.4] JWDJ: don't fire OnModified on style changes
         editor.Colourise(0, editor.GetLength())
