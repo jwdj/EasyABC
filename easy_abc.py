@@ -4649,6 +4649,7 @@ class MainFrame(wx.Frame):
             self.OnToolRecord(None)
         #if self.uses_fluidsynth:
         #    self.OnAfterStop()
+        self.editor.SetFocus()
 
     def OnSeek(self, evt):
         self.mc.Seek(self.progress_slider.GetValue())
@@ -5796,6 +5797,7 @@ class MainFrame(wx.Frame):
             self.future_time_slice = None
             self.last_played_svg_row = None
             wx.CallAfter(self.PlayMidi, remove_repeats)
+        self.editor.SetFocus()
 
     @property
     def loop_midi_playback(self):
@@ -5812,6 +5814,7 @@ class MainFrame(wx.Frame):
             self.set_loop_midi_playback(True)
         if not self.mc.is_playing:
             self.OnToolPlay(evt)
+        self.editor.SetFocus()
 
     def OnToolRefresh(self, evt):
         self.refresh_tunes()
@@ -5836,6 +5839,7 @@ class MainFrame(wx.Frame):
             pane.Dockable(not pane.IsFloating()) # JWDJ: moving a floating abc-assist must not try to dock it again
         else:
             self.ShowAbcAssist(not shown)
+        self.editor.SetFocus()
 
     # 1.3.7 [JWdJ] 2016-01-06
     def ShowAbcAssist(self, show):
@@ -6482,26 +6486,43 @@ class MainFrame(wx.Frame):
         self.editor.CmdKeyExecute(cmd)
 
     def OnUndo(self, evt):      #self.do_command(stc.STC_CMD_UNDO)
+        if self.tune_list.HasFocus():
+            return
         widget = self.FindFocus()
         widget.Undo()
     def OnRedo(self, evt):      #self.do_command(stc.STC_CMD_REDO)
+        if self.tune_list.HasFocus():
+            return
         widget = self.FindFocus()
         widget.Redo()
     def OnCut(self, evt):       #self.do_command(stc.STC_CMD_CUT)
+        if self.tune_list.HasFocus():
+            return
         widget = self.FindFocus()
         widget.Cut()
     def OnCopy(self, evt):      #self.do_command(stc.STC_CMD_COPY)
-        widget = self.FindFocus()
-        widget.Copy()
+        if self.tune_list.HasFocus():
+            self.OnExportToClipboard(evt)
+        else:
+            widget = self.FindFocus()
+            widget.Copy()
     def OnPaste(self, evt):    #self.do_command(stc.STC_CMD_PASTE)
+        if self.tune_list.HasFocus():
+            return
         widget = self.FindFocus()
         widget.Paste()
     def OnDelete(self, evt):    #self.do_command(stc.STC_CMD_CLEAR)
+        if self.tune_list.HasFocus():
+            return
         widget = self.FindFocus()
         widget.Clear()
     def OnSelectAll(self, evt): #self.do_command(stc.STC_CMD_SELECTALL)
-        widget = self.FindFocus()
-        widget.SelectAll()
+        if self.tune_list.HasFocus():
+            for i in range(self.tune_list.GetItemCount()):
+                self.tune_list.Select(i,1)
+        else:
+            widget = self.FindFocus()
+            widget.SelectAll()
 
     def OnFind(self, evt):
         self.close_existing_find_and_replace_dialogs()
@@ -7832,6 +7853,7 @@ class MainFrame(wx.Frame):
 
     def OnPageSelected(self, evt):
         self.select_page(self.cur_page_combo.GetSelection())
+        self.editor.SetFocus()
 
     def select_page(self, page_index):
         self.current_page_index = page_index
