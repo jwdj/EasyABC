@@ -6510,6 +6510,7 @@ class MainFrame(wx.Frame):
             (_("&Internals"), [ #p09 [SS] 2014-10-22
                 (_("Messages"), _("Show warnings and errors"), self.OnShowMessages),
                 (_("Input processed tune"), '', self.OnShowAbcTune),
+                (_("List of Tunes"), '', self.OnShowTunesList),
                 (_("Output midi file"), '', self.OnShowMidiFile),
                 (_("Show settings status"), '', self.OnShowSettings)]),
             (_("&Help")     , [
@@ -6566,6 +6567,20 @@ class MainFrame(wx.Frame):
         else:
             win.ShowText(visible_abc_code)
             # 1.3.6.1 [SS] 2015-02-01
+            win.Iconize(False)
+            win.Raise()
+
+    def OnShowTunesList(self, evt):
+        win = wx.FindWindowByName('tuneslistframe')
+        tunes_list = 'index|title|startline\n'
+        for i, (index, title, startline) in enumerate(self.tunes):
+            tunes_list = tunes_list + str(index) + '|' + str(title) + '|' + str(startline) +'\n'
+        if win is None:
+            self.tuneslist_frame = MyTunesListFrame()
+            self.tuneslist_frame.ShowText(tunes_list)
+            self.tuneslist_frame.Show()
+        else:
+            win.ShowText(tunes_list)
             win.Iconize(False)
             win.Raise()
 
@@ -9088,6 +9103,27 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
     def OnLinkClicked(self, evt):
         webbrowser.open(evt.GetLinkInfo().GetHref())
         return wx.html.HTML_BLOCK
+
+
+class MyTunesListFrame(wx.Frame):
+    ''' Creates the TextCtrl for displaying the tunes list'''
+    def __init__(self):
+        # 1.3.6.1 [JWdJ] 2014-01-30 Resizing message window fixed
+        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("List of tunes"),style=wx.DEFAULT_FRAME_STYLE,name='tuneslistframe',size=(600,240))
+        # Add a panel so it looks the correct on all platforms
+        self.panel = ScrolledPanel(self)
+        self.basicText = wx.TextCtrl(self.panel, wx.ID_ANY, "",style=wx.TE_MULTILINE | wx.TE_READONLY)
+        # 1.3.6.3 [JWDJ] changed to fixed font so Abcm2ps-messages with a ^ make sense
+        font = wx.Font(10, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        self.basicText.SetFont(font)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.basicText,1, wx.ALL|wx.EXPAND)
+        self.panel.SetSizer(sizer)
+        self.panel.SetupScrolling()
+
+    def ShowText(self,text):
+        self.basicText.Clear()
+        self.basicText.AppendText(text)
 
 
 #p09 2014-10-22
