@@ -1196,7 +1196,8 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     #### create the abc_header which will be placed in front of the processed abc file
     # extra_lines is a list of all the MIDI commands to be put in abcheader
 
-    extra_lines = []
+    #FAU: enforce at least one extra_lines to avoid to introduce a blank line
+    extra_lines = ['%']
 
     # build default list of midi_program
     # this is needed in case no instrument per voices where defined or in case option "separate defaults per voice" is not checked
@@ -4364,6 +4365,9 @@ class MainFrame(wx.Frame):
 
                 # for some strange reason the MIDI sequence seems to be cut-off in the end if the last note is short
                 # adding a silent extra note seems to fix this
+                #text = text + os.linesep + '%%MIDI control 7 0' + os.linesep + 'A2'
+                #FAU: the introduction of the previous line leads to have no sound at all on
+                #     selection. using embedded instruction doesn' work either Thus remove it
                 text = text.rstrip()# + '[I:MIDI control 7 0]' + os.linesep + 'A2'
 
                 return (tune, text)
