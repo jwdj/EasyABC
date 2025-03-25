@@ -29,7 +29,7 @@ program_name = 'EasyABC ' + program_version
 #     import faulthandler  # pip install faulthandler
 #     faulthandler.enable()
 # except ImportError:
-#     print('faulthandler not installed. Try: pip install faulthandler')
+#     sys.stderr.write('faulthandler not installed. Try: pip install faulthandler\n')
 #     pass
 
 import sys
@@ -107,7 +107,7 @@ try:
     from fluidsynthplayer import *
     fluidsynth_available = True
 except ImportError:
-    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.')
+    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.\n')
     # sys.stderr.write(traceback.format_exc())
     fluidsynth_available = False
 
@@ -156,7 +156,7 @@ except ImportError:
     try:
         import pypm
     except ImportError:
-        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work')
+        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work\n')
 finally:
     sys.stdout = old_stdout
 
@@ -174,6 +174,45 @@ from abc_tune import *
 
 dialog_background_colour = wx.Colour(245, 244, 235)
 default_note_highlight_color = '#FF7F3F'
+default_note_highlight_follow_color = '#CC00FF'
+#default_style_color = {
+#    'style_default_color':'#000000',
+#    'style_chord_color':'#000000',
+#    'style_comment_color':'#AAAAAA',
+#    'style_specialcomment_color':'#888888',
+#    'style_bar_color':'#000099',
+#    'style_field_color':'#8C7853',
+#    'style_fieldvalue_color':'#8C7853',
+#    'style_embeddedfield_color':'#8C7853',
+#    'style_embeddedfieldvalue_color':'#8C7853',
+#    'style_fieldindex_color':'#000000',
+#    'style_string_color':'#7F7F7F',
+#    'style_lyrics_color':'#7F7F7F',
+#    'style_grace_color':'#5a3700',
+#    'style_ornament_color':'#777799',
+#    'style_ornamentplus_color':'#888888',
+#    'style_ornamentexcl_color':'#888888'
+#}
+default_style_color = {
+    'style_default_color':'#131415',
+    'style_chord_color':'#131415',
+    'style_comment_color':'#656E77',
+    'style_specialcomment_color':'#803378',
+#    'style_bar_color':'#535A60',
+    'style_bar_color':'#0000CC',
+    'style_field_color':'#B75501',
+    'style_fieldvalue_color':'#B75501',
+    'style_embeddedfield_color':'#B75501',
+    'style_embeddedfieldvalue_color':'#B75501',
+    'style_fieldindex_color':'#000000',
+    'style_string_color':'#2F6F44',
+    'style_lyrics_color':'#51774e',
+    'style_grace_color':'#5A3700',
+    'style_ornament_color':'#015692',
+    'style_ornamentplus_color':'#015692',
+    'style_ornamentexcl_color':'#015692'
+}
+
 control_margin = 6
 default_midi_volume = 96
 default_midi_pan = 64
@@ -1195,7 +1234,8 @@ def process_abc_for_midi(abc_code, header, cache_dir, settings, tempo_multiplier
     #### create the abc_header which will be placed in front of the processed abc file
     # extra_lines is a list of all the MIDI commands to be put in abcheader
 
-    extra_lines = []
+    #FAU: enforce at least one extra_lines to avoid to introduce a blank line
+    extra_lines = ['%']
 
     # build default list of midi_program
     # this is needed in case no instrument per voices where defined or in case option "separate defaults per voice" is not checked
@@ -2109,7 +2149,7 @@ class AbcFileSettingsFrame(wx.Panel):
             path_choices = self.append_exe(current_path, path_choices)
             if entry.add_default:
                 path_choices = self.append_exe(self.get_default_path(entry.name), path_choices)
-            control = wx.ComboBox(self, wx.ID_ANY, choices=path_choices, style=wx.CB_DROPDOWN)
+            control = wx.ComboBox(self, wx.ID_ANY, size=wx.Size(450,22),choices=path_choices, style=wx.CB_DROPDOWN)
             # [SS] 1.3.6.4 2015-12-23
             if current_path:
                 control.SetValue(current_path)
@@ -2634,7 +2674,7 @@ class MyVoicePage(wx.Panel):
         # add all box to the dialog to be displayed
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.chkPerVoice, flag=wx.ALL, border=border)
-        self.sizer.Add(midi_box, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
+        self.sizer.Add(midi_box, flag=wx.ALL | wx.ALIGN_CENTER, border=border)
         self.sizer.Add(btn_box, flag=wx.ALL | wx.ALIGN_RIGHT, border=border)
 
         self.SetSizer(self.sizer)
@@ -2926,97 +2966,96 @@ class MyAbcm2psPage(wx.Panel):
         # 1.3.6.2 [SS] 2015-04-21
         self.scaleval.Bind(wx.EVT_TEXT, self.OnPSScale, self.scaleval)
 
-        # 1.3.6 [SS] 2014-12-16
-        self.box = wx.BoxSizer(wx.VERTICAL)
-        gridsizer1 = wx.GridBagSizer(vgap = 8,hgap =2)
-        gridsizer2 = wx.FlexGridSizer(0,4,2,2)
-        self.box.Add(gridsizer1,0, wx.ALL | wx.EXPAND, border=border)
-        self.box.Add(gridsizer2,0, wx.ALL | wx.EXPAND, border=border)
+        grid_sizer = wx.GridBagSizer()
+        grid_sizer.Add(heading, pos=(0,0), span=(1,7), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        # 1.3.6.1 [SS] 2015-01-08 2015-01-28
-        self.gridsizer4 = wx.FlexGridSizer(0,3,2,2)
-        self.box.Add(self.gridsizer4,0, wx.ALL | wx.EXPAND, border=border)
-        self.gridsizer3 = wx.FlexGridSizer(0,4,2,2)
-        self.box.Add(self.gridsizer3,0, wx.ALL | wx.EXPAND, border=border)
+        grid_sizer.Add(clean, pos=(1,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psclean, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer1.Add(heading,(1,1))
+        grid_sizer.Add(defaults, pos=(1,4), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psdef, pos=(1,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(clean,0,0,0,0)
-        gridsizer2.Add(self.chkm2psclean,0,0,0,0)
+        grid_sizer.Add(numberbars, pos=(3,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psbar, pos=(3,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(defaults,0,0,0,0)
-        gridsizer2.Add(self.chkm2psdef,0,0,0,0)
+        grid_sizer.Add(refnumbers, pos=(3,4), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psref, pos=(3,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(numberbars,0,0,0,0)
-        gridsizer2.Add(self.chkm2psbar,0,0,0,0)
+        grid_sizer.Add(nolyrics, pos=(4,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2pslyr, pos=(4,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(refnumbers,0,0,0,0)
-        gridsizer2.Add(self.chkm2psref,0,0,0,0)
+        grid_sizer.Add(linends, pos=(4,4), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.chkm2psend, pos=(4,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(nolyrics,0,0,0,0)
-        gridsizer2.Add(self.chkm2pslyr,0,0,0,0)
+        self.grid_sizer_page_format = wx.GridBagSizer()
+        self.grid_sizer_page_format.Add(leftmarg, pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.leftmargin, pos=(0,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        gridsizer2.Add(linends,0,0,0,0)
-        gridsizer2.Add(self.chkm2psend,0,0,0,0)
+        self.grid_sizer_page_format.Add(rightmarg, pos=(0,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.rightmargin, pos=(0,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        # 1.3.6.1 [SS] 2015-01-08
-        self.gridsizer3.Add(leftmarg,0,0,0,0)
-        self.gridsizer3.Add(self.leftmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(topmarg, pos=(1,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.topmargin, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(rightmarg,0,0,0,0)
-        self.gridsizer3.Add(self.rightmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(botmarg, pos=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.botmargin, pos=(1,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(topmarg,0,0,0,0)
-        self.gridsizer3.Add(self.topmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(pagewidth, pos=(2,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.pagewidth, pos=(2,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(botmarg,0,0,0,0)
-        self.gridsizer3.Add(self.botmargin,0,0,0,0)
+        self.grid_sizer_page_format.Add(pageheight, pos=(2,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.pageheight, pos=(2,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(pagewidth,0,0,0,0)
-        self.gridsizer3.Add(self.pagewidth,0,0,0,0)
+        self.grid_sizer_page_format.Add(scalefact, pos=(3,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        self.grid_sizer_page_format.Add(self.scaleval, pos=(3,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(pageheight,0,0,0,0)
-        self.gridsizer3.Add(self.pageheight,0,0,0,0)
+        grid_sizer.Add(self.grid_sizer_page_format, pos=(2,1), span=(1,6), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        self.gridsizer3.Add(scalefact,0,0,0,0)
-        self.gridsizer3.Add(self.scaleval,0,0,0,0)
+        grid_sizer.Add(extras, pos=(5,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.extras, pos=(5,2), span=(1,5), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(formatf, pos=(6,0), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.formatf, pos=(6,2), span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
+        grid_sizer.Add(self.browsef, pos=(6,5), span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border )
 
-        # 1.3.6.1 [SS] 2015-01-28
-        padding = wx.TOP | wx.RIGHT
-        self.gridsizer4.Add(extras, flag=wx.ALIGN_CENTER_VERTICAL | padding, border=border)
-        self.gridsizer4.Add(self.extras, flag=padding, border=border)
-        self.gridsizer4.Add((1,20))
-        self.gridsizer4.Add(formatf, flag=wx.ALIGN_CENTER_VERTICAL | padding, border=border)
-        self.gridsizer4.Add(self.formatf, flag=padding, border=border)
-        self.gridsizer4.Add(self.browsef, flag=wx.ALIGN_CENTER_VERTICAL | padding, border=border)
-
-
-        self.SetSizer(self.box)
-        self.Fit()
 
         # 1.3.6.1 [SS] 2015-01-08
         if self.settings['abcm2ps_clean'] or self.settings['abcm2ps_defaults']:
-            self.box.Show(self.gridsizer3, show=False)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(False)
         else:
-            self.box.Show(self.gridsizer3, show=True)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(True)
+        self.SetSizer(grid_sizer)
+        self.SetAutoLayout(True)
+        self.Fit()
+        self.Layout()
 
     def OnAbcm2psClean(self, evt):
         self.settings['abcm2ps_clean'] = self.chkm2psclean.GetValue()
         if self.settings['abcm2ps_clean'] or self.settings['abcm2ps_defaults']:
-            self.box.Show(self.gridsizer3, show=False)
+        #    #self.box.Show(self.gridsizer3, show=False)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(False)
         else:
-            self.box.Show(self.gridsizer3, show=True)
+            #self.box.Show(self.gridsizer3, show=True)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(True)
+        self.Layout()
 
     def OnAbcm2psDefaults(self, evt):
         self.settings['abcm2ps_defaults'] = self.chkm2psdef.GetValue()
         if self.settings['abcm2ps_clean'] or self.settings['abcm2ps_defaults']:
-            self.box.Show(self.gridsizer3, show=False)
+        #    self.box.Show(self.gridsizer3, show=False)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(False)
         else:
-            self.box.Show(self.gridsizer3, show=True)
+        #    self.box.Show(self.gridsizer3, show=True)
+            for sizeritem in self.grid_sizer_page_format.GetChildren():
+                sizeritem.Show(True)
+        self.Layout()
 
     def OnAbcm2psBar(self, evt):
         self.settings['abcm2ps_number_bars'] = self.chkm2psbar.GetValue()
-
 
     def OnAbcm2pslyrics(self, evt):
         self.settings['abcm2ps_no_lyrics'] = self.chkm2pslyr.GetValue()
@@ -3026,7 +3065,6 @@ class MyAbcm2psPage(wx.Panel):
 
     def OnAbcm2psend(self, evt):
         self.settings['abcm2ps_ignore_ends'] = self.chkm2psend.GetValue()
-
 
     # 1.3.6.2 [SS] 2015-03-15
     def OnPSScale(self, evt):
@@ -3147,6 +3185,9 @@ class ColorSettingsFrame(wx.Panel):
 
         grid_sizer = wx.GridBagSizer()
 
+        notecolors    = wx.StaticText(self, wx.ID_ANY, _('Colors for note highlighting in music score'))
+        editorcolors  = wx.StaticText(self, wx.ID_ANY, _('Colors of ABC code highlighting in editor'))
+
         note_highlight_color = self.settings.get('note_highlight_color', default_note_highlight_color)
         note_highlight_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color"))
         if PY3:
@@ -3157,12 +3198,66 @@ class ColorSettingsFrame(wx.Panel):
             b = int(note_highlight_color[5:7], 16)
             self.note_highlight_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, wx.Colour(r, g, b))
 
-        grid_sizer.Add(note_highlight_color_label, pos=(0,0), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
-        grid_sizer.Add(self.note_highlight_color_picker, pos=(0,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        note_highlight_follow_color = self.settings.get('note_highlight_follow_color', default_note_highlight_follow_color)
+        note_highlight_follow_color_label = wx.StaticText(self, wx.ID_ANY, _("Note highlight color when follow score"))
+        self.note_highlight_follow_color_picker = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(note_highlight_follow_color))
 
-        note_highlight_color_tooltip = _('Color of selected note or currently playing note')
+        grid_sizer.Add(notecolors,pos=(0,0),span=(1,10), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        
+        grid_sizer.Add(note_highlight_color_label, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(self.note_highlight_color_picker, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(note_highlight_follow_color_label, pos=(1,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer.Add(self.note_highlight_follow_color_picker, pos=(1,5), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+
+        note_highlight_color_tooltip = _('Color of selected note')
         self.note_highlight_color_picker.SetToolTip(wx.ToolTip(note_highlight_color_tooltip))
         self.note_highlight_color_picker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnNoteHighlightColorChanged)
+        note_highlight_follow_color_tooltip = _('Color of currently playing note')
+        self.note_highlight_follow_color_picker.SetToolTip(wx.ToolTip(note_highlight_follow_color_tooltip))
+        self.note_highlight_follow_color_picker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnNoteHighlightFollowColorChanged)
+
+        self.style_labels = {
+            'style_default_color':_("Default color"),
+            'style_chord_color':_("Color of chords"),
+            'style_bar_color':_("Color of bars"),
+            'style_comment_color':_("Color of comment"),
+            'style_specialcomment_color':_("Color of instructions/commands"),
+            'style_fieldindex_color':_("Color of field index"),
+            'style_field_color':_("Color of ABC fields"),
+            'style_fieldvalue_color':_("Color of ABC fields value"),
+            'style_embeddedfield_color':_("Color of embedded ABC fields"),
+            'style_embeddedfieldvalue_color':_("Color of embedded ABC fields values"),
+            'style_string_color':_("Color of string"),
+            'style_lyrics_color':_("Color of lyrics"),
+            'style_ornament_color':_("Color of ornament"),
+            'style_ornamentplus_color':_("Color of ornament plus"),
+            'style_ornamentexcl_color':_("Color of ornament excl"),
+            'style_grace_color':_("Color of grace notes")
+        }
+        
+        grid_sizer.Add(editorcolors,pos=(3,0),span=(1,10), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        i=4
+        j=1
+        self.color_picker = {}
+        for key, label in self.style_labels.items():
+            color = self.settings.get(key, default_style_color[key])
+            color_text_label = wx.StaticText(self, wx.ID_ANY, label)
+            self.color_picker[key] = wx.ColourPickerCtrl(self, wx.ID_ANY, colour=wx.Colour(color))
+            grid_sizer.Add(color_text_label, pos=(i,j), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            grid_sizer.Add(self.color_picker[key], pos=(i,j+1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+            self.color_picker[key].Bind(wx.EVT_COLOURPICKER_CHANGED, lambda evt, temp=key: self.OnFontColorChanged(evt,temp))
+            if j>=7:
+                i+=1
+                j=1
+            else:
+                j+=3
+        
+        self.restore_color = wx.Button(self, wx.ID_ANY, _('Restore default colors'))
+        check_toolTip = _('Restore default colors')
+        self.restore_color.SetToolTip(wx.ToolTip(check_toolTip))
+        
+        grid_sizer.Add(self.restore_color, pos=(i+1,7), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        self.restore_color.Bind(wx.EVT_BUTTON, self.OnRestoreDefaultColors, self.restore_color)
 
         self.SetSizer(grid_sizer)
         self.SetAutoLayout(True)
@@ -3175,6 +3270,35 @@ class ColorSettingsFrame(wx.Panel):
         self.settings['note_highlight_color'] = color
         self.Parent.Parent.Parent.Parent.renderer.highlight_color = color
 
+    def OnNoteHighlightFollowColorChanged(self, evt):
+        wxcolor = self.note_highlight_follow_color_picker.GetColour()
+        color = wxcolor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.settings['note_highlight_follow_color'] = color
+        self.Parent.Parent.Parent.Parent.renderer.highlight_follow_color = color
+
+    def UpdateEditor(self):
+        font_info = self.settings.get('font')
+        if font_info:
+            face, size = font_info[-1], font_info[0]
+            self.Parent.Parent.Parent.Parent.InitEditor(face, size)
+        else:
+            self.Parent.Parent.Parent.Parent.InitEditor()
+
+    def OnFontColorChanged(self, evt, settings_key):
+        wxcolor = self.color_picker[settings_key].GetColour()
+        color = wxcolor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.settings[settings_key] = color
+        self.UpdateEditor()
+        
+    def OnRestoreDefaultColors(self, evt):
+        self.settings['note_highlight_color'] = default_note_highlight_color
+        self.note_highlight_color_picker.SetColour(default_note_highlight_color)
+        self.settings['note_highlight_follow_color'] = default_note_highlight_follow_color
+        self.note_highlight_follow_color_picker.SetColour(default_note_highlight_follow_color)
+        for key, color in default_style_color.items():
+            self.settings[key] = color
+            self.color_picker[key].SetColour(color)
+        self.UpdateEditor()
 
 # 1.3.6 [SS] 2014-12-01
 # For controlling the way xml2abc and abc2xml operate
@@ -3185,7 +3309,8 @@ class MusicXmlPage(wx.Panel):
         self.SetBackgroundColour(dialog_background_colour)
         border = control_margin
 
-        headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\nYou find these functions under Files/export and import. Hovering the mouse over\none of the checkboxes will provide more explanation. Further documentation can be found\nin the Readme.txt files which come with the abc2xml.py-??.zip and xml2abc.py-??.zip\ndistributions available from the Wim Vree's web site.\n\n")
+        #headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\nYou find these functions under Files/export and import. Hovering the mouse over\none of the checkboxes will provide more explanation. Further documentation can be found\nin the Readme.txt files which come with the abc2xml.py-??.zip and xml2abc.py-??.zip\ndistributions available from the Wim Vree's web site.\n\n")
+        headingtxt = _("The settings on this page control behaviour of the functions abc2xml and xml2abc.\n\nYou find these functions under Files/export and import. Hovering the mouse over one of the checkboxes will provide more explanation.\nFurther documentation can be found from the Wim Vree's web site.\n")
 
         heading    = wx.StaticText(self, wx.ID_ANY, headingtxt)
         abc2xml    = wx.StaticText(self, wx.ID_ANY, _("abc2xml options"))
@@ -3203,12 +3328,13 @@ class MusicXmlPage(wx.Panel):
         self.chkXmlCompressed = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlUnfold = wx.CheckBox(self, wx.ID_ANY, '')
         self.chkXmlMidi = wx.CheckBox(self, wx.ID_ANY, '')
-        self.voltaval = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxchars = wx.TextCtrl(self, wx.ID_ANY)
-        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY)
-        self.creditval = wx.TextCtrl(self, wx.ID_ANY)
-        self.unitval  = wx.TextCtrl(self, wx.ID_ANY)
-        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY)
+        self.voltaval = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.maxchars = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.maxbars  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.creditval = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.unitval  = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        self.XmlPage = wx.TextCtrl(self, wx.ID_ANY, size=(55, 22))
+        #FAU Todo: expand option list to latest xml2abc capabilities
 
         self.chkXmlCompressed.SetValue(self.settings.get('xmlcompressed',False))
         self.chkXmlUnfold.SetValue(self.settings.get('xmlunfold',False))
@@ -3251,57 +3377,50 @@ class MusicXmlPage(wx.Panel):
         self.unitval.Bind(wx.EVT_TEXT, self.OnUnitval)
         self.XmlPage.Bind(wx.EVT_TEXT, self.OnXmlPage)
 
-        # 1.3.6 [SS] 2014-12-18
-        box = wx.BoxSizer(wx.VERTICAL)
-        gridsizer1 = wx.GridBagSizer(vgap = 8,hgap =2)
-        gridsizer2 = wx.FlexGridSizer(0,2,2,2)
-        box.Add(gridsizer1,0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=border)
-        box.Add(gridsizer2,0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=border)
+        grid_sizer = wx.GridBagSizer()
+        grid_sizer_abc2xml = wx.GridBagSizer()
+        grid_sizer_xml2abc = wx.GridBagSizer()
 
         flags=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
 
-        gridsizer1.Add(heading,(1,1))
+        grid_sizer.Add(heading, pos=(0,0), span=(1,4), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add((1,20))
-        gridsizer2.Add((1,20))
+        grid_sizer_abc2xml.Add(abc2xml, pos=(0,0), span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_abc2xml.Add(compressed, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_abc2xml.Add(self.chkXmlCompressed, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(abc2xml,0,0,0)
-        gridsizer2.Add((1,1))
+        grid_sizer_xml2abc.Add(xml2abc, pos=(0,0), span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(compressed, flag=flags, border=border)
-        gridsizer2.Add(self.chkXmlCompressed, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(unfold, pos=(1,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.chkXmlUnfold, pos=(1,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add((1,20))
-        gridsizer2.Add((1,20))
+        grid_sizer_xml2abc.Add(mididata, pos=(2,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.chkXmlMidi, pos=(2,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(xml2abc, flag=flags, border=border)
-        gridsizer2.Add((1,1))
+        grid_sizer_xml2abc.Add(volta, pos=(3,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.voltaval, pos=(3,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(unfold, flag=flags, border=border)
-        gridsizer2.Add(self.chkXmlUnfold, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(numchar, pos=(4,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.maxchars, pos=(4,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(mididata, flag=flags, border=border)
-        gridsizer2.Add(self.chkXmlMidi, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(numbars, pos=(5,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.maxbars, pos=(5,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(volta, flag=flags, border=border)
-        gridsizer2.Add(self.voltaval, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(credit, pos=(6,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.creditval, pos=(6,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(numchar, flag=flags, border=border)
-        gridsizer2.Add(self.maxchars, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(ulength, pos=(7,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.unitval, pos=(7,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(numbars, flag=flags, border=border)
-        gridsizer2.Add(self.maxbars, flag=flags, border=border)
+        grid_sizer_xml2abc.Add(xmlpage, pos=(8,1), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
+        grid_sizer_xml2abc.Add(self.XmlPage, pos=(8,2), flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
 
-        gridsizer2.Add(credit, flag=flags, border=border)
-        gridsizer2.Add(self.creditval, flag=flags, border=border)
-
-        gridsizer2.Add(ulength, flag=flags, border=border)
-        gridsizer2.Add(self.unitval, flag=flags, border=border)
-
-        gridsizer2.Add(xmlpage, flag=flags, border=border)
-        gridsizer2.Add(self.XmlPage, flag=flags, border=border)
-
-        self.SetSizer(box)
+        grid_sizer.Add(grid_sizer_abc2xml, pos=(1,0), flag=wx.ALL | wx.ALIGN_TOP, border=border)
+        grid_sizer.Add(50, 40, pos=(1,1))
+        grid_sizer.Add(grid_sizer_xml2abc, pos=(1,2), flag=wx.ALL | wx.ALIGN_TOP, border=border)
+        
+        self.SetSizer(grid_sizer)
+        self.SetAutoLayout(True)
         self.Fit()
         self.Layout()
 
@@ -4039,7 +4158,7 @@ class MainFrame(wx.Frame):
         self.editor.SetMarginType(1,stc.STC_MARGIN_NUMBER)
 
         # 1.3.6.2 [JWdJ] 2015-02
-        self.renderer = SvgRenderer(self.settings['can_draw_sharps_and_flats'], self.settings.get('note_highlight_color', default_note_highlight_color))
+        self.renderer = SvgRenderer(self.settings['can_draw_sharps_and_flats'], self.settings.get('note_highlight_color', default_note_highlight_color), self.settings.get('note_highlight_follow_color', default_note_highlight_follow_color))#'#FF0000')
         self.music_pane = MusicScorePanel(self, self.renderer)
         self.music_pane.SetBackgroundColour((255, 255, 255))
         self.music_pane.OnNoteSelectionChangedDesc = self.OnNoteSelectionChangedDesc
@@ -4324,9 +4443,15 @@ class MainFrame(wx.Frame):
                 line_start_offset = [m.start(0) for m in re.finditer(r'(?m)^', temp)]
 
                 selected_note_offsets = []
+                offset_chord = 0
                 for (_, _, abc_row, abc_col, desc) in self.selected_note_descs:
                     abc_row -= num_header_lines
-                    selected_note_offsets.append(line_start_offset[abc_row-1]+abc_col)
+                    note_offset = line_start_offset[abc_row-1]+abc_col
+                    if text[note_offset] == '[':
+                        offset_chord += 1
+                    if text[note_offset+offset_chord+1] == ']':
+                        offset_chord = 0
+                    selected_note_offsets.append(note_offset+offset_chord)
 
                 unselected_note_offsets = [(start_offset, end_offset) for (start_offset, end_offset, _) in notes if not any(p for p in selected_note_offsets if start_offset <= p < end_offset)]
                 unselected_note_offsets.sort()
@@ -4342,7 +4467,10 @@ class MainFrame(wx.Frame):
 
                 # for some strange reason the MIDI sequence seems to be cut-off in the end if the last note is short
                 # adding a silent extra note seems to fix this
-                text = text + os.linesep + '%%MIDI control 7 0' + os.linesep + 'A2'
+                #text = text + os.linesep + '%%MIDI control 7 0' + os.linesep + 'A2'
+                #FAU: the introduction of the previous line leads to have no sound at all on
+                #     selection. using embedded instruction doesn' work either Thus remove it
+                text = text.rstrip()# + '[I:MIDI control 7 0]' + os.linesep + 'A2'
 
                 return (tune, text)
             return (tune, self.editor.GetTextRange(position, end_position))
@@ -4446,7 +4574,6 @@ class MainFrame(wx.Frame):
             # if this was not actually a direct click on a note, but rather in between, then place the cursor just before the closest note
             if close_note_index is not None:
                 self.editor.SetSelectionEnd(self.editor.GetSelectionStart())
-
 
     def transpose_selected_note(self, amount):
         # TODO: finish this code
@@ -4726,7 +4853,7 @@ class MainFrame(wx.Frame):
         self.current_time_slice = current_time_slice
         if current_time_slice.page == self.current_page_index:
             try:
-                self.music_pane.draw_notes_highlighted(current_time_slice.indices)
+                self.music_pane.draw_notes_highlighted(current_time_slice.indices, highlight_follow=True)
             except:
                 pass
                 # self.music_and_score_out_of_sync()
@@ -6366,8 +6493,8 @@ class MainFrame(wx.Frame):
                 (),
                 (_("&Find...") + "\tCtrl+F", '', self.OnFind),
                 (_("Find in Files") + '\tCtrl+Shift+F', '', self.OnSearchDirectories, self.disable_in_exclusive_mode), # 1.3.6 [SS] 2014-11-21
-                (_("Find &Next") + "\tF3", '', self.OnFindNext),
-                (_("&Replace...") + "\tCtrl+H", '', self.OnReplace),
+                (_("Find &Next") + "\t"+("F3" if wx.Platform != '__WXMAC__' else "Ctrl+G"), '', self.OnFindNext),
+                (_("&Replace...") + "\t"+("Ctrl+H" if wx.Platform != "__WXMAC__" else "Alt+Ctrl+F"), '', self.OnReplace),
                 (),
                 (_("&Select all") + "\tCtrl+A", '', self.OnSelectAll)]),
             (_("&Settings") , [
@@ -6387,6 +6514,7 @@ class MainFrame(wx.Frame):
             (_("&Internals"), [ #p09 [SS] 2014-10-22
                 (_("Messages"), _("Show warnings and errors"), self.OnShowMessages),
                 (_("Input processed tune"), '', self.OnShowAbcTune),
+                (_("List of Tunes"), '', self.OnShowTunesList),
                 (_("Output midi file"), '', self.OnShowMidiFile),
                 (_("Show settings status"), '', self.OnShowSettings)]),
             (_("&Help")     , [
@@ -6443,6 +6571,20 @@ class MainFrame(wx.Frame):
         else:
             win.ShowText(visible_abc_code)
             # 1.3.6.1 [SS] 2015-02-01
+            win.Iconize(False)
+            win.Raise()
+
+    def OnShowTunesList(self, evt):
+        win = wx.FindWindowByName('tuneslistframe')
+        tunes_list = 'index|title|startline\n'
+        for i, (index, title, startline) in enumerate(self.tunes):
+            tunes_list = tunes_list + str(index) + '|' + str(title) + '|' + str(startline) +'\n'
+        if win is None:
+            self.tuneslist_frame = MyTunesListFrame()
+            self.tuneslist_frame.ShowText(tunes_list)
+            self.tuneslist_frame.Show()
+        else:
+            win.ShowText(tunes_list)
             win.Iconize(False)
             win.Raise()
 
@@ -6776,78 +6918,311 @@ class MainFrame(wx.Frame):
                 frame.load_and_apply_settings()
                 frame.InitEditor()
 
-    def ScrollMusicPaneToMatchEditor(self, select_closest_note=False, select_closest_page=False):
-        tune = self.GetSelectedTune()
-        if not tune or not self.current_svg_tune:
-            return
-        page = self.music_pane.current_page # 1.3.6.2 [JWdJ]
+    def closestNoteData(self, page, row_offset, line, col):
+        """Find the NoteData of the closest note to cursor position
+        
+        Parameters
+        ----------
+        page : SvgPage
+            One page of score of SvgPage
+        row_offset : int
+            An offset to align line to a line of note
+        line : int
+            Line where the cursor or selection is in the editor
+        col : int
+            Col where the cursor or selection is in the editor
+            
+        Returns
+        -------
+        closest_note_data : namedTuple NoteData
+            closest NoteData found in the page
+        """
+        
+        closest_note_data = None
+        line -= row_offset
+        # Next variables initialised with a value that should be big enough to find closest
+        closest_col = -9999
+        note_delta = 9999
+        bar_start = bar_start_tmp = 0
+        bar_end = 9999
+        
+        if page.notes_in_row is not None and line in page.notes_in_row:
+            for note_data in page.notes_in_row[line]:
+                # note_type B is a Bar and first listed
+                # need to manage cursor after last bar of the line
+                if note_data.note_type == "B" and bar_start == 0:
+                    if note_data.col > col:
+                        bar_end = min(bar_end,note_data.col)
+                        bar_start = bar_start_tmp
+                    if note_data.col < col:
+                        bar_start_tmp = max(bar_start_tmp,note_data.col)
+                # note_type N is a Note, note_type R is a Rest
+                if (note_data.note_type == "N" or note_data.note_type == "R") and bar_start<=note_data.col<=bar_end and (closest_note_data is None or col>=note_data.col) and (abs(col - note_data.col)<note_delta): 
+                    note_delta=abs(col - note_data.col)
+                    closest_note_data = note_data
+        
+        return closest_note_data
 
+    def FindNotesIndicesBetween2Notes(self, page, note_data_1, note_data_2):
+        """Find the indices of the notes between 2 notes
+        
+        Need to consider the various cases of selection.
+        For now only single selection mode is supported with contiguous selection.
+        Todo: manage multiple selections
+        
+        Parameters
+        ----------
+        page : SvgPage
+            One page of score of SvgPage
+        note_data_1 : namedtuple note_data
+            Note data of the 1st note
+        note_data_2 : namedtuple note_data
+            Note data of the 2nd note
+            
+        Returns
+        -------
+        set_of_indices : set
+            set containing all the indices of notes between two other notes (included)
+        """
+        
+        set_of_indices = set()
+        
+        for row in page.notes_in_row:
+            if row == note_data_1.row and row == note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col>=note_data_1.col and note_data.col<=note_data_2.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+                break
+            if row == note_data_1.row and row < note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col>=note_data_1.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+            elif row > note_data_1.row and row < note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R"):
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+            elif row > note_data_1.row and row == note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col<=note_data_2.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+        
+        return set_of_indices
+        
+    def ScrollMusicPaneToMatchEditor(self, select_closest_note=False, select_closest_page=False):
+        """Scroll the score in the Music Pane to match the editor pointer and highlight notes
+        
+        Parameters
+        ----------
+        select_closest_note : bool, optional
+            A flag to identify whether note closest to pointer in editor or
+            text selection is to be highlighted (default is False)
+        select_closest_page : bool, optional
+            A flag used to align score view in Music Pane to editor selection
+            (default is False)
+            
+        Returns
+        -------
+        Nothing to return
+        """
+        
+        tune = self.GetSelectedTune()
+        if not tune or not self.current_svg_tune or (not select_closest_note and not select_closest_page):
+            #FAU: No need to continue to process
+            return
+        #if len(self.music_pane.current_page.notes) == 0:
+        #    #FAU: Notes were never drawn, force to draw otherwise error in multipage when switching page
+        #    self.music_pane.current_page.draw()
+        
         # workaround for the fact the abcm2ps returns incorrect row numbers
         # check the row number of the first note and if it doesn't agree with the actual value
         # then pretend that we have more or less extra header lines
         num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
 
-        current_pos = self.editor.GetCurrentPos()
-        current_row = self.editor.LineFromPosition(current_pos)
+        caret_current_pos = self.editor.GetCurrentPos()
+        caret_current_row = self.editor.LineFromPosition(caret_current_pos)
         tune_first_line_no = self.editor.LineFromPosition(tune.offset_start)
 
-        if select_closest_page:
-            abc_from_editor = AbcTune(self.editor.GetTextRange(tune.offset_start, tune.offset_end))
-            first_note_editor = abc_from_editor.first_note_line_index
-            if first_note_editor is not None:
-                current_body_row = current_row - tune_first_line_no - first_note_editor
-                if current_body_row >= 0:
-                    # create a list of pages but start with the current page because it has the most chance
-                    page_indices = [self.current_page_index] + \
-                                   [p for p in range(self.current_svg_tune.page_count) if p != self.current_page_index]
-                    current_svg_row = current_body_row + self.current_svg_tune.first_note_line_index + 1 # row in svg-file is 1-based
-                    new_page_index = None
-                    for page_index in page_indices:
-                        page = self.current_svg_tune.render_page(page_index, self.renderer)
-                        if page and page.notes_in_row and current_svg_row in page.notes_in_row:
-                            new_page_index = page_index
-                            break
+        #FAU: Get the text selection and then corresponding line
+        #     To enable to highlight notes based on selection need also to make sure
+        #     on which svgPage the selection starts and ends
+        p1, p2 = self.editor.GetSelection()
+        line_p2 = self.editor.LineFromPosition(p2)
+        line_p1 = self.editor.LineFromPosition(p1)
+        p1_page_index = p2_page_index = self.current_page_index
+        
+        #FAU: This part is to find the associated svgPage.
+        #     It used to exit as soon as page of the cursor is found but need to browse completely
+        #     as selection can be on multiple svgPages
+        #if select_closest_page or select_closest_note:
+        abc_from_editor = AbcTune(self.editor.GetTextRange(tune.offset_start, tune.offset_end))
+        first_note_editor = abc_from_editor.first_note_line_index
+        
+        #if first_note_editor is not None:
+        if first_note_editor is None:
+            #No need to continue as no Note
+            return
+        
+        caret_body_row = caret_current_row - tune_first_line_no - first_note_editor
+        p1_body_row = max(line_p1 - tune_first_line_no - first_note_editor, 0)
+        p2_body_row = max(line_p2 - tune_first_line_no - first_note_editor,0)
+        if caret_body_row >= 0:
+            # create a list of pages but start with the current page because it has the most chance
+            #page_indices = [self.current_page_index] + \
+            #               [p for p in range(self.current_svg_tune.page_count) if p != self.current_page_index]
+            #FAU: To manage selection no need to prioritize
+            page_indices = [p for p in range(self.current_svg_tune.page_count)]
+            caret_svg_row = caret_body_row + self.current_svg_tune.first_note_line_index + 1 # row in svg-file is 1-based
+            p1_row = p1_body_row + self.current_svg_tune.first_note_line_index + 1 
+            p2_row = p2_body_row + self.current_svg_tune.first_note_line_index + 1 
+            new_page_index = None
+            for page_index in page_indices:
+                page = self.current_svg_tune.render_page(page_index, self.renderer)
+                page.draw()
+                if page and page.notes_in_row and caret_svg_row in page.notes_in_row:
+                    new_page_index = page_index
+                    #FAU: Do not break anymore to find other pages for selection 
+                    #break
+                    #if p1_row == caret_svg_row and p2_row == caret_svg_row:
+                    #    p1_page_index = p2_page_index = page_index
+                    #    p1_page = p2_page = page
+                    #    break
+                if page and page.notes_in_row and p1_row in page.notes_in_row:
+                    p1_page_index = page_index
+                    p1_page = page
+                if page and page.notes_in_row and p2_row in page.notes_in_row:
+                    p2_page_index = page_index
+                    p2_page = page
+                #if new_page_index is not None and p1_page_index is not None and p2_page_index is not None:
+                #    break
 
-                    if new_page_index is not None and new_page_index != self.current_page_index:
-                        self.select_page(new_page_index)
-
+            if select_closest_page and new_page_index is not None and new_page_index != self.current_page_index:
+                self.select_page(new_page_index)
+        else:
+            select_closest_note=False
+            
+        musicpane_current_page = self.music_pane.current_page # 1.3.6.2 [JWdJ]
+        if len(musicpane_current_page.notes) == 0:
+            #FAU: at this point in time notes should be drawn already thus if no notes then remove flag select
+            select_closest_note=False
+        
+        #FAU: This is to track for the current page shown in the musicpane.
+        current_page_index = self.current_page_index
+        
+        #FAU: To search for the closest note, value initialised corresponding to a long distance
         closest_xy = None
-        closest_col = -9999
-        note_delta = 9999
-        line = self.editor.GetCurrentLine()
-        col = self.editor.GetCurrentPos() - self.editor.PositionFromLine(line)
+        #closest_col = -9999
+        #note_delta = 9999
+        #closest_note_indice = None
+        closest_note_indice_p2 = None
+        closest_note_data_p1 = None
+        closest_note_data_p2 = None
+        
+        selection_multi_notes = False
+        current_position_is_p1 = False
+        if p1!=p2 and select_closest_note:
+            #FAU:  As in a selection do not highlight the note just after the cursor. Thus remove 1.
+            p2 -= 1
+            selection_multi_notes = True
+            #FAU: current_position_is_p1 is defined to identify which page to show depending on selection
+            #     from left to right (False) or right to left (True).
+            if p1 == caret_current_pos:
+                current_position_is_p1 = True
+        
         # 1.3.6.2 [JWdJ] 2015-02
         row_offset = tune_first_line_no - 1 - num_header_lines
-
-        # 1.3.6.2 [JWdJ] 2015-02
-        for i, (x, y, abc_row, abc_col, desc) in enumerate(page.notes):
-            abc_row += row_offset
-            #FAU 20250126: search for the closest while not switching to next one to early
-            #              with if abc_row == line and and (abs(col - abc_col) < abs(closest_col - abc_col))
-            #              as soon as cursor shifted after the letter of note next note was selected even if only duration of previous note
-            #              %%TODO%%: improve to consider highlight only if cursor is in a note?
-            if abc_row == line and col>=abc_col and (abs(col - abc_col)<note_delta): # and (abs(col - abc_col) < abs(closest_col - abc_col))
-                note_delta=abs(col - abc_col)
-                closest_col = abc_col
-                closest_xy = (x, y)
-                if select_closest_note:
-                    if page.selected_indices != {i}:
-                        # 1.3.6.2 [JWdJ] 2015-02
-                        page.clear_note_selection()
-                        page.add_note_to_selection(i)
-                        self.selected_note_indices = [i]
-                        self.selected_note_descs = [page.notes[i] for i in self.selected_note_indices]
-
-        if closest_xy:
+        
+        if select_closest_note:
+            #FAU: This is to manage the case with selection not completely in the current page or even not at all comprised
+            if p2_page_index != current_page_index or p1_page_index != current_page_index:                
+                if (p2_page_index > current_page_index and p1_page_index > current_page_index) or (p2_page_index < current_page_index and p1_page_index < current_page_index):
+                    #FAU: no need to continue to process so can return
+                    musicpane_current_page.clear_note_selection()
+                    if select_closest_note:
+                        wx.CallAfter(self.music_pane.redraw)
+                    return
+                else:
+                    if p2_page_index > current_page_index:
+                        closest_note_data_p2 = self.closestNoteData(p2_page,row_offset,line_p2,p2 - self.editor.PositionFromLine(line_p2))
+                        closest_note_indice_p2 = p2_page.get_indices_for_row_col(closest_note_data_p2.row,closest_note_data_p2.col)
+                    if p1_page_index < current_page_index:
+                        closest_note_data_p1 = self.closestNoteData(p1_page,row_offset,line_p1,col = p1 - self.editor.PositionFromLine(line_p1))
+            
+            #FAU: search note data corresponding to selection
+            if closest_note_data_p2 is None:
+                col = p2 - self.editor.PositionFromLine(line_p2)
+                closest_note_data_p2 = self.closestNoteData(musicpane_current_page,row_offset,line_p2,col)
+            if selection_multi_notes and closest_note_data_p2 is not None:
+                if closest_note_data_p1 is None:
+                    col = p1 - self.editor.PositionFromLine(line_p1)
+                    closest_note_data_p1 = self.closestNoteData(musicpane_current_page,row_offset,line_p1,col)
+                if closest_note_data_p1 is None:
+                    #No note found close to p1 so ignore multi note selection
+                    selection_multi_notes = False
+                else:
+                    selected_indices = self.FindNotesIndicesBetween2Notes(musicpane_current_page, closest_note_data_p1, closest_note_data_p2)
+            else:
+                selection_multi_notes = False
+        
+        ## 1.3.6.2 [JWdJ] 2015-02
+        #for i, (x, y, abc_row, abc_col, desc) in enumerate(page.notes):
+        #    abc_row += row_offset
+        #    #FAU 20250126: search for the closest while not switching to next one to early
+        #    #              with if abc_row == line and and (abs(col - abc_col) < abs(closest_col - abc_col))
+        #    #              as soon as cursor shifted after the letter of note next note was selected even if only duration of previous note
+        #    #              %%TODO%%: improve to consider highlight only if cursor is in a note?
+        #    if abc_row == line and col>=abc_col and (abs(col - abc_col)<note_delta): # and (abs(col - abc_col) < abs(closest_col - abc_col))
+        #        note_delta=abs(col - abc_col)
+        #        closest_col = abc_col
+        #        closest_xy = (x, y)
+        #        if select_closest_note:
+        #            closest_note_indice = i
+        #            #if page.selected_indices != {i}:
+        #            #    # 1.3.6.2 [JWdJ] 2015-02
+        #            #    page.clear_note_selection()
+        #            #    page.add_note_to_selection(i)
+        #            #    self.selected_note_indices = [i]
+        #            #    self.selected_note_descs = [page.notes[i] for i in self.selected_note_indices]
+        
+        if closest_note_data_p2 is not None:
+            if closest_note_indice_p2 is None:
+                closest_note_indice_p2 = musicpane_current_page.get_indices_for_row_col(closest_note_data_p2.row,closest_note_data_p2.col)
+            closest_xy = (closest_note_data_p2.x,closest_note_data_p2.y)
+            musicpane_current_page.clear_note_selection()
+            if selection_multi_notes:
+                self.selected_note_indices = []
+                for i in selected_indices:
+                    musicpane_current_page.add_note_to_selection(i)
+                    self.selected_note_indices.append(i)
+            elif select_closest_note:
+                for i in closest_note_indice_p2:
+                    musicpane_current_page.add_note_to_selection(i)
+                    self.selected_note_indices = [i]
+                
+            self.selected_note_descs = [musicpane_current_page.notes[i] for i in self.selected_note_indices]
+        elif select_closest_note:
+            musicpane_current_page.clear_note_selection()
+            if select_closest_note:
+                wx.CallAfter(self.music_pane.redraw)
+        
+        if closest_note_data_p1 is not None and ((current_position_is_p1 and 
+                    closest_note_data_p1.row in musicpane_current_page.notes_in_row)
+                    or
+                    (p1_page_index == current_page_index and p2_page_index != current_page_index)):
+            closest_xy = (closest_note_data_p1.x,closest_note_data_p1.y)
+        
+        if closest_xy is not None:
             if select_closest_note:
                 wx.CallAfter(self.music_pane.redraw)
             self.scroll_music_pane(*closest_xy)
 
     def scroll_music_pane(self, x, y):
+        #FAU: Scroll function need to take into account the zoom factor
+        x = self.zoom_factor*x
+        y = self.zoom_factor*y
         sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
         vw, vh = self.music_pane.VirtualSize
         w, h = self.music_pane.ClientSize
-        margin = 20
+        margin = 50
         orig_scroll = (sx, sy)
         if not sx+margin <= x <= w+sx-margin:
             sx = x - w + w/5
@@ -7385,6 +7760,8 @@ class MainFrame(wx.Frame):
         p1, p2 = self.editor.GetSelection()
         if p1 == p2:
             self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=self.mni_auto_refresh.IsChecked())
+        else:
+            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=False)
 
     # p09 This function needs more work, see comments below.
     def OnPosChanged(self, evt):
@@ -7882,6 +8259,10 @@ class MainFrame(wx.Frame):
         try:
             page = self.current_svg_tune.render_page(self.current_page_index, self.renderer)
             self.music_pane.set_page(page)
+            #FAU 20250128: rebuild highlight based on position in editor
+            #              ScrollMusicPaneToMatchEditor is called without requesting to go to closest page
+            page.clear_note_selection()
+            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=False)
             self.update_statusbar_and_messages()
         except Exception as e:
             error_msg = traceback.format_exc()
@@ -8178,29 +8559,29 @@ class MainFrame(wx.Frame):
 
         editor.SetProperty("fold", "0")
         set_style = editor.StyleSetSpec
-        set_style(self.styler.STYLE_DEFAULT, "fore:#000000,face:%s,size:%d" % (font, size))
-        set_style(self.styler.STYLE_CHORD, "fore:#000000,face:%s,size:%d" % (font, size))
+        set_style(self.styler.STYLE_DEFAULT, "fore:%s,face:%s,size:%d" % (self.settings.get('style_default_color',default_style_color['style_default_color']), font, size))
+        set_style(self.styler.STYLE_CHORD, "fore:%s,face:%s,size:%d" % (self.settings.get('style_chord_color',default_style_color['style_chord_color']), font, size))
         # Comments
-        set_style(self.styler.STYLE_COMMENT_NORMAL, "fore:#AAAAAA,face:%s,italic,size:%d" % (font, size))
-        set_style(self.styler.STYLE_COMMENT_SPECIAL, "fore:#888888,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_COMMENT_NORMAL, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_comment_color',default_style_color['style_comment_color']), font, size))
+        set_style(self.styler.STYLE_COMMENT_SPECIAL, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_specialcomment_color',default_style_color['style_specialcomment_color']), font, size))
         # Bar
-        set_style(self.styler.STYLE_BAR, "fore:#000099,face:%s,bold,size:%d" % (font, size))
+        set_style(self.styler.STYLE_BAR, "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_bar_color',default_style_color['style_bar_color']), font, size))
         # Field
-        set_style(self.styler.STYLE_FIELD,                "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
-        set_style(self.styler.STYLE_FIELD_VALUE,          "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
-        set_style(self.styler.STYLE_EMBEDDED_FIELD,       "fore:#8C7853,face:%s,bold,size:%d" % (font, size))
-        set_style(self.styler.STYLE_EMBEDDED_FIELD_VALUE, "fore:#8C7853,face:%s,italic,size:%d" % (font, size))
-        set_style(self.styler.STYLE_FIELD_INDEX,          "fore:#000000,face:%s,bold,underline,size:%d" % (font, size))
+        set_style(self.styler.STYLE_FIELD,                "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_field_color',default_style_color['style_field_color']), font, size))
+        set_style(self.styler.STYLE_FIELD_VALUE,          "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_fieldvalue_color',default_style_color['style_fieldvalue_color']), font, size))
+        set_style(self.styler.STYLE_EMBEDDED_FIELD,       "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_embeddedfield_color',default_style_color['style_embeddedfield_color']), font, size))
+        set_style(self.styler.STYLE_EMBEDDED_FIELD_VALUE, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_embeddedfieldvalue_color',default_style_color['style_embeddedfieldvalue_color']), font, size))
+        set_style(self.styler.STYLE_FIELD_INDEX,          "fore:%s,face:%s,bold,underline,size:%d" % (self.settings.get('style_fieldindex_color',default_style_color['style_fieldindex_color']), font, size))
         # Single quoted string
-        set_style(self.styler.STYLE_STRING, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_STRING, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_string_color',default_style_color['style_string_color']), font, size))
         # Lyrics
-        set_style(self.styler.STYLE_LYRICS, "fore:#7F7F7F,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_LYRICS, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_lyrics_color',default_style_color['style_lyrics_color']), font, size))
 
-        set_style(self.styler.STYLE_GRACE, "fore:#5a3700,face:%s,italic,size:%d" % (font, size))
+        set_style(self.styler.STYLE_GRACE, "fore:%s,face:%s,italic,size:%d" % (self.settings.get('style_grace_color',default_style_color['style_grace_color']), font, size))
 
-        set_style(self.styler.STYLE_ORNAMENT, "fore:#777799,face:%s,bold,size:%d" % (font, size))
-        set_style(self.styler.STYLE_ORNAMENT_PLUS, "fore:#888888,face:%s,size:%d" % (font, size))
-        set_style(self.styler.STYLE_ORNAMENT_EXCL, "fore:#888888,face:%s,size:%d" % (font, size))
+        set_style(self.styler.STYLE_ORNAMENT, "fore:%s,face:%s,bold,size:%d" % (self.settings.get('style_ornament_color',default_style_color['style_ornament_color']), font, size))
+        set_style(self.styler.STYLE_ORNAMENT_PLUS, "fore:%s,face:%s,size:%d" % (self.settings.get('style_ornamentplus_color',default_style_color['style_ornamentplus_color']), font, size))
+        set_style(self.styler.STYLE_ORNAMENT_EXCL, "fore:%s,face:%s,size:%d" % (self.settings.get('style_ornamentexcl_color',default_style_color['style_ornamentexcl_color']), font, size))
 
         editor.SetModEventMask(wx.stc.STC_MODEVENTMASKALL & ~(wx.stc.STC_MOD_CHANGESTYLE | wx.stc.STC_PERFORMED_USER)) # [1.3.7.4] JWDJ: don't fire OnModified on style changes
         editor.Colourise(0, editor.GetLength())
@@ -8707,9 +9088,9 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="https://www.scintilla.org/">scintilla</a> for the text editor used for ABC code</li>
 <li><a href="https://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
 <li><a href="https://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="https://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
-<li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python by <a href="https://wim.vree.org/svgParse/index.html">Willem Vree</a>)</li>
+<li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python with a <a href="https://wim.vree.org/svgParse/testplayer.html">player</a> by <a href="https://wim.vree.org/svgParse/">Willem Vree</a>)</li>
 <li><a href="https://github.com/jheinen/mplay">Python MIDI Player</a> for playing midi on Mac</li>
-<li>Thanks to Guido Gonzato for providing the fields and command reference.
+<li>Thanks to Guido Gonzato for providing the fields and command reference extracted from his <a href="https://abcplus.sourceforge.net/#ABCGuide">Making music with ABC guide</a>.</li>
 <li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german), Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch) and Wu&nbsp;Xiaotian&nbsp;(chinese).</li>
 <li>Universal binaries of <a href="https://abcplus.sourceforge.net/#abcm2ps">abcm2ps</a> and <a href="https://abcplus.sourceforge.net/#abcmidi">abc2midi</a> for OSX are available thanks to Chuck&nbsp;Boody and Guido Gonzato</li>
 </ul>
@@ -8758,6 +9139,27 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
     def OnLinkClicked(self, evt):
         webbrowser.open(evt.GetLinkInfo().GetHref())
         return wx.html.HTML_BLOCK
+
+
+class MyTunesListFrame(wx.Frame):
+    ''' Creates the TextCtrl for displaying the tunes list'''
+    def __init__(self):
+        # 1.3.6.1 [JWdJ] 2014-01-30 Resizing message window fixed
+        wx.Frame.__init__(self, wx.GetApp().TopWindow, wx.ID_ANY, _("List of tunes"),style=wx.DEFAULT_FRAME_STYLE,name='tuneslistframe',size=(600,240))
+        # Add a panel so it looks the correct on all platforms
+        self.panel = ScrolledPanel(self)
+        self.basicText = wx.TextCtrl(self.panel, wx.ID_ANY, "",style=wx.TE_MULTILINE | wx.TE_READONLY)
+        # 1.3.6.3 [JWDJ] changed to fixed font so Abcm2ps-messages with a ^ make sense
+        font = wx.Font(10, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        self.basicText.SetFont(font)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.basicText,1, wx.ALL|wx.EXPAND)
+        self.panel.SetSizer(sizer)
+        self.panel.SetupScrolling()
+
+    def ShowText(self,text):
+        self.basicText.Clear()
+        self.basicText.AppendText(text)
 
 
 #p09 2014-10-22
@@ -8904,12 +9306,38 @@ class MyApp(wx.App):
         L.sort(key=lambda f: not f.IsActive()) # make sure an active frame comes first in the list
         return L
 
-    # def MacOpenFile(self, filename):	# [EPO] 2018-11-20 TODO  dup open file creates two frames (why?)
-    #     frame = self.NewMainFrame()
-    #     frame.Show(True)
-    #     self.SetTopWindow(frame)
-    #     ##path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
-    #     frame.load_or_import(filename)
+    def MacOpenFile(self, filename):	# [EPO] 2018-11-20 TODO  dup open file creates two frames (why?)
+        """Called for files dropped on dock icon, or opened via finders context menu"""
+        #dlg = wx.MessageDialog(None,
+        #                       "This app was just asked to open:\n%s\n"%filename,
+        #                       "File Dropped",
+        #                       wx.OK|wx.ICON_INFORMATION)
+        #dlg.ShowModal()
+        #dlg.Destroy()
+        #frame = self.NewMainFrame()
+        #frame.Show(True)
+        #self.SetTopWindow(frame)
+        ##path = os.path.abspath(sys.argv[1]).decode(sys.getfilesystemencoding())
+        #self.frame.load_or_import(filename)
+        if not self.frame.editor.GetModify() and not self.frame.current_file:     # if a new unmodified document
+            self.frame.load(filename)
+        else:
+            self.frame = self.NewMainFrame()
+            self.frame.load(filename)
+            
+    def MacNewFile(self):
+        #dlg = wx.MessageDialog(None,
+        #                       "This app was just asked to launch",
+        #                       "App started",
+        #                       wx.OK|wx.ICON_INFORMATION)
+        #dlg.ShowModal()
+        #dlg.Destroy()
+        recent_file = self.settings.get('recentfiles', '').split('|')[0]
+        if recent_file and os.path.exists(recent_file):
+            path = recent_file
+
+        if path :
+            self.frame.load_or_import(path)
 
     def OnInit(self):
         try:
@@ -8933,6 +9361,7 @@ class MyApp(wx.App):
 
             self.CheckCanDrawSharpFlat()
             options = {}
+            
             path = None
             if len(sys.argv) > 1:
                 if sys.version_info >= (3,0,0): #FAU 20210101: In Python3 there isn't anymore the decode.
@@ -8963,7 +9392,8 @@ class MyApp(wx.App):
                 if recent_file and os.path.exists(recent_file):
                     path = recent_file
 
-            if path:
+            #FAU: on Mac the sys.frozen is set by py2app and pyinstaller and is unset otherwise getattr( sys, 'frozen', False)
+            if path and wx.Platform != "__WXMAC__":
                 self.frame.load_or_import(path)
         except:
             sys.stdout.write(traceback.format_exc())
