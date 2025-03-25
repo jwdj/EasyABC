@@ -643,3 +643,6 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Enable Midi playback for Mac based on Apple DLS Synthetiser thanks to mplay library (aupfred)
 - Fix Musicscore gets blank when clicking on the musicpanel (aupfred)
 - Updated about page and abc reference (aupfred)
+- Fix playing issue on selection when no extra header lines to be created by EasyABC (aupfred)
+- MacOS adaptation on UI
+- New: distinguishable color for 'select' and 'follow' (aupfred)
