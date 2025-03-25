@@ -29,7 +29,7 @@ program_name = 'EasyABC ' + program_version
 #     import faulthandler  # pip install faulthandler
 #     faulthandler.enable()
 # except ImportError:
-#     print('faulthandler not installed. Try: pip install faulthandler')
+#     sys.stderr.write('faulthandler not installed. Try: pip install faulthandler\n')
 #     pass
 
 import sys
@@ -107,7 +107,7 @@ try:
     from fluidsynthplayer import *
     fluidsynth_available = True
 except ImportError:
-    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.')
+    sys.stderr.write('Warning: FluidSynth library not found. Playing using a SoundFont (.sf2) is disabled.\n')
     # sys.stderr.write(traceback.format_exc())
     fluidsynth_available = False
 
@@ -156,7 +156,7 @@ except ImportError:
     try:
         import pypm
     except ImportError:
-        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work')
+        sys.stderr.write('Warning: pygame/pypm module not found. Recording midi will not work\n')
 finally:
     sys.stdout = old_stdout
 
@@ -6741,78 +6741,311 @@ class MainFrame(wx.Frame):
                 frame.load_and_apply_settings()
                 frame.InitEditor()
 
-    def ScrollMusicPaneToMatchEditor(self, select_closest_note=False, select_closest_page=False):
-        tune = self.GetSelectedTune()
-        if not tune or not self.current_svg_tune:
-            return
-        page = self.music_pane.current_page # 1.3.6.2 [JWdJ]
+    def closestNoteData(self, page, row_offset, line, col):
+        """Find the NoteData of the closest note to cursor position
+        
+        Parameters
+        ----------
+        page : SvgPage
+            One page of score of SvgPage
+        row_offset : int
+            An offset to align line to a line of note
+        line : int
+            Line where the cursor or selection is in the editor
+        col : int
+            Col where the cursor or selection is in the editor
+            
+        Returns
+        -------
+        closest_note_data : namedTuple NoteData
+            closest NoteData found in the page
+        """
+        
+        closest_note_data = None
+        line -= row_offset
+        # Next variables initialised with a value that should be big enough to find closest
+        closest_col = -9999
+        note_delta = 9999
+        bar_start = bar_start_tmp = 0
+        bar_end = 9999
+        
+        if page.notes_in_row is not None and line in page.notes_in_row:
+            for note_data in page.notes_in_row[line]:
+                # note_type B is a Bar and first listed
+                # need to manage cursor after last bar of the line
+                if note_data.note_type == "B" and bar_start == 0:
+                    if note_data.col > col:
+                        bar_end = min(bar_end,note_data.col)
+                        bar_start = bar_start_tmp
+                    if note_data.col < col:
+                        bar_start_tmp = max(bar_start_tmp,note_data.col)
+                # note_type N is a Note, note_type R is a Rest
+                if (note_data.note_type == "N" or note_data.note_type == "R") and bar_start<=note_data.col<=bar_end and (closest_note_data is None or col>=note_data.col) and (abs(col - note_data.col)<note_delta): 
+                    note_delta=abs(col - note_data.col)
+                    closest_note_data = note_data
+        
+        return closest_note_data
 
+    def FindNotesIndicesBetween2Notes(self, page, note_data_1, note_data_2):
+        """Find the indices of the notes between 2 notes
+        
+        Need to consider the various cases of selection.
+        For now only single selection mode is supported with contiguous selection.
+        Todo: manage multiple selections
+        
+        Parameters
+        ----------
+        page : SvgPage
+            One page of score of SvgPage
+        note_data_1 : namedtuple note_data
+            Note data of the 1st note
+        note_data_2 : namedtuple note_data
+            Note data of the 2nd note
+            
+        Returns
+        -------
+        set_of_indices : set
+            set containing all the indices of notes between two other notes (included)
+        """
+        
+        set_of_indices = set()
+        
+        for row in page.notes_in_row:
+            if row == note_data_1.row and row == note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col>=note_data_1.col and note_data.col<=note_data_2.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+                break
+            if row == note_data_1.row and row < note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col>=note_data_1.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+            elif row > note_data_1.row and row < note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R"):
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+            elif row > note_data_1.row and row == note_data_2.row:
+                for note_data in page.notes_in_row[row]:
+                    if (note_data.note_type == "N" or note_data.note_type == "R") and note_data.col<=note_data_2.col:
+                        set_of_indices = set_of_indices.union(page.get_indices_for_row_col(note_data.row,note_data.col))
+        
+        return set_of_indices
+        
+    def ScrollMusicPaneToMatchEditor(self, select_closest_note=False, select_closest_page=False):
+        """Scroll the score in the Music Pane to match the editor pointer and highlight notes
+        
+        Parameters
+        ----------
+        select_closest_note : bool, optional
+            A flag to identify whether note closest to pointer in editor or
+            text selection is to be highlighted (default is False)
+        select_closest_page : bool, optional
+            A flag used to align score view in Music Pane to editor selection
+            (default is False)
+            
+        Returns
+        -------
+        Nothing to return
+        """
+        
+        tune = self.GetSelectedTune()
+        if not tune or not self.current_svg_tune or (not select_closest_note and not select_closest_page):
+            #FAU: No need to continue to process
+            return
+        #if len(self.music_pane.current_page.notes) == 0:
+        #    #FAU: Notes were never drawn, force to draw otherwise error in multipage when switching page
+        #    self.music_pane.current_page.draw()
+        
         # workaround for the fact the abcm2ps returns incorrect row numbers
         # check the row number of the first note and if it doesn't agree with the actual value
         # then pretend that we have more or less extra header lines
         num_header_lines, first_note_line_index = self.get_num_extra_header_lines(tune)
 
-        current_pos = self.editor.GetCurrentPos()
-        current_row = self.editor.LineFromPosition(current_pos)
+        caret_current_pos = self.editor.GetCurrentPos()
+        caret_current_row = self.editor.LineFromPosition(caret_current_pos)
         tune_first_line_no = self.editor.LineFromPosition(tune.offset_start)
 
-        if select_closest_page:
-            abc_from_editor = AbcTune(self.editor.GetTextRange(tune.offset_start, tune.offset_end))
-            first_note_editor = abc_from_editor.first_note_line_index
-            if first_note_editor is not None:
-                current_body_row = current_row - tune_first_line_no - first_note_editor
-                if current_body_row >= 0:
-                    # create a list of pages but start with the current page because it has the most chance
-                    page_indices = [self.current_page_index] + \
-                                   [p for p in range(self.current_svg_tune.page_count) if p != self.current_page_index]
-                    current_svg_row = current_body_row + self.current_svg_tune.first_note_line_index + 1 # row in svg-file is 1-based
-                    new_page_index = None
-                    for page_index in page_indices:
-                        page = self.current_svg_tune.render_page(page_index, self.renderer)
-                        if page and page.notes_in_row and current_svg_row in page.notes_in_row:
-                            new_page_index = page_index
-                            break
+        #FAU: Get the text selection and then corresponding line
+        #     To enable to highlight notes based on selection need also to make sure
+        #     on which svgPage the selection starts and ends
+        p1, p2 = self.editor.GetSelection()
+        line_p2 = self.editor.LineFromPosition(p2)
+        line_p1 = self.editor.LineFromPosition(p1)
+        p1_page_index = p2_page_index = self.current_page_index
+        
+        #FAU: This part is to find the associated svgPage.
+        #     It used to exit as soon as page of the cursor is found but need to browse completely
+        #     as selection can be on multiple svgPages
+        #if select_closest_page or select_closest_note:
+        abc_from_editor = AbcTune(self.editor.GetTextRange(tune.offset_start, tune.offset_end))
+        first_note_editor = abc_from_editor.first_note_line_index
+        
+        #if first_note_editor is not None:
+        if first_note_editor is None:
+            #No need to continue as no Note
+            return
+        
+        caret_body_row = caret_current_row - tune_first_line_no - first_note_editor
+        p1_body_row = max(line_p1 - tune_first_line_no - first_note_editor, 0)
+        p2_body_row = max(line_p2 - tune_first_line_no - first_note_editor,0)
+        if caret_body_row >= 0:
+            # create a list of pages but start with the current page because it has the most chance
+            #page_indices = [self.current_page_index] + \
+            #               [p for p in range(self.current_svg_tune.page_count) if p != self.current_page_index]
+            #FAU: To manage selection no need to prioritize
+            page_indices = [p for p in range(self.current_svg_tune.page_count)]
+            caret_svg_row = caret_body_row + self.current_svg_tune.first_note_line_index + 1 # row in svg-file is 1-based
+            p1_row = p1_body_row + self.current_svg_tune.first_note_line_index + 1 
+            p2_row = p2_body_row + self.current_svg_tune.first_note_line_index + 1 
+            new_page_index = None
+            for page_index in page_indices:
+                page = self.current_svg_tune.render_page(page_index, self.renderer)
+                page.draw()
+                if page and page.notes_in_row and caret_svg_row in page.notes_in_row:
+                    new_page_index = page_index
+                    #FAU: Do not break anymore to find other pages for selection 
+                    #break
+                    #if p1_row == caret_svg_row and p2_row == caret_svg_row:
+                    #    p1_page_index = p2_page_index = page_index
+                    #    p1_page = p2_page = page
+                    #    break
+                if page and page.notes_in_row and p1_row in page.notes_in_row:
+                    p1_page_index = page_index
+                    p1_page = page
+                if page and page.notes_in_row and p2_row in page.notes_in_row:
+                    p2_page_index = page_index
+                    p2_page = page
+                #if new_page_index is not None and p1_page_index is not None and p2_page_index is not None:
+                #    break
 
-                    if new_page_index is not None and new_page_index != self.current_page_index:
-                        self.select_page(new_page_index)
-
+            if select_closest_page and new_page_index is not None and new_page_index != self.current_page_index:
+                self.select_page(new_page_index)
+        else:
+            select_closest_note=False
+            
+        musicpane_current_page = self.music_pane.current_page # 1.3.6.2 [JWdJ]
+        if len(musicpane_current_page.notes) == 0:
+            #FAU: at this point in time notes should be drawn already thus if no notes then remove flag select
+            select_closest_note=False
+        
+        #FAU: This is to track for the current page shown in the musicpane.
+        current_page_index = self.current_page_index
+        
+        #FAU: To search for the closest note, value initialised corresponding to a long distance
         closest_xy = None
-        closest_col = -9999
-        note_delta = 9999
-        line = self.editor.GetCurrentLine()
-        col = self.editor.GetCurrentPos() - self.editor.PositionFromLine(line)
+        #closest_col = -9999
+        #note_delta = 9999
+        #closest_note_indice = None
+        closest_note_indice_p2 = None
+        closest_note_data_p1 = None
+        closest_note_data_p2 = None
+        
+        selection_multi_notes = False
+        current_position_is_p1 = False
+        if p1!=p2 and select_closest_note:
+            #FAU:  As in a selection do not highlight the note just after the cursor. Thus remove 1.
+            p2 -= 1
+            selection_multi_notes = True
+            #FAU: current_position_is_p1 is defined to identify which page to show depending on selection
+            #     from left to right (False) or right to left (True).
+            if p1 == caret_current_pos:
+                current_position_is_p1 = True
+        
         # 1.3.6.2 [JWdJ] 2015-02
         row_offset = tune_first_line_no - 1 - num_header_lines
-
-        # 1.3.6.2 [JWdJ] 2015-02
-        for i, (x, y, abc_row, abc_col, desc) in enumerate(page.notes):
-            abc_row += row_offset
-            #FAU 20250126: search for the closest while not switching to next one to early
-            #              with if abc_row == line and and (abs(col - abc_col) < abs(closest_col - abc_col))
-            #              as soon as cursor shifted after the letter of note next note was selected even if only duration of previous note
-            #              %%TODO%%: improve to consider highlight only if cursor is in a note?
-            if abc_row == line and col>=abc_col and (abs(col - abc_col)<note_delta): # and (abs(col - abc_col) < abs(closest_col - abc_col))
-                note_delta=abs(col - abc_col)
-                closest_col = abc_col
-                closest_xy = (x, y)
-                if select_closest_note:
-                    if page.selected_indices != {i}:
-                        # 1.3.6.2 [JWdJ] 2015-02
-                        page.clear_note_selection()
-                        page.add_note_to_selection(i)
-                        self.selected_note_indices = [i]
-                        self.selected_note_descs = [page.notes[i] for i in self.selected_note_indices]
-
-        if closest_xy:
+        
+        if select_closest_note:
+            #FAU: This is to manage the case with selection not completely in the current page or even not at all comprised
+            if p2_page_index != current_page_index or p1_page_index != current_page_index:                
+                if (p2_page_index > current_page_index and p1_page_index > current_page_index) or (p2_page_index < current_page_index and p1_page_index < current_page_index):
+                    #FAU: no need to continue to process so can return
+                    musicpane_current_page.clear_note_selection()
+                    if select_closest_note:
+                        wx.CallAfter(self.music_pane.redraw)
+                    return
+                else:
+                    if p2_page_index > current_page_index:
+                        closest_note_data_p2 = self.closestNoteData(p2_page,row_offset,line_p2,p2 - self.editor.PositionFromLine(line_p2))
+                        closest_note_indice_p2 = p2_page.get_indices_for_row_col(closest_note_data_p2.row,closest_note_data_p2.col)
+                    if p1_page_index < current_page_index:
+                        closest_note_data_p1 = self.closestNoteData(p1_page,row_offset,line_p1,col = p1 - self.editor.PositionFromLine(line_p1))
+            
+            #FAU: search note data corresponding to selection
+            if closest_note_data_p2 is None:
+                col = p2 - self.editor.PositionFromLine(line_p2)
+                closest_note_data_p2 = self.closestNoteData(musicpane_current_page,row_offset,line_p2,col)
+            if selection_multi_notes and closest_note_data_p2 is not None:
+                if closest_note_data_p1 is None:
+                    col = p1 - self.editor.PositionFromLine(line_p1)
+                    closest_note_data_p1 = self.closestNoteData(musicpane_current_page,row_offset,line_p1,col)
+                if closest_note_data_p1 is None:
+                    #No note found close to p1 so ignore multi note selection
+                    selection_multi_notes = False
+                else:
+                    selected_indices = self.FindNotesIndicesBetween2Notes(musicpane_current_page, closest_note_data_p1, closest_note_data_p2)
+            else:
+                selection_multi_notes = False
+        
+        ## 1.3.6.2 [JWdJ] 2015-02
+        #for i, (x, y, abc_row, abc_col, desc) in enumerate(page.notes):
+        #    abc_row += row_offset
+        #    #FAU 20250126: search for the closest while not switching to next one to early
+        #    #              with if abc_row == line and and (abs(col - abc_col) < abs(closest_col - abc_col))
+        #    #              as soon as cursor shifted after the letter of note next note was selected even if only duration of previous note
+        #    #              %%TODO%%: improve to consider highlight only if cursor is in a note?
+        #    if abc_row == line and col>=abc_col and (abs(col - abc_col)<note_delta): # and (abs(col - abc_col) < abs(closest_col - abc_col))
+        #        note_delta=abs(col - abc_col)
+        #        closest_col = abc_col
+        #        closest_xy = (x, y)
+        #        if select_closest_note:
+        #            closest_note_indice = i
+        #            #if page.selected_indices != {i}:
+        #            #    # 1.3.6.2 [JWdJ] 2015-02
+        #            #    page.clear_note_selection()
+        #            #    page.add_note_to_selection(i)
+        #            #    self.selected_note_indices = [i]
+        #            #    self.selected_note_descs = [page.notes[i] for i in self.selected_note_indices]
+        
+        if closest_note_data_p2 is not None:
+            if closest_note_indice_p2 is None:
+                closest_note_indice_p2 = musicpane_current_page.get_indices_for_row_col(closest_note_data_p2.row,closest_note_data_p2.col)
+            closest_xy = (closest_note_data_p2.x,closest_note_data_p2.y)
+            musicpane_current_page.clear_note_selection()
+            if selection_multi_notes:
+                self.selected_note_indices = []
+                for i in selected_indices:
+                    musicpane_current_page.add_note_to_selection(i)
+                    self.selected_note_indices.append(i)
+            elif select_closest_note:
+                for i in closest_note_indice_p2:
+                    musicpane_current_page.add_note_to_selection(i)
+                    self.selected_note_indices = [i]
+                
+            self.selected_note_descs = [musicpane_current_page.notes[i] for i in self.selected_note_indices]
+        elif select_closest_note:
+            musicpane_current_page.clear_note_selection()
+            if select_closest_note:
+                wx.CallAfter(self.music_pane.redraw)
+        
+        if closest_note_data_p1 is not None and ((current_position_is_p1 and 
+                    closest_note_data_p1.row in musicpane_current_page.notes_in_row)
+                    or
+                    (p1_page_index == current_page_index and p2_page_index != current_page_index)):
+            closest_xy = (closest_note_data_p1.x,closest_note_data_p1.y)
+        
+        if closest_xy is not None:
             if select_closest_note:
                 wx.CallAfter(self.music_pane.redraw)
             self.scroll_music_pane(*closest_xy)
 
     def scroll_music_pane(self, x, y):
+        #FAU: Scroll function need to take into account the zoom factor
+        x = self.zoom_factor*x
+        y = self.zoom_factor*y
         sx, sy = self.music_pane.CalcUnscrolledPosition((0, 0))
         vw, vh = self.music_pane.VirtualSize
         w, h = self.music_pane.ClientSize
-        margin = 20
+        margin = 50
         orig_scroll = (sx, sy)
         if not sx+margin <= x <= w+sx-margin:
             sx = x - w + w/5
@@ -7350,6 +7583,8 @@ class MainFrame(wx.Frame):
         p1, p2 = self.editor.GetSelection()
         if p1 == p2:
             self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=self.mni_auto_refresh.IsChecked())
+        else:
+            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=False)
 
     # p09 This function needs more work, see comments below.
     def OnPosChanged(self, evt):
@@ -7846,6 +8081,10 @@ class MainFrame(wx.Frame):
         try:
             page = self.current_svg_tune.render_page(self.current_page_index, self.renderer)
             self.music_pane.set_page(page)
+            #FAU 20250128: rebuild highlight based on position in editor
+            #              ScrollMusicPaneToMatchEditor is called without requesting to go to closest page
+            page.clear_note_selection()
+            self.ScrollMusicPaneToMatchEditor(select_closest_note=True, select_closest_page=False)
             self.update_statusbar_and_messages()
         except Exception as e:
             error_msg = traceback.format_exc()
@@ -8671,9 +8910,9 @@ an open source ABC editor for Windows, OSX and Linux. It is published under the 
 <li><a href="https://www.scintilla.org/">scintilla</a> for the text editor used for ABC code</li>
 <li><a href="https://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
 <li><a href="https://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="https://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
-<li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python by <a href="https://wim.vree.org/svgParse/index.html">Willem Vree</a>)</li>
+<li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python with a <a href="https://wim.vree.org/svgParse/testplayer.html">player</a> by <a href="https://wim.vree.org/svgParse/">Willem Vree</a>)</li>
 <li><a href="https://github.com/jheinen/mplay">Python MIDI Player</a> for playing midi on Mac</li>
-<li>Thanks to Guido Gonzato for providing the fields and command reference.
+<li>Thanks to Guido Gonzato for providing the fields and command reference extracted from his <a href="https://abcplus.sourceforge.net/#ABCGuide">Making music with ABC guide</a>.</li>
 <li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german), Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch) and Wu&nbsp;Xiaotian&nbsp;(chinese).</li>
 <li>Universal binaries of <a href="https://abcplus.sourceforge.net/#abcm2ps">abcm2ps</a> and <a href="https://abcplus.sourceforge.net/#abcmidi">abc2midi</a> for OSX are available thanks to Chuck&nbsp;Boody and Guido Gonzato</li>
 </ul>
