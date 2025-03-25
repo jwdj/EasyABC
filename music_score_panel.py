@@ -47,6 +47,7 @@ class MusicScorePanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.highlighted_notes = None
+        self.highlight_follow = False
 
     def reset_scrolling(self):
         self.SetVirtualSize((self.buffer_width, self.buffer_height))
@@ -219,7 +220,7 @@ class MusicScorePanel(wx.ScrolledWindow):
                 self.need_redraw = False
             dc.DrawBitmap(self.renderer.buffer, 0, 0)
             if self.highlighted_notes:
-                self.renderer.draw_notes(page=self.current_page, note_indices=self.highlighted_notes, highlight=True, dc=dc)
+                self.renderer.draw_notes(page=self.current_page, note_indices=self.highlighted_notes, highlight=True, dc=dc, highlight_follow=self.highlight_follow)
         else:
             dc.SetBackground(wx.WHITE_BRUSH)
             dc.Clear()
@@ -277,9 +278,10 @@ class MusicScorePanel(wx.ScrolledWindow):
             path.AddLineToPoint(x, y)
             dc.DrawPath(path)
 
-    def draw_notes_highlighted(self, note_indices):
+    def draw_notes_highlighted(self, note_indices, highlight_follow=False):
         self.highlighted_notes = note_indices
         self.redrawing = True
+        self.highlight_follow = highlight_follow
         try:
             self.Refresh()
             self.Update()

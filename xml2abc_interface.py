@@ -99,6 +99,10 @@ def xml_to_abc (filename, options, info_messages = None):
         while info_messages: info_messages.pop ()
         #xml2abc.Parser (options).parse (fobj)
         #s = abcOut.outfile.getvalue ()
+        #FAU: Default parameters for xml2abc 157:
+        #u=0; b=0; n=0; c=0; v=0; d=0; m=0; x=0; t=0;
+        #stm=0; mnum=-1; no36=0; p='f'; s=0; j=0; v1=0; ped=0;
+        #FAU Todo: Need to extend the management of other options
         s, info_xml2abc = xml2abc.vertaal(fobj.read(),u=options.u, b=options.b, n=options.n, c=options.c, v=options.v, d=L, m=options.m, p=options.p)
         #Allowed parameters for xml2abc:
         #u=0; b=0; n=0; c=0; v=0; d=0; m=0; x=0; t=0;
