@@ -1,0 +1,48 @@
+X:1
+T:Nocturne in C Minor
+C:Composed by Copilot
+M:4/4
+L:1/8
+Q:1/4=72
+K:Cmin
+V:RH clef=treble
+V:LH clef=bass
+
+% -- Opening Theme: Bars 1–16 --
+[V:RH] z2 G4 B4 | c'4 d'4 | e'8 d'8 c'8 B8 | c'4 z4 |
+z2 g4 a4 | bf4 g4 | f'8 d'8 | c'4 z4 |
+g4 c'4 | f'4 e'4 | d'8 c'8 B8 A8 | G4 z4 |
+bb4 d'4 | eb'8 f'8 g'8 f'8 | e'4 c'4 | d'8 c'8 B4 ||
+
+[V:LH] C,,4 E,4 | G,4 C4 | Ab,4 F,4 | G,4 D4 |
+Eb,4 Bb,4 | F,4 C4 | G,4 D4 | C,4 z4 |
+C,2 C2 C3 G,3 | F,2 Ab,2 | D,2 Bb,2 | G,,4 G,4 |
+F,4 Db4 | Bb,,4 Bb,4 | G,2 Bb,2 | C,8 ||
+
+% -- Section A: Eb major to C minor – Bars 17–36 --
+[V:RH] z2 eb'8 f'8 | g'4 f'4 | eb'8 d'8 | c'4 eb'4 |
+f'8 g'8 f'4 | eb'4 c'4 | bb4 g'4 | f'4 eb'4 |
+g'4 f'4 | d'4 bb4 | c'4 z4 | g'4 bf'4 |
+f'4 a'4 | g'8 f'8 eb'8 d'8 | c'4 z4 | g'8 a'8 bb'4 | a'4 g'4 ||
+
+[V:LH] Eb,2 G,2 Bb,2 G,2 | Ab,,2 Ab,2 Ab2 Ab,,2 | F,2 Ab,2 C2 C,2 |
+Eb,2 G,2 Bb,2 Bb,,2 | F,2 F,2 Bb,2 C2 | G,4 Bb,4 | Eb,4 Eb4 | C,4 G,4 |
+Ab,,4 C,4 | G,,4 Bb,,4 | C,4 F,4 | G,8 ||
+
+% -- Section B: Scherzo-like in C minor – Bars 37–60 --
+[V:RH] z4 z2 G'4 | g'8 a'8 f'8 d'8 | eb'8 g'8 f'8 c'8 | b8 g8 b8 c'8 |
+c'4 eb'4 | g'8 f'8 d'8 c'8 | bb4 bb4 | g8 eb'8 f'8 g'8 |
+f'8 d'8 bb8 a8 | g8 b8 d'8 d'8 | c'2 z2 | g'4 a'4 |
+f'8 c'8 bb8 d'8 | eb'8 f'8 g'8 a'8 | g'8 f'8 eb'8 d'8 | c'2 z2 ||
+
+[V:LH] C2 G2 C3 G2 | Ab2 F2 Ab2 C2 | G2 D2 G2 Bb2 | D2 F2 G2 C2 |
+C,2 C2 G2 C2 | F,2 G,2 Bb,2 A,2 | Eb,2 G,2 Bb,2 G,2 | D,2 A,2 D2 F2 |
+Bb,,2 C,2 Eb,2 F,2 | G,,2 B,,2 D,2 G,2 | C,4 z4 | G,4 F,4 ||
+Eb,4 C4 | F,4 C4 | G,4 Eb4 | C,8 ||
+
+% -- Ending (Return + Coda): Bars 61–68 --
+[V:RH] G4 B4 C'4 | D'4 G'4 | F'4 E'4 | D'8 C'8 B8 C'8 |
+G4 B4 C'4 | D'4 G'4 | E'8 D'8 C'4 | G4 C'4 E'4 ||
+
+[V:LH] C,4 G,4 C4 | D,4 G,4 | F,4 Bb,4 | G,4 C,4 |
+E,4 A,4 | F,4 G,4 | C,4 G,4 | C,8 ||
