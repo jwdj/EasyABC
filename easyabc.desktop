@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=EasyABC
+GenericName=ABC Music Notation Editor
+Comment=Edit, play and print sheet music in ABC format
+# Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!
+Keywords=EasyABC;easyabc;sheet music;ABC notation;music;
+Exec=/usr/share/easyabc/easy_abc.py %f
+TryExec=/usr/share/easyabc/easy_abc.py
+Icon=/usr/share/easyabc/img/logo256.png
+Terminal=false
+Categories=AudioVideo;Education;Music;
+StartupNotify=true
+StartupWMClass=easy_abc.py
+MimeType=text/vnd.abc;

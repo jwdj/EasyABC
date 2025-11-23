@@ -1,0 +1,10 @@
+easyabc (1.3.8.7-1) devel; urgency=medium
+
+    * fix Categories in .desktop file; fix location in easyabc wrapper script
+ -- Bodo Meissner <bomm@users.sourceforge.net>  Sun, 23 Nov 2025 13:14:51 +0200
+
+easyabc (1.3.8.7) devel; urgency=medium
+
+    * Initial release:
+ -- Bodo Meissner <bomm@users.sourceforge.net>  Sun, 25 May 2025 14:18:51 +0200
+

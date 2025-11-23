@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 #    Copyright (C) 2011 Nils Liberg (mail: kotorinl at yahoo.co.uk)
 #

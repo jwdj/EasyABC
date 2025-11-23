@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #FAU 20201229: Build a midiplayer for EasyABC based on mplay, to be used on Mac
 

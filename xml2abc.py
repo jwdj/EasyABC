@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding=latin-1
 '''
 Copyright (C) 2012-2018: W.G. Vree

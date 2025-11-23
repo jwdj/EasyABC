@@ -1,0 +1,24 @@
+Source: easyabc
+Section: python
+Maintainer: Bodo Meissner <bomm@users.sourceforge.net>
+Build-Depends: debhelper (>= 13),
+               python3,
+               pandoc
+Standards-Version: 4.5.1
+Priority: optional
+
+Package: easyabc
+Architecture: all
+Section: python
+Depends: python3,
+         ${misc:Depends},
+         python3-wxgtk4.0,
+         python3-pygame,
+         libfluidsynth3,
+         python3-wxgtk-media4.0,
+         abcm2ps,
+         abcmidi,
+         fluid-soundfont-gm
+Description: ABC music notation editor
+	Edit, play, print, convert music in ABC notation.
+	See https://abcnotation.com/wiki/abc:standard:v2.1

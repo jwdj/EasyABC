@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #FAU 20201229: file copied and modified from original one of mplay to interface with EasyABC
 

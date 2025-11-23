@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Preliminary script based on https://askubuntu.com/a/1378492/1186757
+# Adding to a Makefile or other build system might be better.
+
+
+pandoc easyabc.1.md -s -t man > easyabc.1
+for i in locale/*/LC_MESSAGES/easyabc.po
+do
+    msgfmt -o "${i%.po}.mo" "$i"
+done
+debuild --no-tgz-check -uc -us
+
