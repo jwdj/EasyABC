@@ -1816,51 +1816,66 @@ class RecordThread(threading.Thread):
         time.sleep(0.002)
         try:
             while not self._want_abort:
-                while not self.midi_in_poll and not self._want_abort:
-                    time.sleep(0.00025)
-                    if self.timedelta_microseconds(datetime.now() - start_time) / self.beat_duration > i:
-                        last_tick = datetime.now()
-                        if i % self.metre_1 == 0:
-                            wx.CallAfter(self.tick1.Play)
-                        else:
-                            wx.CallAfter(self.tick2.Play)
-                        i += 1 #FAU: 20210102: One tick was missing the first time so incrementing i after the tick
-
-                time_offset = self.timedelta_microseconds(datetime.now() - start_time)
-                if self.midi_in_poll:
+                # metronome ticking logic
+                if self.timedelta_microseconds(datetime.now() - start_time) / self.beat_duration > i:
+                    last_tick = datetime.now()
+                    if i % self.metre_1 == 0:
+                        wx.CallAfter(self.tick1.Play)
+                    else:
+                        wx.CallAfter(self.tick2.Play)
+                    i += 1
+                
+                poll_result = self.midi_in_poll
+                if poll_result is True or (isinstance(poll_result, int) and poll_result > 0):
                     if wx.Platform == "__WXMAC__":
                         data = self.midi_in.read(1)
                     else:
                         data = self.midi_in.Read(1) # read only 1 message at a time
-                    if self.midi_out is not None:
-                        if wx.Platform == "__WXMAC__":
-                            self.midi_out.write(data)
-                        else:
-                            self.midi_out.Write(data)
-                    cmd = data[0][0][0] >> 4
-                    midi_note = data[0][0][1]
-                    midi_note_velocity = data[0][0][2]
-                    #print(self.number_to_note(midi_note), midi_note_velocity)
-                    if cmd == NOTE_ON and midi_note_velocity > 0:
-                        noteon_time[midi_note] = time_offset
-                        #print('note-on', midi_note, float(time_offset)/self.beat_duration)
-                    elif (cmd == NOTE_OFF or midi_note_velocity ==0) and midi_note in noteon_time:
-                        start = float(noteon_time[midi_note]) / self.beat_duration
-                        end = float(time_offset) / self.beat_duration
-                        self.notes.append([midi_note, start, end])
-                        #print('note-off', midi_note, float(time_offset)/self.beat_duration)
-
-
+                    
+                    if data:
+                        if self.midi_out is not None:
+                            if wx.Platform == "__WXMAC__":
+                                self.midi_out.write(data)
+                            else:
+                                self.midi_out.Write(data)
+                        
+                        status = data[0][0][0]
+                        cmd = status >> 4
+                        midi_note = data[0][0][1]
+                        midi_note_velocity = data[0][0][2]
+                        time_offset = self.timedelta_microseconds(datetime.now() - start_time)
+                        
+                        # Debugging output
+                        print(f"MIDI received: status={hex(status)}, note={midi_note}, vel={midi_note_velocity}, time={time_offset}")
+                        
+                        if cmd == NOTE_ON and midi_note_velocity > 0:
+                            noteon_time[midi_note] = time_offset
+                            print(f"Note-on: {self.number_to_note(midi_note)} ({midi_note}), vel={midi_note_velocity}")
+                        elif (cmd == NOTE_OFF or (cmd == NOTE_ON and midi_note_velocity == 0)) and midi_note in noteon_time:
+                            start = float(noteon_time[midi_note]) / self.beat_duration
+                            end = float(time_offset) / self.beat_duration
+                            self.notes.append([midi_note, start, end])
+                            print(f"Note-off: {self.number_to_note(midi_note)} ({midi_note}), duration={end-start:.2f} beats")
+                            del noteon_time[midi_note]
+                else:
+                    time.sleep(0.001)
+        except Exception as e:
+            sys.stderr.write(f"Error in RecordThread: {str(e)}\n")
+            traceback.print_exc()
         finally:
             if wx.Platform == "__WXMAC__":
-                self.midi_in.close()
+                try: self.midi_in.close()
+                except: pass
             else:
-                self.midi_in.Close()
+                try: self.midi_in.Close()
+                except: pass
             if self.midi_out is not None:
                 if wx.Platform == "__WXMAC__":
-                    self.midi_out.close()
+                    try: self.midi_out.close()
+                    except: pass
                 else:
-                    self.midi_out.Close()
+                    try: self.midi_out.Close()
+                    except: pass
             self.is_running = False
         self.quantize()
         wx.PostEvent(self._notify_window, RecordStopEvent(-1, self.notes))
@@ -8688,7 +8703,7 @@ class MainFrame(wx.Frame):
     def handle_midi_conversion(self, filename=None, notes=None):
         global execmessages
         midi2abc_path = self.settings.get('midi2abc_path')
-        if midi2abc_path and os.path.exists(midi2abc_path):
+        if filename and midi2abc_path and os.path.exists(midi2abc_path):
             cmd = [midi2abc_path, '-f', filename]
             execmessages += '\nMidiToAbc\n' + " ".join(cmd)
             stdout_value, stderr_value, returncode = get_output_from_process(cmd)
@@ -8699,7 +8714,7 @@ class MainFrame(wx.Frame):
             if stdout_value:
                 self.AddTextWithUndo('\n' + stdout_value + '\n')
         else:
-            self.internal_midi_conversion(filename, notes)
+            return self.internal_midi_conversion(filename, notes)
 
     def internal_midi_conversion(self, filename=None, notes=None):
         metre1, metre2 = [int(x) for x in self.settings['record_metre'].split('/')]
@@ -8913,7 +8928,7 @@ class MainFrame(wx.Frame):
         gs_path = settings.get('gs_path')
         # 1.3.6.1 [SS] 2015-01-28
 
-        if not gs_path:
+        if not gs_path or not os.path.exists(gs_path):
             if wx.Platform == "__WXMSW__":
                 gs_path = get_ghostscript_path()
                 settings['gs_path'] = gs_path
@@ -8922,12 +8937,16 @@ class MainFrame(wx.Frame):
             else:
                 try:
                     gs_path = subprocess.check_output(["which", "gs"])
-                    settings['gs_path'] = gs_path[0:-1].decode()
+                    settings['gs_path'] = gs_path.strip().decode()
                 except:
-                    if wx.Platform == "__WXMAC__" and int(platform.mac_ver()[0].split('.')[0]) <= 13:
-                        settings['gs_path'] = '/usr/bin/pstopdf'
-                    else:
-                        settings['gs_path'] = ''
+                    try:
+                        gs_path = subprocess.check_output(["which", "ps2pdf"])
+                        settings['gs_path'] = gs_path.strip().decode()
+                    except:
+                        if wx.Platform == "__WXMAC__" and int(platform.mac_ver()[0].split('.')[0]) <= 13:
+                            settings['gs_path'] = '/usr/bin/pstopdf'
+                        else:
+                            settings['gs_path'] = ''
             #1.3.6.1 [SS] 2014-01-13
             #FAU:PDF:pstopdf is not provided by Apple starting from MacOS Sonoma. So merge with Ghostscript in case ghostscript is installed
             #elif wx.Platform == "__WXMAC__":

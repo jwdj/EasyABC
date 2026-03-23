@@ -45,6 +45,16 @@ if platform.system() == 'Windows':
     if not os.path.isfile(lib):
         lib = fluidsynth_lib_path + '\\libfluidsynth-2.dll'
     lib_locations = [lib]
+elif platform.system() == 'Darwin':
+    lib_locations = [
+        '/opt/local/lib/libfluidsynth.3.dylib',
+        '/opt/local/lib/libfluidsynth.2.dylib',
+        '/usr/local/lib/libfluidsynth.3.dylib',
+        '/usr/local/lib/libfluidsynth.2.dylib',
+        '/opt/homebrew/lib/libfluidsynth.3.dylib',
+        'libfluidsynth.3.dylib',
+        'libfluidsynth.2.dylib'
+    ]
 else:
     lib_locations = ['./libfluidsynth.so.3', 'libfluidsynth.so.3', './libfluidsynth.so.2', 'libfluidsynth.so.2']
 
