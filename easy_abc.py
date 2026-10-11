@@ -1536,7 +1536,7 @@ def abc_to_midi(abc_code, settings, midi_file_name, add_follow_score_markers):
         if not midi_exists:
             execmessages += '\n' + _('No file created so cannot continue')
             return None
-        execmessages += '\n' + _('Midi file exit so try to continue')
+        execmessages += '\n' + _('Abc2midi reported an error. As Midi file exist, continue...')
         
 
     return midi_file_name

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-27 19:29+0200\n"
+"POT-Creation-Date: 2026-10-12 00:13+0200\n"
 "PO-Revision-Date: 2021-10-28 21:38+0200\n"
 "Last-Translator: Wu Xiaotian <yetist@gmail.com>\n"
 "Language-Team: Chinese - China <yetist@gmail.com>\n"
@@ -19,6 +19,33 @@ msgstr ""
 "X-Poedit-SearchPath-0: easy_abc.py\n"
 "X-Poedit-SearchPath-1: tune_actions.py\n"
 "X-Poedit-SearchPath-2: tune_elements.py\n"
+
+#: easyabc_dialogs.py:16 easy_abc.py:7021
+msgid "About EasyABC"
+msgstr "关于 EasyABC"
+
+#: easyabc_dialogs.py:41 easy_abc.py:2105 easy_abc.py:2969 easy_abc.py:3814
+#: easy_abc.py:3878
+msgid "&Ok"
+msgstr ""
+
+#: easyabc_dialogs.py:74
+#, fuzzy
+msgid "Welcome to EasyABC 1.4"
+msgstr "欢迎使用 EasyABC"
+
+#: easyabc_dialogs.py:102
+msgid "Show this welcome page at startup"
+msgstr ""
+
+#: easyabc_dialogs.py:108
+#, fuzzy
+msgid "Open Documentation"
+msgstr "页面方向"
+
+#: easyabc_dialogs.py:114
+msgid "OK"
+msgstr ""
 
 #: tune_actions.py:286
 msgid "Less options"
@@ -485,11 +512,11 @@ msgid "6 flats"
 msgstr "6 个降号"
 
 #: tune_actions.py:955 tune_actions.py:1062 tune_actions.py:2162
-#: easy_abc.py:2925 easy_abc.py:2927
+#: easy_abc.py:2931 easy_abc.py:2933
 msgid "None"
 msgstr "没有"
 
-#: tune_actions.py:958 easy_abc.py:3791
+#: tune_actions.py:958 easy_abc.py:3796
 msgid "Key signature"
 msgstr "调号模式"
 
@@ -1087,8 +1114,8 @@ msgstr "完整的 ABC 规范"
 msgid "New tune"
 msgstr "新乐谱"
 
-#: tune_actions.py:1614 tune_actions.py:2299 easy_abc.py:4351 easy_abc.py:4759
-#: easy_abc.py:6178
+#: tune_actions.py:1614 tune_actions.py:2299 easy_abc.py:4356 easy_abc.py:4750
+#: easy_abc.py:6179
 msgid "Untitled"
 msgstr "无标题"
 
@@ -1136,7 +1163,7 @@ msgstr "在括号之间"
 msgid "Insert annotation or chord"
 msgstr "插入注释或和弦"
 
-#: tune_actions.py:1799 easy_abc.py:6973 tune_elements.py:850
+#: tune_actions.py:1799 easy_abc.py:6974 tune_elements.py:850
 msgid "Dynamics"
 msgstr "力度记号"
 
@@ -1229,7 +1256,7 @@ msgstr "简化音符"
 msgid "Book"
 msgstr "书"
 
-#: tune_actions.py:2102 easy_abc.py:3987 tune_elements.py:81
+#: tune_actions.py:2102 easy_abc.py:3992 tune_elements.py:81
 msgid "Composer"
 msgstr "作曲家"
 
@@ -1261,7 +1288,7 @@ msgstr "来源"
 msgid "Parts"
 msgstr "分谱"
 
-#: tune_actions.py:2110 easy_abc.py:5480 tune_elements.py:94
+#: tune_actions.py:2110 easy_abc.py:5481 tune_elements.py:94
 msgid "Tempo"
 msgstr "节奏"
 
@@ -1499,7 +1526,7 @@ msgstr "音量"
 msgid "Set volume"
 msgstr "设置音量"
 
-#: tune_actions.py:2249 easy_abc.py:2517
+#: tune_actions.py:2249 easy_abc.py:2520
 msgid "Play chords"
 msgstr "演奏和弦"
 
@@ -1555,17 +1582,17 @@ msgstr "增加..."
 msgid "Remove"
 msgstr "移除"
 
-#: easy_abc.py:992 easy_abc.py:1018 easy_abc.py:1530 easy_abc.py:1616
-#: easy_abc.py:9213
+#: easy_abc.py:995 easy_abc.py:1021 easy_abc.py:1533 easy_abc.py:1619
+#: easy_abc.py:9217
 #, python-format
 msgid "%(program)s exited abnormally (errorcode %(error)#8x)"
 msgstr "%(program)s 异常退出 (错误代码 %(error)#8x)"
 
-#: easy_abc.py:1036
+#: easy_abc.py:1039
 msgid "Disassembled Midi File"
 msgstr "反编译 Midi 文件"
 
-#: easy_abc.py:1042
+#: easy_abc.py:1045
 msgid ""
 "Cannot find the executable midi2abc. Be sure it is in your bin folder and "
 "its path is defined in ABC Setup/File Settings."
@@ -1573,224 +1600,219 @@ msgstr ""
 "找不到可执行文件 midi2abc。请确保它在您的 bin 文件夹中，并且其路径在 ABC 设"
 "置/文件设置中定义。"
 
-#: easy_abc.py:1042 easy_abc.py:5174 easy_abc.py:7094 easy_abc.py:9176
+#: easy_abc.py:1045 easy_abc.py:5175 easy_abc.py:7096 easy_abc.py:9180
 msgid "Error"
 msgstr "错误"
 
-#: easy_abc.py:1257 easy_abc.py:9198
+#: easy_abc.py:1260 easy_abc.py:9202
 #, python-brace-format
 msgid "{0} reported some errors"
 msgstr "{0} 报告了一些错误"
 
-#: easy_abc.py:1259 easy_abc.py:9200
+#: easy_abc.py:1262 easy_abc.py:9204
 #, python-brace-format
 msgid "{0} reported some warnings"
 msgstr "{0} 报告了一些警告"
 
-#: easy_abc.py:1534
+#: easy_abc.py:1537
 msgid "No file created so cannot continue"
 msgstr ""
 
-#: easy_abc.py:1536
-msgid "Midi file exit so try to continue"
+#: easy_abc.py:1539
+msgid "Abc2midi reported an error. As Midi file exist, continue..."
 msgstr ""
 
-#: easy_abc.py:1620
+#: easy_abc.py:1623
 #, python-format
 msgid "Error during conversion of %(filename)s: %(error)s"
 msgstr "%(filename)s 转换过程中出错：%(error)s"
 
-#: easy_abc.py:1641
+#: easy_abc.py:1644
 msgid "EasyABC music"
 msgstr "EasyABC 音乐"
 
-#: easy_abc.py:2044
+#: easy_abc.py:2047
 msgid "Field"
 msgstr "字段"
 
-#: easy_abc.py:2045
+#: easy_abc.py:2048
 msgid "Description"
 msgstr "描述"
 
-#: easy_abc.py:2070
+#: easy_abc.py:2073
 msgid "Generate incipits file..."
 msgstr "生成初始文件..."
 
-#: easy_abc.py:2074
+#: easy_abc.py:2077
 msgid "Number of bars to extract:"
 msgstr "要提取的小节数："
 
-#: easy_abc.py:2075
+#: easy_abc.py:2078
 msgid "Maximum number of repeats to extract:"
 msgstr "要提取的最大重复次数："
 
-#: easy_abc.py:2076
+#: easy_abc.py:2079
 msgid "Maximum number of titles/subtitles to extract:"
 msgstr "要提取的最大标题/字幕数量："
 
-#: easy_abc.py:2077
+#: easy_abc.py:2080
 msgid "Fields to sort by (eg. T):"
 msgstr "排序依据的字段（例如 T）："
 
-#: easy_abc.py:2078
+#: easy_abc.py:2081
 msgid "Number of rows per column:"
 msgstr "每列的行数："
 
-#: easy_abc.py:2083
+#: easy_abc.py:2086
 msgid "&Two column output"
 msgstr "两列输出(&T)"
 
-#: easy_abc.py:2102 easy_abc.py:2963 easy_abc.py:3809 easy_abc.py:3873
-#: easy_abc.py:9630
-msgid "&Ok"
-msgstr ""
-
-#: easy_abc.py:2103 easy_abc.py:2964 easy_abc.py:3810 easy_abc.py:3874
+#: easy_abc.py:2106 easy_abc.py:2970 easy_abc.py:3815 easy_abc.py:3879
 msgid "&Cancel"
 msgstr "取消(&C)"
 
-#: easy_abc.py:2159
+#: easy_abc.py:2162
 msgid "Abc settings"
 msgstr "Abc 设置"
 
-#: easy_abc.py:2171
+#: easy_abc.py:2174
 msgid "Abcm2ps"
 msgstr "Abcm2ps"
 
-#: easy_abc.py:2173
+#: easy_abc.py:2176
 msgid "Abc2midi"
 msgstr "Abc2midi"
 
-#: easy_abc.py:2175
+#: easy_abc.py:2178
 msgid "Voices"
 msgstr "声部"
 
-#: easy_abc.py:2176 easy_abc.py:5962 easy_abc.py:6576
+#: easy_abc.py:2179 easy_abc.py:5963 easy_abc.py:6577
 msgid "MusicXML"
 msgstr "MusicXML"
 
-#: easy_abc.py:2177
+#: easy_abc.py:2180
 msgid "File Settings"
 msgstr "文件设置"
 
-#: easy_abc.py:2178
+#: easy_abc.py:2181
 msgid "Colors"
 msgstr "颜色"
 
-#: easy_abc.py:2208
+#: easy_abc.py:2211
 msgid "abcm2ps executable:"
 msgstr "abcm2ps 可执行文件："
 
-#: easy_abc.py:2208
+#: easy_abc.py:2211
 msgid "This executable is used to display the music"
 msgstr "可执行文件用于显示乐谱"
 
-#: easy_abc.py:2209
+#: easy_abc.py:2212
 msgid "abc2midi executable:"
 msgstr "abc2midi 可执行文件："
 
-#: easy_abc.py:2209
+#: easy_abc.py:2212
 msgid "This executable is used to make the midi file"
 msgstr "可执行文件用于生成 midi 文件"
 
-#: easy_abc.py:2210
+#: easy_abc.py:2213
 msgid "abc2abc executable:"
 msgstr "abc2abc 可执行文件："
 
-#: easy_abc.py:2210
+#: easy_abc.py:2213
 msgid "This executable is used to transpose the music"
 msgstr "此可执行文件用于移调音乐"
 
-#: easy_abc.py:2212
+#: easy_abc.py:2215
 msgid "midi2abc executable:"
 msgstr "midi2abc 可执行文件："
 
-#: easy_abc.py:2212
+#: easy_abc.py:2215
 msgid "This executable is used to disassemble the output midi file"
 msgstr "可执行文件用于反编译输出的 midi 文件"
 
-#: easy_abc.py:2213
+#: easy_abc.py:2216
 msgid "ghostscript executable:"
 msgstr "ghostscript 可执行文件："
 
-#: easy_abc.py:2213
+#: easy_abc.py:2216
 msgid "This executable is used to create PDF files"
 msgstr "可执行文件用于创建 PDF 文件"
 
-#: easy_abc.py:2214
+#: easy_abc.py:2217
 msgid "nwc2xml executable:"
 msgstr "nwc2xml 可执行文件："
 
-#: easy_abc.py:2214
+#: easy_abc.py:2217
 msgid "For NoteWorthy Composer - Windows only"
 msgstr "对于 NoteWorthy Composer - 仅限 Windows"
 
-#: easy_abc.py:2215
+#: easy_abc.py:2218
 #, fuzzy
 msgid "ffmpeg executable:"
 msgstr "abcm2ps 可执行文件："
 
-#: easy_abc.py:2215
+#: easy_abc.py:2218
 #, fuzzy
 msgid "This executable is used to convert music to compressed formats"
 msgstr "此可执行文件用于移调音乐"
 
-#: easy_abc.py:2216
+#: easy_abc.py:2219
 msgid "midiplayer:"
 msgstr "midi 播放器:"
 
-#: easy_abc.py:2216
+#: easy_abc.py:2219
 msgid "Your preferred MIDI player"
 msgstr "您的首选 MIDI 播放器"
 
-#: easy_abc.py:2217
+#: easy_abc.py:2220
 msgid "SoundFont:"
 msgstr "声音字体："
 
-#: easy_abc.py:2217
+#: easy_abc.py:2220
 msgid "Your preferred SoundFont (.sf2)"
 msgstr "你首选的 SoundFont (.sf2)"
 
-#: easy_abc.py:2228 easy_abc.py:2292
+#: easy_abc.py:2231 easy_abc.py:2295
 msgid "File paths to required executables"
 msgstr "所需可执行文件的文件路径"
 
-#: easy_abc.py:2256 easy_abc.py:2384
+#: easy_abc.py:2259 easy_abc.py:2387
 #, fuzzy
 msgid "[default]"
 msgstr "默认"
 
-#: easy_abc.py:2272
+#: easy_abc.py:2275
 msgid "If empty, reset to default"
 msgstr ""
 
-#: easy_abc.py:2276 easy_abc.py:3044
+#: easy_abc.py:2279 easy_abc.py:3050
 msgid "Browse..."
 msgstr "浏览..."
 
-#: easy_abc.py:2295
+#: easy_abc.py:2298
 msgid "Include file header when rendering tunes"
 msgstr "渲染乐谱时包含文件头"
 
-#: easy_abc.py:2298
+#: easy_abc.py:2301
 msgid "Extra MIDI player parameters"
 msgstr "额外的 MIDI 播放器参数"
 
-#: easy_abc.py:2306
+#: easy_abc.py:2309
 msgid "Restore settings"
 msgstr "恢复设置"
 
-#: easy_abc.py:2307
+#: easy_abc.py:2310
 msgid ""
 "Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when "
 "blank"
 msgstr "当空白时恢复默认的 abcm2ps, abc2midi, abc2abc, ghostscript 文件路径"
 
-#: easy_abc.py:2340
+#: easy_abc.py:2343
 msgid "Choose a file"
 msgstr "选择文件"
 
-#: easy_abc.py:2435
+#: easy_abc.py:2438
 msgid ""
 "This button will restore some of the paths to the executables (abcmp2s, "
 "abc2midi, etc.) to their defaults. In order that the program knows which "
@@ -1803,111 +1825,111 @@ msgstr ""
 "选择输入框，cntr-A 选择全部和 cntr-X 删除。如果没有这样做，请先单击取消，然后"
 "再试一次。"
 
-#: easy_abc.py:2439 easy_abc.py:3289 easy_abc.py:7333
+#: easy_abc.py:2442 easy_abc.py:3295 easy_abc.py:7335
 msgid "Proceed?"
 msgstr "继续？"
 
-#: easy_abc.py:2518
+#: easy_abc.py:2521
 msgid "Ignore Dynamics"
 msgstr "忽略力度"
 
-#: easy_abc.py:2519
+#: easy_abc.py:2522
 msgid "Ignore Fermatas"
 msgstr ""
 
-#: easy_abc.py:2520
+#: easy_abc.py:2523
 msgid "No Grace Notes"
 msgstr ""
 
-#: easy_abc.py:2521
+#: easy_abc.py:2524
 msgid "Barfly Mode"
 msgstr ""
 
-#: easy_abc.py:2522
+#: easy_abc.py:2525
 msgid "Count in"
 msgstr "计入"
 
-#: easy_abc.py:2525
+#: easy_abc.py:2528
 msgid "gchord pattern"
 msgstr ""
 
-#: easy_abc.py:2530
+#: easy_abc.py:2536
 #, fuzzy
 msgid "Instrument for playback"
 msgstr "播放乐器："
 
-#: easy_abc.py:2534
+#: easy_abc.py:2540
 #, fuzzy
 msgid "Instrument for chord's playback"
 msgstr "和弦播放的乐器："
 
-#: easy_abc.py:2538
+#: easy_abc.py:2544
 #, fuzzy
 msgid "Instrument for bass chord's playback"
 msgstr "低音和弦播放的乐器："
 
-#: easy_abc.py:2544
+#: easy_abc.py:2550
 #, fuzzy
 msgid "Default Tempo"
 msgstr "默认速度："
 
-#: easy_abc.py:2547
+#: easy_abc.py:2553
 #, fuzzy
 msgid "Transposition"
 msgstr "变调："
 
-#: easy_abc.py:2550
+#: easy_abc.py:2556
 #, fuzzy
 msgid "Tuning"
 msgstr "警告"
 
-#: easy_abc.py:2585
+#: easy_abc.py:2591
 msgid "Quarter notes per minute"
 msgstr "每分钟四分音符"
 
-#: easy_abc.py:2586
+#: easy_abc.py:2592
 msgid "Volume level for chordal accompaniment"
 msgstr "和弦伴奏的音量级别"
 
-#: easy_abc.py:2587
+#: easy_abc.py:2593
 msgid "Volume level for bass accompaniment"
 msgstr "贝司伴奏的音量级别"
 
-#: easy_abc.py:2588
+#: easy_abc.py:2594
 msgid ""
 "The Barfly stress model is enabled provided the rhythm designator (R:) is "
 "recognized"
 msgstr ""
 
-#: easy_abc.py:2589
+#: easy_abc.py:2595
 msgid "Dynamic markings like ff mp pp etc. are ignored if enabled"
 msgstr "如果启用，力度记号如 ff mp pp 等将被忽略"
 
-#: easy_abc.py:2590
+#: easy_abc.py:2596
 msgid "Fermata markings are ignored if enabled"
 msgstr "如果启用 Fermata 标记将被忽略"
 
-#: easy_abc.py:2591
+#: easy_abc.py:2597
 msgid "Grace notes are ignored if enabled"
 msgstr ""
 
-#: easy_abc.py:2592
+#: easy_abc.py:2598
 msgid "Transpose by the number of semitones"
 msgstr "按半音数量变调"
 
-#: easy_abc.py:2593
+#: easy_abc.py:2599
 msgid "Frequency of A in Hz"
 msgstr "A 的频率 (Hz)"
 
-#: easy_abc.py:2594
+#: easy_abc.py:2600
 msgid "Two rest bars before music starts"
 msgstr "音乐开始前的 2 小节休止"
 
-#: easy_abc.py:2595
+#: easy_abc.py:2601
 msgid "Volume of melody line if the tune does not have any voices"
 msgstr "如果乐谱没有任何声部，旋律线的音量"
 
-#: easy_abc.py:2629
+#: easy_abc.py:2635
 msgid ""
 "f = fundamental\n"
 "c = chord\n"
@@ -1941,266 +1963,266 @@ msgstr ""
 "I -> G,,\n"
 "J -> B,"
 
-#: easy_abc.py:2749
+#: easy_abc.py:2755
 #, fuzzy
 msgid "Separate defaults per voice"
 msgstr "拆分小节"
 
-#: easy_abc.py:2754
+#: easy_abc.py:2760
 msgid "Default instrument:"
 msgstr "默认乐器："
 
-#: easy_abc.py:2755
+#: easy_abc.py:2761
 msgid "Main Volume:"
 msgstr "主音量:"
 
-#: easy_abc.py:2756
+#: easy_abc.py:2762
 msgid "L/R Balance:"
 msgstr "左/右平衡:"
 
-#: easy_abc.py:2786
+#: easy_abc.py:2792
 #, python-format
 msgid "Voice n.%d: "
 msgstr "第 %d 声部："
 
-#: easy_abc.py:2809
+#: easy_abc.py:2815
 msgid "&Reset"
 msgstr "重置(&R)"
 
-#: easy_abc.py:2823
+#: easy_abc.py:2829
 msgid ""
 "The instrument for all voices is set to the default midi program. The volume "
 "and pan are set to 96/64."
 msgstr "所有声音的乐器都设置为默认的 MIDI 程序。音量和声像设置为 96/64。"
 
-#: easy_abc.py:2917
+#: easy_abc.py:2923
 msgid "Midi device settings"
 msgstr "Midi 设备设置"
 
-#: easy_abc.py:2922
+#: easy_abc.py:2928
 msgid "Input device"
 msgstr "输入设备"
 
-#: easy_abc.py:2923
+#: easy_abc.py:2929
 msgid "Output device"
 msgstr "输出设备"
 
-#: easy_abc.py:3008
+#: easy_abc.py:3014
 msgid ""
 "The options in this page controls how the music score is displayed.\n"
 "\n"
 msgstr ""
 
-#: easy_abc.py:3011
+#: easy_abc.py:3017
 msgid "No page settings"
 msgstr "没有页面设置"
 
-#: easy_abc.py:3012
+#: easy_abc.py:3018
 msgid "EasyABC defaults"
 msgstr "EasyABC 默认值"
 
-#: easy_abc.py:3013
+#: easy_abc.py:3019
 msgid "Include bar numbers"
 msgstr "包含小节编号"
 
-#: easy_abc.py:3014
+#: easy_abc.py:3020
 msgid "Add X reference number"
 msgstr "增加 X 参考号"
 
-#: easy_abc.py:3015
+#: easy_abc.py:3021
 msgid "Suppress lyrics"
 msgstr "隐藏歌词"
 
-#: easy_abc.py:3016
+#: easy_abc.py:3022
 msgid "Ignore line ends"
 msgstr "忽略行尾"
 
-#: easy_abc.py:3017
+#: easy_abc.py:3023
 msgid "Left margin (cm)"
 msgstr "左边距 (厘米)"
 
-#: easy_abc.py:3018
+#: easy_abc.py:3024
 msgid "Right margin (cm)"
 msgstr "右边距 (厘米)"
 
-#: easy_abc.py:3019
+#: easy_abc.py:3025
 msgid "Top margin (cm)"
 msgstr "上边距 (厘米)"
 
-#: easy_abc.py:3020
+#: easy_abc.py:3026
 msgid "Bottom margin (cm)"
 msgstr "底边距 (厘米)"
 
-#: easy_abc.py:3022
+#: easy_abc.py:3028
 msgid "Page width (cm)"
 msgstr "页面宽度 (cm)"
 
-#: easy_abc.py:3023
+#: easy_abc.py:3029
 msgid "Page height (cm)"
 msgstr "页面高度（厘米）"
 
-#: easy_abc.py:3025
+#: easy_abc.py:3031
 msgid "Scale factor (eg. 0.8)"
 msgstr "缩放比例（例如 0.8）"
 
-#: easy_abc.py:3033
+#: easy_abc.py:3039
 msgid "Extra parameters"
 msgstr "额外参数"
 
-#: easy_abc.py:3035
+#: easy_abc.py:3041
 msgid "Format file"
 msgstr "格式化文件"
 
-#: easy_abc.py:3054 easy_abc.py:3055 easy_abc.py:3056 easy_abc.py:3057
-#: easy_abc.py:3058 easy_abc.py:3059
+#: easy_abc.py:3060 easy_abc.py:3061 easy_abc.py:3062 easy_abc.py:3063
+#: easy_abc.py:3064 easy_abc.py:3065
 #, python-brace-format
 msgid "The default is {0}"
 msgstr "默认为 {0}"
 
-#: easy_abc.py:3060
+#: easy_abc.py:3066
 msgid "Additional command line parameters to abcm2ps"
 msgstr "abcm2ps 的附加命令行参数"
 
-#: easy_abc.py:3061
+#: easy_abc.py:3067
 msgid "Right click the mouse to remove all choices"
 msgstr "右击鼠标移除所有选项"
 
-#: easy_abc.py:3071
+#: easy_abc.py:3077
 msgid "Use the factory page settings of EasyABC"
 msgstr "使用 EasyABC 的出厂页面设置"
 
-#: easy_abc.py:3073
+#: easy_abc.py:3079
 msgid "Do not add page settings"
 msgstr "不要添加页面设置"
 
-#: easy_abc.py:3116
+#: easy_abc.py:3122
 #, python-brace-format
 msgid "Scales the separation between staff lines. Recommended value is {0}."
 msgstr "缩放五线谱之间的间隔。推荐值为 {0}。"
 
-#: easy_abc.py:3289
+#: easy_abc.py:3295
 msgid "This will remove the selections in the combobox."
 msgstr "这将删除组合框中的选择。"
 
-#: easy_abc.py:3306
+#: easy_abc.py:3312
 msgid "Find PostScript format file"
 msgstr "查找 PostScript 格式文件"
 
-#: easy_abc.py:3340
+#: easy_abc.py:3346
 msgid "Configure colors for:"
 msgstr ""
 
-#: easy_abc.py:3341
+#: easy_abc.py:3347
 #, fuzzy
 msgid "Light Mode"
 msgstr "八分音符"
 
-#: easy_abc.py:3342
+#: easy_abc.py:3348
 #, fuzzy
 msgid "Dark Mode"
 msgstr "模式"
 
-#: easy_abc.py:3356
+#: easy_abc.py:3362
 msgid "Colors for note highlighting in music score"
 msgstr ""
 
-#: easy_abc.py:3357
+#: easy_abc.py:3363
 msgid "Colors of ABC code highlighting in editor"
 msgstr ""
 
-#: easy_abc.py:3367
+#: easy_abc.py:3373
 msgid "Note highlight color"
 msgstr "音符高亮颜色"
 
-#: easy_abc.py:3374
+#: easy_abc.py:3380
 #, fuzzy
 msgid "Note highlight color when follow score"
 msgstr "音符高亮颜色"
 
-#: easy_abc.py:3389
+#: easy_abc.py:3395
 msgid "Keep music score in warm light mode"
 msgstr ""
 
-#: easy_abc.py:3392
+#: easy_abc.py:3398
 msgid "Custom background:"
 msgstr ""
 
-#: easy_abc.py:3406
+#: easy_abc.py:3412
 #, fuzzy
 msgid "Default color"
 msgstr "默认"
 
-#: easy_abc.py:3407
+#: easy_abc.py:3413
 #, fuzzy
 msgid "Color of chords"
 msgstr "结合和弦"
 
-#: easy_abc.py:3408
+#: easy_abc.py:3414
 #, fuzzy
 msgid "Color of bars"
 msgstr "颜色"
 
-#: easy_abc.py:3409
+#: easy_abc.py:3415
 #, fuzzy
 msgid "Color of comment"
 msgstr "注释"
 
-#: easy_abc.py:3410
+#: easy_abc.py:3416
 msgid "Color of instructions/commands"
 msgstr ""
 
-#: easy_abc.py:3411
+#: easy_abc.py:3417
 msgid "Color of field index"
 msgstr ""
 
-#: easy_abc.py:3412
+#: easy_abc.py:3418
 msgid "Color of ABC fields"
 msgstr ""
 
-#: easy_abc.py:3413
+#: easy_abc.py:3419
 msgid "Color of ABC fields value"
 msgstr ""
 
-#: easy_abc.py:3414
+#: easy_abc.py:3420
 msgid "Color of embedded ABC fields"
 msgstr ""
 
-#: easy_abc.py:3415
+#: easy_abc.py:3421
 msgid "Color of embedded ABC fields values"
 msgstr ""
 
-#: easy_abc.py:3416
+#: easy_abc.py:3422
 msgid "Color of string"
 msgstr ""
 
-#: easy_abc.py:3417
+#: easy_abc.py:3423
 msgid "Color of lyrics"
 msgstr ""
 
-#: easy_abc.py:3418
+#: easy_abc.py:3424
 #, fuzzy
 msgid "Color of ornament"
 msgstr "音符装饰"
 
-#: easy_abc.py:3419
+#: easy_abc.py:3425
 #, fuzzy
 msgid "Color of ornament plus"
 msgstr "音符装饰"
 
-#: easy_abc.py:3420
+#: easy_abc.py:3426
 msgid "Color of ornament excl"
 msgstr ""
 
-#: easy_abc.py:3421
+#: easy_abc.py:3427
 #, fuzzy
 msgid "Color of grace notes"
 msgstr "花音/装饰音"
 
-#: easy_abc.py:3451
+#: easy_abc.py:3457
 msgid "Restore default colors"
 msgstr ""
 
-#: easy_abc.py:3642
+#: easy_abc.py:3647
 msgid ""
 "The settings on this page control behaviour of the functions abc2xml and "
 "xml2abc.\n"
@@ -2210,68 +2232,68 @@ msgid ""
 "Further documentation can be found from the Wim Vree's web site.\n"
 msgstr ""
 
-#: easy_abc.py:3645
+#: easy_abc.py:3650
 msgid "abc2xml options"
 msgstr "abc2xml 选项"
 
-#: easy_abc.py:3646
+#: easy_abc.py:3651
 msgid "Compressed xml"
 msgstr "压缩的 xml"
 
-#: easy_abc.py:3647
+#: easy_abc.py:3652
 msgid "xml2abc option"
 msgstr "xml2abc 选项"
 
-#: easy_abc.py:3648
+#: easy_abc.py:3653
 msgid "Unfold Repeats"
 msgstr "展开重复"
 
-#: easy_abc.py:3649
+#: easy_abc.py:3654
 msgid "Midi Data"
 msgstr "MIDI 数据"
 
-#: easy_abc.py:3650
+#: easy_abc.py:3655
 msgid "Volta type setting"
 msgstr ""
 
-#: easy_abc.py:3651
+#: easy_abc.py:3656
 msgid "characters/line"
 msgstr "字符/行"
 
-#: easy_abc.py:3652
+#: easy_abc.py:3657
 msgid "bars per line"
 msgstr "每行小节数"
 
-#: easy_abc.py:3653
+#: easy_abc.py:3658
 msgid "credit filter"
 msgstr ""
 
-#: easy_abc.py:3654
+#: easy_abc.py:3659
 msgid "unit length"
 msgstr "单位长度"
 
-#: easy_abc.py:3655
+#: easy_abc.py:3660
 msgid "Page settings"
 msgstr "页面设置"
 
-#: easy_abc.py:3679
+#: easy_abc.py:3684
 msgid "When checked, abc2xml produces compressed xml files with extension mxl."
 msgstr "选中时，abc2xml 生成扩展名为 mxl 的压缩 xml 文件。"
 
-#: easy_abc.py:3681
+#: easy_abc.py:3686
 msgid ""
 "When checked, xml2abc turns off repeat translation and instead unfolds "
 "simple repeats."
 msgstr "选中时，xml2abc 会关闭重复翻译，而是展开简单的重复。"
 
-#: easy_abc.py:3683
+#: easy_abc.py:3688
 msgid ""
 "When checked, xml2abc outputs commands for midi volume and panning and the "
 "channel number. These commands are output in addition to the midi program "
 "number when it is present in the xml file."
 msgstr ""
 
-#: easy_abc.py:3685
+#: easy_abc.py:3690
 msgid ""
 "The page format includes 6 numbers, eg. 0.7,25,15,1.2,1.2,1.2,1.2 which sets "
 "the scale to 0.7, the page height to 25 cm, the page width to 15 cm, and "
@@ -2282,7 +2304,7 @@ msgstr ""
 "面高度为 25 厘米，页面宽度为 15 厘米，左、右、上下边距为 1.2 厘米。如果页面格"
 "式为空白，则采用默认值。"
 
-#: easy_abc.py:3687
+#: easy_abc.py:3692
 msgid ""
 "Unless CPL is 0, it sets the maximum length for ABC output to CPL "
 "characters. The default is 100 characters. An integer number of bars, at "
@@ -2291,14 +2313,14 @@ msgstr ""
 "除非 CPL 为 0，否则它将 ABC 输出的最大长度设置为 CPL 字符。默认值为 100 个字"
 "符。总是输出整数个小节，至少为 1 个。"
 
-#: easy_abc.py:3689
+#: easy_abc.py:3694
 msgid ""
 "When not zero, BPL sets the number of bars per line. If both CPL and BPL is "
 "given, only CPL is used."
 msgstr ""
 "当不为零时，BPL 设置每行小节的数量。如果同时给出 CPL 和 BPL，则只使用 CPL。"
 
-#: easy_abc.py:3691
+#: easy_abc.py:3696
 msgid ""
 "This filter tries to eliminate redundant T: fields. A higher level (up to 6) "
 "does less filtering. The default is 0 which filters as much as possible."
@@ -2306,7 +2328,7 @@ msgstr ""
 "这个过滤器试图消除多余的 T: 字段。更高的级别（最多 6 个）过滤更少。默认值为 "
 "0，它尽可能多地过滤。"
 
-#: easy_abc.py:3693
+#: easy_abc.py:3698
 msgid ""
 "Unless D is 0, it sets the unit length for the output to abc field command "
 "L: 1/D. This overrides the computation of the optimal unit length."
@@ -2314,7 +2336,7 @@ msgstr ""
 "除非 D 为 0，否则它将输出的单位长度设置为 abc 字段命令 L: 1/D。这会覆盖最佳单"
 "位长度的计算。"
 
-#: easy_abc.py:3695
+#: easy_abc.py:3700
 #, python-format
 msgid ""
 "The default (V=0) translates volta brackets in all voices. V=1 prevents "
@@ -2326,159 +2348,159 @@ msgid ""
 "suited for abc2midi."
 msgstr ""
 
-#: easy_abc.py:3786
+#: easy_abc.py:3791
 msgid "ABC Options"
 msgstr "ABC 选项"
 
-#: easy_abc.py:3792 easy_abc.py:5423
+#: easy_abc.py:3797 easy_abc.py:5424
 msgid "Metre"
 msgstr ""
 
-#: easy_abc.py:3793
+#: easy_abc.py:3798
 msgid "Default note length"
 msgstr "默认音符时值"
 
-#: easy_abc.py:3794 easy_abc.py:3987 easy_abc.py:4482
+#: easy_abc.py:3799 easy_abc.py:3992 easy_abc.py:4488
 msgid "Title"
 msgstr "标题"
 
-#: easy_abc.py:3795
+#: easy_abc.py:3800
 msgid "Bars per line"
 msgstr "每行小节数"
 
-#: easy_abc.py:3796
+#: easy_abc.py:3801
 msgid "Numbers of notes in anacrusis"
 msgstr "anacrusis 中的音符数量"
 
-#: easy_abc.py:3804
+#: easy_abc.py:3809
 msgid "Detect triplets"
 msgstr ""
 
-#: easy_abc.py:3805
+#: easy_abc.py:3810
 msgid "Detect broken rythms"
 msgstr ""
 
-#: easy_abc.py:3806
+#: easy_abc.py:3811
 msgid "Use slurs on triplets"
 msgstr "在三连音上使用连线"
 
-#: easy_abc.py:3807
+#: easy_abc.py:3812
 msgid "Use slurs on eights (useful for some waltzes)"
 msgstr "在八度上使用连线（对某些华尔兹很有用）"
 
-#: easy_abc.py:3808
+#: easy_abc.py:3813
 msgid "Use slurs on first pair of sixteenth (useful for some 16th polskas)"
 msgstr ""
 
-#: easy_abc.py:3863
+#: easy_abc.py:3868
 msgid "Errors"
 msgstr "错误"
 
-#: easy_abc.py:3912
+#: easy_abc.py:3917
 msgid "Converting..."
 msgstr "正在转换..."
 
-#: easy_abc.py:3980
+#: easy_abc.py:3985
 msgid "Find what"
 msgstr "查找内容"
 
-#: easy_abc.py:3987
+#: easy_abc.py:3992
 msgid "Lyrics"
 msgstr "歌词"
 
-#: easy_abc.py:3995
+#: easy_abc.py:4000
 msgid "Sort by title"
 msgstr "按照名称排序"
 
-#: easy_abc.py:4000
+#: easy_abc.py:4005
 msgid "Look in"
 msgstr ""
 
-#: easy_abc.py:4011
+#: easy_abc.py:4016
 msgid "Cancel"
 msgstr "取消"
 
-#: easy_abc.py:4013
+#: easy_abc.py:4018
 msgid "Find All"
 msgstr "查找全部"
 
-#: easy_abc.py:4036
+#: easy_abc.py:4041
 msgid "When selecting"
 msgstr "选择时"
 
-#: easy_abc.py:4036
+#: easy_abc.py:4041
 msgid "Open file"
 msgstr "打开文件"
 
-#: easy_abc.py:4036
+#: easy_abc.py:4041
 msgid "Copy tune to editor"
 msgstr "复制乐谱到编辑器"
 
-#: easy_abc.py:4099
+#: easy_abc.py:4104
 msgid "Open"
 msgstr "打开"
 
-#: easy_abc.py:4108
+#: easy_abc.py:4113
 msgid "Invalid path"
 msgstr "无效路径"
 
-#: easy_abc.py:4108
+#: easy_abc.py:4113
 msgid "Please enter a valid path to start looking for ABC-files."
 msgstr "请输入一个有效的路径来开始寻找 ABC 文件。"
 
-#: easy_abc.py:4132
+#: easy_abc.py:4137
 #, python-brace-format
 msgid "Found {0} results"
 msgstr "找到 {0} 个结果"
 
-#: easy_abc.py:4211
+#: easy_abc.py:4216
 #, python-brace-format
 msgid "Next {0} results"
 msgstr "接下来的 {0} 个结果"
 
-#: easy_abc.py:4481
+#: easy_abc.py:4487
 msgid "No."
 msgstr "序号"
 
-#: easy_abc.py:4504 easy_abc.py:9334
+#: easy_abc.py:4510 easy_abc.py:9345
 msgid "ABC errors"
 msgstr "ABC 错误"
 
-#: easy_abc.py:4511 easy_abc.py:5453 easy_abc.py:5454 easy_abc.py:5455
-#: easy_abc.py:9335
+#: easy_abc.py:4517 easy_abc.py:5454 easy_abc.py:5455 easy_abc.py:5456
+#: easy_abc.py:9346
 msgid "ABC assist"
 msgstr "ABC 辅助面板"
 
-#: easy_abc.py:4515 easy_abc.py:9332
+#: easy_abc.py:4521 easy_abc.py:9343
 msgid "Tune list"
 msgstr "乐谱列表"
 
-#: easy_abc.py:4516 easy_abc.py:9331
+#: easy_abc.py:4522 easy_abc.py:9342
 msgid "ABC code"
 msgstr "ABC 源码"
 
-#: easy_abc.py:4517 easy_abc.py:9333
+#: easy_abc.py:4523 easy_abc.py:9344
 msgid "Musical score"
 msgstr "乐谱"
 
-#: easy_abc.py:4615
+#: easy_abc.py:4621
 msgid "This is the status bar. Check it occasionally."
 msgstr "这是状态栏。偶尔检查一下。"
 
-#: easy_abc.py:4616
+#: easy_abc.py:4622
 #, python-brace-format
 msgid "You are running {0} on {1}"
 msgstr "您正在 {1} 上运行 {0}"
 
-#: easy_abc.py:4617
+#: easy_abc.py:4623
 msgid "You can get the latest version on"
 msgstr "您可以获得最新版本"
 
-#: easy_abc.py:4870
+#: easy_abc.py:4861
 msgid "EasyABC - print preview"
 msgstr "EasyABC - 打印预览"
 
-#: easy_abc.py:4882
+#: easy_abc.py:4873
 msgid ""
 "There was a problem printing.\n"
 "Perhaps your current printer is not set correctly?"
@@ -2486,94 +2508,94 @@ msgstr ""
 "打印时出现问题。\n"
 "可能当前打印机没有设置正确？"
 
-#: easy_abc.py:4882
+#: easy_abc.py:4873
 msgid "Printing"
 msgstr "正在打印"
 
-#: easy_abc.py:5173
+#: easy_abc.py:5174
 #, python-format
 msgid "Unable to load %s: Unsupported format?"
 msgstr "无法加载 %s： 不支持的格式?"
 
-#: easy_abc.py:5422
+#: easy_abc.py:5423
 msgid "Beats per minute"
 msgstr "每分钟的节拍数"
 
-#: easy_abc.py:5468
+#: easy_abc.py:5469
 msgid "Zoom"
 msgstr "缩放"
 
-#: easy_abc.py:5475
+#: easy_abc.py:5476
 msgid "Page"
 msgstr "页面"
 
-#: easy_abc.py:5483
+#: easy_abc.py:5484
 msgid "Play position"
 msgstr "播放位置"
 
-#: easy_abc.py:5485
+#: easy_abc.py:5486
 msgid "Loop"
 msgstr "循环"
 
-#: easy_abc.py:5488
+#: easy_abc.py:5489
 msgid "Follow score"
 msgstr "跟随乐谱"
 
-#: easy_abc.py:5557 easy_abc.py:6874
+#: easy_abc.py:5558 easy_abc.py:6875
 msgid "&Do-re-mi mode"
 msgstr "哆来咪模式(&D)"
 
-#: easy_abc.py:5692
+#: easy_abc.py:5693
 msgid "incipits"
 msgstr "初始化"
 
-#: easy_abc.py:5717 easy_abc.py:6533
+#: easy_abc.py:5718 easy_abc.py:6534
 msgid "Error: there was some trouble saving the file."
 msgstr "错误：保存文件时出现问题。"
 
-#: easy_abc.py:5717 easy_abc.py:6533
+#: easy_abc.py:5718 easy_abc.py:6534
 msgid "File could not be saved properly"
 msgstr "文件无法正确保存"
 
-#: easy_abc.py:5723
+#: easy_abc.py:5724
 msgid "Which field(s) do you want to sort the tunes by? (eg. T for title)"
 msgstr "您想根据哪个字段对乐谱进行排序？（例如：T 表示标题）"
 
-#: easy_abc.py:5723
+#: easy_abc.py:5724
 msgid "Sort tunes"
 msgstr "排序乐谱"
 
-#: easy_abc.py:5736
+#: easy_abc.py:5737
 msgid "Please specify the index of the first tune: "
 msgstr "请指定第一首曲子的索引："
 
-#: easy_abc.py:5736
+#: easy_abc.py:5737
 msgid "Renumber X: fields"
 msgstr "重新编号 X：字段"
 
-#: easy_abc.py:5766 easy_abc.py:6982
+#: easy_abc.py:5767 easy_abc.py:6983
 msgid "Find in Files"
 msgstr "在文件中查找"
 
-#: easy_abc.py:5808 easy_abc.py:5812 easy_abc.py:6575
+#: easy_abc.py:5809 easy_abc.py:5813 easy_abc.py:6576
 msgid "Midi file"
 msgstr "Midi 文件"
 
-#: easy_abc.py:5830
+#: easy_abc.py:5831
 #, fuzzy
 msgid "MP3 file"
 msgstr "PDF 文件"
 
-#: easy_abc.py:5836
+#: easy_abc.py:5837
 #, fuzzy
 msgid "AAC file"
 msgstr "ABC 文件"
 
-#: easy_abc.py:5842
+#: easy_abc.py:5843
 msgid "Wave file"
 msgstr "Wave 文件"
 
-#: easy_abc.py:5847
+#: easy_abc.py:5848
 msgid ""
 "Both the FluidSynth library and a valid SoundFont (see menu Settings -> ABC "
 "Settings -> File settings) are required for exporting to a wave file."
@@ -2581,27 +2603,27 @@ msgstr ""
 "导出到波形文件需要 FluidSynth 库和有效的 SoundFont（参见菜单设置 -> ABC 设置 "
 "-> 文件设置）。"
 
-#: easy_abc.py:5848
+#: easy_abc.py:5849
 msgid "Unable to export"
 msgstr "无法导出"
 
-#: easy_abc.py:5858
+#: easy_abc.py:5859
 #, python-brace-format
 msgid "Failed to create {0}"
 msgstr "未能创建 {0}"
 
-#: easy_abc.py:5897
+#: easy_abc.py:5898
 #, fuzzy
 msgid "ffmpeg was not found here. Go to settings and indicate the path"
 msgstr "没有找到ghostscript。进入设置并指明路径"
 
-#: easy_abc.py:5897 easy_abc.py:5927 easy_abc.py:5931 easy_abc.py:9382
-#: easy_abc.py:9393 easy_abc.py:9405 easy_abc.py:9417 easy_abc.py:9426
-#: easy_abc.py:9457
+#: easy_abc.py:5898 easy_abc.py:5928 easy_abc.py:5932 easy_abc.py:9393
+#: easy_abc.py:9404 easy_abc.py:9416 easy_abc.py:9428 easy_abc.py:9437
+#: easy_abc.py:9468
 msgid "Warning"
 msgstr "警告"
 
-#: easy_abc.py:5927
+#: easy_abc.py:5928
 #, fuzzy
 msgid ""
 "EasyABC needs an external program called GhostScript to generate PDFs. You "
@@ -2611,82 +2633,82 @@ msgstr ""
 "EasyABC 需要一个名为 GhostScript 的外部程序来生成 PDF。你可以从 https://"
 "www.ghostscript.com/download/ 获取它"
 
-#: easy_abc.py:5931
+#: easy_abc.py:5932
 msgid "ghostscript was not found here. Go to settings and indicate the path"
 msgstr "没有找到ghostscript。进入设置并指明路径"
 
-#: easy_abc.py:5935
+#: easy_abc.py:5936
 msgid "PDF file"
 msgstr "PDF 文件"
 
-#: easy_abc.py:5938
+#: easy_abc.py:5939
 msgid "SVG file"
 msgstr "SVG 文件"
 
-#: easy_abc.py:5965
+#: easy_abc.py:5966
 msgid "Compressed MusicXML"
 msgstr "压缩的 MusicXML"
 
-#: easy_abc.py:5980
+#: easy_abc.py:5981
 #, python-brace-format
 msgid "Error during conversion of X:{0} (\"{1}\"): {2}"
 msgstr "转换 X:{0} 时出错：(\"{1}\")：{2}"
 
-#: easy_abc.py:5991 easy_abc.py:6060 easy_abc.py:6063
+#: easy_abc.py:5992 easy_abc.py:6061 easy_abc.py:6064
 msgid "HTML file"
 msgstr "HTML 文件"
 
-#: easy_abc.py:5994
+#: easy_abc.py:5995
 msgid "HTML file (interactive)"
 msgstr "HTML 文件（交互式）"
 
-#: easy_abc.py:6075
+#: easy_abc.py:6076
 msgid "Export all tunes as ..."
 msgstr "将所有乐谱导出为..."
 
-#: easy_abc.py:6075
+#: easy_abc.py:6076
 msgid "Epub file"
 msgstr "Epub 文件"
 
-#: easy_abc.py:6136 easy_abc.py:6557 easy_abc.py:6574 easy_abc.py:6728
+#: easy_abc.py:6137 easy_abc.py:6558 easy_abc.py:6575 easy_abc.py:6729
 msgid "ABC file"
 msgstr "ABC 文件"
 
-#: easy_abc.py:6158
+#: easy_abc.py:6159
 msgid "Export tune as ..."
 msgstr "导出乐谱 ..."
 
-#: easy_abc.py:6170
+#: easy_abc.py:6171
 #, python-brace-format
 msgid "{0} was written"
 msgstr "{0} 已写入"
 
-#: easy_abc.py:6214
+#: easy_abc.py:6215
 msgid "Choose a directory..."
 msgstr "选择一个目录..."
 
-#: easy_abc.py:6226
+#: easy_abc.py:6227
 #, python-brace-format
 msgid "{0} files to create"
 msgstr "要创建的 {0} 个文件"
 
-#: easy_abc.py:6232
+#: easy_abc.py:6233
 msgid "Exporting"
 msgstr "导出"
 
-#: easy_abc.py:6232
+#: easy_abc.py:6233
 msgid "Remaining time"
 msgstr "剩余时间"
 
-#: easy_abc.py:6256
+#: easy_abc.py:6257
 msgid "Export completed"
 msgstr "导出完成"
 
-#: easy_abc.py:6258
+#: easy_abc.py:6259
 msgid "Export failed"
 msgstr "导出失败"
 
-#: easy_abc.py:6415
+#: easy_abc.py:6416
 msgid ""
 "Looping is not possible when using an external midi player. Empty the "
 "midiplayer path in Settings -> ABC Settings -> File Settings to regain the "
@@ -2695,31 +2717,31 @@ msgstr ""
 "使用外部 midi 播放器时无法循环播放。在设置 -> ABC 设置 -> 文件设置中清空 "
 "midiplayer 路径，以在双击播放按钮时重新获得循环播放功能"
 
-#: easy_abc.py:6415
+#: easy_abc.py:6416
 msgid "Looping unavailable"
 msgstr "循环不可用"
 
-#: easy_abc.py:6558 easy_abc.py:6578
+#: easy_abc.py:6559 easy_abc.py:6579
 msgid "Any file"
 msgstr "任何文件"
 
-#: easy_abc.py:6560
+#: easy_abc.py:6561
 msgid "Open ABC file"
 msgstr "打开 ABC 文件"
 
-#: easy_abc.py:6573
+#: easy_abc.py:6574
 msgid "Any music file"
 msgstr "任何音乐文件"
 
-#: easy_abc.py:6577
+#: easy_abc.py:6578
 msgid "Noteworthy Composer file"
 msgstr "值得注意的作曲家文件"
 
-#: easy_abc.py:6580
+#: easy_abc.py:6581
 msgid "Import and add tune"
 msgstr "导入并添加乐谱"
 
-#: easy_abc.py:6603
+#: easy_abc.py:6604
 msgid ""
 "This ABC file seems to be encoded using UTF-8 but contains no indication of "
 "this fact. It is strongly recommended that an I:abc-charset field is added "
@@ -2730,11 +2752,11 @@ msgstr ""
 "I:abc-charset 字段，以便您加载文件并安全地保存对它的更改。你想让 EasyABC 自动"
 "为你添加这个吗？"
 
-#: easy_abc.py:6605 easy_abc.py:6616
+#: easy_abc.py:6606 easy_abc.py:6617
 msgid "Add abc-charset field?"
 msgstr "增加 abc-charset 字段？"
 
-#: easy_abc.py:6614
+#: easy_abc.py:6615
 #, fuzzy
 msgid ""
 "This ABC file seems not to be encoded using UTF-8 but contains no indication "
@@ -2747,26 +2769,26 @@ msgstr ""
 "I:abc-charset 字段，以便您加载文件并安全地保存对它的更改。你想让 EasyABC 自动"
 "为你添加这个吗？"
 
-#: easy_abc.py:6635
+#: easy_abc.py:6636
 msgid ""
 "Could not find file.\n"
 "It may have been moved or deleted. Choose File,Open to locate it."
 msgstr "找不到文件。它可能已被移动或删除。选择文件，打开以找到它。"
 
-#: easy_abc.py:6635
+#: easy_abc.py:6636
 msgid "File not found"
 msgstr "找不到文件"
 
-#: easy_abc.py:6681
+#: easy_abc.py:6682
 #, python-format
 msgid "Do you want to save your changes to %s?"
 msgstr "您想保存对 %s 的修改吗？"
 
-#: easy_abc.py:6682
+#: easy_abc.py:6683
 msgid "Save changes?"
 msgstr "保存更改？"
 
-#: easy_abc.py:6708
+#: easy_abc.py:6709
 #, python-format
 msgid ""
 "This document contains characters (eg. %(ABC)s) that cannot be represented "
@@ -2778,579 +2800,584 @@ msgstr ""
 "想改用 UTF-8 作为字符编码吗（推荐）？（选择否可能会导致其中一些字符在保存时"
 "被 '?' 替换）"
 
-#: easy_abc.py:6712
+#: easy_abc.py:6713
 msgid "Switch to UTF-8 encoding?"
 msgstr "切换到 UTF-8 编码？"
 
-#: easy_abc.py:6733
+#: easy_abc.py:6734
 #, python-format
 msgid "Save ABC file %s"
 msgstr "保存 ABC 文件 %s"
 
-#: easy_abc.py:6741
+#: easy_abc.py:6742
 msgid "The file already exists. Do you want to overwrite the existing file?"
 msgstr "文件已经存在。你想覆盖现有文件吗？"
 
-#: easy_abc.py:6742
+#: easy_abc.py:6743
 msgid "Overwrite existing file?"
 msgstr "覆盖现有的文件？"
 
-#: easy_abc.py:6766
+#: easy_abc.py:6767
 msgid "abc2abc error/warnings: "
 msgstr "abc2abc 错误/警告："
 
-#: easy_abc.py:6767
+#: easy_abc.py:6768
 msgid "Abc2abc error message"
 msgstr "Abc2abc 错误信息"
 
-#: easy_abc.py:6831
+#: easy_abc.py:6832
 msgid "Move up"
 msgstr "上移"
 
-#: easy_abc.py:6832
+#: easy_abc.py:6833
 msgid "Move down"
 msgstr "下移"
 
-#: easy_abc.py:6834
+#: easy_abc.py:6835
 #, fuzzy
 msgid "Copy"
 msgstr "复制(&C)"
 
-#: easy_abc.py:6835
+#: easy_abc.py:6836
 msgid "Export to &MIDI..."
 msgstr "导出到 MIDI(&M) ..."
 
-#: easy_abc.py:6836
+#: easy_abc.py:6837
 msgid "Export to &PDF..."
 msgstr "导出到 PDF(&P) ... "
 
-#: easy_abc.py:6837
+#: easy_abc.py:6838
 msgid "Export to &one PDF..."
 msgstr "导出为一个 PDF(&o)... "
 
-#: easy_abc.py:6838
+#: easy_abc.py:6839
 msgid "Export to &SVG..."
 msgstr "导出到 SVG(&S) ..."
 
-#: easy_abc.py:6839
+#: easy_abc.py:6840
 msgid "Export to &HTML..."
 msgstr "导出到 HTML(&H) ..."
 
-#: easy_abc.py:6840
+#: easy_abc.py:6841
 msgid "Export to HTML (&interactive)..."
 msgstr "导出到交互式 HTML(&I) ..."
 
-#: easy_abc.py:6841
+#: easy_abc.py:6842
 msgid "Export to Music&XML..."
 msgstr "导出到 MusicXML(&X) ..."
 
-#: easy_abc.py:6842
+#: easy_abc.py:6843
 msgid "Export to &ABC..."
 msgstr "导出到 ABC(&A) ..."
 
-#: easy_abc.py:6843
+#: easy_abc.py:6844
 msgid "Export to &Wave..."
 msgstr "导出到 Wave(&W) ..."
 
-#: easy_abc.py:6844
+#: easy_abc.py:6845
 #, fuzzy
 msgid "Export to &MP3..."
 msgstr "导出到 PDF(&P) ... "
 
-#: easy_abc.py:6845
+#: easy_abc.py:6846
 #, fuzzy
 msgid "Export to &AAC..."
 msgstr "导出到 ABC(&A) ..."
 
-#: easy_abc.py:6871
+#: easy_abc.py:6872
 msgid "&Active"
 msgstr "激活(&A)"
 
-#: easy_abc.py:6873
+#: easy_abc.py:6874
 msgid "Automatic uppercase/lowercase"
 msgstr "自动大写/小写"
 
-#: easy_abc.py:6875
+#: easy_abc.py:6876
 msgid "Add note &durations"
 msgstr "增加注释和持续时间"
 
-#: easy_abc.py:6878
+#: easy_abc.py:6879
 msgid "Disabled"
 msgstr "禁用"
 
-#: easy_abc.py:6879
+#: easy_abc.py:6880
 msgid "Using spacebar"
 msgstr "使用空小节"
 
-#: easy_abc.py:6880
+#: easy_abc.py:6881
 msgid "Automatic"
 msgstr "自动"
 
-#: easy_abc.py:6881
+#: easy_abc.py:6882
 msgid "Add &bar"
 msgstr "增加小节(&B)"
 
-#: easy_abc.py:6883
+#: easy_abc.py:6884
 msgid "Add &matching right symbol: ), ], } and \""
 msgstr "增加匹配右符号(&M)：)、]、}和\""
 
-#: easy_abc.py:6900
+#: easy_abc.py:6901
 #, python-format
 msgid "Down %d semitones"
 msgstr "向下 %d 个半音"
 
-#: easy_abc.py:6904
+#: easy_abc.py:6905
 #, python-format
 msgid "Up %d semitones"
 msgstr "向上 %d 个半音"
 
-#: easy_abc.py:6907
+#: easy_abc.py:6908
 msgid "&Refresh music"
 msgstr "刷新音乐(&R)"
 
-#: easy_abc.py:6908
+#: easy_abc.py:6909
 msgid "&Automatically refresh music as I type"
 msgstr "在我输入时自动刷新音乐(&A)"
 
-#: easy_abc.py:6910
+#: easy_abc.py:6911
 msgid "&Use reduced margins when displaying tunes on screen"
 msgstr "在屏幕上显示曲调时使用缩小的边距(&U)"
 
-#: easy_abc.py:6911
+#: easy_abc.py:6912
 msgid "&Change editor font..."
 msgstr "更改编辑器字体(&C)"
 
-#: easy_abc.py:6912
+#: easy_abc.py:6913
 msgid "&Use default editor font"
 msgstr "使用默认编辑器字体(&U)"
 
-#: easy_abc.py:6914
+#: easy_abc.py:6915
 msgid "&Reset window layout to default"
 msgstr "将窗口布局重置为默认值(&R)"
 
-#: easy_abc.py:6916
+#: easy_abc.py:6917
 msgid "&Full screen"
 msgstr ""
 
-#: easy_abc.py:6923
+#: easy_abc.py:6924
 msgid "&File"
 msgstr "文件(&F)"
 
-#: easy_abc.py:6924
+#: easy_abc.py:6925
 msgid "&New"
 msgstr "新建(&N)"
 
-#: easy_abc.py:6924
+#: easy_abc.py:6925
 msgid "Create a new file"
 msgstr "创建一个新文件"
 
-#: easy_abc.py:6925
+#: easy_abc.py:6926
 msgid "&Open..."
 msgstr "打开(&O)..."
 
-#: easy_abc.py:6925
+#: easy_abc.py:6926
 msgid "Open an existing file"
 msgstr "打开一个现有文件"
 
-#: easy_abc.py:6926
+#: easy_abc.py:6927
 msgid "&Close"
 msgstr "关闭(&C)"
 
-#: easy_abc.py:6926
+#: easy_abc.py:6927
 msgid "Close the current file"
 msgstr "关闭当前文件"
 
-#: easy_abc.py:6928
+#: easy_abc.py:6929
 msgid "&Import and add..."
 msgstr "导入并添加(&I)..."
 
-#: easy_abc.py:6928
+#: easy_abc.py:6929
 msgid ""
 "Import a song in ABC, Midi or MusicXML format and add it to the current "
 "document."
 msgstr "导入 ABC、Midi 或 MusicXML 格式的乐谱并将其添加到当前文档中。"
 
-#: easy_abc.py:6930
+#: easy_abc.py:6931
 msgid "&Export selected"
 msgstr "选择导出(&E)"
 
-#: easy_abc.py:6931
+#: easy_abc.py:6932
 msgid "as &PDF..."
 msgstr "作为 PDF(&P)..."
 
-#: easy_abc.py:6932
+#: easy_abc.py:6933
 msgid "as one &PDF..."
 msgstr "作为一个 PDF(&P)..."
 
-#: easy_abc.py:6933 easy_abc.py:6945
+#: easy_abc.py:6934 easy_abc.py:6946
 msgid "as &MIDI..."
 msgstr "作为 MIDI(&M)..."
 
-#: easy_abc.py:6934
+#: easy_abc.py:6935
 msgid "as &SVG..."
 msgstr "作为 SVG(&S)..."
 
-#: easy_abc.py:6935 easy_abc.py:6946
+#: easy_abc.py:6936 easy_abc.py:6947
 msgid "as &HTML..."
 msgstr "作为 HTML(&H)..."
 
-#: easy_abc.py:6936 easy_abc.py:6947
+#: easy_abc.py:6937 easy_abc.py:6948
 msgid "as HTML (&interactive)..."
 msgstr "作为交互式 HTML(&I)..."
 
-#: easy_abc.py:6937 easy_abc.py:6949
+#: easy_abc.py:6938 easy_abc.py:6950
 msgid "as Music&XML..."
 msgstr "作为 MusicXML(&X)..."
 
-#: easy_abc.py:6938
+#: easy_abc.py:6939
 msgid "as A&BC..."
 msgstr "作为 ABC(&B)..."
 
-#: easy_abc.py:6939
+#: easy_abc.py:6940
 msgid "as &Wave..."
 msgstr "作为 Wave(&W)..."
 
-#: easy_abc.py:6940
+#: easy_abc.py:6941
 #, fuzzy
 msgid "as &MP3..."
 msgstr "作为 PDF(&P)..."
 
-#: easy_abc.py:6941
+#: easy_abc.py:6942
 #, fuzzy
 msgid "as &AAC..."
 msgstr "作为 ABC(&B)..."
 
-#: easy_abc.py:6942
+#: easy_abc.py:6943
 msgid "Export &all"
 msgstr "导出所有(&A)"
 
-#: easy_abc.py:6943
+#: easy_abc.py:6944
 msgid "as a &PDF Book..."
 msgstr "作为 PDF 书(&P)..."
 
-#: easy_abc.py:6944
+#: easy_abc.py:6945
 msgid "as PDF &Files..."
 msgstr "作为 PDF 文件(&F)..."
 
-#: easy_abc.py:6951
+#: easy_abc.py:6952
 msgid "&Save"
 msgstr "保存(&S)"
 
-#: easy_abc.py:6951
+#: easy_abc.py:6952
 msgid "Save the active file"
 msgstr "保存活动文件"
 
-#: easy_abc.py:6952
+#: easy_abc.py:6953
 msgid "Save &As..."
 msgstr "另存为(&A)..."
 
-#: easy_abc.py:6952
+#: easy_abc.py:6953
 msgid "Save the active file with a new filename"
 msgstr "用新文件名保存活动文件"
 
-#: easy_abc.py:6954
+#: easy_abc.py:6955
 msgid "&Print..."
 msgstr "打印(&P)..."
 
-#: easy_abc.py:6954
+#: easy_abc.py:6955
 msgid "Print the selected tune"
 msgstr "打印选定的乐谱"
 
-#: easy_abc.py:6955
+#: easy_abc.py:6956
 msgid "&Print preview"
 msgstr "打印预览(&P)"
 
-#: easy_abc.py:6956
+#: easy_abc.py:6957
 msgid "P&age Setup..."
 msgstr "页面设置(&A)"
 
-#: easy_abc.py:6956
+#: easy_abc.py:6957
 msgid "Change the printer and printing options"
 msgstr "更改打印机和打印选项"
 
-#: easy_abc.py:6958
+#: easy_abc.py:6959
 msgid "&Recent files"
 msgstr "最近的文件(&R)"
 
-#: easy_abc.py:6960
+#: easy_abc.py:6961
 msgid "&Quit"
 msgstr "退出(&Q)"
 
-#: easy_abc.py:6960
+#: easy_abc.py:6961
 msgid "Exit the application (prompt to save files)"
 msgstr "退出应用程序（提示保存文件）"
 
-#: easy_abc.py:6961
+#: easy_abc.py:6962
 msgid "&Edit"
 msgstr "编辑(&E)"
 
-#: easy_abc.py:6962
+#: easy_abc.py:6963
 msgid "&Undo"
 msgstr "撤销(&U)"
 
-#: easy_abc.py:6962
+#: easy_abc.py:6963
 msgid "Undo the last action"
 msgstr "撤消上次操作"
 
-#: easy_abc.py:6963
+#: easy_abc.py:6964
 msgid "&Redo"
 msgstr "恢复(&R)"
 
-#: easy_abc.py:6963
+#: easy_abc.py:6964
 msgid "Redo the last action"
 msgstr "重做最后一个动作"
 
-#: easy_abc.py:6965
+#: easy_abc.py:6966
 msgid "&Cut"
 msgstr "剪切(&C)"
 
-#: easy_abc.py:6965
+#: easy_abc.py:6966
 msgid "Cut the selection and put it on the clipboard"
 msgstr "剪切选择并将其放在剪贴板上"
 
-#: easy_abc.py:6966
+#: easy_abc.py:6967
 msgid "&Copy"
 msgstr "复制(&C)"
 
-#: easy_abc.py:6966
+#: easy_abc.py:6967
 msgid "Copy the selection and put it on the clipboard"
 msgstr "复制选择并将其放在剪贴板上"
 
-#: easy_abc.py:6967
+#: easy_abc.py:6968
 msgid "&Paste"
 msgstr "粘贴(&P)"
 
-#: easy_abc.py:6967
+#: easy_abc.py:6968
 msgid "Paste clipboard contents"
 msgstr "粘贴剪贴板内容"
 
-#: easy_abc.py:6968
+#: easy_abc.py:6969
 msgid "&Delete"
 msgstr "刪除(&D)"
 
-#: easy_abc.py:6968
+#: easy_abc.py:6969
 msgid "Delete the selection"
 msgstr "删除选择内容"
 
-#: easy_abc.py:6970
+#: easy_abc.py:6971
 msgid "&Insert musical symbol"
 msgstr "插入音乐符号(&I)"
 
-#: easy_abc.py:6971
+#: easy_abc.py:6972
 msgid "Note ornaments"
 msgstr "音符装饰"
 
-#: easy_abc.py:6972
+#: easy_abc.py:6973
 msgid "Directions"
 msgstr "反复记号"
 
-#: easy_abc.py:6975
+#: easy_abc.py:6976
 msgid "&Transpose"
 msgstr "移调(&T)"
 
-#: easy_abc.py:6976
+#: easy_abc.py:6977
 msgid "&Change note length"
 msgstr "更改音符长度(&C)"
 
-#: easy_abc.py:6977
+#: easy_abc.py:6978
 msgid "Double note lengths"
 msgstr "双倍音符时值"
 
-#: easy_abc.py:6978
+#: easy_abc.py:6979
 msgid "Halve note lengths"
 msgstr "减半音符长度"
 
-#: easy_abc.py:6979
+#: easy_abc.py:6980
 msgid "A&lign bars"
 msgstr "对齐小节(&L)"
 
-#: easy_abc.py:6981
+#: easy_abc.py:6982
 msgid "&Find..."
 msgstr "查找(&F)..."
 
-#: easy_abc.py:6983
+#: easy_abc.py:6984
 msgid "Find &Next"
 msgstr "查找下一个(&N)"
 
-#: easy_abc.py:6984
+#: easy_abc.py:6985
 msgid "&Replace..."
 msgstr "替换(&R)..."
 
-#: easy_abc.py:6986
+#: easy_abc.py:6987
 msgid "&Select all"
 msgstr "全选(&S)"
 
-#: easy_abc.py:6987
+#: easy_abc.py:6988
 msgid "&Settings"
 msgstr "设置(S)"
 
-#: easy_abc.py:6988
+#: easy_abc.py:6989
 msgid "&ABC settings"
 msgstr "ABC 设置(&A)"
 
-#: easy_abc.py:6989
+#: easy_abc.py:6990
 msgid "&Midi device settings"
 msgstr "Midi 设备设置(&M)"
 
-#: easy_abc.py:6990
+#: easy_abc.py:6991
 msgid "ABC &typing assistance"
 msgstr "ABC 打字帮助(&T)"
 
-#: easy_abc.py:6992
+#: easy_abc.py:6993
 msgid "&Clear cache"
 msgstr "清除缓存(&C)"
 
-#: easy_abc.py:6993
+#: easy_abc.py:6994
 msgid "Cold &restart"
 msgstr "冷启动(&R)"
 
-#: easy_abc.py:6994
+#: easy_abc.py:6995
 msgid "&Tools"
 msgstr "工具(&T)"
 
-#: easy_abc.py:6995
+#: easy_abc.py:6996
 msgid "Generate &incipits file..."
 msgstr "生成初始文件(&I)..."
 
-#: easy_abc.py:6996
+#: easy_abc.py:6997
 msgid "&View incipits..."
 msgstr "查看初始文件(&V)..."
 
-#: easy_abc.py:6998
+#: easy_abc.py:6999
 msgid "&Renumber X: fields..."
 msgstr "重新编号 X: 字段(&R)..."
 
-#: easy_abc.py:6999
+#: easy_abc.py:7000
 msgid "&Sort tunes..."
 msgstr "排序乐谱(&S)..."
 
-#: easy_abc.py:7000
+#: easy_abc.py:7001
 msgid "&View"
 msgstr "视图(&V)"
 
-#: easy_abc.py:7001
+#: easy_abc.py:7002
 msgid "&Internals"
 msgstr "内部结构(&I)"
 
-#: easy_abc.py:7002 easy_abc.py:9687
+#: easy_abc.py:7003 easy_abc.py:9600
 msgid "Messages"
 msgstr "消息"
 
-#: easy_abc.py:7002
+#: easy_abc.py:7003
 msgid "Show warnings and errors"
 msgstr "显示警告和错误"
 
-#: easy_abc.py:7003
+#: easy_abc.py:7004
 msgid "Input processed tune"
 msgstr "输入已处理的乐谱"
 
-#: easy_abc.py:7004
+#: easy_abc.py:7005
 msgid "List of Tunes"
 msgstr ""
 
-#: easy_abc.py:7005
+#: easy_abc.py:7006
 msgid "Output midi file"
 msgstr "输出 midi 文件"
 
-#: easy_abc.py:7006
+#: easy_abc.py:7007
 msgid "Show settings status"
 msgstr "显示设置状态"
 
-#: easy_abc.py:7007
+#: easy_abc.py:7008
 msgid "&Help"
 msgstr "帮助(&H)"
 
-#: easy_abc.py:7008
+#: easy_abc.py:7009
 msgid "&Show fields and commands reference"
 msgstr "显示字段和命令参考(&S)"
 
-#: easy_abc.py:7010
+#: easy_abc.py:7011
 msgid "&EasyABC Help"
 msgstr "EasyABC 帮助(&E)"
 
-#: easy_abc.py:7010
+#: easy_abc.py:7011
 msgid "Link to EasyABC Website"
 msgstr "链接到 EasyABC 网站"
 
-#: easy_abc.py:7011
+#: easy_abc.py:7012
 msgid "&ABC Standard Version 2.1"
 msgstr "ABC 标准版本 2.1 (&A)"
 
-#: easy_abc.py:7011
+#: easy_abc.py:7012
 msgid "Link to the ABC Standard version 2.1"
 msgstr "链接到 ABC 标准 2.1 版"
 
-#: easy_abc.py:7012
+#: easy_abc.py:7013
 msgid "&Learn ABC"
 msgstr "学习ABC (&L)"
 
-#: easy_abc.py:7012
+#: easy_abc.py:7013
 msgid "Link to the ABC notation website"
 msgstr "链接到 ABC 符号网站"
 
-#: easy_abc.py:7013
+#: easy_abc.py:7014
 msgid "&Abcm2ps help"
 msgstr "Abcm2ps 帮助(&A)"
 
-#: easy_abc.py:7013
+#: easy_abc.py:7014
 msgid "Link to the Abcm2ps website"
 msgstr "链接到 Abcm2ps 网站"
 
-#: easy_abc.py:7014
+#: easy_abc.py:7015
 msgid "&Abc2midi help"
 msgstr "Abc2midi 帮助(&A)"
 
-#: easy_abc.py:7014
+#: easy_abc.py:7015
 msgid "Link to the Abc2midi website"
 msgstr "链接到 Abc2midi 网站"
 
-#: easy_abc.py:7015
+#: easy_abc.py:7016
 msgid "ABC &Quick Reference Card"
 msgstr "ABC 快速参考卡(&Q)"
 
-#: easy_abc.py:7015
+#: easy_abc.py:7016
 msgid "Link to a PDF with the most common ABC commands"
 msgstr "链接到通用 ABC 命令的 PDF"
 
-#: easy_abc.py:7017
+#: easy_abc.py:7018
 msgid "&Check for update..."
 msgstr "检查更新(&C)…"
 
-#: easy_abc.py:7017
+#: easy_abc.py:7018
 msgid "Link to EasyABC download page"
 msgstr "EasyABC 下载页面的链接"
 
-#: easy_abc.py:7019 easy_abc.py:9627
-msgid "About EasyABC"
-msgstr "关于 EasyABC"
+#: easy_abc.py:7020 tune_elements.py:730
+msgid "Welcome to EasyABC"
+msgstr "欢迎使用 EasyABC"
 
-#: easy_abc.py:7094
+#: easy_abc.py:7020
+#, fuzzy
+msgid "Show the welcome page of EasyABC"
+msgstr "欢迎使用 EasyABC"
+
+#: easy_abc.py:7096
 msgid "You need to create the midi file by playing the tune"
 msgstr "您需要通过播放曲子来创建 MIDI 文件"
 
-#: easy_abc.py:7158 easy_abc.py:7235 easy_abc.py:7261
+#: easy_abc.py:7160 easy_abc.py:7237 easy_abc.py:7263
 msgid "Find"
 msgstr "查找"
 
-#: easy_abc.py:7163
+#: easy_abc.py:7165
 msgid "Find & Replace"
 msgstr "查找和替换(&R)"
 
-#: easy_abc.py:7210
+#: easy_abc.py:7212
 #, python-format
 msgid "%d occurrences successfully replaced."
 msgstr "成功替换了 %d 次"
 
-#: easy_abc.py:7212 easy_abc.py:7235 easy_abc.py:7261
+#: easy_abc.py:7214 easy_abc.py:7237 easy_abc.py:7263
 #, python-format
 msgid "Cannot find \"%s\""
 msgstr "找不到 “%s”"
 
-#: easy_abc.py:7213
+#: easy_abc.py:7215
 msgid "Replace All"
 msgstr "全部替换"
 
-#: easy_abc.py:7318
+#: easy_abc.py:7320
 #, python-format
 msgid ""
 "This will remove %(count)s temporary files stored in the directory %(dir)s "
@@ -3359,74 +3386,75 @@ msgstr ""
 "这将删除 %(count)s 个存储在目录 %(dir)s 中的临时文件，这些文件总共使用了 "
 "%(size).2f MB 的磁盘空间。继续吗？"
 
-#: easy_abc.py:7319
+#: easy_abc.py:7321
 msgid "Clear cache?"
 msgstr "清除缓存？"
 
-#: easy_abc.py:7331
+#: easy_abc.py:7333
+#, fuzzy
 msgid ""
 "This will close EasyAbc and put it in a state so that it starts with default "
-"settings.i.e. the file settings1.3 will be deleted."
+"settings.i.e. the file settings1.4 will be deleted."
 msgstr ""
 "这将关闭 EasyAbc 并将其置于以默认设置启动的状态。即文件 settings1.3 将被删"
 "除。"
 
-#: easy_abc.py:7361
+#: easy_abc.py:7365
 msgid "Select a font for the ABC editor"
 msgstr "为 ABC 编辑器选择字体"
 
-#: easy_abc.py:7369
+#: easy_abc.py:7373
 msgid "ABC fields and commands reference"
 msgstr "ABC 字段和命令参考"
 
-#: easy_abc.py:9154
+#: easy_abc.py:9158
 msgid "nwc2xml error"
 msgstr "nwc2xml 错误"
 
-#: easy_abc.py:9230
+#: easy_abc.py:9234
 msgid "Name of tune"
 msgstr "乐谱名称"
 
-#: easy_abc.py:9382
+#: easy_abc.py:9393
 msgid ""
 "abcm2ps was not found here. You need it to view the music. Go to settings "
 "and indicate the path."
 msgstr "此处未找到 abcm2ps。您需要它来查看音乐。转到设置并指明路径。"
 
-#: easy_abc.py:9393
+#: easy_abc.py:9404
 msgid ""
 "abc2midi was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr "此处未找到 abc2midi。您需要它来播放音乐。进入设置并指明路径。"
 
-#: easy_abc.py:9405
+#: easy_abc.py:9416
 msgid ""
 "midi2abc was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr "这里没有找到midi2abc。你需要它来播放音乐。进入设置并指明路径。"
 
-#: easy_abc.py:9417
+#: easy_abc.py:9428
 msgid ""
 "abc2abc was not found here. You need it to transpose the music. Go to "
 "settings and indicate the path."
 msgstr "此处未找到 abc2abc。您需要它来移调音乐。转到设置并指明路径。"
 
-#: easy_abc.py:9426
+#: easy_abc.py:9437
 msgid ""
 "The midiplayer was not found. You will not be able to play the MIDI file."
 msgstr "找不到 midiplayer。您将无法播放 MIDI 文件。"
 
-#: easy_abc.py:9456
+#: easy_abc.py:9467
 #, python-format
 msgid "The executable %s could not be found"
 msgstr "无法找到可执行文件 %s"
 
-#: easy_abc.py:9664
+#: easy_abc.py:9577
 #, fuzzy
 msgid "List of tunes"
 msgstr "乐谱名称"
 
-#: easy_abc.py:9715
+#: easy_abc.py:9628
 msgid "Processed Abc Tune"
 msgstr "已处理的 Abc 乐谱"
 
@@ -3866,10 +3894,6 @@ msgid ""
 "Back quotes ` may be used freely between notes to be beamed, to increase "
 "legibility."
 msgstr "可以在要传送的音符之间自由使用反引号 `，以提高可读性。"
-
-#: tune_elements.py:730
-msgid "Welcome to EasyABC"
-msgstr "欢迎使用 EasyABC"
 
 #: tune_elements.py:731
 msgid ""
