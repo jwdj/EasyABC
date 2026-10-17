@@ -26,6 +26,7 @@ An open source ABC editor for Windows, OSX and Linux. It is published under the 
 - Available in Italian, French, Danish, Swedish, Dutch and English
 - Functions to generate incipits, sort tunes and renumber X: fields.
 - Musical search function - search for note sequences irrespectively of key, etc.
+- Highland bagpipe embellishments (grace notes, doublings, strikes, taorluath, grip, throw, birl) inserted with a single shortcut.
 
 ## Credits - software components used by EasyABC
 
@@ -52,3 +53,19 @@ An open source ABC editor for Windows, OSX and Linux. It is published under the 
 - <kbd>F6</kbd> Play current song
 - <kbd>F7</kbd> Stop song
 - <kbd>Ctrl-Shift-F</kbd> Find in Files (or show entire collection)
+
+### Highland bagpipe embellishments
+
+Also in **Edit > Insert pipe embellishment**. Place the cursor in front of the melody note and press:
+
+| Shortcut | Embellishment | Notes |
+|---|---|---|
+| <kbd>Ctrl-Shift-1</kbd> | Grace note | Press again to cycle `{g}` `{d}` `{e}` `{a}` |
+| <kbd>Ctrl-Shift-2</kbd> | Doubling | Chosen from the next note, e.g. `{gef}e`, `{gBd}B` |
+| <kbd>Ctrl-Shift-3</kbd> | Strike | Chosen from the next note; press again to cycle its variants, e.g. `{G}d` `{gdG}d` `{gdedG}d` |
+| <kbd>Ctrl-Shift-4</kbd> | Taorluath | `{GdGe}` |
+| <kbd>Ctrl-Shift-5</kbd> | Grip | `{GdG}` |
+| <kbd>Ctrl-Shift-6</kbd> | Throw on D | `{Gdc}`, only before a `d` |
+| <kbd>Ctrl-Shift-7</kbd> | Birl | Press again to cycle `{gAGAG}` `{AGAG}` `{GAG}` |
+
+An embellishment directly next to the cursor is replaced rather than added to, so you can switch between them freely. When the next note has no matching doubling or strike, EasyABC beeps and leaves the text unchanged. The embellishments are defined in the `pipe_embellishments`, `pipe_doublings` and `pipe_strikes` tables near the top of `easy_abc.py`.

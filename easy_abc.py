@@ -175,6 +175,45 @@ from abc_tune import *
 dialog_background_colour = wx.Colour(245, 244, 235)
 default_note_highlight_color = '#FF7F3F'
 default_note_highlight_follow_color = '#CC00FF'
+
+# doubling to insert, chosen by the melody note that follows the caret
+pipe_doublings = {
+    'a': '{ag}',
+    'g': '{gf}',
+    'f': '{fg}',
+    'e': '{gef}',
+    'd': '{gde}',
+    'c': '{gcd}',
+    'B': '{gBd}',
+    'A': '{gAd}',
+    'G': '{gGd}',
+}
+
+# strike to insert, chosen by the melody note that follows the caret
+pipe_strikes = {
+    'a': ['{g}'],
+    'g': ['{f}'],
+    'f': ['{e}'],
+    'e': ['{A}', '{geA}', '{gefeA}'],
+    'd': ['{G}', '{gdG}', '{gdedG}'],
+    'c': ['{G}', '{gcG}', '{gcecG}'],
+    'B': ['{G}', '{gBG}', '{gBeBG}'],
+    'A': ['{G}', '{gAeAG}'],
+}
+
+# Highland bagpipe embellishments inserted from the Edit menu or by shortcut
+pipe_embellishments = [
+    # (menu label, shortcut, abc)
+    # abc is a string, a list of variants cycled by pressing the shortcut again,
+    # or a dict choosing the string/variants by the melody note that follows the caret
+    ('Grace note (g, d, e, a)', 'Ctrl+Shift+1', ['{g}', '{d}', '{e}', '{a}']),
+    ('Doubling',                'Ctrl+Shift+2', pipe_doublings),
+    ('Strike',                  'Ctrl+Shift+3', pipe_strikes),
+    ('Taorluath',               'Ctrl+Shift+4', '{GdGe}'),
+    ('Grip',                    'Ctrl+Shift+5', '{GdG}'),
+    ('Throw on D',              'Ctrl+Shift+6', {'d': '{Gdc}'}),
+    ('Birl',                    'Ctrl+Shift+7', ['{gAGAG}', '{AGAG}', '{GAG}']),
+]
 #default_style_color = {
 #    'style_default_color':'#000000',
 #    'style_chord_color':'#000000',
@@ -5897,6 +5936,54 @@ class MainFrame(wx.Frame):
         self.AddTextWithUndo(item.GetHelp())
         self.refresh_tunes()
 
+    def InsertPipeEmbellishment(self, abc):
+        editor = self.editor
+        p1 = editor.GetSelectionStart()
+        line_start = editor.PositionFromLine(editor.LineFromPosition(p1))
+        line = editor.GetTextRange(line_start, editor.GetLineEndPosition(editor.LineFromPosition(p1)))
+        if re.match(r'[A-Za-z+]:|%', line):
+            return  # not in music code (field, lyrics or comment line)
+
+        editor.BeginUndoAction()
+        # replace a grace group directly before the caret instead of stacking a second one
+        m = re.search(r'\{[^{}]*\}$', editor.GetTextRange(line_start, p1))
+        if m:
+            editor.SetSelection(line_start + m.start(), p1)
+        else:
+            editor.SetSelection(p1, p1)
+        if not isinstance(abc, str):
+            # list of variants: if one is already there, move on to the next one
+            variants = abc
+            abc = variants[0]
+            if m and m.group(0) in variants:
+                abc = variants[(variants.index(m.group(0)) + 1) % len(variants)]
+        editor.ReplaceSelection(abc)
+        editor.EndUndoAction()
+        self.refresh_tunes()
+
+    def OnInsertPipeEmbellishment(self, abc):
+        if isinstance(abc, dict):
+            self.insert_pipe_embellishment_for_next_note(abc)
+        else:
+            self.InsertPipeEmbellishment(abc)
+
+    def insert_pipe_embellishment_for_next_note(self, embellishments_by_note):
+        editor = self.editor
+        p1 = editor.GetSelectionStart()
+        line_end = editor.GetLineEndPosition(editor.LineFromPosition(p1))
+        # next melody note, skipping a grace group, decorations and accidentals in front of it
+        m = re.match(r'\s*(\{[^{}]*\})?\s*(?:![^!]*!|"[^"]*"|[.~HLMOPSTuv]\s*)*[_=^]*([A-Ga-g])',
+                     editor.GetTextRange(p1, line_end))
+        abc = embellishments_by_note.get(m.group(2)) if m else None
+        if not abc:
+            wx.Bell()
+            return
+        if m.group(1):
+            # caret is in front of an existing grace group: replace that group
+            p1 += m.end(1)
+        editor.SetSelection(p1, p1)
+        self.InsertPipeEmbellishment(abc)
+
     # 1.3.6.3 [JWDJ] 2015-3 centralized enabling of play button
     def update_play_button(self):
         if self.mc is not None or self.settings['midiplayer_path']:
@@ -6484,6 +6571,11 @@ class MainFrame(wx.Frame):
                     (_('Note ornaments'), self.popup_ornaments),
                     (_('Directions'), self.popup_directions), # 1.3.6.1 [SS] 2015-01-22
                     (_('Dynamics'), self.popup_dynamics)]),
+                (_("Insert pipe &embellishment"), [
+                    (_(label) + '\t' + shortcut,
+                     abc if isinstance(abc, str) else _('depends on the next note') if isinstance(abc, dict) else ' / '.join(abc),
+                     lambda e, abc=abc: self.OnInsertPipeEmbellishment(abc))
+                    for label, shortcut, abc in pipe_embellishments]),
                 (),
                 (_("&Transpose"), transpose_menu),
                 (_("&Change note length"), [
@@ -7815,7 +7907,7 @@ class MainFrame(wx.Frame):
 
     def GrayUngray(self, evt=None):
         editMenu = self.GetMenuBar().GetMenu(1)
-        undo, redo, _, cut, copy, paste, delete, _, insert_symbol, _, transpose, note_length, align_bars, _, find, _, findnext, replace, _, selectall = editMenu.GetMenuItems()
+        undo, redo = list(editMenu.GetMenuItems())[:2]
         undo.Enable(self.editor.CanUndo())
         redo.Enable(self.editor.CanRedo())
 
