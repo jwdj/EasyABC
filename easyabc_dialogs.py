@@ -174,3 +174,99 @@ class WelcomeFrame(wx.Dialog):
         webbrowser.open(
             'https://easyabc.sourceforge.net/'
         )
+
+
+class EasyAbcDocFrame(wx.Dialog):
+
+    def __init__(self, parent):
+        super().__init__(parent, wx.ID_ANY, _('EasyABC 1.4 help page'), size=(700, 550))
+
+        application_path = get_application_path()
+        docs_path = os.path.join(application_path,"docs")
+        language = "en"
+        lang = wx.GetApp().locale.GetCanonicalName()
+        if lang and len(lang) >= 2:
+            language = lang[:2].lower()
+
+        language = lang[:2].lower()
+        welcome_file = os.path.join(
+            docs_path,
+            language,
+            f"easyabc-doc_{language}.html"
+        )
+
+        if not os.path.exists(welcome_file):
+            welcome_file = os.path.join(
+                docs_path,
+                "en",
+                "easyabc-doc_en.html")
+        with open(welcome_file, encoding="utf-8") as f:
+            htmlpage = f.read()
+        html = wx.html.HtmlWindow(self)
+        html.SetPage(htmlpage)
+
+        doc_button = wx.Button(
+            self,
+            label=_('Open Documentation on Sourceforge')
+        )
+
+        ok_button = wx.Button(
+            self,
+            wx.ID_OK,
+            _('OK')
+        )
+        ok_button.SetDefault()
+
+        html.Bind(
+            wx.html.EVT_HTML_LINK_CLICKED,
+            self.OnLinkClicked
+        )
+
+        doc_button.Bind(
+            wx.EVT_BUTTON,
+            self.OnOpenDocumentation
+        )
+
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        button_sizer.AddStretchSpacer()
+
+        button_sizer.Add(
+            doc_button,
+            0,
+            wx.RIGHT,
+            5
+        )
+
+        button_sizer.Add(
+            ok_button,
+            0
+        )
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        main_sizer.Add(
+            html,
+            1,
+            wx.EXPAND | wx.ALL,
+            5
+        )
+
+        main_sizer.Add(
+            button_sizer,
+            0,
+            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+            10
+        )
+
+        self.SetSizer(main_sizer)
+
+        self.CentreOnParent()
+
+    def OnLinkClicked(self, evt):
+        webbrowser.open(evt.GetLinkInfo().GetHref())
+
+    def OnOpenDocumentation(self, evt):
+        webbrowser.open(
+            'https://easyabc.sourceforge.net/'
+        )

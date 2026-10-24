@@ -154,7 +154,7 @@ except ImportError:
 finally:
     sys.stdout = old_stdout
 
-from easyabc_dialogs import WelcomeFrame, AboutFrame
+from easyabc_dialogs import WelcomeFrame, AboutFrame, EasyAbcDocFrame
 
 def str2fraction(s):
     parts = [int(x.strip()) for x in s.split('/')]
@@ -4631,6 +4631,12 @@ class MainFrame(wx.Frame):
 
             dlg.Destroy()
 
+    def ShowEasyAbcDocFrame(self, event=None):
+        dlg = EasyAbcDocFrame(self)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
+
     def ApplyAppearance(self):
         """
         Apply appearance mode to the one of the OS
@@ -7006,6 +7012,7 @@ class MainFrame(wx.Frame):
                 (_("Output midi file"), '', self.OnShowMidiFile),
                 (_("Show settings status"), '', self.OnShowSettings)]),
             (_("&Help")     , [
+                (_("EasyABC Documentation"), _("Open EasyABC offline documentation"), self.ShowEasyAbcDocFrame),
                 (_("&Show fields and commands reference"), '', self.OnViewFieldReference),
                 (),
                 (_("&EasyABC Help"), _("Link to EasyABC Website"), self.OnEasyABCHelp),
