@@ -11,6 +11,7 @@ from utils import get_application_path
 from easyabc_version import program_name 
 
 import re
+from pathlib import Path
 
 def _absolutize_html_paths(htmlpage, application_path):
     """convert relative paths (src/href) in absolute on (file://) absolus,
@@ -18,8 +19,8 @@ def _absolutize_html_paths(htmlpage, application_path):
     pattern = re.compile(
         r'(src|href)="(?!https?://|file://|mailto:|#)([^"]+)"'
     )
-    base = application_path.replace('\\', '/')
-    return pattern.sub(r'\1="file://%s/\2"' % base, htmlpage)
+    base = Path(application_path).as_uri()
+    return pattern.sub(lambda m: f'{m.group(1)}="{base}/{m.group(2)}"', htmlpage)
 
 class AboutFrame(wx.Dialog):
 
