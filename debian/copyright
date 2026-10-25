@@ -3,10 +3,12 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Files: *
 Copyright: 2011-2014 Nils Liberg (mail: kotorinl at yahoo.co.uk)
            2015-2024 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com)
+           2025-2026 Seymour Shlien (mail: fy733@ncf.ca), Jan Wybren de Jong (jw_de_jong at yahoo dot com), Frédéric Aupépin (mail: faupepin@free.fr)
 License: GPL-2+
 
 Files: debian/*
 Copyright: 2025 Bodo Meissner <bomm@users.sourceforge.net>
+           2026 Frédéric Aupépin <faupepin@free.fr>
 License: GPL-2+
 
 License: GPL-2+

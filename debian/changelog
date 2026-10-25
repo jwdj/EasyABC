@@ -3,14 +3,14 @@ easyabc (1.4.0.0-2) devel; urgency=medium
   * adapt to 1.4.0.0 release candidate
   * see detail changes in CHANGES file
 
- -- Frédéric Aupépin <votre@email@example.com>  Sun, 25 Oct 2026 18:00:00 +0200
+ -- Frédéric Aupépin <faupepin@free.fr>  Sun, 25 Oct 2026 22:00:00 +0200
 
 easyabc (1.4.0.0-1) devel; urgency=medium
 
   * adapt to 1.4.0.0 beta
   * see detail changes in CHANGES file
 
- -- Frédéric Aupépin <votre@email@example.com>  Wed, 30 Sep 2026 22:40:00 +0200
+ -- Frédéric Aupépin <faupepin@free.fr>  Wed, 30 Sep 2026 22:40:00 +0200
 
 easyabc (1.3.8.7-1) devel; urgency=medium
 

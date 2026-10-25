@@ -53,7 +53,6 @@ Temporary Items
 *.exe
 *.dll
 
-abc_styler - geen succes.py
 *.stackdump
 build
 dist
@@ -66,3 +65,11 @@ test.py
 
 # Backup of translations
 *.po~
+
+# Deb package creation
+debian/.debhelper
+debian/debhelper-build-stamp
+debian/easyabc.substvars
+debian/easyabc/
+debian/files
+easyabc.1
