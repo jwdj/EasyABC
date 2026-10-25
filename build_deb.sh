@@ -4,6 +4,16 @@ set -e
 
 cd "$(dirname "$0")"
 
+# IM7 (macOS/brew) command is "magick",
+# IM6 (Debian/Xubuntu) command is "convert"
+if command -v magick >/dev/null 2>&1; then
+    IM="magick"
+elif command -v convert >/dev/null 2>&1; then
+    IM="convert"
+else
+    echo "ImageMagick not found (magick or convert)"; exit 1
+fi
+
 # Todo switch to flat svg
 APP_SRC="img-src/easyabc_logo.png"     # high res (1024)
 DOC_SRC="img-src/abcfile_logo.png"
@@ -17,8 +27,8 @@ HICOLOR=build/icons/debian/hicolor
 rm -rf "$HICOLOR"
 for s in $SIZES; do
     mkdir -p "$HICOLOR/${s}x${s}/apps" "$HICOLOR/${s}x${s}/mimetypes"
-    magick "$APP_SRC" -background none -filter Lanczos -resize ${s}x${s} "$HICOLOR/${s}x${s}/apps/easyabc.png"
-    magick "$DOC_SRC" -background none -filter Lanczos -resize ${s}x${s} "$HICOLOR/${s}x${s}/mimetypes/text-vnd-abc.png"
+    "$IM" "$APP_SRC" -background none -filter Lanczos -resize ${s}x${s} "$HICOLOR/${s}x${s}/apps/easyabc.png"
+    "$IM" "$DOC_SRC" -background none -filter Lanczos -resize ${s}x${s} "$HICOLOR/${s}x${s}/mimetypes/text-vnd-abc.png"
 done
 
 echo "=== Update debian/install ==="

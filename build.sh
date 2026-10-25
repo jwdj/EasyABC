@@ -170,7 +170,7 @@ if [ ! -f "img/Fond-DMG.png" ]; then
     exit 1
 fi
 mkdir "$TEMP_VOL/.background"
-cp "img/Fond-DMG.png" "$TEMP_VOL/.background/"
+cp "img/Background-DMG.png" "$TEMP_VOL/.background/"
 
 ls -al "$SRC_DIR"
 ls -al "$TEMP_VOL"
@@ -193,11 +193,11 @@ echo '
            set the bounds of container window to {'200, 100, 1100, 700'}
            delay 1
            set arrangement of viewOptions to not arranged
-           set background picture of viewOptions to file ".background:Fond-DMG.png"
+           set background picture of viewOptions to file ".background:Background-DMG.png"
            delay 1
-           set position of item "Install_Ghostscript.webloc" of container window to {'170, 450'}
+           set position of item "Install_Ghostscript.webloc" of container window to {'170, 420'}
            delay 1
-           set position of item "Ghostscript.pkg" of container window to {'420, 450'}
+           set position of item "Ghostscript.pkg" of container window to {'420, 420'}
            delay 1
            set position of item "README" of container window to {'670, 250'}
            delay 1
