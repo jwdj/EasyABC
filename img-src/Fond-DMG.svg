@@ -1,0 +1,581 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1400"
+     height="800"
+     viewBox="0 0 1400 800">
+
+  <defs>
+
+    <!-- Fond -->
+
+    <linearGradient id="bg"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%">
+
+      <stop offset="0%" stop-color="#0A6C40"/>
+      <stop offset="35%" stop-color="#18834E"/>
+      <stop offset="70%" stop-color="#74C094"/>
+      <stop offset="100%" stop-color="#F0FCF2"/>
+
+    </linearGradient>
+
+    <!-- Halo logo -->
+
+    <radialGradient id="logoGlow">
+
+      <stop offset="0%"
+            stop-color="#FFFFFF"
+            stop-opacity="0.65"/>
+
+      <stop offset="100%"
+            stop-color="#FFFFFF"
+            stop-opacity="0"/>
+
+    </radialGradient>
+
+    <filter id="largeBlur">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+
+    <filter id="waveGlow">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+
+    <!-- Easy -->
+    <linearGradient id="easyGrad"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%">
+      <stop offset="0%" stop-color="#043642"/>
+      <stop offset="100%" stop-color="#002734"/>
+    </linearGradient>
+
+    <!-- ABC -->
+    <linearGradient id="abcGrad"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%">
+      <stop offset="0%" stop-color="#006944"/>
+      <stop offset="100%" stop-color="#013730"/>
+    </linearGradient>
+
+    <!-- Halo -->
+    <filter id="glow"
+            x="-50%"
+            y="-50%"
+            width="200%"
+            height="200%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+
+    <!-- Ombre -->
+    <filter id="shadow">
+      <feDropShadow dx="3"
+                    dy="4"
+                    stdDeviation="3"
+                    flood-color="#000000"
+                    flood-opacity="0.25"/>
+    </filter>
+
+    <!-- Dégradé reflet -->
+    <linearGradient id="reflection"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="noteglow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <g id="easyabcnote">
+      <!-- Halo -->
+      <path d="
+            M114 42
+            C154 72 164 114 165 159
+            "
+            stroke="currentColor"
+            stroke-width="14"
+            opacity="0.18"
+            fill="none"
+            filter="url(#noteglow)"
+            stroke-linecap="round"/>
+
+      <!-- Croche -->
+
+      <g fill="none"
+         stroke="currentColor"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         filter="url(#noteglow)">
+
+        <!-- Hampe -->
+
+        <path d="
+          M114 42
+          C154 72 164 114 165 159
+          "
+          stroke-width="6.5"/>
+
+        <!-- Drapeau principal -->
+
+        <path d="
+          M114 42
+          C182 18 210 60 216 102
+          C210 98 198 96 193 102
+          "
+          stroke-width="6"/>
+
+        <!-- Retour calligraphique -->
+        <path d="
+          M193 102
+          C193 102 193 113 213 121
+          "
+          stroke-width="3"
+          opacity="0.65"/>
+
+      </g>
+
+      <!-- Halo utilisant la taille actuelle -->
+
+      <path d="
+        M143 155
+        C157 150 169 157 170 168
+        C171 180 162 188 149 190
+        C136 192 126 185 125 173
+        C124 164 133 157 143 155
+        Z
+        "
+        transform="translate(5,0)"
+        fill="currentColor"
+        opacity="0.45"
+        filter="url(#noteglow)"/>
+      <!-- Tête réelle -->
+
+      <path d="
+        M145 158
+        C156 154 165 159 166 168
+        C167 177 159 184 149 186
+        C138 188 130 182 129 173
+        C128 165 135 159 145 158
+        Z
+        "
+        transform="translate(5,0)"
+        fill="currentColor"/>
+
+        <!-- Reflet -->
+
+        <path d="
+          M136 169
+          C143 165 152 165 159 169
+          "
+          stroke="#DFFFF0"
+          stroke-width="1.6"
+          fill="none"
+          stroke-linecap="round"
+          opacity="0.8"/>
+
+      </g>
+    
+    <g id="easyabcnote-quarter">
+      <!-- Halo -->
+      <path d="
+            M134 42
+            C154 72 164 114 165 159
+            "
+            stroke="currentColor"
+            stroke-width="14"
+            opacity="0.18"
+            fill="none"
+            filter="url(#noteglow)"
+            stroke-linecap="round"/>
+
+      <!-- Croche -->
+
+      <g fill="none"
+         stroke="currentColor"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         filter="url(#noteglow)">
+
+        <!-- Hampe -->
+
+        <path d="
+          M134 42
+          C154 72 164 114 165 159
+          "
+          stroke-width="6.5"/>
+
+        <!-- Retour calligraphique -->
+        <path d="
+          M134 42
+          C130 42 120 53 154 63
+          "
+          stroke-width="3"
+          opacity="0.65"/>
+      </g>
+
+      <!-- Halo utilisant la taille actuelle -->
+
+      <path d="
+        M143 155
+        C157 150 169 157 170 168
+        C171 180 162 188 149 190
+        C136 192 126 185 125 173
+        C124 164 133 157 143 155
+        Z
+        "
+        transform="translate(5,0)"
+        fill="currentColor"
+        opacity="0.45"
+        filter="url(#noteglow)"/>
+      <!-- Tête réelle -->
+
+      <path d="
+        M145 158
+        C156 154 165 159 166 168
+        C167 177 159 184 149 186
+        C138 188 130 182 129 173
+        C128 165 135 159 145 158
+        Z
+        "
+        transform="translate(5,0)"
+        fill="currentColor"/>
+
+        <!-- Reflet -->
+
+        <path d="
+          M136 169
+          C143 165 152 165 159 169
+          "
+          stroke="#DFFFF0"
+          stroke-width="1.6"
+          fill="none"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    </g>
+    
+    <g id="easyabcnote-double">
+      <use href="#easyabcnote-quarter"/>
+      <use href="#easyabcnote-quarter" transform="translate(80,-40)"/>
+      <!-- Halo -->
+      <path d="
+          M134 42
+          C130 42 120 53 154 53
+          C162 52 180 43 214 2
+            "
+            stroke="currentColor"
+            stroke-width="14"
+            opacity="0.18"
+            fill="none"
+            filter="url(#noteglow)"
+            stroke-linecap="round"/>
+
+      <g fill="none"
+         stroke="currentColor"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         filter="url(#noteglow)">
+
+        <!-- Drapeau principal -->
+
+        <path d="
+          M134 42
+          C130 42 120 53 154 53
+          C162 52 180 43 214 2
+          "
+          stroke-width="6"/>
+
+      </g>
+    </g>
+
+  </defs>
+
+  <!-- ======================== -->
+  <!-- Fond                     -->
+  <!-- ======================== -->
+
+  <rect width="1400"
+        height="800"
+        fill="url(#bg)"/>
+
+  <!-- ======================== -->
+  <!-- Zone logo éclaircie      -->
+  <!-- ======================== -->
+
+  <ellipse cx="150"
+           cy="100"
+           rx="620"
+           ry="280"
+           fill="url(#logoGlow)"
+           opacity="1"
+           filter="url(#largeBlur)"/>
+
+  <!-- ======================== -->
+  <!-- Vagues principales       -->
+  <!-- ======================== -->
+
+  <g fill="none"
+     stroke="white"
+     stroke-linecap="round">
+
+    <path d="
+      M -100 170
+      C 180 40,
+        380 270,
+        680 160
+      S 1150 90,
+        1500 170"
+      stroke-width="12"
+      opacity="0.12"/>
+
+    <path d="
+      M -100 270
+      C 220 90,
+        350 420,
+        680 210
+      S 1000 120,
+        1500 380"
+      stroke-width="6"
+      opacity="0.24"/>
+
+    <path d="
+      M -100 270
+      C 150 140,
+        500 490,
+        850 270
+      S 1240 190,
+        1500 270"
+      stroke-width="3"
+      opacity="0.45"/>
+
+  </g>
+
+  <!-- ======================== -->
+  <!-- Vagues secondaires       -->
+  <!-- ======================== -->
+
+  <g fill="none"
+     stroke="white"
+     stroke-linecap="round">
+
+    <path d="
+      M -100 205
+      C 200 70,
+        420 295,
+        710 190
+      S 1180 110,
+        1500 205"
+      stroke-width="2"
+      opacity="0.22"/>
+
+    <path d="
+      M -100 300
+      C 230 115,
+        480 355,
+        800 240
+      S 1210 150,
+        1500 300"
+      stroke-width="1.5"
+      opacity="0.20"/>
+
+    <path d="
+      M -100 340
+      C 350 250,
+        650 500,
+        980 340
+      S 1280 180,
+        1500 300"
+      stroke-width="1.2"
+      opacity="0.18"/>
+
+  </g>
+<path d="
+ M 150 200
+ C 250 160,
+   320 250,
+   420 210"
+ stroke="white"
+ stroke-width="35"
+ opacity="0.08"
+ filter="url(#waveGlow)"
+ fill="none"/>
+  <!-- ======================== -->
+  <!-- Ruban lumineux fin       -->
+  <!-- ======================== -->
+
+  <g fill="none"
+     stroke="white"
+     stroke-linecap="round"
+     transform="translate(0,20)">
+
+    <path d="
+      M -100 215
+      C 220 95,
+        430 310,
+        760 215
+      S 1180 120,
+        1500 215"
+      stroke-width="4"
+      opacity="0.10"/>
+
+    <path d="
+      M -100 225
+      C 220 105,
+        430 320,
+        760 225
+      S 1180 120,
+        1500 225"
+      stroke-width="3"
+      opacity="0.16"/>
+
+    <path d="
+      M -100 235
+      C 220 125,
+        430 330,
+        760 235
+      S 1180 130,
+        1500 235"
+      stroke-width="2"
+      opacity="0.26"/>
+
+    <path d="
+      M -100 245
+      C 220 135,
+        430 340,
+        760 245
+      S 1180 140,
+        1500 245"
+      stroke-width="2"
+      opacity="0.26"/>
+    <path d="
+      M -100 255
+      C 220 145,
+        430 350,
+        760 255
+      S 1180 150,
+        1500 255"
+      stroke-width="2"
+      opacity="0.26"/>
+  </g>
+
+  <!-- ======================== -->
+  <!-- Grande zone claire basse -->
+  <!-- ======================== -->
+
+  <ellipse cx="720"
+           cy="680"
+           rx="780"
+           ry="260"
+           fill="#ffffff"
+           opacity="0.05"
+           filter="url(#largeBlur)"/>
+
+  <!-- ======================== -->
+  <!-- Points lumineux          -->
+  <!-- ======================== -->
+
+  <g filter="url(#softGlow)">
+
+    <circle cx="250"
+            cy="195"
+            r="12"
+            fill="white"
+            opacity="0.70"/>
+
+    <circle cx="520"
+            cy="225"
+            r="15"
+            fill="white"
+            opacity="0.60"/>
+
+    <circle cx="780"
+            cy="210"
+            r="12"
+            fill="white"
+            opacity="0.70"/>
+
+    <circle cx="1080"
+            cy="185"
+            r="15"
+            fill="white"
+            opacity="0.60"/>
+
+  </g>
+
+  <use href="#easyabcnote" transform="translate(25, -20) scale(1.2)" color="white"/> 
+
+  <use href="#easyabcnote" transform="translate(120, 20) rotate(-12) scale(5)" color="#104930" opacity="0.25"/> 
+  <use href="#easyabcnote-quarter" transform="translate(550,180) scale(0.4) rotate(12)" color="white" opacity="0.7"/>
+  <use href="#easyabcnote-double" transform="translate(1200,150) scale(0.3) rotate(18)" color="white" opacity="0.7"/>
+  
+  <g transform="translate(0,15)">
+  <!-- Halo -->
+    <text x="25"
+          y="118"
+          font-family="Helvetica, Arial, sans-serif"
+          font-weight="900"
+          font-size="96"
+          fill="white"
+          opacity="0.25"
+          transform="scale(0.94,1)"
+          filter="url(#glow)">
+      EasyABC
+    </text>
+
+    <!-- Ombre générale -->
+    <g filter="url(#shadow)"
+       transform="scale(0.94,1)">
+
+      <text x="20"
+            y="110"
+            font-family="Helvetica, Arial, sans-serif"
+            font-weight="900"
+            font-size="96"
+            fill="url(#easyGrad)">
+        Easy
+      </text>
+
+      <text x="235"
+            y="110"
+            font-family="Helvetica, Arial, sans-serif"
+            font-weight="900"
+            font-size="96"
+            fill="url(#abcGrad)">
+        ABC
+      </text>
+
+    </g>
+
+    <!-- Reflet discret -->
+    <g transform="translate(0,215) scale(1,-0.35)"
+       opacity="0.12">
+
+      <text x="20"
+            y="110"
+            font-family="Helvetica, Arial, sans-serif"
+            font-weight="900"
+            font-size="96"
+            fill="url(#reflection)"
+            transform="scale(0.94,1)">
+        EasyABC
+      </text>
+
+    </g>
+
+  </g>
+  
+</svg>

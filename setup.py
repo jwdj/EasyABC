@@ -1,15 +1,14 @@
 #!/usr/bin/python3
 # setup.py
-from distutils.core import setup
+from setuptools import setup
 import sys
 import glob
 import os.path
 if sys.version_info >= (3,0,0):
     basestring = str
+from easyabc_version import program_version, program_name
 
-version = '1.4.0.0'
-description = "EasyABC"
-long_description = "Nils Liberg's EasyABC 1.4.0"
+long_description = f"Nils Liberg's {program_name}"
 url = 'https://sourceforge.net/projects/easyabc/'
 author = 'Nils Liberg, Jan Wybren de Wong, Seymour Shlien, Frederic Aupepin'
 
@@ -32,7 +31,10 @@ include_files = [os.path.join('locale', 'sv', 'LC_MESSAGES', 'easyabc.po'),
                  os.path.join('locale', 'it', 'LC_MESSAGES', 'easyabc.mo'),
                  os.path.join('locale', 'zh_CN', 'LC_MESSAGES', 'easyabc.po'),
                  os.path.join('locale', 'zh_CN', 'LC_MESSAGES', 'easyabc.mo')] + \
-                 glob.glob(os.path.join('img', '*.*')) + glob.glob(os.path.join('sound', '*.*'))
+                 glob.glob(os.path.join('img', '*.*')) + glob.glob(os.path.join('sound', '*.*')) + \
+                 glob.glob(os.path.join('docs', '*.*')) + \
+                 glob.glob(os.path.join('docs', 'en', '*.*')) + \
+                 glob.glob(os.path.join('docs', 'fr', '*.*'))
 
 if sys.platform == "darwin":
     import py2app
@@ -40,18 +42,20 @@ if sys.platform == "darwin":
     buildstyle = 'app'
     options["py2app"] = {"argv_emulation" : False,
                          'iconfile'       : "img/EasyABC.icns",
+                         "resources": ["img/ABCFile.icns"],
         #                 'optimize'       : 1,  #2
-                         'compressed'     : 0,
+                         'compressed'     : True,
         #                 'excludes': ['Tkinter','tcl','tk','_ssl', 'email'],
                          'excludes': ['Tkinter','tcl','tk','_ssl', 'pygame', 'pygame.pypm'],
         #                 'includes': ['mechanize', 'urllib', 'socket', 'pygame.pypm' ],
-                         'includes': ['mechanize', 'urllib', 'socket' ],
+                         'includes': ['urllib', 'socket' ],
                          'packages': ['wx'],
                          'plist': {
                                    'CFBundleDocumentTypes': [{
                                                               'CFBundleTypeExtensions': ['abc'],
                                                               'CFBundleTypeName': 'ABC notation file',
-                                                              'CFBundleTypeRole': 'Editor'
+                                                              'CFBundleTypeRole': 'Editor',
+                                                              'CFBundleTypeIconFile': 'ABCFile.icns',
                                                             }]
                                    }
                          }
@@ -68,40 +72,41 @@ if sys.platform == "darwin":
                   ('locale/ja', []), ('locale/ja/LC_MESSAGES', glob.glob(os.path.join('locale/ja/LC_MESSAGES/*'))),
                   ('locale/it', []), ('locale/it/LC_MESSAGES', glob.glob(os.path.join('locale/it/LC_MESSAGES/*'))),
                   ('locale/zh_CN', []), ('locale/zh_CN/LC_MESSAGES', glob.glob(os.path.join('locale/zh_CN/LC_MESSAGES/*'))),
+                  ('docs', []),
+                  ('docs/en', []), ('docs/en', glob.glob(os.path.join('docs/en/*.html'))),
                   ]
 
     setup(name="EasyABC",
-      version=version,
-      description=description,
+      version=program_version,
+      description=program_name,
       long_description=long_description,
       url=url,
       author=author,
       options=options,
       data_files=data_files,
       #executables=executables,
-      **{buildstyle : [{'script' : 'easy_abc.py',
-                     'icon_resources' : [(0, 'img/logo.ico')]}
+      **{buildstyle : [{'script' : 'easy_abc.py'}
                        ]}
       )
 
 else:
     from cx_Freeze import setup, Executable
     base = "gui"
-    icon = 'img\\logo.ico'
+    icon = 'img\\EasyABC.ico'
     include_files = include_files + \
                     ['bin\\abc2midi.exe',
                      'bin\\abcm2ps.exe',
                      'bin\\midi2abc.exe',
                      'bin\\abc2abc.exe',
                      'bin\\nwc2xml.exe',
-                     'bin\\zlibwapi.dll',
-                     'bin\\FluidSynth\\X86\\libsndfile-1.dll',
-                     'bin\\FluidSynth\\X86\\intl.dll',
-                     'bin\\FluidSynth\\X86\\libfluidsynth-3.dll',
-                     'bin\\FluidSynth\\X86\\libglib-2.0-0.dll',
-                     'bin\\FluidSynth\\X86\\libgobject-2.0-0.dll',
-                     'bin\\FluidSynth\\X86\\libgthread-2.0-0.dll',
-                     'bin\\FluidSynth\\X86\\libinstpatch-2.dll',
+                     #'bin\\zlibwapi.dll',
+                     #'bin\\FluidSynth\\X86\\libsndfile-1.dll',
+                     #'bin\\FluidSynth\\X86\\intl.dll',
+                     #'bin\\FluidSynth\\X86\\libfluidsynth-3.dll',
+                     #'bin\\FluidSynth\\X86\\libglib-2.0-0.dll',
+                     #'bin\\FluidSynth\\X86\\libgobject-2.0-0.dll',
+                    # 'bin\\FluidSynth\\X86\\libgthread-2.0-0.dll',
+                    # 'bin\\FluidSynth\\X86\\libinstpatch-2.dll',
                      'bin\\FluidSynth\\libfluidsynth-3.dll',
                      'bin\\FluidSynth\\SDL3.dll',
                      'bin\\FluidSynth\\sndfile.dll',
@@ -143,8 +148,8 @@ else:
     )]
 
     setup(name="EasyABC",
-          version=version,
-          description=description,
+          version=program_version,
+          description=program_name,
           long_description=long_description,
           url=url,
           author=author,
