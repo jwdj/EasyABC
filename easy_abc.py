@@ -6730,6 +6730,7 @@ class MainFrame(wx.Frame):
             f.close()
             self.add_recent_file(self.current_file)
             self.editor.SetSavePoint()
+            self.SetTitle("%s - %s" % (program_name, self.document_name))
     
     def save_as(self, directory=None):
         wildcard = _('ABC file') + " (*.abc)|*.abc"
@@ -6750,7 +6751,6 @@ class MainFrame(wx.Frame):
                         return wx.ID_CANCEL
                 self.current_file = dlg.GetPath()
                 self.document_name = os.path.basename(self.current_file)
-                self.SetTitle('%s - %s' % (program_name, self.document_name))
                 self.save()
         finally:
             dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
