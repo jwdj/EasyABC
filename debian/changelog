@@ -1,6 +1,6 @@
 easyabc (1.4.0.0-2) devel; urgency=medium
 
-  * adapt to 1.4.0.0 release candidate
+  * adapt to 1.4.0.0 release candidate 2
   * see detail changes in CHANGES file
 
  -- Frédéric Aupépin <faupepin@free.fr>  Sun, 25 Oct 2026 22:00:00 +0200

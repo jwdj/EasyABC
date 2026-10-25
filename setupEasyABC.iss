@@ -9,7 +9,7 @@
 ; Seymour Shlien
 
 #define MyAppName "EasyABC"
-#define MyAppVersion "1.4.0.0rc1"
+#define MyAppVersion "1.4.0.0rc2"
 #define MyAppPublisher "Frédéric Aupépin"
 #define MyAppURL "easyabc.sourceforge.net"
 #define MyAppExeName "easy_abc.exe"
