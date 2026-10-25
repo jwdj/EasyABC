@@ -102,6 +102,13 @@ generate_install() {
         done
     echo ""
 
+    find sound -type f  \
+        -not -name '.DS_Store' \
+        | sed -e 's|^\./||' | sort | \
+        while IFS= read -r f; do
+            d=$(dirname "$f")
+            [ "$d" = "." ] && echo "$f usr/share/easyabc" || echo "$f usr/share/easyabc/$d"
+        done
 }
 
 generate_install > debian/install
