@@ -10,6 +10,17 @@ from wx import GetTranslation as _
 from utils import get_application_path
 from easyabc_version import program_name 
 
+import re
+
+def _absolutize_html_paths(htmlpage, application_path):
+    """convert relative paths (src/href) in absolute on (file://) absolus,
+    other links not modified (http(s), mailto:, file://, anchors (#))."""
+    pattern = re.compile(
+        r'(src|href)="(?!https?://|file://|mailto:|#)([^"]+)"'
+    )
+    base = application_path.replace('\\', '/')
+    return pattern.sub(r'\1="file://%s/\2"' % base, htmlpage)
+
 class AboutFrame(wx.Dialog):
 
     def __init__(self, parent):
@@ -36,6 +47,7 @@ class AboutFrame(wx.Dialog):
         with open(about_file, encoding="utf-8") as f:
             htmlpage = f.read()
         htmlpage = htmlpage.format(program_name)
+        htmlpage = _absolutize_html_paths(htmlpage, application_path)
         about_html = wx.html.HtmlWindow(self)
         about_html.SetPage(htmlpage)
         button = wx.Button(self, wx.ID_OK, _('&Ok'))
@@ -94,6 +106,7 @@ class WelcomeFrame(wx.Dialog):
                 "welcome_en.html")
         with open(welcome_file, encoding="utf-8") as f:
             htmlpage = f.read()
+        htmlpage = _absolutize_html_paths(htmlpage, application_path)
         html = wx.html.HtmlWindow(self)
         html.SetPage(htmlpage)
 
@@ -202,6 +215,7 @@ class EasyAbcDocFrame(wx.Dialog):
                 "easyabc-doc_en.html")
         with open(welcome_file, encoding="utf-8") as f:
             htmlpage = f.read()
+        htmlpage = _absolutize_html_paths(htmlpage, application_path)
         html = wx.html.HtmlWindow(self)
         html.SetPage(htmlpage)
 
