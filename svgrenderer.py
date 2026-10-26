@@ -31,7 +31,8 @@ import traceback
 from datetime import datetime
 from wxhelper import wx_colour, wx_bitmap
 import sys
-PY3 = sys.version_info.major > 2
+import easyabc_colors
+
 WX4 = wx.version().startswith('4')
 WX41 = WX4 and not wx.version().startswith('4.0')
 
@@ -186,9 +187,12 @@ class SvgPage(object):
     def parse_elements(self, elements, parent_attributes):
         result = []
         last_e_use = []
+        is_next_path_note_stem = False
         elementnames_with_children = ['g', 'defs']
         no_children = ()
         notes_row_col_append = self.notes_row_col.append
+        nb_note=0
+        nb_note_stem=0
         for element in elements:
             name = element.tag.replace(svg_ns, '')
             attributes = self.parse_attributes(element, parent_attributes)
@@ -218,6 +222,9 @@ class SvgPage(object):
                     for e_use in last_e_use:
                         e_use.attributes['desc'] = desc
                         notes_row_col_append(last_row_col)
+                if note_type == 'N':
+                    nb_note+=1
+                    #print("new note:" + str(nb_note))
                 last_e_use = []
             else:
                 svg_element = SvgElement(name, attributes, children)
@@ -233,6 +240,22 @@ class SvgPage(object):
                     href = element.get(href_tag)
                     if href not in ['#hl', '#hl1', '#mrest']: # leave out horizontal lines through notes above and below the stafflines (and measure rest too since abcm2ps does not add abc tag for measure rest)
                         last_e_use.append(svg_element)
+                    if href in ['#hd','#Hd']:
+                        is_next_path_note_stem = True
+                    if href == '#hl':
+                        attributes['is_staff_line'] = True
+                elif name == 'path':
+                    # Marquer ce path comme queue de note si le flag est activé
+                    if is_next_path_note_stem:
+                        attributes['is_note_stem'] = True
+                        nb_note_stem+=1
+                        #print("new note stem:" + str(nb_note_stem))
+                        is_next_path_note_stem = False
+                    else:
+                        d = element.get('d', '')
+                        if re.match(r'^(\s*[mM]\s*\d+\.\d+\s+\d+\.\d+\s*[hH]\s*\d+\.\d+\s*)+$', d):
+                            attributes['is_staff_line'] = True
+
                 result.append(svg_element)
         return result
 
@@ -270,7 +293,7 @@ class SvgPage(object):
         selected_offsets = set((abc_row, abc_col) for (x, y, abc_row, abc_col, desc) in self.notes if in_selection((int(x), int(y))))
         list_of_sets = [self.indices_per_row_col[row][col] for row, col in selected_offsets]
         selected_indices = set().union(*list_of_sets)
-        if selected_indices:
+        if selected_indices and not self.renderer.tune_with_multivoice:
             selected_indices = set(range(min(selected_indices), max(selected_indices) + 1))
         self.selected_indices = selected_indices
         return selected_indices
@@ -292,8 +315,12 @@ class SvgPage(object):
 
 
 class SvgRenderer(object):
-    def __init__(self, can_draw_sharps_and_flats, highlight_color, highlight_follow_color = None):
-        self.can_draw_sharps_and_flats = can_draw_sharps_and_flats
+    def __init__(self, settings):
+        self.settings = settings
+        self.can_draw_sharps_and_flats = self.settings['can_draw_sharps_and_flats']
+        #self.is_dark_mode = is_dark_mode
+        #self.lock_music_light_mode = lock_music_light_mode
+        #self.music_warm_light_bg_color = music_light_bg_color
         self.path_cache = {}
         self.fill_cache = {}
         self.stroke_cache = {}
@@ -314,11 +341,8 @@ class SvgRenderer(object):
         self.empty_page = SvgPage(self, None)
         self.buffer = None
         # 1.3.6.2 [JWdJ] 2015-02-12 Added voicecolor
-        self.highlight_color = highlight_color
-        if highlight_follow_color:
-            self.highlight_follow_color = highlight_follow_color
-        else:
-            self.highlight_follow_color = highlight_color
+        self.highlight_color = easyabc_colors.get_effective_color(settings, 'note_highlight_color')
+        self.highlight_follow_color = easyabc_colors.get_effective_color(settings, 'note_highlight_follow_color')
         self.highlight_follow = False
         self.default_transform = None
         #self.update_buffer(self.empty_page)
@@ -326,6 +350,17 @@ class SvgRenderer(object):
             self.transform_point = self.transform_point_osx
         else:
             self.transform_point = self.transform_point_normal
+        self.tune_with_multivoice = False
+
+    def get_background_brush(self):
+        """Return appropriate background brush based on dark mode."""
+        bg_hex = easyabc_colors.get_music_background(self.settings)
+        return wx.Brush(wx.Colour(bg_hex))
+
+    def get_effective_color(self, color):
+        """Invert color for dark mode using soft charcoal and silver to prevent eye strain."""
+        return easyabc_colors.convert_raw_svg_color(self.settings, color)
+
 
     def destroy(self):
         if self.renderer:
@@ -391,7 +426,8 @@ class SvgRenderer(object):
     def clear(self):
         if self.buffer:
             dc = wx.MemoryDC(self.buffer)
-            dc.SetBackground(wx.WHITE_BRUSH)
+            #dc.SetBackground(wx.WHITE_BRUSH)
+            dc.SetBackground(self.get_background_brush())
             dc.Clear()
 
     def draw_notes(self, page, note_indices, highlight, dc=None, highlight_follow=False ):
@@ -399,6 +435,7 @@ class SvgRenderer(object):
             return
         dc = dc or wx.MemoryDC(self.buffer)
         gc = wx.GraphicsContext.Create(dc)
+        gc.SetAntialiasMode(wx.ANTIALIAS_DEFAULT)
         transform = gc.SetTransform
         if wx.Platform == "__WXGTK__":
             transform = gc.ConcatTransform
@@ -414,10 +451,12 @@ class SvgRenderer(object):
         dc = dc or wx.MemoryDC(self.buffer)
         ##print 'draw', self.buffer.GetWidth(), self.buffer.GetHeight()
         if clear_background:
-            dc.SetBackground(wx.WHITE_BRUSH)
+            #dc.SetBackground(wx.WHITE_BRUSH)
+            dc.SetBackground(self.get_background_brush())
             dc.Clear()
         #h = dc.Size[1] # for simulating OSX
         gc = wx.GraphicsContext.Create(dc)
+        gc.SetAntialiasMode(wx.ANTIALIAS_DEFAULT)
         #gc.Translate(0, h) # for simulating OSX
         #gc.Scale(1, -1) # for simulating OSX
 
@@ -426,7 +465,7 @@ class SvgRenderer(object):
         page.note_draw_info = []
         gc.PushState()
         gc.Scale(self.zoom, self.zoom)
-        self.draw_svg_element(page, gc, page.root_group, False, page.base_color, {})
+        self.draw_svg_element(page, gc, page.root_group, False, self.get_effective_color(page.base_color), {})
         gc.PopState()
 
         # in order to reveal all the sensitive areas in the music pane,
@@ -700,7 +739,7 @@ class SvgRenderer(object):
                     else:
                         m = self.color_re.match(part)
                         if m:
-                            current_color = m.group(1).upper()
+                            current_color = self.get_effective_color(m.group(1).upper())
                         key = part[:part.index(':')]
                         value = part[part.index(':')+1:].strip()
                         if (value != 'inherit'):
@@ -716,9 +755,13 @@ class SvgRenderer(object):
             fill = attr.get('fill')
             if fill is None and name == 'circle':
                 fill = current_color # 1.3.6.4 To draw the two dots in !segno!
+            if fill is None and name in ('path', 'ellipse', 'rect', 'polygon'):
+                fill = current_color  # Default to current_color for shapes without explicit fill
             if fill is not None:
                 if fill == 'currentColor':
-                    fill = current_color
+                    fill = current_color # current_color is already inverted
+                elif fill not in ('none',):
+                    fill = self.get_effective_color(fill)  # Invert literal colors from SVG
 
                 if highlight and fill != 'none':
                     if highlight_follow:
@@ -730,7 +773,9 @@ class SvgRenderer(object):
 
             stroke = attr.get('stroke', 'none')
             if stroke == 'currentColor':
-                stroke = current_color
+                stroke = current_color # current_color is already inverted
+            elif stroke not in ('none',):
+                stroke = self.get_effective_color(stroke)  # Invert literal colors from SVG
 
             if highlight and stroke != 'none':
                 if highlight_follow:
@@ -738,18 +783,35 @@ class SvgRenderer(object):
                 else:
                     stroke = self.highlight_color
 
-            self.set_stroke(dc, stroke, float(attr.get('stroke-width', 1.0)), attr.get('stroke-linecap', 'butt'), attr.get('stroke-dasharray', None))
+            self.set_stroke(dc, stroke, float(attr.get('stroke-width', 0.7)), attr.get('stroke-linecap', 'butt'), attr.get('stroke-dasharray', None))
 
         #print 'setmatrix', matrix.Get(), '[%s]' % attr.get('transform', '')
+        if 'stroke-width' not in attr and 'stroke-width' in current_style:
+            attr['stroke-width'] = current_style['stroke-width']
+
+        stroke_width = float(attr.get('stroke-width', 0.7))
+
 
         # 1.3.6.2 [JWdJ] 2015-02-14 Process most common names first (path, ellipse, use)
         if name == 'path':
             path = self.parse_path(attr['d'])
+                
             #Patch from Seymour regarding Debian 7.0 to be tested on other platform
             #if wx.Platform != "__WXMAC__": #At least the SetPen has some side effect on Mac didn't tried on other. So do not apply Seymour Patch if under Mac
             #    dc.SetPen(wx.Pen('#000000', 1, wx.SOLID))
             #End of patch
+            
+            dc.PushState()
+
+            if attr.get('is_note_stem', False):
+                #print("Apply stroke width: "+str(stroke_width))
+                dc.Translate(-stroke_width/2, 0) 
+            if attr.get('is_staff_line', False):
+                #print("Apply stroke height to stave lines")
+                dc.Translate(0, -stroke_width / 2)
+           
             dc.DrawPath(path, wx.WINDING_RULE)
+            dc.PopState()
 
         elif name == 'use':
             x, y = float(attr.get('x', 0)), float(attr.get('y', 0))
@@ -764,6 +826,10 @@ class SvgRenderer(object):
                 if note_index in page.selected_indices:
                     highlight = True
 
+            if attr.get('is_staff_line', False):
+                x = x -stroke_width / 2
+                y = y -stroke_width / 2
+
             dc.PushState()
             dc.Translate(x, y)
             self.draw_svg_element(page, dc, page.id_to_element[element_id], highlight, current_color, current_style.copy(), highlight_follow)
@@ -775,10 +841,18 @@ class SvgRenderer(object):
         elif name == 'ellipse':
             cx, cy, rx, ry = attr.get('cx', 0), attr.get('cy', 0), attr['rx'], attr['ry']
             cx, cy, rx, ry = map(float, (cx, cy, rx, ry))
+
+            dc.PushState()
+
+            dc.Translate(0, stroke_width/2) 
+            
             path = dc.CreatePath()
             #FAU: Add +0.5 to better align note heads. %%TODO%% verify how to link it to score position
-            path.AddEllipse(cx-rx, cy-ry+0.5, rx+rx, ry+ry)
+            #path.AddEllipse(cx-rx, cy-ry+0.5, rx+rx, ry+ry)
+            path.AddEllipse(cx-rx, cy-ry, rx+rx, ry+ry)
             dc.DrawPath(path)
+            dc.PopState()
+
 
         elif name == 'circle':
             cx, cy, r = map(float, (attr.get('cx', 0), attr.get('cy', 0), attr['r']))
@@ -804,6 +878,7 @@ class SvgRenderer(object):
                 weight = wx.FONTWEIGHT_NORMAL
 
             font_size = int(round(float(attr.get('font-size') or current_style.get('font-size', 12))))
+            #print("Font_size: " + str(font_size))
             # 1.3.6.3 [JWDJ] 2015-3 bugfix: use correct font family
             font_face = ''
             svg_to_wx_font_family = {
@@ -823,13 +898,17 @@ class SvgRenderer(object):
                 for fi in font_info.split(' '):
                     if fi == 'bold':
                         weight = wx.FONTWEIGHT_BOLD
+                        #print("Font_weight bold: " + str(fi))
                     elif fi == 'italic':
                         font_style = wx.FONTSTYLE_ITALIC
+                        #print("Font_style italic: " + str(fi))
                     elif fi.endswith('px'):
                         #FAU: font_size at least for the meter is drawn a bit too small. Add a +2
                         font_size = int(float(fi[0:-2])+2)
+                        #print("Font_size new: " + str(font_size))
                     elif fi in ['serif','sans-serif','monospace','bookman']:
                         svg_font_family = fi
+                        #print("Font_family: " + str(fi))
 
             font_family = svg_to_wx_font_family.get(svg_font_family)
             if font_family is None:
@@ -844,7 +923,7 @@ class SvgRenderer(object):
             else:
                 wxfont.SetPointSize(font_size)
 
-            font = dc.CreateFont(wxfont, wx_colour(attr.get('fill', 'black')))
+            font = dc.CreateFont(wxfont, wx_colour(self.get_effective_color(attr.get('fill', 'black'))))
             dc.SetFont(font)
 
             (width, height, descent, externalLeading) = dc.GetFullTextExtent(text)
@@ -854,7 +933,7 @@ class SvgRenderer(object):
                 x -= width
 
             try:
-                dc.DrawText(text, x, y-height+descent)
+                dc.DrawText(text, x, y-height+descent-stroke_width/2)
             except wx.PyAssertionError:
                 raise Exception(u'Could not draw text, text=%s, font=%s (%s / %s), size=%s, fill=%s, weight=%s, style=%s, x=%s, y=%s, height=%s, descent=%s, transform=%s' %
                                 (repr(text), font_face, wxfont.GetFaceName(), wxfont.GetDefaultEncoding(), font_size,
@@ -887,7 +966,7 @@ class SvgRenderer(object):
             # self.set_fill(dc, 'none')
             # self.set_stroke(dc, stroke, float(attr.get('stroke-width', 1.0)), attr.get('stroke-linecap', 'butt'), attr.get('stroke-dasharray', None))
             # 1.3.6.3 [JWDJ] 2015-3 Fixes line in !segno!
-            dc.DrawLines([(x1, y1), (x2, y2)])
+            dc.DrawLines([(x1+1, y1), (x2+1, y2)])
 
         if transform:
             dc.PopState()
@@ -921,7 +1000,7 @@ if __name__ == "__main__":
     dc.Clear()
     dc = wx.GraphicsContext.Create(dc)
     dc.SetBrush(dc.CreateBrush(wx.BLACK_BRUSH))
-    print('default matrix %s' % dc.GetTransform().Get())
+    #print('default matrix %s' % dc.GetTransform().Get())
     import math
     original_matrix = dc.GetTransform()
     path = dc.CreatePath()
@@ -945,7 +1024,7 @@ if __name__ == "__main__":
     om.Concat(m2)
     dc.SetTransform(om)
     dc.DrawPath(path)
-    print('new matrix %s' % matrix_to_str(dc.GetTransform()))
+    #print('new matrix %s' % matrix_to_str(dc.GetTransform()))
     om.Concat(m1)
     om.Concat(m0)
     dc.SetTransform(om)
@@ -958,7 +1037,7 @@ if __name__ == "__main__":
     dc.Translate(150, 150)
     dc.Rotate(radians(25))
     dc.Scale(0.5, 0.5)
-    print('new matrix %s' % matrix_to_str(dc.GetTransform()))
+    #print('new matrix %s' % matrix_to_str(dc.GetTransform()))
 
     buffer.SaveFile('dc_test_linux.png', wx.BITMAP_TYPE_PNG)
     if True:
@@ -973,7 +1052,16 @@ if __name__ == "__main__":
         m2.Concat(m1)
         print(m1.TransformPoint(100, 100))
 
-        renderer = SvgRenderer(True)
+        renderer = SvgRenderer(True,'#FF0000','#FF00FF')
         #renderer.set_svg(open(os.path.join('abc', 'cache', 'temp_02e3f5d62f001.svg'), 'rb').read())
+        renderer.set_svg('<svg width="200" height="200" viewBox="0 0 200 200">\
+    <g stroke-width="1.0" stroke="black">\
+        <!-- Trait horizontal à y=100 -->\
+        <path d="M50.0 100.0 L99.9 100.0"/>\
+        <!-- Trait vertical à x=100.4 -->\
+        <path d="M100.4 50.0 L100.4 150.0"/>\
+        <!-- Les deux traits doivent se croiser à (100.4, 100.0) -->\
+    </g>\
+</svg>')
         renderer.buffer.SaveFile('test_output.png', wx.BITMAP_TYPE_PNG)
 

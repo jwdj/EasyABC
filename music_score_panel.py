@@ -48,6 +48,7 @@ class MusicScorePanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.highlighted_notes = None
         self.highlight_follow = False
+        self.previous_selection = set()
 
     def reset_scrolling(self):
         self.SetVirtualSize((self.buffer_width, self.buffer_height))
@@ -100,6 +101,7 @@ class MusicScorePanel(wx.ScrolledWindow):
             self.SetFocus()
             page = self.current_page
             old_selection = page.selected_indices.copy()
+            self.previous_selection = old_selection
             page.clear_note_selection()
             x, y = self.get_xy_of_mouse_event(event)
             note_index = page.hit_test(x, y)
@@ -120,23 +122,6 @@ class MusicScorePanel(wx.ScrolledWindow):
             #if old_selection != self.renderer.selected_indices or note_index is not None:
             self.OnNoteSelectionChangedDesc(page.selected_indices, close_note_index=close_note_index)
 
-##        if event.LeftDown():
-##            self.SetFocus()
-##            old_selection = self.selected_note_path_indices.copy()
-##            self.selected_note_path_indices = set()
-##            self.selected_note_descriptions = set()
-##            i, path = self.get_path_under_mouse(event)
-##            if path:
-##                self.selected_note_path_indices.add(i)
-##            else:
-##                self.drag_start_x, self.drag_start_y = self.get_xy_of_mouse_event(event)
-##                self.CaptureMouse()
-##                self.OnMouseMotion(event)
-##            if old_selection != self.selected_note_path_indices:
-##                self.redraw()
-##                if self.OnNoteSelectionChanged:
-##                    self.OnNoteSelectionChanged(sorted(self.selected_note_path_indices))
-
     def OnLeftButtonUp(self, event):
         if self.HasCapture():
             try:
@@ -155,13 +140,17 @@ class MusicScorePanel(wx.ScrolledWindow):
         page = self.current_page
         if self.HasCapture():
             if self.drag_start_x is not None and self.drag_start_y is not None:
+                add_selection = event.ControlDown() or event.CmdDown()
                 x, y = self.get_xy_of_mouse_event(event)
                 self.drag_rect = (min(self.drag_start_x, x), min(self.drag_start_y, y), abs(self.drag_start_x-x), abs(self.drag_start_y-y))
                 rect = wx.Rect(*map(int, self.drag_rect))
                 old_selection = page.selected_indices.copy()
                 page.select_notes(rect)
                 if old_selection != page.selected_indices and self.OnNoteSelectionChangedDesc:
-                    self.OnNoteSelectionChangedDesc(page.selected_indices)
+                    if add_selection:
+                        page.selected_indices = self.previous_selection.union(page.selected_indices)
+                    active_note_index = page.hit_test(x, y, return_closest_hit=True)
+                    self.OnNoteSelectionChangedDesc(page.selected_indices, active_note_index=active_note_index)
                 self.redraw()
         else:
             x, y = self.get_xy_of_mouse_event(event)
@@ -171,28 +160,6 @@ class MusicScorePanel(wx.ScrolledWindow):
                 self.SetCursor(self.cross_cursor)
             #FAU 20250126: mouse_select_ongoing positionned to avoid the race with event of selection change in TextCtrl
             self.mouse_select_ongoing = False
-##        if self.HasCapture():
-##            x, y = self.get_xy_of_mouse_event(event)
-##            self.drag_rect = (min(self.drag_start_x, x), min(self.drag_start_y, y), abs(self.drag_start_x-x), abs(self.drag_start_y-y))
-##            #rect = wx.Rect2D(*self.drag_rect)
-##            #rect = wx.Rect(*map(lambda x: int(x*self.renderer.zoom), self.drag_rect))
-##            rect = wx.Rect(*map(lambda x: int(x), self.drag_rect))
-##            self.renderer.select_notes(rect)
-##            old_selection = self.selected_note_path_indices.copy()
-##            self.selected_note_path_indices = set()
-##            for i, path in enumerate(self.note_paths):
-##                path_box = path.GetBox()
-##                if rect.Intersects(path_box):
-##                    self.selected_note_path_indices.add(i)
-##            self.redraw()
-##            if old_selection != self.selected_note_path_indices and self.OnNoteSelectionChanged:
-##                self.OnNoteSelectionChanged(sorted(self.selected_note_path_indices))
-##        else:
-##            i, path = self.get_path_under_mouse(event)
-##            if path:
-##                self.SetCursor(self.pointer_cursor)
-##            else:
-##                self.SetCursor(self.cross_cursor)
 
     def OnSize(self, evt):
         w, h = self.GetClientSize()
@@ -222,7 +189,8 @@ class MusicScorePanel(wx.ScrolledWindow):
             if self.highlighted_notes:
                 self.renderer.draw_notes(page=self.current_page, note_indices=self.highlighted_notes, highlight=True, dc=dc, highlight_follow=self.highlight_follow)
         else:
-            dc.SetBackground(wx.WHITE_BRUSH)
+            #dc.SetBackground(wx.WHITE_BRUSH)
+            dc.SetBackground(self.renderer.get_background_brush())
             dc.Clear()
 
     def set_page(self, page):
@@ -295,7 +263,8 @@ class MusicScorePanel(wx.ScrolledWindow):
         if not WX4:
             dc.BeginDrawing()
         try:
-            dc.SetBackground(wx.WHITE_BRUSH)
+            #dc.SetBackground(wx.WHITE_BRUSH)
+            dc.SetBackground(self.renderer.get_background_brush())
             dc.Clear()
             self.draw_drag_rect(dc)
             if self.current_page != self.renderer.empty_page:

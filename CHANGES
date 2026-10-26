@@ -631,21 +631,40 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Fixed: FluidSynth issues on 64 bit Mac (thanks Mark)
 - Fixed: No bars added within chords or comment
 
-1.3.8.x
+1.4.0.0
 - New: Export to MP3
 - New: Export to AAC
 - New: file setting: ffmpeg
-- Several fixes to support newer Python versions. (thanks aupfred and all that contributed)
-- Updated xml2abc, abc2xml (aupfred)
-- Reenable note highlighting based on cursor position in editor (aupfred)
-- Adapt to new version of abcmidi output (aupfred)
-- Fix playback of a selection on second page (aupfred)
-- Enable Midi playback for Mac based on Apple DLS Synthetiser thanks to mplay library (aupfred)
-- Fix Musicscore gets blank when clicking on the musicpanel (aupfred)
-- Updated about page and abc reference (aupfred)
-- Fix Copy/Paste management in dialog (aupfred)
-- New menu to show Internal List of Tunes (aupfred)
-- Fix playing issue on selection when no extra header lines to be created by EasyABC (aupfred)
-- MacOS adaptation on UI
 - New: distinguishable color for 'select' and 'follow' (aupfred)
-- New: let user define their colors for the editor
+- New: let user define their colors for the editor (aupfred)
+- New: add menu to show Internal List of Tunes (aupfred)
+- New: files to enable debian packages (bomm)
+- New: add darkmode management (aupfred)
+- New: add welcome page (aupfred)
+- New: add easyabc documentation from sourceforge (aupfred)
+- New: Renewed icon set for app and ABC document (aupfred)
+- Improved: Reenable note highlighting based on cursor position in editor (aupfred)
+- Improved: MacOS adaptation on UI (aupfred)
+- Improved: Updated about page and abc reference (aupfred)
+- Improved: German translation (boom)
+- Improved: Enable Midi playback for Mac based on Apple DLS Synthetiser thanks to mplay library (aupfred)
+- Improved: Take care of abc charset instruction (revad)
+- Improved: Frame title identifies whether a change in the abc file was done (revad)
+- Improved: Graphic selection for multivoice and multi selection (revad + aupfred)
+- Improved: Selection of editor in case of graphical selection and multivoice (aupfred)
+- Updated: xml2abc, abc2xml (aupfred)
+- Updated: Adapt to new version of abcmidi output (aupfred)
+- Updated: Several fixes to support newer Python versions. (thanks aupfred and all that contributed)
+- Updated: Icons of toolbar compatible with dark mode (aupfred)
+- Updated: Documentation of sourceforge is modified to integrate new feature from EasyABC 1.4 (aupfred)
+- Fixed: playback of a selection on second page (aupfred)
+- Fixed: Musicscore gets blank when clicking on the musicpanel (aupfred)
+- Fixed: playing issue on selection when no extra header lines to be created by EasyABC (aupfred)
+- Fixed: Copy/Paste management in dialog (aupfred)
+- Fixed: Definition of font Helvetica-Oblique at beginning of incipit file (aupfred)
+- Fixed: abcmidi exit code no returns none 0 value even if some warning. Accept it if midi file exists (aupfred)
+- Fixed: Last note highlighted was keeping its highlight if caret not close to another note (aupfred)
+- Fixed: Menu item not following the definition of the id (aupfred)
+- Fixed: On mac OS a cosmopolitan binary for abcm2ps, abc2midi... as proposed on abcplus can only work if started in a Terminal
+- Fixed: Tied notes are not highlighted all at once any more (aupfred)
+- Fixed: Gchord pattern of the settings was always reset to default (aupfred)

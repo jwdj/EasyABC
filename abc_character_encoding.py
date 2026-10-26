@@ -483,7 +483,9 @@ encoded_char_re = re.compile('|'.join(re.escape(k) for k in mapping))
 def decode_abc(abc_code): return encoded_char_re.sub(lambda m: mapping[m.group(0)], abc_code)
 def encode_abc(abc_code): return ''.join(reverse_mapping.get(c, c) for c in abc_code)
 
-abc_charset_re = re.compile(b'(%%|I:)abc-charset (?P<encoding>[-a-z0-9]+)')
+#abc_charset_re = re.compile(b'(%%|I:)abc-charset (?P<encoding>[-a-z0-9]+)')
+abc_charset_re = re.compile(b'(%%|I:)abc-charset +(?P<encoding>[a-zA-Z0-9-_]+)')
+abc_str_charset_re = re.compile(r'(%%|I:)abc-charset +(?P<encoding>[a-zA-Z0-9-_]+)')
 
 def get_encoding_abc(abc_as_bytes, default_encoding = None):
     if abc_as_bytes[0:len(utf8_byte_order_mark)] == utf8_byte_order_mark:

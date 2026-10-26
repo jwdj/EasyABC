@@ -1,0 +1,271 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="256"
+     height="256"
+     viewBox="0 0 256 256">
+
+  <defs>
+
+    <linearGradient id="paper"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%">
+      <stop offset="0%" stop-color="#fafffb"/>
+      <stop offset="100%" stop-color="#dff5e3"/>
+    </linearGradient>
+
+    <linearGradient id="fold"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%">
+      <!--<stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#d8eadb"/>-->
+      <stop offset="0%" stop-color="#d8eadb"/>
+      <stop offset="100%" stop-color="#0A6C40"/>
+    </linearGradient>
+
+    <filter id="shadow">
+      <feDropShadow dx="2"
+                    dy="3"
+                    stdDeviation="3"
+                    flood-opacity="0.25"/>
+    </filter>
+
+  </defs>
+
+  <!-- Document -->
+
+  <g filter="url(#shadow)">
+
+    <path d="
+      M32 16
+      L176 16
+      L224 64
+      L224 240
+      L32 240
+      Z"
+      fill="url(#paper)"
+      stroke="#b7d8bc"
+      stroke-width="2"/>
+
+    <!-- Coin replié -->
+
+    <path d="
+      M176 16
+      L224 64
+      L176 64
+      Z"
+      fill="url(#fold)"
+      stroke="#b7d8bc"
+      stroke-width="2"/>
+
+  </g>
+
+  <!-- Filigrane EasyABC -->
+
+  <g opacity="0.15" transform="translate(0,28)">
+
+    <!-- Portée -->
+
+    <g stroke="#0A6C40"
+       stroke-width="4"
+       fill="none">
+
+      <path d="
+        M8 60
+        C55 90 105 88 150 80
+        C190 72 220 74 248 78"/>
+
+      <path d="
+        M8 84
+        C55 106 105 104 150 96
+        C190 88 220 90 248 94"/>
+
+      <path d="
+        M8 110
+        C55 124 105 122 150 114
+        C190 106 220 108 248 112"/>
+
+      <path d="
+        M8 140
+        C55 146 105 144 150 136
+        C190 128 220 130 248 134"/>
+
+      <path d="
+        M8 174
+        C55 168 105 166 150 158
+        C190 150 220 152 248 156"/>
+
+    </g>
+    <!--<g stroke="#228B52"
+       stroke-width="2"
+       fill="none">
+
+      <path d="
+        M20 100
+        C60 115 105 112 148 105
+        C185 100 210 102 230 105"/>
+
+      <path d="
+        M20 115
+        C60 130 105 127 148 120
+        C185 115 210 117 230 120"/>
+
+      <path d="
+        M20 115
+        C60 130 105 127 148 120
+        C185 115 210 117 230 120"/>
+
+      <path d="
+        M20 130
+        C60 145 105 142 148 135
+        C185 130 210 132 230 135"/>
+
+      <path d="
+        M20 145
+        C60 160 105 157 148 150
+        C185 145 210 147 230 150"/>
+
+      <path d="
+        M20 160
+        C60 175 105 172 148 165
+        C185 160 210 162 230 165"/>
+
+    </g>-->
+
+    <!-- Croche -->
+
+  <g fill="none"
+     stroke="#0A6C40"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+
+  <!-- Hampe -->
+
+  <path d="
+    M114 42
+    C154 72 164 114 165 159
+    "
+    stroke-width="6.5"/>
+
+    <!-- Drapeau principal -->
+
+    <path d="
+      M114 42
+      C182 18 210 60 216 102
+      C210 98 198 96 193 102
+      "
+      stroke-width="6"/>
+
+    <!-- Retour calligraphique -->
+
+    <path d="
+      M193 102
+      C193 102 193 113 213 121
+      "
+      stroke-width="3"
+      opacity="0.65"/>
+
+  <!-- Tête réelle -->
+
+<path d="
+  M145 158
+  C156 154 165 159 166 168
+  C167 177 159 184 149 186
+  C138 188 130 182 129 173
+  C128 165 135 159 145 158
+  Z
+  "
+  transform="translate(5,0)"
+  fill="#0A6C40"/>
+
+  </g>
+    <!--<g transform="translate(0,28)">
+
+      <path d="
+        M110 45
+        C145 70 155 110 153 150
+        "
+        stroke="#228B52"
+        stroke-width="12"
+        fill="none"
+        stroke-linecap="round"/>
+
+      <path d="
+        M110 45
+        C170 15 205 40 212 82
+        C205 78 193 78 178 82
+        C156 88 143 93 132 96
+        "
+        stroke="#228B52"
+        stroke-width="10"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+      <ellipse cx="145"
+               cy="160"
+               rx="20"
+               ry="14"
+               fill="#228B52"/>
+
+    </g>-->
+
+  </g>
+
+  <!-- Texte principal -->
+
+  <g font-family="Consolas, Menlo, Monaco, monospace"
+     font-weight="bold"
+     fill="#2d3f30">
+
+    <text x="42"
+          y="84"
+          font-size="42">
+      X:1
+    </text>
+
+    <text x="42"
+          y="142"
+          font-size="42">
+      T:
+    </text>
+
+    <text x="42"
+          y="198"
+          font-size="42">
+      K:C
+    </text>
+
+  </g>
+
+  <!-- ABC -->
+
+  <g font-family="Arial, Helvetica, sans-serif"
+     font-weight="bold"
+     font-size="54">
+
+    <text x="94"
+          y="142"
+          fill="#FF4D3D">
+      A
+    </text>
+
+    <text x="132"
+          y="142"
+          fill="#FFD400"
+          stroke="#FFD700"
+          stroke-width="0.5">
+      B
+    </text>
+
+    <text x="168"
+          y="142"
+          fill="#33A8FF">
+      C
+    </text>
+
+  </g>
+
+</svg>

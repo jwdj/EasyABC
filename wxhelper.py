@@ -29,7 +29,10 @@ def append_submenu(menu, label, submenu):
 
 
 def append_menu_item(menu, label, description, handler, kind=wx.ITEM_NORMAL, id=-1, bitmap=None):
-    menu_item = wx.MenuItem(menu, id=wx.ID_ANY, text=label, helpString=description, kind=kind)
+    #FAU Id was not taken into account leading to odd behavior on menus
+    item_id = id if (id is not None and id != -1) else wx.ID_ANY
+    
+    menu_item = wx.MenuItem(menu, id=item_id, text=label, helpString=description, kind=kind)
     if bitmap is not None:
         menu_item.SetBitmap(bitmap)
     if WX4:
@@ -38,10 +41,11 @@ def append_menu_item(menu, label, description, handler, kind=wx.ITEM_NORMAL, id=
         menu.AppendItem(menu_item)
 
     if handler is not None:
+        # FAU: Ensure event is linked to the id
         if menu.InvokingWindow is not None:
-            menu.InvokingWindow.Bind(wx.EVT_MENU, handler, menu_item)
+            menu.InvokingWindow.Bind(wx.EVT_MENU, handler, id=menu_item.GetId())
         else:
-            menu.Bind(wx.EVT_MENU, handler, menu_item)
+            menu.Bind(wx.EVT_MENU, handler, id=menu_item.GetId())
     return menu_item
 
 
@@ -60,7 +64,8 @@ def append_to_menu(menu, items):
                 if hasattr(after_add, '__call__'):
                     after_add(menu_item)
             else:
-                id = None
+                # FAU: default changed to -1 as None is not a valid value for an id of a menu item
+                id = -1
                 after_add = None
                 if isinstance(item[0], int):
                     id = item[0]

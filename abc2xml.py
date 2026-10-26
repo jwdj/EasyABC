@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=latin-1
 '''
-Copyright (C) 2012-2018: Willem G. Vree
+Copyright (C) 2012-2025: Willem G. Vree
 Contributions: Nils Liberg, Nicolas Froment, Norman Schmidt, Reinier Maliepaard, Martin Tarenskeen,
                Paul Villiger, Alexander Scheutzow, Herbert Schneider, David Randolph, Michael Strasser
 
@@ -14,32 +14,31 @@ See the Lesser GNU General Public License for more details. <http://www.gnu.org/
 '''
 
 from functools import reduce
-from pyparsing import Word, OneOrMore, Optional, Literal, NotAny, MatchFirst
-from pyparsing import Group, oneOf, Suppress, ZeroOrMore, Combine, FollowedBy
-from pyparsing import srange, CharsNotIn, StringEnd, LineEnd, White, Regex
-from pyparsing import nums, alphas, alphanums, ParseException, Forward
 try:    import xml.etree.cElementTree as E
 except: import xml.etree.ElementTree as E
 import types, sys, os, re, datetime
 
-VERSION = 245
+VERSION = 268
 
 python3 = sys.version_info[0] > 2
 lmap = lambda f, xs: list (map (f, xs))   # eager map for python 3
 if python3:
     int_type = int
     list_type = list
+    tuple_type = tuple
     str_type = str
     uni_type = str
     stdin = sys.stdin.buffer if sys.stdin else None  # read binary if stdin available!
 else:
     int_type = types.IntType
     list_type = types.ListType
+    tuple_type = types.TupleType
     str_type = types.StringTypes
     uni_type = types.UnicodeType
     stdin = sys.stdin
 
 info_list = []  # diagnostic messages
+debug = 0
 def info (s, warn=1):
     x = (warn and '-- ' or '') + s
     info_list.append (x + '\n')         # collect messages
@@ -53,27 +52,265 @@ def getInfo (): # get string of diagnostic messages, then clear messages
     info_list = []
     return xs
 
+#-----------------------------------------------------------------
+# Functions and Classes for evaluating parsing expressions
+#-----------------------------------------------------------------
+
+class G:
+    loc = 0
+    zonderwit = 0
+    str = ''
+    prevloc = 0     # remember previous match position of a note/rest
+
+def setLoc (n):
+    G.loc = n
+
+def setStr (str):
+    G.str = str
+    G.prevloc = 0
+
+def pas (regex):    # regex => Gram (str => None | [str], str))
+    def f (str):
+        lengte = len (str)
+        if G.zonderwit: str = str.lstrip ()  # verwijder spaties voor het passen
+        dlen = lengte - len (str)           # aantal verwijderde spaties
+        r = re.match (regex, str)
+        if r:
+            setLoc (G.loc + r.end () + dlen) # gloc is index in de reeks met spaties
+            return [r.group (0)], str [r.end():]
+        else: return None, str
+    return Gram (f)
+
+def plus (g1, g2):  # (Gram, Gram) => Gram (str => None | [str], str))
+    def f (str):
+        r1, rest1 = g1.parse (str)
+        if (r1 != None):
+            r2, rest2 = g2.parse (rest1)
+            if r2 != None: return r1 + r2, rest2
+            else: return None, str
+        else: return None, str
+    return Gram (f)
+
+def Optional (g1, d = None):   # (Gram, str) => Gram (str => [str], str)
+    if type (g1) == str: g1 = Literal (g1)
+    def f (str):
+        r, rest = g1.parse (str)
+        if r != None: return r, rest
+        else: return [d] if d != None else [], str
+    return Gram (f)
+
+def ZeroOrMore (g1):
+    if type (g1) == str: g1 = Literal (g1)
+    def f (str):
+        r1, rest1 = g1.parse (str)
+        if r1 != None:
+            r2, rest2 = ZeroOrMore (g1).parse (rest1)
+            return r1 + r2, rest2
+        else: return [], str
+    return Gram (f)
+
+def OneOrMore (g1):
+    if type (g1) == str: g1 = Literal (g1)
+    def f (str):
+        r1, rest1 = g1.parse (str)
+        if r1 != None:
+            r2, rest2 = ZeroOrMore (g1).parse (rest1)
+            return r1 + r2, rest2
+        else: return None, str
+    return Gram (f)
+
+def alt (g1, g2):
+    def f (str):
+        r1, rest1 = g1.parse (str)
+        if r1 != None: return r1, rest1
+        else:
+            r2, rest2 = g2.parse (str)
+            if r2 != None: return r2, rest2
+            else: return None, str
+    return Gram (f)
+
+def langste (g1, g2):
+    def f (str):
+        r1, rest1 = g1.parse (str)
+        if r1 != None:
+            setLoc (g1.beg) # zelfde begin voor 2e pas
+            r2, rest2 = g2.parse (str)
+            if r2 != None:  # gloc staat op g2.end
+                if g2.end > g1.end: # neem de langste passing
+                    return r2, rest2
+                else:       # gloc op g1.end zetten
+                    setLoc (g1.end)
+                    return r1, rest1
+                return (r2, rest2) if g2.paslen > g1.paslen else (r1, rest1)
+            else: return r1, rest1
+        else:
+            r2, rest2 = g2.parse (str)
+            if r2 != None: return r2, rest2
+            else: return None, str
+    return Gram (f)
+
+def Group (g1):
+    def f (str):
+        r, rest = g1.parse (str)
+        if r != None: return [r], rest
+        else: return None, str
+    return Gram (f)
+
+def Combine (g1):
+    def f (str):
+        lengte = len (str)
+        str = str.lstrip (' \t\n')  # verwijder spaties voor het passen (alleen gewone spaties!)
+        dlen = lengte - len (str)   # aantal verwijderde spaties
+        rs, rest = g1.zonderWit (False).parse (str) # spaties significant in g1
+        if rs != None:
+            setLoc (G.loc + dlen)   # gloc is index in de reeks met spaties
+            r = reduce (lambda a, b: a + b, rs)
+            return [r], rest
+        else: return None, str
+    return Gram (f)
+
+def oneOf (keus):
+    def f (str):
+        lengte = len (str)
+        if G.zonderwit: str = str.lstrip ()
+        dlen = lengte - len (str)
+        ts = keus.split ();
+        ts.sort (reverse = True, key = lambda x: len (x)) # de langste eerst
+        for t in ts:
+            if str.startswith (t):
+                setLoc (G.loc + len (t) + dlen)
+                return [t], str [len (t):]
+        return None, str
+    return Gram (f)
+
+def CharsNotIn (reeks, exact=-1):
+    def f (str):
+        lengte = len (str)
+        if G.zonderwit: str = str.lstrip ()  # verwijder spaties voor het passen
+        dlen = lengte - len (str)           # aantal verwijderde spaties
+        r = ''
+        while len (str) > 0 and len (r) != exact and str[0] not in reeks:
+            r += str[0]
+            str = str [1:]
+        if len (r) > 0 and (len (r) == exact or exact == -1): 
+            setLoc (G.loc + len (r) + dlen) # gloc is index in de reeks met spaties
+            return [r], str
+        else: return None, str
+    return Gram (f)
+
+def Suppress (g1):
+    if type (g1) == str: g1 = Literal (g1)
+    def f (str):
+        r1, rest1 = g1.parse (str)
+        if r1 != None: return [], rest1
+        else: return None, str
+    return Gram (f)
+
+def FollowedBy (g1):
+    if type (g1) == str: g1 = Literal (g1)
+    def f (str):
+        begin = G.loc   # echt ontleden maar G.loc niet opschuiven
+        r1, rest1 = g1.parse (str)
+        setLoc (begin)  # terug naar begin, want uitdrukking wordt later nogmaals ontleed
+        if r1 != None: return [], str
+        else: return None, str
+    return Gram (f)
+
+def Literal (str):
+    xs = ['\\' + x if x in '[$().|*+' else x for x in str]
+    return pas (''.join (xs))
+
+def StringEnd ():
+    def f (str):
+        g1 = pas (r'$')
+        r, rest = g1.parse (str)
+        if r != None: r = []
+        return r, rest
+    return Gram (f)
+
+class Gram:
+    def __init__ (self, fa):
+        self.f = fa
+        self.laatweg = 0
+        self.transform = None
+        self.zw = None
+        self.gwitprv = None
+        self.beg = 0
+        self.end = 0
+    def parseString (self, str):
+        setLoc (0)
+        setStr (str)
+        r, rest = self.parse (str) 
+        if r == None:   # grammatica faalt als geheel
+            foutreeks = str [self.beg : self.beg + 40]
+            raise Exception ('*** cannot parse: "%s" ***' % foutreeks)
+        return r
+    def parse (self, str):
+        if self.zw != None:
+            self.gwitprv = G.zonderwit   # vorige toestand bewaren
+            G.zonderwit = self.zw        # de nieuwe toestand
+        self.beg = G.loc         # beginindex van het passen
+        r, rest = self.f (str)  # het passen
+        if self.laatweg and r != None: r = []
+        if self.zw != None:     # vorige toestand herstellen
+            G.zonderwit = self.gwitprv
+        self.end = G.loc         # eindindex van het passen
+        if r != None and self.transform:
+            r = Res (r, self.beg, self.end)
+            r = self.transform (r)
+        if r == None: setLoc (self.beg) # herstel de tekenindex na falen
+        return r, rest
+    def setParseAction (self, aktie):
+        self.transform = aktie
+        return self
+    def zonderWit (self, b=True):
+        self.zw = b
+        return self
+    def suppress (self):
+        self.laatweg = 1
+        return self
+    def __add__ (self, other): return plus (self, other)
+    def __or__ (self, other):  return alt  (self, other)
+    def __xor__ (self, other): return langste (self, other)
+    def __invert__ (self):
+        def f (str):
+            r, rest = self.parse (str)
+            if r != None: return None, str
+            else: return [], str
+        return Gram (f)
+
+class Res (list_type):
+    def __init__ (s, xs, beg_p, end_p):
+        super(Res, s).__init__(xs)
+        s.beg = beg_p
+        s.end = end_p
+
+#-----------------------------------------------------------------
+# Parsing Expression Grammar for ABC 
+#-----------------------------------------------------------------
+
 def abc_grammar ():     # header, voice and lyrics grammar for ABC
     #-----------------------------------------------------------------
     # expressions that catch and skip some syntax errors (see corresponding parse expressions)
     #-----------------------------------------------------------------
-    b1 = Word (u"-,'<>\u2019#", exact=1)    # catch misplaced chars in chords
-    b2 = Regex ('[^H-Wh-w~=]*')             # same in user defined symbol definition
-    b3 = Regex ('[^=]*')                    # same, second part
+    b1 = pas (u"[-,'<>\u2019#]")    # catch misplaced chars in chords
+    b2 = pas (r'[^H-Wh-w~=]*')      # same in user defined symbol definition
+    b3 = pas (r'[^=]*')             # same, second part
 
     #-----------------------------------------------------------------
     # ABC header (field_str elements are matched later with reg. epr's)
     #-----------------------------------------------------------------
 
-    number = Word (nums).setParseAction (lambda t: int (t[0]))
-    field_str = Regex (r'[^]]*')  # match anything until end of field
-    field_str.setParseAction (lambda t: t[0].strip ())  # and strip spacing
+    digits = pas (r'\d+')
+    number = pas (r'\d+').setParseAction (lambda t: list (map (int, t)))
+    field_str = pas (r'[^]]*')      # match anything until end of field
+    field_str.setParseAction (lambda t: [t[0].strip ()])  # and strip spacing
 
-    userdef_symbol  = Word (srange ('[H-Wh-w~]'), exact=1)
+    userdef_symbol  = pas (r'[H-Wh-w~]')
     fieldId = oneOf ('K L M Q P I T C O A Z N G H R B D F S E r Y') # info fields
     X_field = Literal ('X') + Suppress (':') + field_str
     U_field = Literal ('U') + Suppress (':') + b2 + Optional (userdef_symbol, 'H') + b3 + Suppress ('=') + field_str
-    V_field = Literal ('V') + Suppress (':') + Word (alphanums + '_') + field_str
+    V_field = Literal ('V') + Suppress (':') + pas (r'\w+') + field_str
     inf_fld = fieldId + Suppress (':') + field_str
     ifield = Suppress ('[') + (X_field | U_field | V_field | inf_fld) + Suppress (']')
     abc_header = OneOrMore (ifield) + StringEnd ()
@@ -82,15 +319,15 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     # I:score with recursive part groups and {* grand staff marker
     #---------------------------------------------------------------------------------
 
-    voiceId = Suppress (Optional ('*')) + Word (alphanums + '_')
+    voiceId = Suppress (Optional ('*')) + pas (r'\w+')
     voice_gr = Suppress ('(') + OneOrMore (voiceId | Suppress ('|')) + Suppress (')')
     simple_part = voiceId | voice_gr | Suppress ('|')
     grand_staff = oneOf ('{* {') + OneOrMore (simple_part) + Suppress ('}')
-    part = Forward ()
+    part = Gram (None)   # de functie wordt verderop toegekend
     part_seq = OneOrMore (part | Suppress ('|'))
     brace_gr = Suppress ('{') + part_seq + Suppress ('}')
     bracket_gr = Suppress ('[') + part_seq + Suppress (']')
-    part <<= MatchFirst (simple_part | grand_staff | brace_gr | bracket_gr | Suppress ('|'))
+    part.f = (simple_part | grand_staff | brace_gr | bracket_gr | Suppress ('|')).f
     abc_scoredef = Suppress (oneOf ('staves score')) + OneOrMore (part)
 
     #----------------------------------------
@@ -101,17 +338,17 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     extend_note = Literal ('_')
     measure_end = Literal ('|')
     syl_str     = CharsNotIn ('*-_| \t\n\\]')
-    syl_chars   = Combine (OneOrMore (syl_str | Regex (r'\\.')))
-    white       = Word (' \t')
+    syl_chars   = Combine (OneOrMore (syl_str | pas (r'\\.')))
+    white       = pas (r'[ \t]+')
     syllable    = syl_chars + Optional ('-')
-    lyr_elem    = (syllable | skip_note | extend_note | measure_end) + Optional (white).suppress ()
-    lyr_line    = Optional (white).suppress () + ZeroOrMore (lyr_elem)
+    lyr_elem    = (syllable | skip_note | extend_note | measure_end) + Suppress (Optional (white))
+    lyr_line    = Suppress (Optional (white)) + ZeroOrMore (lyr_elem)
     
-    syllable.setParseAction (lambda t: pObj ('syl', t))
-    skip_note.setParseAction (lambda t: pObj ('skip', t))
-    extend_note.setParseAction (lambda t: pObj ('ext', t))
-    measure_end.setParseAction (lambda t: pObj ('sbar', t))
-    lyr_line_wsp = lyr_line.leaveWhitespace ()   # parse actions must be set before calling leaveWhitespace
+    syllable.setParseAction (lambda t: [pObj ('syl', t)])
+    skip_note.setParseAction (lambda t: [pObj ('skip', t)])
+    extend_note.setParseAction (lambda t: [pObj ('ext', t)])
+    measure_end.setParseAction (lambda t: [pObj ('sbar', t)])
+    lyr_line_wsp = lyr_line.zonderWit (False)
 
     #---------------------------------------------------------------------------------
     # ABC voice (not white space sensitive, beams detected in note/rest parse actions)
@@ -123,14 +360,15 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     fld_or_lyr = inline_field | lyr_blk # inline field or block of lyric verses
 
     note_length = Optional (number, 1) + Group (ZeroOrMore ('/')) + Optional (number, 2)
-    octaveHigh = OneOrMore ("'").setParseAction (lambda t: len(t))
-    octaveLow = OneOrMore (',').setParseAction (lambda t: -len(t))
+    octaveHigh = OneOrMore ("'").setParseAction (lambda t: [len (t)])
+    octaveLow = OneOrMore (',').setParseAction (lambda t: [-len (t)])
     octave  = octaveHigh | octaveLow
 
     basenote = oneOf ('C D E F G A B c d e f g a b y')  # includes spacer for parse efficiency
-    accidental = oneOf ('^^ __ ^ _ =')
+    alteration = Optional (digits, '0') + Optional (pas (r'/+'), '') +  Optional (digits, '')
+    accidental = oneOf ('^^ __ ^ _ =') + alteration
     rest_sym  = oneOf ('x X z Z')
-    slur_beg = oneOf ("( (, (' .( .(, .('") + ~Word (nums)    # no tuplet_start
+    slur_beg = oneOf ("( (, (' .( .(, .('") + ~digits      # no tuplet_start
     slur_ends = OneOrMore (oneOf (') .)'))
 
     long_decoration = Combine (oneOf ('! +') + CharsNotIn ('!+ \n') + oneOf ('! +'))
@@ -145,7 +383,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     note = pitch + note_length + Optional (tie) + Optional (slur_ends)
     dec_note = Optional (decorations) + pitch + note_length + Optional (tie) + Optional (slur_ends)
     chord_note = dec_note | rest | b1
-    grace_notes = Forward ()
+    grace_notes = Gram (None)   # de functie wordt verderop toegekend
     chord = Suppress ('[') + OneOrMore (chord_note | grace_notes) + Suppress (']') + note_length + Optional (tie) + Optional (slur_ends)
     stem = note | chord | rest
 
@@ -158,7 +396,8 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
 
     acciaccatura    = Literal ('/')
     grace_stem      = Optional (decorations) + stem
-    grace_notes     <<= Group (Suppress ('{') + Optional (acciaccatura) + OneOrMore (grace_stem) + Suppress ('}'))
+    hulp = Group (Suppress ('{') + Optional (acciaccatura) + OneOrMore (grace_stem) + Suppress ('}'))
+    grace_notes.f   = hulp.f
 
     text_expression  = Optional (oneOf ('^ _ < > @'), '^') + Optional (CharsNotIn ('"'), "")
     chord_accidental = oneOf ('# b =')
@@ -177,24 +416,26 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     chord_sym        = chordsym + Optional (Literal ('(') + CharsNotIn (')') + Literal (')')).suppress ()
     chord_or_text    = Suppress ('"') + (chord_sym ^ text_expression) + Suppress ('"')
 
-    volta_nums = Optional ('[').suppress () + Combine (Word (nums) + ZeroOrMore (oneOf (', -') + Word (nums)))
-    volta_text = Literal ('[').suppress () + Regex (r'"[^"]+"')
+    volta_nums = Suppress (Optional ('[')) + Combine (digits + ZeroOrMore (oneOf (', -') + digits))
+    volta_text = Suppress (Literal ('[')) + pas (r'"[^"]+"')
     volta = volta_nums | volta_text
     invisible_barline = oneOf ('[|] []')
     dashed_barline = oneOf (': .|')
     double_rep = Literal (':') + FollowedBy (':')   # otherwise ambiguity with dashed barline
     voice_overlay = Combine (OneOrMore ('&'))
-    bare_volta = FollowedBy (Literal ('[') + Word (nums))   # no barline, but volta follows (volta is parsed in next measure)
-    bar_left = (oneOf ('[|: |: [: :') + Optional (volta)) | Optional ('|').suppress () + volta | oneOf ('| [|')
+    bare_volta = FollowedBy (Literal ('[') + digits)   # no barline, but volta follows (volta is parsed in next measure)
+    bar_left = (oneOf ('[|: |: [: :') + Optional (volta)) | Suppress (Optional ('|')) + volta | oneOf ('| [|')
     bars = ZeroOrMore (':') + ZeroOrMore ('[') + OneOrMore (oneOf ('| ]'))
     bar_right = invisible_barline | double_rep | Combine (bars) | dashed_barline | voice_overlay | bare_volta
     
-    errors =  ~bar_right + Optional (Word (' \n')) + CharsNotIn (':&|', exact=1)
+    errors =  ~bar_right + Optional (pas (r'[ \n]+')) + pas (r'[^:&|]')
     linebreak = Literal ('$') | ~decorations + Literal ('!')    # no need for I:linebreak !!!
-    element = fld_or_lyr | broken | decorations | stem | chord_or_text | grace_notes | tuplet_start | linebreak | errors
+    element =  fld_or_lyr | broken | decorations | stem | chord_or_text | grace_notes | tuplet_start | linebreak | errors
     measure      = Group (ZeroOrMore (inline_field) + Optional (bar_left) + ZeroOrMore (element) + bar_right + Optional (linebreak) + Optional (lyr_blk))
     noBarMeasure = Group (ZeroOrMore (inline_field) + Optional (bar_left) + OneOrMore (element) + Optional (linebreak) + Optional (lyr_blk))
-    abc_voice = ZeroOrMore (measure) + Optional (noBarMeasure | Group (bar_left)) + ZeroOrMore (inline_field).suppress () + StringEnd ()
+    abc_voice = ZeroOrMore (measure) + Optional (noBarMeasure | Group (bar_left)) + ZeroOrMore (Suppress (inline_field)) + StringEnd ()
+
+    abc_acclist = OneOrMore (Group (accidental + basenote)).zonderWit () # used in explicit key definition, like K:C ^F _1B _12/36G
 
     #----------------------------------------
     # I:percmap note [step] [midi] [note-head]
@@ -202,55 +443,58 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
 
     white2 = (white | StringEnd ()).suppress ()
     w3 = Optional (white2)
-    percid = Word (alphanums + '-')
+    percid = pas (r'[\w-]+')    # Word (alphanums + '-')
     step = basenote + Optional (octave, 0)
     pitchg = Group (Optional (accidental, '') + step + FollowedBy (white2))
     stepg = Group (step + FollowedBy (white2)) | Literal ('*')
     midi = (Literal ('*') | number | pitchg | percid)
     nhd = Optional (Combine (percid + Optional ('+')), '')
     perc_wsp = Literal ('percmap') + w3 + pitchg + w3 + Optional (stepg, '*') + w3 + Optional (midi, '*') + w3 + nhd
-    abc_percmap = perc_wsp.leaveWhitespace ()
+
+    accidental.setParseAction (alterAction) # parse actions must be set before calling leaveWhitespace
+    abc_percmap = perc_wsp.zonderWit (False)
 
     #----------------------------------------------------------------
     # Parse actions to convert all relevant results into an abstract
     # syntax tree where all tree nodes are instances of pObj
     #----------------------------------------------------------------
 
-    ifield.setParseAction (lambda t: pObj ('field', t))
-    grand_staff.setParseAction (lambda t: pObj ('grand', t, 1)) # 1 = keep ordered list of results
-    brace_gr.setParseAction (lambda t: pObj ('bracegr', t, 1))
-    bracket_gr.setParseAction (lambda t: pObj ('bracketgr', t, 1))
-    voice_gr.setParseAction (lambda t: pObj ('voicegr', t, 1))
-    voiceId.setParseAction (lambda t: pObj ('vid', t, 1))
+
+    ifield.setParseAction (lambda t: [pObj ('field', t)])
+    voiceId.setParseAction (lambda t: [pObj ('vid', t, 1)])
+    voice_gr.setParseAction (lambda t: [pObj ('voicegr', t, 1)])
+    grand_staff.setParseAction (lambda t: [pObj ('grand', t, 1)]) # 1 = keep ordered list of results
+    brace_gr.setParseAction (lambda t: [pObj ('bracegr', t, 1)])
+    bracket_gr.setParseAction (lambda t: [pObj ('bracketgr', t, 1)])
     abc_scoredef.setParseAction (lambda t: pObj ('score', t, 1))
-    note_length.setParseAction (lambda t: pObj ('dur', (t[0], (t[2] << len (t[1])) >> 1)))
-    chordsym.setParseAction (lambda t: pObj ('chordsym', t))
-    chord_root.setParseAction (lambda t: pObj ('root', t))
-    chord_kind.setParseAction (lambda t: pObj ('kind', t))
-    chord_degree.setParseAction (lambda t: pObj ('degree', t))
-    chord_bass.setParseAction (lambda t: pObj ('bass', t))
-    text_expression.setParseAction (lambda t: pObj ('text', t))
-    inline_field.setParseAction (lambda t: pObj ('inline', t))
-    lyr_fld.setParseAction (lambda t: pObj ('lyr_fld', t, 1))
-    lyr_blk.setParseAction (lambda t: pObj ('lyr_blk', t, 1)) # 1 = keep ordered list of lyric lines
-    grace_notes.setParseAction (doGrace)
-    acciaccatura.setParseAction (lambda t: pObj ('accia', t))
-    note.setParseAction (noteActn)
-    rest.setParseAction (restActn)
-    decorations.setParseAction (lambda t: pObj ('deco', t))
+    inline_field.setParseAction (lambda t: [pObj ('inline', t)])
+    lyr_fld.setParseAction (lambda t: [pObj ('lyr_fld', t, 1)])
+    lyr_blk.setParseAction (lambda t: [pObj ('lyr_blk', t, 1)]) # 1 = keep ordered list of lyric lines
+    note_length.setParseAction (lambda t: [pObj ('dur', (t[0], (t[2] << len (t[1])) >> 1))])
+    slur_ends.setParseAction (lambda t: [pObj ('slurs', t)])
     pizzicato.setParseAction (lambda t: ['!plus!']) # translate !+!
-    slur_ends.setParseAction (lambda t: pObj ('slurs', t))
-    chord.setParseAction (lambda t: pObj ('chord', t, 1))
+    decorations.setParseAction (lambda t: [pObj ('deco', t)])
+    tie.setParseAction (lambda t: [pObj ('tie', t)])
+    rest.setParseAction (restActn)
+    pitch.setParseAction (lambda t: [pObj ('pitch', t)])
+    note.setParseAction (noteActn)
     dec_note.setParseAction (noteActn)
-    tie.setParseAction (lambda t: pObj ('tie', t))
-    pitch.setParseAction (lambda t: pObj ('pitch', t))
+    chord.setParseAction (lambda t: [pObj ('chord', t, 1)])
+    broken.setParseAction (lambda t: [pObj ('broken', t)])
+    tuplet_start.setParseAction (lambda t: [pObj ('tup', t)])
+    grace_notes.setParseAction (doGrace)
+    acciaccatura.setParseAction (lambda t: [pObj ('accia', t)])
+    text_expression.setParseAction (lambda t: [pObj ('text', t)])
+    chordsym.setParseAction (lambda t: [pObj ('chordsym', t)])
+    chord_root.setParseAction (lambda t: [pObj ('root', t)])
+    chord_kind.setParseAction (lambda t: [pObj ('kind', t)])
+    chord_degree.setParseAction (lambda t: [pObj ('degree', t)])
+    chord_bass.setParseAction (lambda t: [pObj ('bass', t)])
     bare_volta.setParseAction (lambda t: ['|']) # return barline that user forgot
     dashed_barline.setParseAction (lambda t: ['.|'])
-    bar_right.setParseAction (lambda t: pObj ('rbar', t))
-    bar_left.setParseAction (lambda t: pObj ('lbar', t))
-    broken.setParseAction (lambda t: pObj ('broken', t))
-    tuplet_start.setParseAction (lambda t: pObj ('tup', t))
-    linebreak.setParseAction (lambda t: pObj ('linebrk', t))
+    bar_right.setParseAction (lambda t: [pObj ('rbar', t)])
+    bar_left.setParseAction (lambda t: [pObj ('lbar', t)])
+    linebreak.setParseAction (lambda t: [pObj ('linebrk', t)])
     measure.setParseAction (doMaat)
     noBarMeasure.setParseAction (doMaat)
     b1.setParseAction (errorWarn)
@@ -258,7 +502,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     b3.setParseAction (errorWarn)
     errors.setParseAction (errorWarn)
 
-    return abc_header, abc_voice, abc_scoredef, abc_percmap
+    return abc_header.zonderWit (), abc_voice.zonderWit (), abc_scoredef.zonderWit (), abc_percmap, abc_acclist
 
 class pObj (object):    # every relevant parse result is converted into a pObj
     def __init__ (s, name, t, seq=0):   # t = list of nested parse results
@@ -292,35 +536,51 @@ class pObj (object):    # every relevant parse result is converted into a pObj
             else:                        xs.append (repr (x))   # pObj -> recursive call
         return '(' + s.name + ' ' +','.join (xs) + ')'
 
-global prevloc                  # global to remember previous match position of a note/rest
-prevloc = 0
 def detectBeamBreak (line, loc, t):
-    global prevloc              # location in string 'line' of previous note match
-    xs = line[prevloc:loc+1]    # string between previous and current note match
+    xs = line[G.prevloc:loc+1]  # string between previous and current note match
     xs = xs.lstrip ()           # first note match starts on a space!
-    prevloc = loc               # location in string 'line' of current note match
-    b = pObj ('bbrk', [' ' in xs])      # space somewhere between two notes -> beambreak
+    xs = re.sub (r'"[^"]*"', '', xs)  # remove chords and annotations (because: may contain spaces)
+    xs = re.sub (r'\[[^]]:[^]]*]', '', xs)  # remove inline fields as well
+    G.prevloc = loc             # location in string 'line' of current note match
+    b = pObj ('bbrk', [' ' in xs])  # space somewhere between two notes -> beambreak
     t.insert (0, b)             # insert beambreak as a nested parse result
 
-def noteActn (line, loc, t):    # detect beambreak between previous and current note/rest
+def noteActn (t):    # detect beambreak between previous and current note/rest
     if 'y' in t[0].t: return [] # discard spacer
-    detectBeamBreak (line, loc, t)      # adds beambreak to parse result t as side effect
-    return pObj ('note', t)
+    detectBeamBreak (G.str, t.beg, t)      # adds beambreak to parse result t as side effect
+    if debug: print ('--noot', t.beg, t.end, repr (G.str [t.beg : t.end]))
+    return [pObj ('note', t)]
 
-def restActn (line, loc, t):    # detect beambreak between previous and current note/rest
-    detectBeamBreak (line, loc, t)  # adds beambreak to parse result t as side effect
-    return pObj ('rest', t)
+def restActn (t):    # detect beambreak between previous and current note/rest
+    detectBeamBreak (G.str, t.beg, t)    # adds beambreak to parse result t as side effect
+    if debug: print ('--rust', t.beg, t.end, repr (G.str [t.beg : t.end]))
+    return [pObj ('rest', t)]
 
-def errorWarn (line, loc, t):   # warning for misplaced symbols and skip them
+def alterAction (t):    # accidental, teller, slashes, noemer
+    nsl = len (t[2])    # number of slashes
+    if nsl == 0:        # no slash
+        if t[1] == '0': return [t[0]] # ^C
+        return [(t[0], t[1])]           # ^2C
+    else:               # default t[3] == 2
+        if t[3]: d = t[3]
+        else:    d = str (2 << (nsl - 1))   # / == /2, // == /4
+    return [(t[0], t[1].replace ('0','1') + '_' + d)]   # ^n_d
+
+def errorWarn (t):
     if not t[0]: return []      # only warn if catched string not empty
     info ('**misplaced symbol: %s' % t[0], warn=0)
-    lineCopy = line [:]
+    lineCopy = G.str [:]
+    loc = t.end - 1 # de fout kan met spaties beginnen en is dan een string met de letter aan het eind
     if loc > 40:
-        lineCopy = line [loc - 40: loc + 40]
+        lineCopy = G.str [loc - 40: loc + 40]
         loc = 40
     info (lineCopy.replace ('\n', ' '), warn=0)
     info (loc * '-' + '^', warn=0)
     return []
+
+def debugAction (t, soort_pObj):    # voor regels met (soort_pObj) en zonder parseAction
+    print ('debug', t, t.beg, t.end, G.str [t.beg : t.end])
+    return [pObj (soort_pObj, t)] if soort_pObj else t
 
 #-------------------------------------------------------------
 # transformations of a measure (called by parse action doMaat)
@@ -412,13 +672,17 @@ def convertChord (t):   # convert chord to sequence of notes in musicXml-style
         del t[i]                                # remove chord itself
 
 def doMaat (t):             # t is a Group() result -> the measure is in t[0]
+    if debug: print ('--maat', t.beg, t.end, repr (G.str [t.beg : t.end]))
     convertBroken (t[0])    # remove all broken rhythms and convert to normal durations
     convertChord (t[0])     # replace chords by note sequences in musicXML style
+    return [t[0]]           # vergelijkbaar met pyparsing
 
 def doGrace (t):        # t is a Group() result -> the grace sequence is in t[0]
     convertChord (t[0]) # a grace sequence may have chords
-    for nt in t[0]:     # flag all notes within the grace sequence
-        if nt.name == 'note': nt.grace = 1 # set grace attribute
+    grcNts = [nt for nt in t[0] if nt.name == 'note']
+    numNts = len ([nt for nt in grcNts if not getattr (nt, 'chord', '')]) # exclude chord notes
+    for nt in grcNts:   # flag all notes within the grace sequence
+        if nt.name == 'note': nt.grace = numNts # grace attribute = number of grace notes
     return t[0]         # ungroup the parse result
 #--------------------
 # musicXML generation
@@ -445,6 +709,15 @@ def addElem (parent, child, level):
         parent.text = '\n' + level * indent * ' '
     parent.append (child)
     child.tail = '\n' + (level-1) * indent * ' '
+
+def delElem (parent, child):    # child must be one of the parent's children
+    last_elm = list (parent) [-1]
+    parent.remove (child)
+    if child == last_elm:       # correct the tail (indent) when child was the last element
+        elms = list (parent)
+        if elms:                # child was not the only element in parent
+            last_elm = elms [-1]
+            last_elm.tail = child.tail  # keep the indent from deleted child
 
 def addElemT (parent, tag, text, level):
     e = E.Element (tag)
@@ -528,7 +801,7 @@ def splitHeaderVoices (abctext):
             mxm.metadata [ftype] = c + '\n' + field if c else field   # concatenate multiple info fields with new line as separator
             continue                    # skip W: lyrics
         if x2[:2] == '+:':              # field continuation
-            fln += x2[2:]
+            fln += ' ' + x2[2:]         # continuation is considered to add a space
             continue
         ro = r2.match (x2)              # single field on a line
         if ro:                          # field -> inline_field, escape all ']'
@@ -617,7 +890,7 @@ def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0, is_overla
     dur1 = sum (int (n.find ('duration').text) for n in ns
                 if n.find ('grace') == None and n.find ('chord') == None)
     dur1 -= sum (int (b.text) for b in m1.findall ('backup/duration'))
-    repbar, nns, es = 0, 0, []  # nns = number of real notes in m2
+    repbar, nns, es = None, 0, []  # nns = number of real notes in m2
     for e in list (m2): # scan all elements of m2
         if e.tag == 'attributes':
             if not is_grand: continue # no attribute merging for normal voices
@@ -632,7 +905,7 @@ def mergeMeasure (m1, m2, slur_offset, voice_offset, rOpt, is_grand=0, is_overla
             addElem (m1, b, level=3)
             addElemT (b, 'duration', str (dur1), level=4)
         for e in es: addElem (m1, e, level=3)   # merge buffered elements of m2
-    elif is_overlay and repbar: addElem (m1, repbar, level=3)   # merge repeat in empty overlay
+    elif is_overlay and repbar != None: addElem (m1, repbar, level=3)   # merge repeat in empty overlay
 
 def mergePartList (parts, rOpt, is_grand=0):    # merge parts, make grand staff when is_grand true
 
@@ -770,6 +1043,12 @@ def reduceMids (parts, vidsnew, midiInst):       # remove redundant instruments 
                 id = e.get ('id')                   # replace all redundant instrument Id's
                 if id in repls: e.set ('id', repls [id])
 
+def scanEdo (abctxt):
+    ri = re.findall (r'[_^](\d)[a-gA-G]', abctxt)
+    rf = re.findall (r'[_^](\d+/\d+)[a-gA-G]', abctxt)
+    t = 53 if len (ri + rf) > 0 else 12
+    return t
+
 class stringAlloc:
     def __init__ (s):
         s.snaarVrij = []    # [[(t1, t2) ...] for each string ]
@@ -826,8 +1105,12 @@ class MusicXml:
     clefMap = { 'alto1':('C','1'), 'alto2':('C','2'), 'alto':('C','3'), 'alto4':('C','4'), 'tenor':('C','4'),
                 'bass3':('F','3'), 'bass':('F','4'), 'treble':('G','2'), 'perc':('percussion',''), 'none':('',''), 'tab':('TAB','5')}
     clefLineMap = {'B':'treble', 'G':'alto1', 'E':'alto2', 'C':'alto', 'A':'tenor', 'F':'bass3', 'D':'bass'}
-    alterTab = {'=':'0', '_':'-1', '__':'-2', '^':'1', '^^':'2'}
-    accTab = {'=':'natural', '_':'flat', '__':'flat-flat', '^':'sharp', '^^':'sharp-sharp'}
+    accTab = {12: {'=':'natural', '_':'flat', '__':'flat-flat', '^':'sharp', '^^':'sharp-sharp'},
+        53: {'_1':'quarter-flat', '_2':'flat-2', '_3':'flat-3', '_4':'slash-flat', '_5':'flat',
+             '_8':'double-slash-flat', '_9':'flat-flat', '^1':'quarter-sharp', '^2':'sharp-2', 
+             '^3':'sharp-3', '^4':'sharp','^5':'slash-quarter-sharp', '^8':'slash-sharp', '^9':'sharp-sharp'},
+        36: {'_1':'natural-down', '_2':'flat-up', '_3':'flat', '_4':'flat-down', '=':'natural',
+             '^1':'natural-up', '^2':'sharp-down', '_^3':'sharp', '^4':'sharp-up'}}
     chordTab = compChordTab ()
     uSyms = {'~':'roll', 'H':'fermata','L':'>','M':'lowermordent','O':'coda',
              'P':'uppermordent','S':'segno','T':'trill','u':'upbow','v':'downbow'}
@@ -837,11 +1120,43 @@ class MusicXml:
     metaMap = {'C':'composer'}  # mapping of composer is fixed
     metaTypes = {'composer':1,'lyricist':1,'poet':1,'arranger':1,'translator':1, 'rights':1} # valid MusicXML meta data types
     tuningDef = 'E2,A2,D3,G3,B3,E4'.split (',') # default string tuning (guitar)
+    inst_tb = ["acoustic_grand_piano", "bright_acoustic_piano", "electric_grand_piano",
+        "honkytonk_piano", "electric_piano_1", "electric_piano_2", "harpsichord", "clavinet", "celesta",
+        "glockenspiel", "music_box", "vibraphone", "marimba", "xylophone", "tubular_bells", "dulcimer",
+        "drawbar_organ", "percussive_organ", "rock_organ", "church_organ", "reed_organ", "accordion",
+        "harmonica", "tango_accordion", "acoustic_guitar_nylon", "acoustic_guitar_steel",
+        "electric_guitar_jazz", "electric_guitar_clean", "electric_guitar_muted", "overdriven_guitar",
+        "distortion_guitar", "guitar_harmonics", "acoustic_bass", "electric_bass_finger", 
+        "electric_bass_pick", "fretless_bass", "slap_bass_1", "slap_bass_2", "synth_bass_1",
+        "synth_bass_2", "violin", "viola", "cello", "contrabass", "tremolo_strings", "pizzicato_strings",
+        "orchestral_harp", "timpani", "string_ensemble_1", "string_ensemble_2", "synth_strings_1",
+        "synth_strings_2", "choir_aahs", "voice_oohs", "synth_choir", "orchestra_hit", "trumpet",
+        "trombone", "tuba", "muted_trumpet", "french_horn", "brass_section", "synth_brass_1",
+        "synth_brass_2", "soprano_sax", "alto_sax", "tenor_sax", "baritone_sax", "oboe", "english_horn",
+        "bassoon", "clarinet", "piccolo", "flute", "recorder", "pan_flute", "blown_bottle", "shakuhachi",
+        "whistle", "ocarina", "lead_1_square", "lead_2_sawtooth", "lead_3_calliope", "lead_4_chiff",
+        "lead_5_charang", "lead_6_voice", "lead_7_fifths", "lead_8_bass__lead", "pad_1_new_age",
+        "pad_2_warm", "pad_3_polysynth", "pad_4_choir", "pad_5_bowed", "pad_6_metallic", "pad_7_halo",
+        "pad_8_sweep", "fx_1_rain", "fx_2_soundtrack", "fx_3_crystal", "fx_4_atmosphere",
+        "fx_5_brightness", "fx_6_goblins", "fx_7_echoes", "fx_8_scifi", "sitar", "banjo", "shamisen",
+        "koto", "kalimba", "bagpipe", "fiddle", "shanai", "tinkle_bell", "agogo", "steel_drums",
+        "woodblock", "taiko_drum", "melodic_tom", "synth_drum", "reverse_cymbal", "guitar_fret_noise",
+        "breath_noise", "seashore", "bird_tweet", "telephone_ring", "helicopter", "applause","gunshot"]
+    perc_tb = ["high_q", "slap", "scratch_push", "scratch_pull", "sticks", "square_click", "metronome_click",
+        "metronome_bell", "bass_drum_2", "bass_drum_1", "side_stick", "snare_drum_1", "hand_clap",
+        "snare_drum_2", "low_tom_2", "closed_hi-hat", "low_tom_1", "pedal_hi-hat", "mid_tom_2",
+        "open_hi-hat", "mid_tom_1", "high_tom_2", "crash_cymbal_1", "high_tom_1", "ride_cymbal_1",
+        "chinese_cymbal", "ride_bell", "tambourine", "splash_cymbal", "cowbell", "crash_cymbal_2",
+        "vibra_slap", "ride_cymbal_2", "high_bongo", "low_bongo", "mute_high_conga", "open_high_conga",
+        "low_conga", "high_timbale", "low_timbale", "high_agogo", "low_agogo", "cabasa", "maracas",
+        "short_whistle", "long_whistle", "short_guiro", "long_guiro", "claves", "high_wood_block",
+        "low_wood_block", "mute_cuica", "open_cuica", "mute_triangle", "open_triangle", "shaker",
+        "jingle_bell", "belltree", "castanets", "mute_surdo", "open_surdo"]
 
     def __init__ (s):
         s.pageFmtCmd = []   # set by command line option -p
         s.reset ()
-    def reset (s, fOpt=False):
+    def reset (s, fOpt=False, mOpt=False):
         s.divisions = 2520  # xml duration of 1/4 note, 2^3 * 3^2 * 5 * 7 => 5,7,9 tuplets
         s.ties = {}         # {abc pitch tuple -> alteration} for all open ties
         s.slurstack = {}    # stack of open slur numbers per (overlay) voice
@@ -864,9 +1179,9 @@ class MusicXml:
         s.metadata = {}     # {metadata-type -> string}
         s.lyrdash = {}      # {lyric number -> 1 if dash between syllables}
         s.usrSyms = s.uSyms # user defined symbols
-        s.prevNote = None   # xml element of previous beamed note to correct beams (start, continue)
+        s.prevNote = [None, None]   # xml element of previous beamed note to correct beams (start, continue)
         s.prevLyric = {}    # xml element of previous lyric to add/correct extend type (start, continue)
-        s.grcbbrk = False   # remember any bbrk in a grace sequence
+        s.grcbrk = False    # remember beambreak before grace sequence
         s.linebrk = 0       # 1 if next measure should start with a line break
         s.nextdecos = []    # decorations for the next note
         s.prevmsre = None   # the previous measure
@@ -881,6 +1196,7 @@ class MusicXml:
         s.mdur = (4,4)      # duration of one measure
         s.gtrans = 0        # octave transposition (by clef)
         s.midprg = ['', '', '', ''] # MIDI channel nr, program nr, volume, panning for the current part
+        s.nid = ''          # current ABC note for error messages
         s.vid = ''          # abc voice id for the current voice
         s.pid = ''          # xml part id for the current voice
         s.gcue_on = 0       # insert <cue/> tag in each note
@@ -899,6 +1215,45 @@ class MusicXml:
         s.percsnd = [x.split (',') for x in ch10.split (';')]   # {name -> midi number} of standard channel 10 sound names
         s.gTime = (0,0)     # (XML begin time, XML end time) in divisions
         s.tabStaff = ''     # == pid (part ID) for a tab staff
+        s.edo = 12          # tuning
+        s.mus53 = mOpt      # musescore playable edo53
+
+    def getAlter (s, acc):
+        regacc = {'=':'0', '_':'-1', '__':'-2', '^':'1', '^^':'2'}
+        reg53 = {'_9':'-2', '_5':'-1', '^4':'1', '^9':'2'}
+        if acc == '': return ''
+        if acc in regacc: return regacc [acc]
+        if s.edo == 53 and acc in reg53: return reg53 [acc]
+        edo = 36 if acc.endswith ('u') else s.edo
+        acc = acc.replace ('u','')
+        teken = -1 if acc[0] == '_' else 1
+        n = teken * int (acc[1:]) * 12 / edo
+        return str (round (n, 3))
+
+    def getAcc (s, acc):
+        edo = 36 if acc.endswith ('u') else s.edo
+        acc = acc.replace ('u','')
+        if acc in s.accTab [edo]: return s.accTab [edo][acc]
+        if acc in s.accTab [12]: return s.accTab [12][acc]
+        info ('error: unknown accidental %s in note: %s voice: %s, part: %s' % (acc, s.nid, s.vid, s.pid))
+        return 'natural'
+
+    def decTupAcc (s, tupacc):
+        acc, fraq = tupacc  # fraq = 'n' or 'n_m'
+        if acc in ['__','^^']:
+            info ('error: a fractional suffix (%s) is ignored after %s, note: %s, voice %s, part %s' % (fraq, acc, s.nid, s.vid, s.pid))
+        elif '_' in fraq:
+            n, m = map (int, fraq.split ('_'))
+            n, m = simplify (n, m)
+            if   m == 53: acc = acc + str (n // 12)
+            elif m == 3: acc = acc + str (n) + 'u' # markeer als up/down
+            elif n == 1 and m == 1: pass
+            elif n == 1 and m == 2: acc = acc + str (n)
+            else:
+                info ('accidental %s%d/%d not supported, note: %s, voice %s, part %s' % (acc, n, m, s.nid, s.vid, s.pid))
+        else:
+            acc = acc + fraq
+        return acc
 
     def mkPitch (s, acc, note, oct, lev):
         if s.percVoice: # percussion map switched off by perc=off (see doClef)
@@ -917,23 +1272,23 @@ class MusicXml:
             pitch = E.Element ('unpitched')
             addElemT (pitch, 'display-step', step.upper (), lev + 1)
             addElemT (pitch, 'display-octave', str (octnum), lev + 1)
-            return pitch, '', midi, notehead
+            return pitch, '', midi, notehead, acc
         nUp = note.upper ()
         octnum = (4 if nUp == note else 5) + int (oct) + s.gtrans
         pitch = E.Element ('pitch')
         addElemT (pitch, 'step', nUp, lev + 1)
         alter = ''
         if (note, oct) in s.ties:
-            tied_alter, _, vnum, _ = s.ties [(note,oct)]            # vnum = overlay voice number when tie started
-            if vnum == s.overlayVnum: alter = tied_alter            # tied note in the same overlay -> same alteration
-        elif acc:
-            s.msreAlts [(nUp, octnum)] = s.alterTab [acc]
-            alter = s.alterTab [acc]                                # explicit notated alteration
-        elif (nUp, octnum) in s.msreAlts:   alter = s.msreAlts [(nUp, octnum)]  # temporary alteration
-        elif nUp in s.keyAlts:              alter = s.keyAlts [nUp] # alteration implied by the key
+            tied_alter, _, vnum, _ = s.ties [(note,oct)]    # vnum = overlay voice number when tie started
+            if vnum == s.overlayVnum: alter = tied_alter    # tied note in the same overlay -> same alteration
+        else:
+            if acc: s.msreAlts [(nUp, octnum)] = acc    # explicit notated alteration
+            elif (nUp, octnum) in s.msreAlts:   acc = s.msreAlts [(nUp, octnum)]  # temporary alteration
+            elif nUp in s.keyAlts:              acc = s.keyAlts [nUp] # alteration implied by the key
+            alter = s.getAlter (acc)                    # acc from notation, key or current alteration
         if alter: addElemT (pitch, 'alter', alter, lev + 1)
         addElemT (pitch, 'octave', str (octnum), lev + 1)
-        return pitch, alter, '', ''
+        return pitch, alter, '', '', acc
 
     def getNoteDecos (s, n):
         decos = s.nextdecos             # decorations encountered so far
@@ -946,7 +1301,7 @@ class MusicXml:
         return decos
 
     def mkNote (s, n, lev):
-        isgrace = getattr (n, 'grace', '')
+        isgrace = getattr (n, 'grace', 0)
         ischord = getattr (n, 'chord', '')
         if s.ntup >= 0 and not isgrace and not ischord:
             s.ntup -= 1                 # count tuplet notes only on non-chord, non grace notes
@@ -956,6 +1311,9 @@ class MusicXml:
         if s.intrem: nnum += nnum       # double duration of tremolo duplets
         if nden == 0: nden = 1          # occurs with illegal ABC like: "A2 1". Now interpreted as A2/1
         num, den = simplify (nnum * s.unitLcur[0], nden * s.unitLcur[1])  # normalised with unit length
+        if isgrace > 0:
+            unitNum, unitDen = (1, 16) if isgrace > 1 else (1, 8)   # in ABC grace notes have fixed unit length
+            num, den = simplify (nnum * unitNum, nden * unitDen)
         if den > 64:    # limit denominator to 64
             num = int (round (64 * float (num) / den))  # scale note to num/64
             num, den  = simplify (max ([num, 1]), 64)   # smallest num == 1
@@ -970,12 +1328,11 @@ class MusicXml:
         if num == 3 and noMsrRest: ndot = 1; den = den // 2 # look for dotted notes
         if num == 7 and noMsrRest: ndot = 2; den = den // 4
         nt = E.Element ('note')
-        if isgrace:                     # a grace note (and possibly a chord note)
+        if isgrace > 0:                 # a grace note (and possibly a chord note)
             grace = E.Element ('grace')
             if s.acciatura: grace.set ('slash', 'yes'); s.acciatura = 0
             addElem (nt, grace, lev + 1)
             dvs = rdvs = 0              # no (real) duration for a grace note
-            if den <= 16: den = 32      # not longer than 1/8 for a grace note
         if s.gcue_on:                   # insert cue tag
             cue = E.Element ('cue')
             addElem (nt, cue, lev + 1)
@@ -998,9 +1355,13 @@ class MusicXml:
             p = n.pitch.t           # get pitch elements from parsed tokens
             if len (p) == 3:    acc, step, oct = p
             else:               step, oct = p
-            pitch, alter, midi, notehead = s.mkPitch (acc, step, oct, lev + 1)
+            s.nid = acc[0] + acc [1] if type (acc) == tuple_type else acc
+            s.nid += step + (-oct*',' if oct<0 else oct*"'")        # current ABC note for error messages
+            if type (acc) == tuple_type: acc = s.decTupAcc (acc)    # microtonal accidentals
+            pitch, alter, midi, notehead, acc53 = s.mkPitch (acc, step, oct, lev + 1)
             if midi: acc = ''       # erase accidental for percussion notes
             addElem (nt, pitch, lev + 1)
+            if s.mus53 and '.' in alter: acc = acc53    # force accidentals everywhere!
         if s.ntup >= 0:                 # modify duration for tuplet notes
             dvs = dvs * s.tmden // s.tmnum
         if dvs:
@@ -1031,7 +1392,7 @@ class MusicXml:
             if 'courtesy' in decos:
                 e.set ('parentheses', 'yes')
                 decos.remove ('courtesy')
-            e.text = s.accTab [acc]
+            e.text = s.getAcc (acc)
             addElem (nt, e, lev + 1)
         tupnotation = ''                # start/stop notation element for tuplets
         if s.ntup >= 0:                 # add time modification element for tuplet notes
@@ -1249,36 +1610,47 @@ class MusicXml:
             s.prevLyric [i] = lyrel # for extension (melisma) on the next note
 
     def doBeams (s, n, nt, den, lev):
-        if hasattr (n, 'chord') or hasattr (n, 'grace'):
-            s.grcbbrk = s.grcbbrk or n.bbrk.t[0]    # remember if there was any bbrk in or before a grace sequence
-            return
-        bbrk = s.grcbbrk or n.bbrk.t[0] or den < 32
-        s.grcbbrk = False
-        if not s.prevNote:  pbm = None
-        else:               pbm = s.prevNote.find ('beam')
-        bm = E.Element ('beam', number='1')
-        bm.text = 'begin'
-        if pbm != None:
-            if bbrk:
+        def closeBeam (grcIx):
+            pbm = s.prevNote [grcIx].find ('beam')
+            if pbm != None:
                 if pbm.text == 'begin':
-                    s.prevNote.remove (pbm)
+                    delElem (s.prevNote [grcIx], pbm)
                 elif pbm.text == 'continue':
                     pbm.text = 'end'
-                s.prevNote = None
-            else: bm.text = 'continue'
-        if den >= 32 and n.name != 'rest':
-            addElem (nt, bm, lev)
-            s.prevNote = nt
+            s.prevNote [grcIx] = None
+        if hasattr (n, 'chord'): return # chord do not contain real beam breaks
+        grcIx = 1 if hasattr (n, 'grace') else 0    # track grace sequence separately
+        firstnote = s.prevNote [grcIx] == None
+        bbrk = n.bbrk.t[0] or (den < 32 and not firstnote)
+        if grcIx == 0 and s.grcbrk: # beam break before grace sequence
+            bbrk = 1
+            s.grcbrk = False        # only valid once
+        if grcIx == 0 and s.prevNote [1] != None:   # normal note after grace sequence
+            closeBeam (1)           # close/remove beam in previous grace sequence
+        if firstnote:
+            pbm = None
+            s.grcbrk = True if grcIx and n.bbrk.t[0] else False # on first grace note
+        else:
+            pbm = s.prevNote [grcIx].find ('beam')
+        bm = E.Element ('beam', number='2' if grcIx else '1')
+        bm.text = 'begin'
+        if pbm != None:
+            if bbrk: closeBeam (grcIx)
+            else:    bm.text = 'continue'
+        if n.name != 'rest':
+            if den >= 32: addElem (nt, bm, lev)
+            s.prevNote [grcIx] = nt
 
     def stopBeams (s):
-        if not s.prevNote: return
-        pbm = s.prevNote.find ('beam')
-        if pbm != None:
-            if pbm.text == 'begin':
-                s.prevNote.remove (pbm)
-            elif pbm.text == 'continue':
-                pbm.text = 'end'
-        s.prevNote = None
+        for grcIx in [0, 1]:
+            if s.prevNote [grcIx] == None: continue
+            pbm = s.prevNote [grcIx].find ('beam')
+            if pbm != None:
+                if pbm.text == 'begin':
+                    delElem (s.prevNote [grcIx], pbm)
+                elif pbm.text == 'continue':
+                    pbm.text = 'end'
+            s.prevNote [grcIx] = None
 
     def staffDecos (s, decos, maat, lev):
         gstaff = s.gStaffNums.get (s.vid, 0)        # staff number of the current voice        
@@ -1437,35 +1809,38 @@ class MusicXml:
                 accs = ['F','C','G','D','A','E','B']    # == s.sharpness [7:14]
                 mode = ''
                 key = re.match (r'\s*([A-G][#b]?)\s*([a-zA-Z]*)', field)
-                alts = re.search (r'\s((\s?[=^_][A-Ga-g])+)', ' ' + field)  # avoid matching middle=G and m=G
+                altre = r'[=^_](\d*/*\d*|[_^]?)[A-Ga-g]'
+                alts = re.search (r'\s((\s?'+altre+')+)', ' ' + field)  # avoid matching middle=G and m=G
                 if key:
                     key, mode = key.groups ()
                     mode = mode.lower ()[:3] # only first three chars, no case
                     if mode not in s.offTab: mode = 'maj'
                     fifths = s.sharpness.index (key) - s.offTab [mode]
-                    if fifths >= 0: s.keyAlts = dict (zip (accs[:fifths], fifths * ['1']))
-                    else:           s.keyAlts = dict (zip (accs[fifths:], -fifths * ['-1']))
+                    if fifths >= 0: s.keyAlts = dict (zip (accs[:fifths], fifths * ['^']))
+                    else:           s.keyAlts = dict (zip (accs[fifths:], -fifths * ['_']))
                 elif field.startswith ('none') or field == '':  # the default key
                     fifths = 0
                     mode = 'maj'
                 if alts:
-                    alts = re.findall (r'[=^_][A-Ga-g]', alts.group(1)) # list of explicit alterations
-                    alts = [(x[1], s.alterTab [x[0]]) for x in alts]    # [step, alter]
-                    for step, alter in alts:                # correct permanent alterations for this key
-                        s.keyAlts [step.upper ()] = alter
+                    accs = abc_acclist.parseString (alts.group (1))
+                    for acc, step in accs:
+                        if type (acc) == tuple_type: acc = s.decTupAcc (acc)   # microtonal accidentals
+                        s.keyAlts [step.upper ()] = acc
                     k = E.Element ('key')
                     koctave = []
-                    lowerCaseSteps = [step.upper () for step, alter in alts if step.islower ()]
-                    for step, alter in sorted (list (s.keyAlts.items ())):
-                        if alter == '0':                    # skip neutrals
+                    lowerCaseSteps = [step.upper () for acc, step in accs if step.islower ()]
+                    for step, acc in list (s.keyAlts.items ()):
+                        if acc == '=':                      # skip neutrals
                             del s.keyAlts [step.upper ()]   # otherwise you get neutral signs on normal notes
                             continue
                         addElemT (k, 'key-step', step.upper (), lev + 2)
-                        addElemT (k, 'key-alter', alter, lev + 2)
+                        addElemT (k, 'key-alter', s.getAlter (acc), lev + 2)
+                        addElemT (k, 'key-accidental', s.getAcc (acc), lev + 2)
                         koctave.append ('5' if step in lowerCaseSteps else '4')
                     if koctave:                     # only key signature if not empty
-                        for oct in koctave:
-                            e = E.Element ('key-octave', number=oct)
+                        for n, oct in enumerate (koctave):
+                            e = E.Element ('key-octave', number= str (n + 1))
+                            e.text = oct
                             addElem (k, e, lev + 2)
                         atts.append ((2, k))
                 elif mode:
@@ -1702,11 +2077,18 @@ class MusicXml:
     def mkScorePart (s, id, vids_p, partAttr, lev):
         def mkInst (instId, vid, midchan, midprog, midnot, vol, pan, lev):
             si = E.Element ('score-instrument', id=instId)
-            pnm = partAttr.get (vid, [''])[0]   # part name if present
-            addElemT (si, 'instrument-name', pnm or 'dummy', lev + 2)   # MuseScore needs a name
+            try: imidprg = int (midprog)
+            except: imidprg = -1
+            if imidprg < 0 or imidprg >= len (s.inst_tb): instnm = 'no name'
+            else: instnm = s.inst_tb [imidprg]
+            if midchan == '10': 
+                iperc = int (midnot) - 27
+                if iperc < 0 or iperc >= len (s.perc_tb) : instnm = 'no name'
+                else: instnm = s.perc_tb [iperc]
+            addElemT (si, 'instrument-name', instnm, lev + 2)   # MuseScore needs a name
             mi = E.Element ('midi-instrument', id=instId)
             if midchan: addElemT (mi, 'midi-channel', midchan, lev + 2)
-            if midprog: addElemT (mi, 'midi-program', str (int (midprog) + 1), lev + 2) # compatible with abc2midi
+            if imidprg >= 0: addElemT (mi, 'midi-program', str (imidprg + 1), lev + 2) # compatible with abc2midi
             if midnot:  addElemT (mi, 'midi-unpitched', str (int (midnot) + 1), lev + 2)
             if vol: addElemT (mi, 'volume', '%.2f' % (int (vol) / 1.27), lev + 2)
             if pan: addElemT (mi, 'pan', '%.2f' % (int (pan) / 127. * 180 - 90), lev + 2)
@@ -1773,7 +2155,7 @@ class MusicXml:
             def midiVal (acc, step, oct):   # abc note -> midi note number
                 oct = (4 if step.upper() == step else 5) + int (oct)
                 return oct * 12 + [0,2,4,5,7,9,11]['CDEFGAB'.index (step.upper())] + {'^':1,'_':-1,'=':0}.get (acc, 0) + 12
-            p0, p1, p2, p3, p4 = abc_percmap.parseString (x).asList ()  # percmap, abc-note, display-step, midi, note-head
+            p0, p1, p2, p3, p4 = abc_percmap.parseString (x) # percmap, abc-note, display-step, midi, note-head
             acc, astep, aoct = p1
             nstep, noct = (astep, aoct) if p2 == '*' else p2
             if p3 == '*':                           midi = str (midiVal (acc, astep, aoct))
@@ -1813,6 +2195,7 @@ class MusicXml:
             r2 = re.search (r'channel *(\d+)', x)
             r3 = re.search (r"drummap\s+([_=^]*)([A-Ga-g])([,']*)\s+(\d+)", x)
             r4 = re.search (r'control *(\d+) +(\d+)', x)
+            r5 = re.search (r'temperamentequal *(\d+)', x)
             ch_nw, prg_nw, vol_nw, pan_nw = '', '', '', ''
             if r1: ch_nw, prg_nw = r1.groups () # channel nr or '', program nr
             if r2: ch_nw = r2.group (1)         # channel nr only
@@ -1833,6 +2216,7 @@ class MusicXml:
                 oct = -len (oct) if ',' in x else len (oct)
                 notehead = 'x' if acc == '^' else 'circle-x' if acc == '_' else 'normal'
                 s.percMap [(s.pid, acc + step, oct)] = (step, oct, midi, notehead)
+            if r5: s.edo = int (r5.group (1))
             r = re.search (r'transpose[^-\d]*(-?\d+)', x)
             if r: addTrans (r.group (1))        # addTrans -> doFields
         elif x.startswith ('percmap'): readPercMap (x); s.pMapFound = 1
@@ -1843,7 +2227,7 @@ class MusicXml:
         if not s.staveDefs: return vdefs
         for x in s.staveDefs [1:]: info ('%%%%%s dropped, multiple stave mappings not supported' % x)
         x = s.staveDefs [0]                                 # only the first %%score is honoured
-        score = abc_scoredef.parseString (x) [0]
+        score = abc_scoredef.parseString (x)
         f = lambda x: type (x) == uni_type and [x] or x
         s.staves = lmap (f, mkStaves (score, vdefs))        # [[vid] for each staff]
         s.grands = lmap (f, mkGrand (score, vdefs))         # [staff-id], staff-id == [vid][0]
@@ -1936,6 +2320,9 @@ class MusicXml:
         encoder = E.Element ('encoder')
         encoder.text = 'abc2xml version %d' % VERSION
         addElem (encoding, encoder, lev + 3)
+        software = E.Element ('software')
+        software.text = 'https://wim.vree.org/svgParse/abc2xml.html'
+        addElem (encoding, software, lev + 3)
         if s.supports_tag:  # avoids interference of auto-flowing and explicit linebreaks
             suports = E.Element ('supports', attribute="new-system", element="print", type="yes", value="yes")
             addElem (encoding, suports, lev + 3)
@@ -1981,9 +2368,12 @@ class MusicXml:
                 addElem (misc, mf, lev + 1)
         if mf != 0: addElem (parent, misc, lev)
 
-    def parse (s, abc_string, rOpt=False, bOpt=False, fOpt=False):
-        abctext = abc_string.replace ('[I:staff ','[I:staff')  # avoid false beam breaks
-        s.reset (fOpt)
+    def parse (s, abctext, rOpt=False, bOpt=False, fOpt=False, mOpt=False):
+        s.reset (fOpt, mOpt)
+        s.edo = scanEdo (abctext)   # look for fractional/integer accidentals
+        if s.mus53: # redefine accidentals to those that are playable by musescore
+            xs = {'_1':'flat-1', '_4':'flat-4', '^1':'sharp-1', '^5':'sharp-5'}
+            for a, v in xs.items (): mxm.accTab [53][a] = v
         header, voices = splitHeaderVoices (abctext)
         ps = []
         try:
@@ -1996,7 +2386,7 @@ class MusicXml:
                     voice = '\n'.join ([balk.rstrip ('$!') + '$' if has_abc (balk) else balk for balk in voice.splitlines ()])
                 prevLeftBar = None      # previous voice ended with a left-bar symbol (double repeat)
                 s.orderChords = s.fOpt and ('tab' in voice [:200] or [x for x in hs if x.t[0] == 'K' and 'tab' in x.t[1]])
-                vce = abc_voice.parseString (voice).asList ()
+                vce = abc_voice.parseString (voice)
                 lyr_notes = []          # remember notes between lyric blocks
                 for m in vce:           # all measures
                     for e in m:         # all abc-elements
@@ -2023,20 +2413,9 @@ class MusicXml:
                 else:
                     voicedef = ''
                 ps.append ((id, voicedef, vcelyr))
-        except ParseException as err:
-            if err.loc > 40:    # limit length of error message, compatible with markInputline
-                err.pstr = err.pstr [err.loc - 40: err.loc + 40]
-                err.loc = 40
-            xs = err.line[err.col-1:]
-            info (err.line, warn=0)
-            info ((err.col-1) * '-' + '^', warn=0)
-            if   re.search (r'\[U:', xs):
-                info ('Error: illegal user defined symbol: %s' % xs[1:], warn=0)
-            elif re.search (r'\[[OAPZNGHRBDFSXTCIU]:', xs):
-                info ('Error: header-only field %s appears after K:' % xs[1:], warn=0)
-            else:
-                info ('Syntax error at column %d' % err.col, warn=0)
-            raise
+        except Exception as err:
+            info ('*** cannot parse score ***', warn=0)
+            pass
 
         score = E.Element ('score-partwise')
         attrmap = {'Div': str (s.divisions), 'K':'C treble', 'M':'4/4'}
@@ -2087,6 +2466,7 @@ def decodeInput (data_string):
     except:
         try:    enc = 'latin-1'; unicode_string = data_string.decode (enc)
         except: raise ValueError ('data not encoded in utf-8 nor in latin-1')
+    unicode_string = unicode_string.replace ('\r\n', '\n')
     info ('decoded from %s' % enc)
     return unicode_string
 
@@ -2115,8 +2495,8 @@ def xml2mxl (pad, fnm, data):   # write xml data to compressed .mxl file
     f.close ()
     info ('%s written' % outfile, warn=0)
 
-def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False, fOpt=False):  # not used, backwards compatibility
-    score = mxm.parse (abc_string, rOpt, bOpt, fOpt)
+def convert (pad, fnm, abc_string, mxl, rOpt=False, tOpt=False, bOpt=False, fOpt=False, mOpt=False):  # not used, backwards compatibility
+    score = mxm.parse (abc_string, rOpt, bOpt, fOpt, mOpt)
     writefile (pad, fnm, '', score, mxl, tOpt)
 
 def writefile (pad, fnm, fnmNum, xmldoc, mxlOpt, tOpt=False):
@@ -2130,13 +2510,16 @@ def writefile (pad, fnm, fnmNum, xmldoc, mxlOpt, tOpt=False):
     if pad:
         if not mxlOpt or mxlOpt in ['a', 'add']:
             outfnm = os.path.join (pad, ifnm + '.xml')  # joined with path from -o option
-            outfile = open (outfnm, 'w')
+            if python3: outfile = open (outfnm, 'w', encoding='utf-8')  # for Windows ...
+            else: outfile = open (outfnm, 'w')
             outfile.write (xmlstr)
             outfile.close ()
             info ('%s written' % outfnm, warn=0)
         if mxlOpt: xml2mxl (pad, ifnm, xmlstr)          # also write a compressed version
     else:
         outfile = sys.stdout
+        if not sys.stdout.isatty () and python3 and sys.version_info.minor > 6:
+            sys.stdout.reconfigure (encoding='utf-8')   # for Windows again
         outfile.write (xmlstr)
         outfile.write ('\n')
 
@@ -2159,14 +2542,14 @@ def expand_abc_include (abctxt):
         if x != None: ys.append (x)
     return '\n'.join (ys)
 
-abc_header, abc_voice, abc_scoredef, abc_percmap = abc_grammar () # compute grammars only once
+abc_header, abc_voice, abc_scoredef, abc_percmap, abc_acclist = abc_grammar () # compute grammars only once
 mxm = MusicXml ()               # same for instance of MusicXml
 
 def getXmlScores (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # not used, backwards compatibility
     return [fixDoctype (xml_doc) for xml_doc in
         getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False)]
 
-def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # added by David Randolph
+def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False, mOpt=False): # added by David Randolph
     xml_docs = []
     abctext = expand_abc_include (abc_string)
     fragments = re.split (r'^\s*X:', abctext, flags=re.M)
@@ -2178,17 +2561,17 @@ def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): 
         if itune >= skip + num: break
         tune = preamble + 'X:' + tune       # restore preamble before each tune
         try:                                # convert string abctext -> file pad/fnmNum.xml
-            score = mxm.parse (tune, rOpt, bOpt, fOpt)
+            score = mxm.parse (tune, rOpt, bOpt, fOpt, mOpt)
             ds = list (score.iter ('duration')) # need to iterate twice
             ss = [int (d.text) for d in ds]
             deler = reduce (ggd, ss + [21]) # greatest common divisor of all durations
             for i, d in enumerate (ds): d.text = str (ss [i] // deler)
             for d in score.iter ('divisions'): d.text = str (int (d.text) // deler)
             xml_docs.append (score)
-        except ParseException:
-            pass         # output already printed
         except Exception as err:
             info ('an exception occurred.\n%s' % err)
+            #~ pass
+            raise
     return xml_docs
 
 #----------------
@@ -2209,6 +2592,7 @@ if __name__ == '__main__':
     parser.add_option ("-b", action="store_true", help="line break at EOL", default=False)
     parser.add_option ("--meta", action="store", help="map infofields to XML metadata, MAP = R:poet,Z:lyricist,N:...", default='', metavar='MAP')
     parser.add_option ("-f", action="store_true", help="force string/fret allocations for tab staves", default=False)
+    parser.add_option ("--mus53", action="store_true", help="generate makam accidentals playable by musescore", default=False)
     options, args = parser.parse_args ()
     if len (args) == 0: parser.error ('no input file given')
     pad = options.o
@@ -2245,7 +2629,7 @@ if __name__ == '__main__':
             continue
         abctext = readfile (fnmext)
         skip, num = options.m
-        xml_docs = getXmlDocs (abctext, skip, num, options.r, options.b, options.f)
+        xml_docs = getXmlDocs (abctext, skip, num, options.r, options.b, options.f, options.mus53)
         for itune, xmldoc in enumerate (xml_docs):
             fnmNum = '%02d' % (itune + 1) if len (xml_docs) > 1 else ''
             writefile (pad, fnm, fnmNum, xmldoc, options.mxl, options.t)

@@ -1,0 +1,9 @@
+altgraph==0.17.5
+macholib==1.16.4
+modulegraph==0.19.7
+packaging==24.2
+py2app==0.28.10
+pyparsing==3.3.2
+setuptools==70.3.0
+six==1.17.0
+wxPython==4.2.4

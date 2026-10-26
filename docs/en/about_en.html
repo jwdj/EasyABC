@@ -1,0 +1,62 @@
+<html>
+<body bgcolor="#FAFAF0">
+<center><img src="img/EasyABCBanner.jpg" width="850" height="269"/>
+</center>
+<p><b>{0}</b><br/>
+an open source ABC editor for Windows, OSX and Linux. It is published under the <a href="https://www.gnu.org/licenses/gpl-2.0.html">GNU Public License</a>. </p>
+<p><center>initial repository was at <a href="https://www.nilsliberg.se/ksp/easyabc/">https://www.nilsliberg.se/ksp/easyabc/</a></center></p>
+<p><center>Now documentation available here<a href="https://easyabc.sourceforge.net">https://easyabc.sourceforge.net</a></center></p>
+<p><u>Features</u>:</p>
+<ul style="line-height: 150%; margin-top: 3px;">
+  <li> Good ABC standard coverage thanks to internal use of abcm2ps and abc2midi
+  <li> Syntax highlighting
+  <li> Zoom support
+  <li> Import MusicXML, MIDI and Noteworthy Composer files (the midi to abc translator is custom made in order to produce legible abc code with more sensible beams than the typical midi2abc output).</li>
+  <li> Export to MIDI, SVG, PDF (single tune or whole tune book).</li>
+  <li> Select notes by clicking on them.</li>
+  <li> Play an extract by selecting notes on the screen and then play</li>
+  <li> Play the active tune as midi, with options to loop or remove repeats (Ctrl + Clic)</li>
+  <li> Record songs from midi directly in the program (if run from source with pygame).<br/>
+  Just press Rec, play on your midi keyboard and then press Stop.</li>
+  <li> The musical score is automatically updated as you type in ABC code.</li>
+  <li> Support for unicode (utf-8) and other encodings.</li>
+  <li> Transpose and halve/double note length functionality (using abc2abc)</li>
+  <li> An abcm2ps format file can easily be specified in the settings.</li>
+  <li> ABC fields in the file header are applied to every single tune in a tune book.</li>
+  <li> Automatic alignment of bars on different lines</li>
+  <li> Available in German, Dutch, Italian, French, Danish, Swedish, German and English</li>
+  <li> Functions to generate incipits, sort tunes and renumber X: fields.</li>
+  <li> Musical search function - search for note sequences irrespectively of key, etc. </li>
+</ul>
+
+<p><b>EasyABC</b> is brought to you by <b>Nils Liberg</b>, Copyright &copy; 2010-2014.</p>
+<p><b>EasyABC</b> is maintained by <b>Jan Wybren de Jong</b>, <b>Seymour Shlien</b> and  by <b>Fr&eacute;d&eacute;ric Aup&eacute;pin</b></p>
+<p><b>Credits</b> - software components used by EasyABC:</p>
+<ul class="nicelist">
+<li><a href="http://moinejf.free.fr/">abcm2ps</a> for converting ABC code to note images (developed/maintained by Jean-Fran&ccedil;ois Moine)</li>
+<li><a href="http://abc.sourceforge.net/abcMIDI/">abc2midi</a> for converting ABC code to midi (by James Allwright, maintained by Seymour Shlien)</li>
+<li><a href="https://wim.vree.org/svgParse/xml2abc.html">xml2abc</a> for converting from MusicXML to ABC (by Willem Vree)</li>
+<li><a href="https://sites.google.com/site/juria90/nwc">nwc2xml</a> for converting from Noteworthy Composer format to ABC via XML (by James Lee)</li>
+<li><a href="https://www.wxpython.org/">wxPython</a> cross-platform user-interface framework</li>
+<li><a href="https://www.scintilla.org/">scintilla</a> for the text editor used for ABC code</li>
+<li><a href="https://www.mxm.dk/products/public/pythonmidi">python midi package</a> for the initial parsing of midi files to be imported</li>
+<li><a href="https://www.pygame.org/download.shtml">pygame</a> (which wraps <a href="https://sourceforge.net/apps/trac/portmedia/wiki/portmidi">portmidi</a>) for real-time midi input</li>
+<li><a href="https://www.fluidsynth.org/">FluidSynth</a> for playing midi (and made fit for Python with a <a href="https://wim.vree.org/svgParse/testplayer.html">player</a> by <a href="https://wim.vree.org/svgParse/">Willem Vree</a>)</li>
+<li><a href="https://github.com/jheinen/mplay">Python MIDI Player</a> for playing midi on Mac</li>
+<li>Thanks to Guido Gonzato for providing the fields and command reference extracted from his <a href="https://abcplus.sourceforge.net/#ABCGuide">Making music with ABC guide</a>.</li>
+<li><br>Many thanks to the translators: Valerio&nbsp;Pelliccioni, Guido&nbsp;Gonzato&nbsp;(italian), Bendix&nbsp;R&oslash;dgaard&nbsp;(danish), Fr&eacute;d&eacute;ric&nbsp;Aup&eacute;pin&nbsp;(french), Bernard&nbsp;Weichel&nbsp;(german), Jan&nbsp;Wybren&nbsp;de&nbsp;Jong&nbsp;(dutch) and Wu&nbsp;Xiaotian&nbsp;(chinese).</li>
+<li>Cosmopolitan binaries of <a href="https://abcplus.sourceforge.net/#abcm2ps">abcm2ps</a> and <a href="https://abcplus.sourceforge.net/#abcmidi">abc2midi</a> are available thanks to Guido Gonzato</li>
+<li>Debian package build thanks to Bodo Meissner</li>
+<li>and many other contributers from github</li>
+</ul>
+
+<p><b>Links</b></p>
+<ul class="nicelist">
+<li><a href="https://abcnotation.com/">abcnotation.com</a></li>
+<li><a href="http://abcplus.sourceforge.net/">abcplus.sourceforge.net</a></li>
+<li><a href="http://moinejf.free.fr/">Jef Moine's abcm2ps page</a></li>
+<li><a href="https://abcmidi.sourceforge.io/">Seymour Shlien's abcMIDI page</a></li>
+<li><a href="http://www.folkwiki.se/">folkwiki.se - Swedish folk music</a> (initial involvement of Nils here is the reason why he implemented the program)</li>
+</ul>
+</body>
+</html>

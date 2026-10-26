@@ -1,0 +1,219 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="256"
+     height="256"
+     viewBox="0 0 256 256">
+
+  <defs>
+
+    <linearGradient id="bg"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%">
+      <!--<stop offset="0%" stop-color="#B9F4C3"/>
+      <stop offset="55%" stop-color="#58BE73"/>
+      <stop offset="100%" stop-color="#228B52"/>-->
+      <stop offset="0%" stop-color="#0A6C40"/>
+      <stop offset="30%" stop-color="#18834E"/>
+      <stop offset="63%" stop-color="#74C094"/>
+      <stop offset="100%" stop-color="#0A6C40"/>
+    </linearGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+  </defs>
+
+  <!-- Fond -->
+
+  <rect x="0"
+        y="0"
+        width="256"
+        height="256"
+        rx="36"
+        fill="url(#bg)"/>
+
+  <!-- Portée -->
+
+  <g stroke="white"
+     stroke-width="4"
+     fill="none"
+     opacity="0.92">
+
+    <path d="
+      M8 60
+      C55 90 105 88 150 80
+      C190 72 220 74 248 78"/>
+
+    <path d="
+      M8 84
+      C55 106 105 104 150 96
+      C190 88 220 90 248 94"/>
+
+    <path d="
+      M8 110
+      C55 124 105 122 150 114
+      C190 106 220 108 248 112"/>
+
+    <path d="
+      M8 140
+      C55 146 105 144 150 136
+      C190 128 220 130 248 134"/>
+
+    <path d="
+      M8 174
+      C55 168 105 166 150 158
+      C190 150 220 152 248 156"/>
+
+  </g>
+
+  <!-- Halo -->
+
+  <path d="
+        M114 42
+        C154 72 164 114 165 159
+        "
+        stroke="white"
+        stroke-width="14"
+        opacity="0.18"
+        fill="none"
+        filter="url(#glow)"
+        stroke-linecap="round"/>
+
+  <!-- Croche -->
+
+  <g fill="none"
+     stroke="white"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     filter="url(#glow)">
+
+  <!-- Hampe -->
+
+  <path d="
+    M114 42
+    C154 72 164 114 165 159
+    "
+    stroke-width="6.5"/>
+
+    <!-- Drapeau principal -->
+
+    <path d="
+      M114 42
+      C182 18 210 60 216 102
+      C210 98 198 96 193 102
+      "
+      stroke-width="6"/>
+
+    <!-- Retour calligraphique -->
+
+    <path d="
+      M193 102
+      C193 102 193 113 213 121
+      "
+      stroke-width="3"
+      opacity="0.65"/>
+
+  </g>
+
+<!-- Halo utilisant la taille actuelle -->
+
+<path d="
+  M143 155
+  C157 150 169 157 170 168
+  C171 180 162 188 149 190
+  C136 192 126 185 125 173
+  C124 164 133 157 143 155
+  Z
+  "
+  transform="translate(5,0)"
+  fill="white"
+  opacity="0.45"
+  filter="url(#glow)"/>
+<!-- Tête réelle -->
+
+<path d="
+  M145 158
+  C156 154 165 159 166 168
+  C167 177 159 184 149 186
+  C138 188 130 182 129 173
+  C128 165 135 159 145 158
+  Z
+  "
+  transform="translate(5,0)"
+  fill="white"/>
+  
+  <!-- Reflet -->
+
+  <path d="
+    M136 169
+    C143 165 152 165 159 169
+    "
+    stroke="#DFFFF0"
+    stroke-width="1.6"
+    fill="none"
+    stroke-linecap="round"
+    opacity="0.8"/>
+
+  <!-- ABC -->
+
+  <g fill="none"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+
+    <!-- A -->
+
+    <path d="
+      M64 226
+      L80 186
+      L94 226
+      "
+      stroke="#FF4D3D"
+      stroke-width="8"/>
+
+    <path d="
+      M73 212
+      L88 210
+      "
+      stroke="#FF4D3D"
+      stroke-width="7"/>
+
+    <!-- B -->
+
+    <path d="
+      M112 186
+
+      C112 198 112 212 112 226
+
+      M112 186
+      C128 184 142 188 145 198
+      C147 206 140 212 126 213
+
+      M126 213
+      C142 214 151 220 151 229
+      C151 236 144 240 132 238
+      C124 237 117 233 112 226
+      "
+      transform="translate(-5,0)"
+      stroke="#FFD400"
+      stroke-width="8"/>
+
+    <!-- C -->
+
+    <path d="
+      M196 196
+      C181 185 159 190 152 207
+      C146 222 158 236 179 234
+      C186 233 193 230 199 225
+      "
+      stroke="#8ED5FF"
+      stroke-width="8"/>
+
+  </g>
+
+</svg>

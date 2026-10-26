@@ -1,0 +1,164 @@
+README is available in English, French and German (see below)
+
+# **README — EasyABC for macOS**  
+*(English — primary language)*
+
+## **1. Installing Ghostscript (required for PDF/PNG export)**  
+EasyABC uses an external tool to export music score sheets as PDF files.  
+Starting with macOS Sonoma, Apple removed the system utilities that EasyABC relied on in earlier versions, so Ghostscript must be installed manually.
+
+### **How to install Ghostscript**  
+A file named **Ghostscript.pkg** is included in this disk image.  
+It is downloaded from the official macOS distribution page:  
+[https://pages.uoregon.edu/koch/](https://pages.uoregon.edu/koch/)  
+The version included is **10.07.1**.
+
+1. Double‑click **Ghostscript.pkg**  
+2. Follow the installation steps  
+3. Once installed, EasyABC will automatically detect Ghostscript  
+4. No additional configuration is required
+
+If you prefer downloading Ghostscript yourself, an Internet shortcut named **Install Ghostscript.webloc** is also included.
+
+Another option is to use Homebrew to install Ghostscript and other ABC tools such as `abcm2ps`, `abc2midi`, and `midi2abc`:  
+[https://brew.sh/](https://brew.sh/)
+
+---
+
+## **2. Opening EasyABC on macOS (Gatekeeper)**  
+Because EasyABC is distributed outside the Mac App Store and is not signed with an Apple Developer certificate, macOS Gatekeeper may block the first launch.
+
+### **How to allow EasyABC to run**  
+If macOS shows a message saying the application cannot be opened:
+
+**Option A — Open via context menu**  
+1. Right‑click (or Ctrl‑click) **EasyABC.app**  
+2. Choose **Open**  
+3. Click **Open** again in the dialog
+
+**Option B — Allow from System Settings**  
+1. Try launching **EasyABC.app**  
+2. macOS will block it and show a warning  
+3. Open **System Settings → Privacy & Security**  
+4. Scroll down to the “Security” section  
+5. Click **Allow Anyway** next to EasyABC  
+6. Launch EasyABC again
+
+After this first authorization, EasyABC will open normally.
+
+---
+
+## **3. Additional Notes**
+- EasyABC does not collect any personal data.  
+- Ghostscript is only required for PDF/PNG export and is not needed for ABC editing or MIDI playback.  
+- If you update macOS, you may need to reinstall Ghostscript.
+
+---
+
+# **README — EasyABC pour macOS**  
+*(Français)*
+
+## **1. Installation de Ghostscript (nécessaire pour l’export PDF/PNG)**  
+EasyABC utilise un outil externe pour exporter les partitions au format PDF.  
+Depuis macOS Sonoma, Apple a retiré les utilitaires système utilisés par les versions précédentes d’EasyABC, et Ghostscript doit donc être installé manuellement.
+
+### **Comment installer Ghostscript**  
+Un fichier nommé **Ghostscript.pkg** est fourni dans cette image disque.  
+Il provient de la page officielle macOS :  
+[https://pages.uoregon.edu/koch/](https://pages.uoregon.edu/koch/)  
+La version incluse est **10.07.1**.
+
+1. Double‑cliquez sur **Ghostscript.pkg**  
+2. Suivez les étapes d’installation  
+3. Une fois installé, EasyABC détectera automatiquement Ghostscript  
+4. Aucune configuration supplémentaire n’est nécessaire
+
+Un raccourci Internet nommé **Install Ghostscript.webloc** est également fourni si vous préférez télécharger Ghostscript vous‑même.
+
+Vous pouvez aussi installer Ghostscript et d’autres outils ABC (`abcm2ps`, `abc2midi`, `midi2abc`) via Homebrew :  
+[https://brew.sh/](https://brew.sh/)
+
+---
+
+## **2. Ouverture d’EasyABC sur macOS (Gatekeeper)**  
+EasyABC étant distribué en dehors du Mac App Store et n’étant pas signé avec un certificat Apple Developer, macOS peut bloquer son premier lancement.
+
+### **Comment autoriser EasyABC à s’exécuter**  
+Si macOS indique que l’application ne peut pas être ouverte :
+
+**Option A — Ouvrir via le menu contextuel**  
+1. Clic droit (ou Ctrl‑clic) sur **EasyABC.app**  
+2. Choisissez **Ouvrir**  
+3. Cliquez à nouveau sur **Ouvrir** dans la boîte de dialogue
+
+**Option B — Autoriser via les Réglages Système**  
+1. Lancez **EasyABC.app**  
+2. macOS affichera un avertissement  
+3. Ouvrez **Réglages Système → Confidentialité et sécurité**  
+4. Descendez jusqu’à la section « Sécurité »  
+5. Cliquez sur **Autoriser quand même** à côté d’EasyABC  
+6. Relancez EasyABC
+
+Après cette première autorisation, EasyABC s’ouvrira normalement.
+
+---
+
+## **3. Notes supplémentaires**
+- EasyABC ne collecte aucune donnée personnelle.  
+- Ghostscript n’est requis que pour l’export PDF/PNG.  
+- Une mise à jour de macOS peut nécessiter la réinstallation de Ghostscript.
+
+---
+
+# **README — EasyABC für macOS**  
+*(Deutsch)*
+
+## **1. Installation von Ghostscript (erforderlich für PDF/PNG‑Export)**  
+EasyABC verwendet ein externes Werkzeug, um Notenblätter als PDF zu exportieren.  
+Seit macOS Sonoma stellt Apple die früher verwendeten Systemprogramme nicht mehr bereit, daher muss Ghostscript manuell installiert werden.
+
+### **So installieren Sie Ghostscript**  
+In diesem Disk‑Image befindet sich eine Datei namens **Ghostscript.pkg**.  
+Sie stammt von der offiziellen macOS‑Seite:  
+[https://pages.uoregon.edu/koch/](https://pages.uoregon.edu/koch/)  
+Die enthaltene Version ist **10.07.1**.
+
+1. Doppelklicken Sie auf **Ghostscript.pkg**  
+2. Folgen Sie den Installationsschritten  
+3. Nach der Installation erkennt EasyABC Ghostscript automatisch  
+4. Es ist keine weitere Konfiguration erforderlich
+
+Eine Internet‑Verknüpfung namens **Install Ghostscript.webloc** ist ebenfalls enthalten, falls Sie Ghostscript selbst herunterladen möchten.
+
+Sie können Ghostscript und weitere ABC‑Werkzeuge (`abcm2ps`, `abc2midi`, `midi2abc`) auch über Homebrew installieren:  
+[https://brew.sh/](https://brew.sh/)
+
+---
+
+## **2. EasyABC unter macOS öffnen (Gatekeeper)**  
+Da EasyABC außerhalb des Mac App Store verteilt wird und nicht mit einem Apple‑Developer‑Zertifikat signiert ist, kann macOS den ersten Start blockieren.
+
+### **So erlauben Sie die Ausführung von EasyABC**  
+Wenn macOS meldet, dass die Anwendung nicht geöffnet werden kann:
+
+**Option A — Öffnen über das Kontextmenü**  
+1. Rechtsklick (oder Ctrl‑Klick) auf **EasyABC.app**  
+2. **Öffnen** auswählen  
+3. Im Dialog erneut **Öffnen** klicken
+
+**Option B — Erlauben über Systemeinstellungen**  
+1. Starten Sie **EasyABC.app**  
+2. macOS zeigt eine Warnung  
+3. Öffnen Sie **Systemeinstellungen → Datenschutz & Sicherheit**  
+4. Scrollen Sie zum Bereich „Sicherheit“  
+5. Klicken Sie auf **Dennoch erlauben** neben EasyABC  
+6. Starten Sie EasyABC erneut
+
+Nach dieser ersten Freigabe startet EasyABC normal.
+
+---
+
+## **3. Zusätzliche Hinweise**
+- EasyABC sammelt keine persönlichen Daten.  
+- Ghostscript wird nur für den PDF/PNG‑Export benötigt.  
+- Nach macOS‑Updates muss Ghostscript möglicherweise erneut installiert werden.

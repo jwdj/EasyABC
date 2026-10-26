@@ -42,22 +42,31 @@ class AbcAssistControl(object):
 
 
 class AbcAssistPanel(wx.Panel):
-    html_header = """\
+    html_header_light = """\
 <!DOCTYPE html>
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <html>
 <body>
 """
+    html_header_dark = """\
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<html>
+<body bgcolor="#1e1e1e" text="#e0e0e0" link="#6699ff">
+"""
     html_footer = "</body></html>"
 
-    def __init__(self, parent, editor, cwd, settings):
+    def __init__(self, parent, editor, cwd, settings, is_dark_mode=False):
         wx.Panel.__init__(self, parent, -1)
         if wx.Platform == "__WXMSW__":
             self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         self._editor = editor
         self.settings = settings
+        self.is_dark_mode = is_dark_mode
+        self.html_header = self.html_header_dark if is_dark_mode else self.html_header_light
         self.context = None
         self.abc_section = None
         self.elements = AbcStructure.generate_abc_elements(cwd)
@@ -99,6 +108,8 @@ class AbcAssistPanel(wx.Panel):
 
         self.current_html = wx.html.HtmlWindow(panel, -1, style=wx.html.HW_SCROLLBAR_AUTO | wx.html.HW_NO_SELECTION)
         self.current_html.SetFonts('', '', sizes=[font_size, font_size, font_size, h5_h6_size, h3_h4_size, h2_size, h1_size])
+        if self.is_dark_mode:
+            self.current_html.SetBackgroundColour(wx.Colour(30, 30, 30))
 
         panel_sizer.Add(self.current_html, 1, wx.ALL | wx.EXPAND)
         self.current_html.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.on_link_clicked)
@@ -122,6 +133,25 @@ class AbcAssistPanel(wx.Panel):
         #     sizer.Add(ctrl, row=row, col=1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=border)
         #     row += 1
         # self.element_panel.SetupScrolling()
+
+    def UpdateTheme(self, is_dark_mode):
+        """Update HTML content colors and panel backgrounds live."""
+        self.is_dark_mode = is_dark_mode
+        self.html_header = self.html_header_dark if is_dark_mode else self.html_header_light
+        
+        if hasattr(self, 'current_html'):
+            # 1. Update the native background wrapper
+            bg_color = wx.Colour(30, 30, 30) if is_dark_mode else wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
+            self.current_html.SetBackgroundColour(bg_color)
+            
+            # 2. Re-render the current page to force the new <body> bgcolor to register
+            current_src = self.current_html.ToText() # Or fetch your active internal raw text
+            if current_src:
+                # If you have a method that compiles or updates your page, run it here.
+                # Otherwise, if text is loaded dynamically, force a refresh of the layout container:
+                self.current_html.Refresh()
+        
+        self.Refresh()
 
     def update_assist(self):
         try:

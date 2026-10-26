@@ -142,8 +142,14 @@ class AbcTune(object):
         self.note_line_indices = note_line_indices
 
     def get_voice_ids(self):
-        return [m.group('voice_id') or m.group('inline_voice_id') for m in voice_re.finditer('\n'.join(self.tune_header))]
+        return [m.group('voice_id') or m.group('inline_voice_id') for m in voice_re.finditer(self.abc_code)]
 
+    def get_voice_count(self):
+        return len({
+            m.group('voice_id') or m.group('inline_voice_id')
+            for m in voice_re.finditer(self.abc_code)
+        })
+    
     def get_abc_per_voice(self):
         if self.__abc_per_voice is None:
             if self.tune_body_start_line_index:

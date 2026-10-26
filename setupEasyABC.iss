@@ -9,12 +9,12 @@
 ; Seymour Shlien
 
 #define MyAppName "EasyABC"
-#define MyAppVersion "1.3.8.7"
-#define MyAppPublisher "Seymour Shlien"
-#define MyAppURL "ifdo.ca/~seymour/easy/"
+#define MyAppVersion "1.4.0.0rc2"
+#define MyAppPublisher "Frédéric Aupépin"
+#define MyAppURL "easyabc.sourceforge.net"
 #define MyAppExeName "easy_abc.exe"
 
-#define MyBuildFolder "build\exe.win32-3.8"
+#define MyBuildFolder "build\exe.win-amd64-3.13"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -58,11 +58,12 @@ Type: filesandordirs; Name: "{app}\Microsoft.VC90.CRT"
 Source: "{#MyBuildFolder}\easy_abc.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyBuildFolder}\gpl-license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyBuildFolder}\reference.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyBuildFolder}\python3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyBuildFolder}\python38.dll"; DestDir: "{app}"; Flags: ignoreversion
+; Source: "{#MyBuildFolder}\python3.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyBuildFolder}\python313.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyBuildFolder}\VCRUNTIME140.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyBuildFolder}\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\bin\*"; DestDir: "{app}\bin\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyBuildFolder}\docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\img\*"; DestDir: "{app}\img\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\locale\*"; DestDir: "{app}\locale\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\sound\*"; DestDir: "{app}\sound\"; Flags: ignoreversion recursesubdirs createallsubdirs

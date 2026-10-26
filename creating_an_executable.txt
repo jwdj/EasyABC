@@ -7,12 +7,19 @@ See using_EasyABC_in_Windows.txt for that.
 Then you will also need to install on your computer the program Inno Setup 6 and the python package cx_Freeze:
 Inno Setup 6 can be downloaded here: https://jrsoftware.org/
 
+You can create a python virtual environment and install the appropriate dependencies:
+python.exe -m venv venv
+pip install --upgrade pip
+pip install -r requirements.txt
+
 And cx_Freeze can be installed using:
 python -m pip install --upgrade cx_Freeze
 
 Copy all the executables, abc2abc.exe, abc2midi.exe, abcm2ps.exe,
 nwc2xml.exe, and zlibwapi.dll into the bin folder. You can find nwc2xml.exe
 and zlibwapi.dll in the older easy_abc install.
+For abc2abc, abc2midi, abcm2ps and midi2abc, you can find them in abcplus.sourceforge.net.
+For FluidSynth, get the appropriate zip file from https://github.com/FluidSynth/fluidsynth/releases and copy the dll in bin/FluidSynth/
 
 Make sure the environment variables PYTHON and PYTHONPATH are set correctly.
 

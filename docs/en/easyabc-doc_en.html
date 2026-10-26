@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EasyABC — Documentation</title>
+<style>
+  :root {
+    font-family: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+    color: #1f2937;
+    background: #f7f8fa;
+    line-height: 1.6;
+  }
+  body { margin: 0; }
+  .layout { display: flex; max-width: 1100px; margin: 0 auto; gap: 2rem; padding: 1rem; }
+  main { flex: 1; min-width: 0; }
+  aside {
+    width: 240px; flex-shrink: 0; position: sticky; top: 1rem;
+    align-self: flex-start; max-height: calc(100vh - 2rem); overflow-y: auto;
+    font-size: 0.9rem;
+  }
+  aside nav a { display: block; padding: 0.25rem 0.5rem; color: #15803d; text-decoration: none; border-radius: 6px; }
+  aside nav a:hover { background: #e5e7eb; }
+  header.hero {
+    background: linear-gradient(135deg, #14532d, #2e7d32);
+    color: #fff; padding: 2.5rem 1rem; text-align: center;
+  }
+  header.hero h1 { margin: 0; font-size: 2.2rem; }
+  header.hero p { margin: 0.5rem 0 0; opacity: 0.9; }
+  .badges { margin-top: 1rem; }
+  .badge {
+    display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 999px; padding: 0.2rem 0.8rem; font-size: 0.85rem; margin: 0.2rem;
+  }
+  section {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;
+  }
+  h2 { margin-top: 0; color: #14532d; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem; }
+  h3 { color: #2e7d32; margin-bottom: 0.4rem; }
+  code {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 0.1rem 0.35rem; font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #fafafa; border: 1px solid #dddddd; border-radius: 8px;
+    padding: 0.75rem 1rem; overflow-x: auto;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; }
+  th, td { border: 1px solid #e5e7eb; padding: 0.45rem 0.7rem; text-align: left; }
+  th { background: #f1f5f9; }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin: 0.25rem 0; }
+  .kbd {
+    display: inline-block; background: #f1f5f9; border: 1px solid #cbd5e1;
+    border-bottom-width: 3px; border-radius: 6px; padding: 0 0.45rem;
+    font-family: ui-monospace, monospace; font-size: 0.85em;
+  }
+  .note {
+    background: #eef7ee; border-left: 4px solid #2e7d32; border-radius: 6px;
+    padding: 0.6rem 1rem; margin: 0.75rem 0; font-size: 0.95rem;
+  }
+  .warn {
+    background: #fff7ed; border-left: 4px solid #f59e0b; border-radius: 6px;
+    padding: 0.6rem 1rem; margin: 0.75rem 0; font-size: 0.95rem;
+  }
+  footer { text-align: center; color: #6b7280; font-size: 0.85rem; padding: 1.5rem; }
+  @media (max-width: 800px) { aside { display: none; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img src="img/EasyABCBanner.jpg" alt="EasyABC" style="max-width:1420px;width:100%;border-radius:12px;margin-bottom:1rem;">
+  <h1>EasyABC</h1>
+  <p>An open source ABC editor for Windows, macOS and Linux</p>
+  <p>Version 1.4.0.0b — LGPL License</p>
+  <div class="badges">
+    <span class="badge">Windows</span>
+    <span class="badge">macOS</span>
+    <span class="badge">Linux / GTK</span>
+    <span class="badge">abcm2ps + abcMIDI</span>
+  </div>
+  <p style="margin-top:1rem; opacity:0.95;">
+    <a href="https://github.com/aupfred/EasyABC/tree/release-1.4.0" style="color:#fff;">Source code (GitHub)</a> ·
+    <a href="https://sourceforge.net/projects/easyabc/" style="color:#fff;">Downloads (SourceForge)</a> ·
+    <a href="https://easyabc.sourceforge.io/" style="color:#fff;">Complementary guide</a>
+  </p>
+</header>
+
+<div class="layout">
+<aside>
+  <nav>
+    <strong>Contents</strong>
+    <a href="#introduction">Introduction</a>
+    <a href="#installation">Installation</a>
+    <a href="#features">Features</a>
+    <a href="#editing">Entering ABC code</a>
+    <a href="#assistance">Typing assistance</a>
+    <a href="#shortcuts">Editing shortcuts</a>
+    <a href="#score">Musical score</a>
+    <a href="#playback">Playback and MIDI</a>
+    <a href="#import-export">Import / Export</a>
+    <a href="#tools">Tools</a>
+    <a href="#internals">Internals</a>
+    <a href="#settings">ABC Settings</a>
+    <a href="#abcassist">ABC assist</a>
+    <a href="#audio">Sound output</a>
+    <a href="#find-in-files">Find in files</a>
+    <a href="#interface">Interface</a>
+    <a href="#sources">Run from source</a>
+    <a href="#history">Release history</a>
+    <a href="#credits">Credits</a>
+  </nav>
+</aside>
+
+<main>
+
+<section id="introduction">
+  <h2>Introduction</h2>
+  <p>EasyABC is an editor for <a href="https://abcnotation.com/">ABC music notation</a>,
+  originally developed by Nils Liberg and maintained since 2015 by Jan Wybren de Jong,
+  Seymour Shlien and Frédéric Aupépin. It combines a text editor with syntax highlighting, a real-time
+  rendered musical score, and conversion tools to MIDI, MusicXML, SVG, PDF and HTML.</p>
+  <p>The main window is split into three or four resizable parts: the tune list, the
+  musical score, the ABC code editor, and the <em>ABC assist</em> pane (toggled with the
+  light bulb icon in the toolbar). Clicking a tune in the list displays its score and
+  code; the play button plays the selected tune.</p>
+  <figure>
+    <img src="img/main.gif" alt="EasyABC" style="max-width:100%;border-radius:12px;border:1px solid #555;">
+    <figcaption style="opacity:0.85;font-size:0.9rem;">EasyABC main window.</figcaption>
+  </figure>
+  <p>To get started, copy and paste this code into the ABC editor:</p>
+<pre><code>X: 1
+T: My tune
+K: C
+CDEF | G2</code></pre>
+  <p>The score is displayed at the top and an item called "My tune" appears in the tune
+  list. With several tunes, single-click one to view it; double-click to play it (or use
+  the play button in the toolbar).</p>
+</section>
+
+<section id="installation">
+  <h2>Installation</h2>
+  <p>EasyABC relies on external programs installed in the <code>bin/</code> folder:
+  <strong>abcm2ps</strong> (SVG rendering), <strong>abc2midi</strong> (MIDI generation),
+  <strong>abc2abc</strong> (transposition), <strong>Ghostscript</strong> or
+  <code>ps2pdf</code> (PDF export), <strong>xml2abc / abc2xml</strong> (MusicXML) and
+  <strong>midi2abc</strong> (MIDI import).</p>
+  <ul>
+    <li><strong>Windows</strong>: run the installer, then check the paths in
+    <em>File ▸ Settings</em>.</li>
+    <li><strong>macOS</strong>: in packaged builds the executables live in the
+    <code>Helpers</code> folder of the application bundle.</li>
+    <li><strong>Linux</strong>: EasyABC looks for executables in <code>/usr/local/bin</code>
+    and <code>/usr/bin</code>, then falls back to <code>bin/</code> next to the program. Two options are available: a <code>.deb</code>
+    package that installs all dependencies automatically (see below), or running from
+    source (see <a href="#sources">Running EasyABC from source</a>), which works on
+    all platforms.</li>
+    <li><strong>Ghostscript</strong> (PDF export): download it from
+    <a href="https://www.ghostscript.com/">ghostscript.com</a> for Windows; for macOS,
+    a prebuilt package is available on <a href="https://pages.uoregon.edu/koch/">Richard
+    Koch's page</a>.</li>
+  </ul>
+  <div class="note">Tip: on Windows, Ghostscript is detected automatically from the
+  registry; usually you just need to point at <code>gswin64c.exe</code> in the
+  settings.</div>
+</section>
+
+<section id="features">
+  <h2>Features</h2>
+  <ul>
+    <li>Good ABC standard coverage thanks to abcm2ps and abc2midi.</li>
+    <li>Syntax highlighting; the score is updated automatically as you type.</li>
+    <li>Zoom support for the score and the editor.</li>
+    <li>Import MusicXML, MIDI and Noteworthy Composer files (the MIDI-to-ABC translator
+    is custom made and produces legible ABC code with more sensible beams than typical
+    midi2abc output).</li>
+    <li>Export to MIDI, SVG, PDF, HTML, MusicXML and WAV (single tune or whole tune book).</li>
+    <li>Select notes by clicking on them and add music symbols via toolbar drop-down menus.</li>
+    <li>Play the active tune as MIDI, with tempo and position sliders, looping and an
+    optional metronome count-in.</li>
+    <li>Record songs from MIDI directly in the program.</li>
+    <li>Unicode (utf-8) and other encodings support.</li>
+    <li>Transpose and halve/double note length functionality (using abc2abc).</li>
+    <li>An abcm2ps format file can easily be specified in the settings.</li>
+    <li>ABC fields in the file header are applied to every single tune in a tune book.</li>
+    <li>Automatic alignment of bars on different lines.</li>
+    <li>Available in Italian, French, Danish, Swedish, English and more.</li>
+    <li>Functions to generate incipits, sort tunes and renumber X: fields.</li>
+    <li>Musical search function — search for note sequences irrespectively of key,
+    grace notes, L: field, broken rhythms, ornaments or slurs.</li>
+    <li>Automatic removal of ties for simpler MIDI rendering.</li>
+    <li>Support for MC Music Editor "sticky rhythm" (<code>L: mcm_default</code>).</li>
+    <li>ABC assist for novice users; search-in-directory tool; progress bar for long
+    batch operations.</li>
+  </ul>
+</section>
+
+<section id="editing">
+  <h2>Entering and editing ABC code</h2>
+  <p>A bar line in ABC is represented by the character <code>|</code>. As an
+  alternative, simply hit the <span class="kbd">Tab</span> key to insert one.</p>
+  <p>With a multi-tune file, the score display is updated and scrolled into position
+  when you move the text cursor in the editor. Clicking with the mouse highlights the
+  closest note in red. For performance reasons this does not happen with the arrow
+  keys; press <span class="kbd">Ctrl</span>+<span class="kbd">L</span> (<em>Locate</em>)
+  to highlight the closest note manually.</p>
+</section>
+
+<section id="assistance">
+  <h2>Typing assistance</h2>
+  <p>The <em>Settings ▸ ABC Typing Assistance</em> submenu enables automatic
+  corrections:</p>
+  <ul>
+    <li><em>Automatic uppercase/lowercase</em> — "C" and "c" correspond to different
+    octaves. With this mode on, EasyABC picks the octave closest to the preceding note.
+    Press <span class="kbd">Shift</span> while typing to reverse the chosen case. Off by
+    default.</li>
+    <li><em>Do-re-mi mode</em> — experimental sol-fa input with a movable do (e.g.
+    "do" corresponds to a "D" if the key is D; the seventh degree is typed "ti"; one
+    letter suffices, e.g. "r" for "re"). Can be combined with the previous mode. Off by
+    default.</li>
+    <li><em>Add note durations</em> — on <span class="kbd">Space</span>, EasyABC adds
+    durations so the group adds up to a quarter note. With <code>L:1/8</code>:
+    <code>AB</code> becomes <code>A2B2</code>, <code>ABC</code> becomes
+    <code>A2BC</code>. Off by default.</li>
+    <li><em>Add bar</em> — when <span class="kbd">Space</span> is pressed and the bar
+    is full, a bar symbol is added automatically.</li>
+    <li><em>Add matching right symbol</em> — typing "(" adds the matching ")";
+    likewise for <code>[]</code>, <code>{}</code> and <code>""</code>.</li>
+  </ul>
+</section>
+
+<section id="shortcuts">
+  <h2>Editing shortcuts</h2>
+  <p>When two or more notes are selected (in the ABC editor or in the score):</p>
+  <table>
+    <tr><th>Key</th><th>Effect</th></tr>
+    <tr><td><span class="kbd">(</span> or <span class="kbd">s</span></td><td>Adds (or removes) a slur around the selected notes</td></tr>
+    <tr><td><span class="kbd">.</span></td><td>Toggles staccato on the selected notes</td></tr>
+    <tr><td><span class="kbd">&lt;</span> / <span class="kbd">&gt;</span></td><td>Introduces broken rhythm (can also cancel an existing one)</td></tr>
+  </table>
+  <p>The broken rhythm shortcut works on pairs of notes: "AB CD" + <span class="kbd">&gt;</span>
+  becomes "A&gt;B C&gt;D". These functions may not work well with chords yet.</p>
+</section>
+
+<section id="score">
+  <h2>Musical score</h2>
+  <figure>
+    <img src="img/easyabc-dark-mode.png" alt="EasyABC in dark mode" style="max-width:100%;border-radius:12px;border:1px solid #555;">
+    <figcaption style="opacity:0.85;font-size:0.9rem;">EasyABC in dark mode: tune list, musical score and ABC code editor.</figcaption>
+  </figure>
+  <h3>Selecting notes</h3>
+  <p>Click a note or rest in the score to select the corresponding ABC text — a direct
+  link between the graphical and textual representation. Draw a rectangle to select a
+  range of notes (hold <span class="kbd">Ctrl</span>/<span class="kbd">Cmd</span> to add
+  to the existing selection). Clicking an empty white area deselects everything and
+  moves the text cursor to the closest note — handy for inserting chords or annotations
+  at the right place.</p>
+  <h3>Inserting musical symbols</h3>
+  <p>Select the note you want to attach a symbol to, then pick the symbol from one of
+  the toolbar drop-down menus (ornaments, dynamics, articulations, etc.).</p>
+  <h3>Zoom and pages</h3>
+  <p>A toolbar slider controls the size of the score. Tunes that don't fit on a page
+  are split into several pages, selectable from a drop-down menu; EasyABC auto-scrolls
+  the score as you move through the ABC code but does not switch pages automatically.
+  For very long tunes, you can turn off automatic score updates and refresh manually
+  with <span class="kbd">F5</span>.</p>
+</section>
+
+<section id="playback">
+  <h2>Playback and MIDI</h2>
+  <ul>
+    <li>Play with the toolbar button or <span class="kbd">F6</span>
+    (<span class="kbd">Shift</span>+<span class="kbd">F6</span> on Mac).</li>
+    <li>While playing, two extra sliders appear: tempo adjustment
+    (<span class="kbd">Ctrl</span>+click to reset) and playback position.</li>
+    <li>Double-click the play button to loop the playback.</li>
+    <li>Hold <span class="kbd">Ctrl</span> while clicking play to audition without
+    repeats.</li>
+    <li>To play part of a tune, use the mouse to draw a rectangle over part of the
+    score, highlighting the passage to play. The rectangle must encompass part of
+    one line or several whole lines: it cannot start part-way through a line and
+    end on another line.</li>
+    <li>Once a passage is selected you can add another passage to the selection by
+    holding <span class="kbd">Ctrl</span> and drawing another rectangle: that way
+    you can add together part-lines.</li>
+    <li>In a multi-voice tune the selected passage can include one or more voices.</li>
+    <li>MIDI settings cover instruments per voice, volume, panning, guitar chords
+    (<code>%%MIDI gchord</code>), chord/bass accompaniment, default tempo,
+    transposition and tuning (<code>-TT</code>).</li>
+    <li>An optional metronome count-in can be added before the tune.</li>
+    <li>MIDI recording: press <em>Rec</em>, play on your MIDI keyboard, then press
+    <em>Stop</em>. The result is quantized (with triplet detection) and converted to
+    ABC. On macOS, output goes through the system's MIDI synthesizer.</li>
+  </ul>
+  <div class="note">Existing <code>%%MIDI</code> commands in your code are respected:
+  EasyABC does not add duplicates.</div>
+</section>
+
+<section id="import-export">
+  <h2>Import / Export</h2>
+  <p>To add an ABC, XML, NWC or MIDI file to the current collection, drag and drop it
+  onto the EasyABC window, or use <em>File ▸ Import and add…</em>. The
+  <em>File ▸ Export (all or selected)</em> menu saves the current tune or the whole
+  book in several formats:</p>
+  <ul>
+    <li><strong>MIDI</strong> — copies the file generated during playback from the
+    cache to a location of your choice (cache files have random names, so exporting
+    is the proper way to keep them).</li>
+    <li><strong>PDF</strong> — via Ghostscript or <code>ps2pdf</code> (see Installation).</li>
+    <li><strong>HTML</strong> — the score is embedded as SVG inside an HTML file,
+    viewable in any browser without special software (browser add-ons can even print
+    it). The <strong>interactive HTML</strong> variant embeds the ABC file and links
+    it to Jef Moine's <em>abc2svg</em> JavaScript library: the tune is rendered in the
+    browser and can be played while following the score — an internet connection is
+    required.</li>
+    <li><strong>MusicXML</strong> — via abc2xml (Willem Vree's code, included in
+    EasyABC), the standard format for exchanging digital sheet music, e.g. for
+    MuseScore.</li>
+    <li><strong>ABC</strong> — unlike <em>File ▸ Save</em>, which saves the whole open
+    file, this option exports only the selected tune.</li>
+    <li><strong>WAV</strong> — the tune is first converted to MIDI by abc2midi, then
+    the MIDI file to a WAV audio file.</li>
+  </ul>
+  <ul>
+    <li><code>.nwc</code> files get specific post-processing: <em>Boxmarks</em> font
+    text annotations are translated into ABC decorations (trills, bowings, etc.);
+    in two-voice songs with repeat alternatives, bar symbols from the first voice are
+    copied to the second so the generated MIDI is correct.</li>
+    <li>ABC files are read as latin-1 by default; add a <code>%%abc-charset utf-8</code>
+    line to use Unicode.</li>
+  </ul>
+  <p><strong>Printing</strong>: <em>File ▸ Print</em> prints the current tune. On
+  Windows and macOS the quality may be limited (bitmap rendering); for high-quality
+  print-outs, export to PDF first.</p>
+</section>
+
+<section id="tools">
+  <h2>Tools</h2>
+  <h3>Aligning bars</h3>
+  <p><em>Edit ▸ Align bars</em> aligns all <code>|</code> characters in the current
+  tune; select a subset of lines first to align only those. How it works: each line is
+  split into measures and separators (the aligner distinguishes all bar symbols:
+  <code>|</code>, <code>||</code>, <code>|:</code>, <code>:|</code>, <code>|1</code>,
+  <code>::</code>, etc.); incomplete measures are padded with pseudo-elements, and
+  bar separators are centered on the last <code>|</code> they contain. Detection of
+  <em>anacrusis</em> (pickup measures shorter than 80% of a full measure, computed
+  from the <code>M:</code> and <code>L:</code> fields, including triplets and broken
+  rhythms) lets lines that start on an off-beat align correctly; the contents inside
+  bars can be aligned too. The change can be undone.</p>
+  <h3>Transpose</h3>
+  <p>The <em>Edit</em> menu offers transposition up/down and changing note lengths
+  (adjusting the <code>L:</code> field), via abc2abc.</p>
+  <h3>Incipits</h3>
+  <p><em>Tools ▸ Generate incipits file...</em> produces an ABC file with an overview
+  of how each tune starts (number of bars, repeats and titles, and sort fields are
+  configurable); <em>View incipits</em> shows the final PDF using the default template.</p>
+  <h3>Sorting and renumbering</h3>
+  <p>The <em>Tools</em> menu can sort the tunes in a file (multi-field sort key, e.g.
+  "T,M") and renumber the X: fields.</p>
+  <h3>Search</h3>
+  <p>If your search string begins with a colon, EasyABC enters a special
+  <em>musical search</em> mode: it matches the intervals between notes,
+  irrespectively of key. The mechanism: every note in the tune is converted to a
+  number (C,, through b'' over 43 degrees), and the sequence of <em>intervals</em>
+  between consecutive notes is encoded as characters; the search then runs over that
+  interval sequence. Key, accidentals, grace notes (<code>{…}</code>), ornaments
+  (<code>!…!</code> / <code>+…+</code>), annotations, comments, fields
+  (<code>X:</code>, <code>T:</code>… including embedded <code>[I:…]</code>) and
+  <code>%%begintext</code>/<code>%%beginps</code> blocks are ignored; so the search
+  works even when the two versions use different <code>L:</code> fields, broken
+  rhythms or slurs. For example <code>:gecc eceg</code> would find
+  <code>d2&gt;B2 G2G2 (BG)Bd</code>: the intervals between successive notes are the
+  same in both cases. The search is performed tune by tune (split on <code>X:</code>)
+  and does not work on chords.</p>
+</section>
+
+<section id="internals">
+  <h2>Internals</h2>
+  <p>EasyABC acts as a graphical front end to command-driven programs such as abcm2ps
+  and abc2midi, which are updated independently — you should point EasyABC at their
+  latest versions. Errors and warnings no longer appear in pop-up windows: a short
+  note in the status bar indicates whether the program ran normally, and the
+  <em>Internals</em> menu lets you investigate.</p>
+  <h3>Messages</h3>
+  <p>Shows the communication between EasyABC and the external programs: the full
+  command line (e.g. <code>abcm2ps - -O temp-…-.svg -v -A</code>) and the program
+  output. For instance <code>stdin:18:15: warning: Line underfull</code> means a music
+  line was not completely filled — usually harmless. The window refreshes on every
+  operation (playback, tune selection…). Temporary SVG and MIDI files in the cache
+  folder get long random names to avoid collisions, especially when several EasyABC
+  instances run side by side.</p>
+  <h3>Input Processed Tune</h3>
+  <p>Shows the data actually submitted to the external program, with numbered lines so
+  you can relate warnings to the input. The processed tune contains extra lines added
+  by EasyABC: page margins for abcm2ps (<code>%%leftmargin 0.5cm</code> etc.) or
+  <code>%%MIDI</code> commands for abc2midi (instrument, volume, pan, chords…). You can
+  copy the contents with <span class="kbd">Ctrl</span>+<span class="kbd">A</span> /
+  <span class="kbd">Ctrl</span>+<span class="kbd">C</span>.</p>
+  <h3>MIDI Disassembled</h3>
+  <p>Displays the MIDI file in text form (via <code>midi2abc -mftext</code>). An
+  advanced feature useful for diagnosing playback problems: each line lists the time in
+  beats, the command, the MIDI channel (1–16), the pitch and the velocity. Simple files
+  produce a single-track MIDI; files with voices or guitar chords produce multiple
+  tracks (one per voice, plus bass/chords).</p>
+  <h3>Show settings status</h3>
+  <p>Displays the readable contents of <code>settings1.4.dat</code>, the file where
+  EasyABC stores its configuration. If EasyABC becomes inoperable,
+  <em>Settings ▸ Cold Restart</em> resets all options to factory settings.</p>
+  <p>Temporary files (SVG, MIDI) and <code>settings1.4.dat</code> live in a hidden
+  folder: <code>AppData/Local/EasyABC</code> on Windows, a dot-prefixed folder (e.g.
+  <code>.EasyABC</code>) on Linux. The <em>Settings ▸ Clear Cache…</em> menu item
+  shows the cache location without deleting it. If EasyABC fails to start, delete
+  <code>settings1.4.dat</code> or use the cold restart: a default settings file will
+  be recreated.</p>
+</section>
+
+<section id="settings">
+  <h2>ABC Settings</h2>
+  <p>The <em>File ▸ ABC Settings</em> dialog is a tabbed notebook. Hovering the mouse
+  over most controls shows helpful tooltips. Settings are remembered in
+  <code>settings1.4.dat</code>.</p>
+  <h3>File Settings</h3>
+  <ul>
+    <li>Paths to the executables (abcm2ps, abc2midi, abc2abc, midi2abc, Ghostscript…),
+    verified at each startup. Paths are stored in combo boxes so you can switch between
+    versions conveniently.</li>
+    <li>Windows: <code>gswin32c.exe</code> or <code>gswin64c.exe</code> for PDF;
+    macOS: <code>pstopdf</code> or Ghostscript; Linux: <code>gs</code>.</li>
+    <li>An external MIDI player can be specified (e.g. TiMidity on Linux, with its
+    options in "Extra Midiplayer Parameters", e.g. <code>-ik -A 50</code>).</li>
+    <li>The <em>restore settings</em> button resets the paths you have cleared.</li>
+  </ul>
+  <h3>Abcm2ps Settings</h3>
+  <figure>
+    <img src="img/abcm2ps_settings.png" alt="Abcm2ps settings" style="max-width:100%;border-radius:12px;border:1px solid #555;">
+    <figcaption style="opacity:0.85;font-size:0.9rem;">EasyABC setting panel for abcm2ps.</figcaption>
+  </figure>
+  <ul>
+    <li><em>EasyABC defaults</em>: guaranteed familiar rendering. <em>No page
+    settings</em>: EasyABC adds no commands if your tune embeds its own abcm2ps
+    layout. To customize, uncheck both boxes: margins, page width/height and scale
+    entry boxes appear (values in cm, without units).</li>
+    <li>Include bar numbers (useful for interpreting abc2midi warnings — note abc2midi
+    counts bars from zero), add the X reference number to the title, suppress lyrics,
+    ignore line ends (<code>%%continueall</code>).</li>
+    <li><em>Extra Parameters</em>: any abcm2ps command-line option (e.g. <code>-i</code>
+    to locate errors). Verify them via <em>Internals ▸ Messages</em>.</li>
+    <li>A format file (<code>.fmt</code>, e.g. the Turkish makam
+    <code>commaA-E.fmt</code> for microtones) can be specified; abcm2ps will not find
+    <code>%%format</code> files referenced inside a tune without a full path.</li>
+  </ul>
+  <h3>Abc2midi Settings</h3>
+  <figure>
+    <img src="img/abc2midi_settings.gif" alt="Abc2midi settings" style="max-width:100%;border-radius:12px;border:1px solid #555;">
+    <figcaption style="opacity:0.85;font-size:0.9rem;">EasyABC setting panel for abc2midi.</figcaption>
+  </figure>
+  <ul>
+    <li>Default tempo (abc2midi assumes 120 bpm when no <code>Q:</code> is given),
+    default instrument (Acoustic Piano), melody volume and pan.</li>
+    <li>Guitar chords: on/off, separate instruments and volumes for the bass and the
+    chords (two distinct MIDI channels), customizable <code>gchord</code> pattern
+    (default pattern follows the time signature).</li>
+    <li>Transposition (e.g. for a B♭ clarinet) and tuning up to one semitone either
+    way (<code>-TT</code>).</li>
+    <li>Check boxes: ignore dynamics (<code>-NFNP</code>), ignore grace notes
+    (<code>-NGRA</code>), ignore fermatas (<code>-NFER</code>), Barfly stress model
+    (<code>-BF</code>, applied when the tune has a recognized <code>R:</code> rhythm
+    designator).</li>
+    <li><em>Count in</em>: prefixes the tune with two bars of metronome clicks adapted
+    to the time signature, so you can get your instrument ready to play along.</li>
+    <li>If the tune already contains <code>%%MIDI</code> commands, EasyABC suppresses
+    its own of the same type — edit the ABC code directly to change them.</li>
+  </ul>
+  <h3>Voice Settings</h3>
+  <p>For tunes containing <code>V:</code> voice indications. Instruments are specified
+  per voice (16 MIDI channels; channel 10 is usually reserved for percussion). On Mac,
+  control codes are prefixed to work around QuickTime quirks. Voice overlays (the
+  ampersand <code>&amp;</code>) are supported but can be less than intuitive. The
+  "separate defaults per voice" option defines instrument, volume and pan for each of
+  the 16 channels; EasyABC assigns the selected program to a voice the first time it
+  appears in the notation.</p>
+  <h3>XML Settings</h3>
+  <p>MusicXML ⇄ ABC conversion options (xml2abc / abc2xml), considered experimental.
+  The free program MuseScore is a good companion for displaying, playing and creating
+  MusicXML files and importing MIDI files.</p>
+</section>
+
+<section id="abcassist">
+  <h2>ABC assist</h2>
+  <p>ABC assist is useful for both beginners and experienced users. Toggle it with the
+  light bulb icon in the toolbar: the pane appears at the bottom left (it can be docked
+  or floating, and follows dark mode). It is <em>contextual</em>: it analyzes the
+  cursor position (file header, tune header, tune body, empty line…) and shows the
+  description of the ABC element under the cursor (field, directive, note, bar…)
+  together with the applicable actions — all as clickable links. The documentation
+  shown comes from the ABC standard reference and, for directives, from the online
+  abcm2ps and abc2midi documentation.</p>
+  <h3>Starting a tune</h3>
+  <figure>
+    <img src="img/abc_assist-1.gif" alt="Abc Assist Welcome" style="max-width:100%;border-radius:12px;border:1px solid #555;">
+    <figcaption style="opacity:0.85;font-size:0.9rem;">ABC Assist to initiate a new tune.</figcaption>
+  </figure>
+  <p>On an empty file, click <em>New tune</em>: ABC assist generates a complete
+  skeleton (<code>%abc-2.1</code> header, <code>X:</code>, <code>T:</code>,
+  <code>C:</code>, <code>M:</code>, <code>L:</code>, <code>Q:</code>, <code>K:C</code>,
+  with the X: number following the last one used). Three templates are
+  available:</p>
+  <ul>
+    <li><strong>Simple tune</strong> — one voice in C major, 4/4;</li>
+    <li><strong>Multi-voice tune</strong> — four SATB voices with clefs,
+    <code>%%score [ (S A) (T B) ]</code> layout and per-voice MIDI instruments;</li>
+    <li><strong>Drum score</strong> — two percussion-clef voices, with
+    <code>%%MIDI drummap</code> (channel 10) and ready-to-listen drum patterns.</li>
+  </ul>
+  <p>You can also <em>add a voice</em> to an existing tune (next <code>V:</code>,
+  treble clef), and add/remove staves from a <code>%%score</code>/<code>%%staves</code>
+  directive.</p>
+  <h3>Entering notes and editing assistance</h3>
+  <p>On an empty line in the tune body, the pane offers to insert a <strong>note or
+  rest</strong> (C…b, z); bar lines <code>|</code> are inserted automatically when the
+  measure is full. <em>New line</em> and <em>Space</em> buttons exist for mouse-only
+  users. On an existing note, the pane offers:</p>
+  <ul>
+    <li><strong>Pitch</strong>: note up/down, third up/down, octave up/down;
+    <strong>accidental</strong> (flat, natural, sharp, doubles and quarter tones);
+    "simplify note" to rewrite the octave in canonical form;</li>
+    <li><strong>Duration</strong>: default, halve, double, dotted, broken rhythm
+    (<code>&gt;</code>/<code>&lt;</code>), tie (<code>-</code>); for rests:
+    visibility (<code>z</code> vs <code>x</code>), whole-measure rest
+    (<code>Z</code>/<code>X</code>) and measure count;</li>
+    <li><strong>Grouping</strong>: slur (normal or dashed), <strong>triplet</strong> on
+    three selected notes, <strong>beam</strong> to put multiple eighth notes under
+    one beam, conversion to a <strong>chord</strong> [<code>[CEG]</code>]; grace
+    notes (appoggiatura/acciaccatura);</li>
+    <li><strong>Decorations</strong>: dynamics (pppp→ffff, sfz, crescendo/diminuendo),
+    ornaments (trill, mordent, roll, turn, arpeggio), articulations (staccato, accent,
+    marcato, tenuto, bowings, pedal…), fingering (0–5), direction markers (segno, coda,
+    D.C., D.S., fine) — with images and redefinable symbols (<code>U:</code>);</li>
+    <li><strong>Annotations and chord symbols</strong>: insertion, position
+    (above/below/left/right), annotation ⇄ chord conversion; for chords, chord
+    suggestions <em>relative to the tune's key</em> and editing of the name (m, 7, M7,
+    dim, sus, 9…) and bass note (<code>/G</code>);</li>
+    <li><strong>Bars and variant endings</strong>: single, double, final bar, repeat
+    points, first/second ending, invisible bar, voice overlay
+    (<code>&amp;</code>).</li>
+  </ul>
+  <figure>
+    <img src="img/abc_assist-3.gif" alt="Abc Assist MIDI" style="max-width:100%;border-radius:12px;border:1px solid #555;">
+    <figcaption style="opacity:0.85;font-size:0.9rem;">ABC Assist update its content according to the carret position.</figcaption>
+  </figure>
+  <h3>Header and fields</h3>
+  <p>In the tune header, the pane lets you change the <strong>key signature</strong>
+  (number of sharps/flats or <code>none</code>) and <strong>mode</strong> (major,
+  minor, dorian, phrygian, lydian, mixolydian, locrian) without changing the displayed
+  tonic, the <strong>clef</strong> (treble, bass, C-clefs, perc… with octave and ±8va
+  transposition), the <strong>meter</strong> (C, C|, 2/4…12/8), the <strong>unit note
+  length</strong> <code>L:</code>, the <strong>tempo</strong> (name — Allegro, Presto…
+  — and/or metronome, with the referenced note length), octave and playback
+  transposition, and field visibility (<code>%%writefields</code>). Measure numbering
+  (<code>%%measurenb</code>/<code>%%barnumbers</code>) can be controlled too.</p>
+  <h3>MIDI directives</h3>
+  <p>On a <code>%%MIDI</code> directive, the pane offers:</p>
+  <ul>
+    <li><strong>Instrument</strong> (<code>%%MIDI program</code>): the complete list
+    of the 128 General MIDI instruments, with optional channel;</li>
+    <li><strong>Channel</strong> (1–16); <strong>volume</strong> (<code>control 7</code>,
+    <code>chordvol</code>, <code>bassvol</code>) shown as a percentage with a visual
+    gauge;</li>
+    <li><strong>Percussion</strong>: <code>%%MIDI drummap</code> and
+    <code>%%percmap</code> with the full General MIDI 2 percussion instrument list
+    (snare, hi-hat, toms, cymbals…);</li>
+    <li><strong>Guitar chords</strong> (<code>%%MIDI gchord</code>): preset patterns
+    adapted to the meter (even or odd), a pattern editor (f = fundamental, c = chord,
+    z = rest, 2 = double duration, G/H/I/J = chord notes…) and time adjustment.</li>
+  </ul>
+  <p>On <code>%%score</code>/<code>%%staves</code>: show a single voice, add/remove
+  displayed voices, group on the same stave (parentheses), brace or bracket together,
+  and toggle continued bar lines between staves.</p>
+  <p>Finally, the pane detects <strong>invalid characters</strong> and offers to
+  replace them, shows the description of each abcm2ps directive with a "learn more"
+  link to the online documentation, and hides rare options behind a "more options"
+  arrow to limit scrolling.</p>
+</section>
+
+<section id="audio">
+  <h2>Sound output</h2>
+  <p>EasyABC relies on MIDI synthesizers to produce audio. Native MIDI support has
+  become rarer on modern systems (Windows Media Player no longer ships with Windows
+  10 by default), so playback sometimes needs manual setup:</p>
+  <ul>
+    <li><strong>Windows</strong>: playback usually works seamlessly; score following
+    works both forward and reverse.</li>
+    <li><strong>macOS</strong>: output goes through the system MIDI synthesizer
+    (QuickTime / mplay).</li>
+    <li><strong>FluidSynth</strong>: when the <code>fluidsynthplayer</code> library is
+    available, EasyABC plays the tune using a SoundFont (<code>.sf2</code>) specified
+    in the settings — much more realistic timbres than the default GM synthesizer.
+    Note that players such as TiMidity and FluidSynth do not come with soundfonts:
+    you must install a <code>.sf2</code> and point EasyABC at it (e.g.
+    <code>/usr/share/sounds/sf2/FluidR3_GM.sf2</code> on Linux).</li>
+    <li><strong>Linux</strong>: if playback produces no sound, the easy way out is
+    to specify <strong>fluidsynth</strong> as your MIDI player; the proper solution
+    goes through <strong>JACK</strong>: start <code>jackd</code> and add
+    <code>--audio-driver=jack --connect-jack-outputs</code> to the MIDI player
+    parameters.</li>
+    <li>As a last resort, an <strong>external MIDI player</strong> can be specified in
+    <em>File ▸ Settings ▸ File Settings</em> — but score following no longer works.</li>
+  </ul>
+</section>
+
+<section id="find-in-files">
+  <h2>Find in files</h2>
+  <figure>
+    <img src="img/findInFile.gif" alt="Find in Files" style="max-width:100%;border-radius:12px;border:1px solid #555;">
+    <figcaption style="opacity:0.85;font-size:0.9rem;">Find in Files for EasyABC.</figcaption>
+  </figure>
+  <p>This function, found under the Edit menu, searches a large collection of ABC
+  files for words in titles, composers, lyrics, etc. For example, to find all tunes
+  by Bach in the key of G and 9/4 meter:</p>
+<pre><code>C:bach M:9/4 K:G</code></pre>
+  <p>On first use, specify the top-level folder where your ABC files live
+  (subfolders included); the tool remembers it for future searches. Clicking a
+  result loads the ABC file into EasyABC, positioned at the selected tune. The
+  exhaustive search can take a while, but you can stop it anytime via the progress
+  bar.</p>
+</section>
+
+<section id="interface">
+  <h2>Interface</h2>
+  <ul>
+    <li>Each pane ("Tune list", "ABC code", "Musical score") can be moved by dragging
+    its title bar; the buttons on the right of the caption minimize/maximize/restore
+    the pane.</li>
+    <li><em>View ▸ Restore default layout</em> resets the arrangement.</li>
+    <li>Editor font size: <span class="kbd">Ctrl</span>+<span class="kbd">+</span> /
+    <span class="kbd">Ctrl</span>+<span class="kbd">−</span>, or
+    <em>View ▸ Change font</em>.</li>
+    <li>The <em>Messages</em> window shows the output of the external programs
+    (abcm2ps, abc2midi…), useful for diagnosing ABC syntax errors.</li>
+  </ul>
+</section>
+
+<section id="sources">
+  <h2>Running EasyABC from source</h2>
+  <p>This procedure is common to Windows, macOS, Linux and the Raspberry Pi; on
+  Linux and the Raspberry Pi it is the recommended way to run EasyABC. First get
+  the code from the
+  <a href="https://github.com/aupfred/EasyABC/tree/release-1.4.0">release-1.4.0</a>
+  branch of the GitHub repository (<em>Code ▸ Download ZIP</em> button, or
+  <code>git clone -b release-1.4.0</code>).</p>
+  <h3>With a Python virtual environment (recommended)</h3>
+  <ol>
+    <li>Install <strong>Python 3.10 or later</strong> (the versions tested primarily
+    are 3.12 and 3.13): on Windows and macOS, download it from
+    <a href="https://www.python.org/downloads/">python.org/downloads</a>; on Linux,
+    use the <code>python3</code> package of your distribution.</li>
+    <li>Create a virtual environment and install the dependencies listed in
+    <code>requirements.txt</code>:</li>
+  </ol>
+<pre><code>python -m venv venv          # python.exe -m venv venv on Windows
+pip install --upgrade pip
+pip install -r requirements.txt</code></pre>
+  <p>The virtual environment is illustrated here with <code>venv</code>, but other
+  solutions (<code>uv</code>, <code>virtualenv</code>, <code>conda</code>…) work
+  the same way. <code>requirements.txt</code> covers in particular
+  <strong>wxPython 4.2.x</strong> (the GUI framework), <strong>pyparsing</strong>
+  and, for macOS packaging, <strong>py2app</strong>. On Windows also run
+  <code>py -m pip install pywin32 pygame</code> if needed. Then run
+  <code>python3 easy_abc.py</code> (or double-click <code>easy_abc.py</code> on
+  Windows); if it crashes, start it from a command window to read the error
+  messages.</p>
+  <h3>With distribution packages (Debian and derivatives)</h3>
+  <p>On Debian-style distributions (Debian, Ubuntu, Mint…) the dependencies can
+  also be installed as system packages instead of using a virtual
+  environment:</p>
+<pre><code>sudo apt install python3-wxgtk4.0 python3-pyparsing python3-six \
+  python3-pygame fluidsynth abcm2ps abcmidi fluid-soundfont-gm</code></pre>
+  <p>Then run <code>python3 easy_abc.py</code> directly. Be aware however that the
+  Debian/Ubuntu repositories currently ship wxPython 4.2.0, which can raise a
+  "Bad perspective string" error at startup; that bug is fixed from wxPython
+  4.2.3 onwards (see
+  <a href="https://github.com/jwdj/EasyABC/issues/126">issue jwdj/EasyABC #126</a>,
+  which also details installation on openSUSE, Debian, Ubuntu and Mint). The
+  virtual environment, which installs wxPython through <code>pip</code>, therefore
+  remains the safest option.</p>
+    <p><strong>Raspberry Pi</strong>: EasyABC runs on the Raspberry Pi 4 (thanks to
+  John Lowry for the report): install
+  <code>abcmidi abcm2ps fluid-soundfont-gm python3-wxgtk4.0</code> and, if needed,
+  build FluidSynth (<code>cmake</code>, <code>make libfluidsynth</code>) then copy
+  <code>libfluidsynth.so*</code> next to <code>easy_abc.py</code>. The default
+  soundfont is <code>/usr/share/sounds/sf2/FluidR3_GM.sf2</code>. Note: printing
+  does not work properly on the Pi — export a PDF and print it with another
+  program.</p>
+</section>
+
+<section id="history">
+  <h2>Release history</h2>
+  <p>A summary of the changes since version 1.3.5 — the complete log is available in
+  the repository's change log.</p>
+  <h3>1.3.5.P6 – P9 (patch fixes)</h3>
+  <ul>
+    <li>Compatibility with recent abcm2ps versions (<code>in</code>/<code>px</code>
+    suffixes on SVG width/height) — patch by Frédéric Aupépin.</li>
+    <li>Fixed dim staff lines, bar lines and note stems on Linux.</li>
+    <li>Separate instruments for chord, bass and each voice; new per-voice
+    <code>%%MIDI</code> settings.</li>
+    <li>More reliable playback looping (MEDIA_FINISHED/STOP events).</li>
+    <li>F7 stops the MIDI player; arrow keys now move the highlighted note in sync;
+    updated Italian translation.</li>
+  </ul>
+  <h3>1.3.6 – 1.3.6.4 (2015)</h3>
+  <ul>
+    <li>Major rework: the <em>Internals</em> menu, tabbed settings notebook.</li>
+    <li>Permanent caching removed: temporary files (temp.abc, temp001.svg, …) are now
+    overwritten as the program runs.</li>
+    <li>New tool for searching tunes in a folder and its subfolders.</li>
+    <li>Cold Restart.</li>
+    <li>Much faster SVG rendering (J.W. de Jong); unique MIDI/SVG file names across
+    instances.</li>
+    <li>Default loudness raised from 64 to 96; bar numbering; optional two-bar
+    count-in.</li>
+  </ul>
+  <h3>1.3.7.x (2016–2019)</h3>
+  <ul>
+    <li>ABC Assist: dockable/floating window, triplets, slurs, chords, microtones,
+    multivoice/drum templates, MIDI instrument and volume selection.</li>
+    <li>Page navigation shortcuts:
+    <span class="kbd">Ctrl</span>+<span class="kbd">Alt</span>+<span class="kbd">PgDn/PgUp</span>,
+    <span class="kbd">Home</span>/<span class="kbd">End</span>.</li>
+    <li>Python 3 compatibility (2 and 3 simultaneously from 1.3.7.4 on).</li>
+    <li>"Follow score" while playing, with checkbox and timing compensation slider.</li>
+    <li>Multi-tune selection for printing and export (ABC, single PDF); Dutch and
+    German translations.</li>
+  </ul>
+  <h3>1.3.8.x (2020–2021)</h3>
+  <ul>
+    <li>Find in files (<span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">F</span>)
+    with ABC fields (e.g. <code>C:mozart M:3/4</code>); exclusive mode via the
+    command line (<code>-exclusive</code>).</li>
+    <li>Python 2 definitively dropped; Windows installer moved to Python 3.</li>
+    <li>WAV export via FluidSynth; "HTML interactive" export via Jef Moine's abc2svg.</li>
+    <li>Tablet mode: full screen
+    (<span class="kbd">Shift</span>+<span class="kbd">Alt</span>+<span class="kbd">F</span>),
+    navigation by clickable screen zones.</li>
+    <li>Instant startup sound (small SoundFont then switch on first play); FluidSynth
+    2.x, pulseaudio driver by default.</li>
+    <li>Chinese translation; "Insert musical symbol" menu removed then restored.</li>
+  </ul>
+  <h3>1.4.0.0</h3>
+  <ul>
+    <li>New exports: <strong>MP3</strong> and <strong>AAC</strong> (via the ffmpeg
+    setting); distinct colors for selection and follow; user-defined editor colors.</li>
+    <li>New: <strong>dark mode</strong> support (including toolbar icons), "internal
+    list of tunes" menu.</li>
+    <li>MIDI playback on Mac via Apple's DLS synthesizer (the <em>mplay</em>
+    library).</li>
+    <li>Improvements: note highlighting following the editor cursor, multivoice
+    graphical selection, respect of <code>%%abc-charset</code>, window title marking
+    unsaved changes.</li>
+    <li>Updated xml2abc/abc2xml and adaptation to newer abcMIDI and Python versions;
+    many playback, display and copy/paste fixes.</li>
+  </ul>
+</section>
+
+<section id="credits">
+  <h2>Credits — software components used by EasyABC</h2>
+  <ul>
+    <li><a href="http://moinejf.free.fr/">abcm2ps</a> — ABC to score images (Jean-François Moine)</li>
+    <li><a href="https://abc.sourceforge.net/abcMIDI/">abc2midi</a> — ABC to MIDI (James Allwright, maintained by Seymour Shlien)</li>
+    <li><a href="http://wim.vree.org/svgParse/xml2abc.html">xml2abc</a> / <a href="http://wim.vree.org/svgParse/abc2xml.html">abc2xml</a> — MusicXML ⇄ ABC (Willem Vree)</li>
+    <li>nwc2xml — Noteworthy Composer to ABC via XML (James Lee)</li>
+    <li><a href="https://www.wxpython.org/">wxPython</a> — cross-platform UI framework</li>
+    <li><a href="https://www.scintilla.org/">Scintilla</a> — the text editor used for ABC code</li>
+    <li><a href="https://sourceforge.net/apps/trac/portmedia/wiki/portmidi">PortMIDI</a> / pygame — real-time MIDI input</li>
+    <li>Thanks to all the project's translators and contributors.</li>
+  </ul>
+  <p>EasyABC is published under the <a href="https://www.gnu.org/licenses/">LGPL license</a>.
+  Bug reports and source code: <a href="https://github.com/aupfred/EasyABC/tree/release-1.4.0">GitHub (aupfred/EasyABC, release-1.4.0 branch)</a>.
+  Up to version 1.3.8.7 the code was hosted on the <a href="https://github.com/jwdj/EasyABC">jwdj/EasyABC</a>
+  repository, whose <code>master</code> branch remains aligned with the historical state of the project.
+  Frozen versions are also downloadable from
+  <a href="https://sourceforge.net/projects/easyabc/">SourceForge</a>, which also hosts
+  a <a href="https://easyabc.sourceforge.io/">complementary guide</a> (2021).</p>
+</section>
+
+</main>
+</div>
+
+<footer>EasyABC 1.4 documentation — based on the legacy 1.3.5 presentation page and the 2021 guide on easyabc.sourceforge.io.</footer>
+</body>
+</html>
