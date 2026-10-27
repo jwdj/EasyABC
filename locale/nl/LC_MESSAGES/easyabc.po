@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-25 21:26+0100\n"
-"PO-Revision-Date: 2024-11-12 17:55+0100\n"
+"PO-Revision-Date: 2026-10-27 20:26+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 2.0.3\n"
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: easy_abc.py\n"
 "X-Poedit-SearchPath-1: tune_actions.py\n"
@@ -27,32 +27,28 @@ msgid "&Ok"
 msgstr "&Doorgaan"
 
 #: easyabc_dialogs.py:86
-#, fuzzy
 msgid "Welcome to EasyABC 1.4"
-msgstr "Welkom bij EasyABC"
+msgstr "Welkom bij EasyABC 1.4"
 
 #: easyabc_dialogs.py:115
 msgid "Show this welcome page at startup"
-msgstr ""
+msgstr "Toon dit welkomscherm bij opstarten"
 
 #: easyabc_dialogs.py:121
-#, fuzzy
 msgid "Open Documentation"
-msgstr "Afdrukstand"
+msgstr "Open documentatie"
 
 #: easyabc_dialogs.py:127 easyabc_dialogs.py:230
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: easyabc_dialogs.py:195
-#, fuzzy
 msgid "EasyABC 1.4 help page"
-msgstr "&EasyABC handleiding"
+msgstr "EasyABC 1.4 handleiding"
 
 #: easyabc_dialogs.py:224
-#, fuzzy
 msgid "Open Documentation on Sourceforge"
-msgstr "Afdrukstand"
+msgstr "Open documentation bij Sourceforge"
 
 #: tune_actions.py:286
 msgid "Less options"
@@ -821,9 +817,8 @@ msgid "Acoustic Snare"
 msgstr "Akoestische Snaar"
 
 #: tune_actions.py:1334
-#, fuzzy
 msgid "Hand Clap"
-msgstr "Applaus"
+msgstr "Handklap"
 
 #: tune_actions.py:1335
 msgid "Electric Snare"
@@ -1617,11 +1612,11 @@ msgstr "{0} rapporteerde enige waarschuwingen"
 
 #: easy_abc.py:1537
 msgid "No file created so cannot continue"
-msgstr ""
+msgstr "Er is geen bestand aangemaakt dus doorgaan is niet mogelijk"
 
 #: easy_abc.py:1539
 msgid "Abc2midi reported an error. As Midi file exist, continue..."
-msgstr ""
+msgstr "Abc2midi meldde een fout. Maar midibestand bestaat dus doorgaan..."
 
 #: easy_abc.py:1623
 #, python-format
@@ -1702,7 +1697,7 @@ msgstr "Kleuren"
 
 #: easy_abc.py:2211
 msgid "abcm2ps executable:"
-msgstr "Abcm2ps:"
+msgstr "abcm2ps:"
 
 #: easy_abc.py:2211
 msgid "This executable is used to display the music"
@@ -1710,7 +1705,7 @@ msgstr "Deze toepassing is nodig om de bladmuziek te tonen"
 
 #: easy_abc.py:2212
 msgid "abc2midi executable:"
-msgstr "Abc2midi:"
+msgstr "abc2midi:"
 
 #: easy_abc.py:2212
 msgid "This executable is used to make the midi file"
@@ -1718,7 +1713,7 @@ msgstr "Deze toepassing is nodig om een MIDI-bestand te maken"
 
 #: easy_abc.py:2213
 msgid "abc2abc executable:"
-msgstr "Abc2Abc:"
+msgstr "abc2abc:"
 
 #: easy_abc.py:2213
 msgid "This executable is used to transpose the music"
@@ -1726,7 +1721,7 @@ msgstr "Deze toepassing wordt gebruikt om muziek te transponeren"
 
 #: easy_abc.py:2215
 msgid "midi2abc executable:"
-msgstr "Midi2abc:"
+msgstr "midi2abc:"
 
 #: easy_abc.py:2215
 msgid "This executable is used to disassemble the output midi file"
@@ -1750,14 +1745,13 @@ msgid "For NoteWorthy Composer - Windows only"
 msgstr "Voor NoteWorthy Composer - alleen Windows "
 
 #: easy_abc.py:2218
-#, fuzzy
 msgid "ffmpeg executable:"
-msgstr "Abcm2ps:"
+msgstr "ffmpeg:"
 
 #: easy_abc.py:2218
-#, fuzzy
 msgid "This executable is used to convert music to compressed formats"
-msgstr "Deze toepassing wordt gebruikt om muziek te transponeren"
+msgstr ""
+"Deze toepassing wordt gebruikt om muziek op te slaan in gecomprimeerde vorm"
 
 #: easy_abc.py:2219
 msgid "midiplayer:"
@@ -1780,13 +1774,12 @@ msgid "File paths to required executables"
 msgstr "Bestandspaden naar vereiste toepassingen"
 
 #: easy_abc.py:2259 easy_abc.py:2387
-#, fuzzy
 msgid "[default]"
-msgstr "Standaard"
+msgstr "[Standaard]"
 
 #: easy_abc.py:2275
 msgid "If empty, reset to default"
-msgstr ""
+msgstr "Indien leeg, herstel naar standaard"
 
 #: easy_abc.py:2279 easy_abc.py:3050
 msgid "Browse..."
@@ -2037,7 +2030,7 @@ msgstr "X referentienummer toevoegen"
 
 #: easy_abc.py:3021
 msgid "Suppress lyrics"
-msgstr "Onderdruk songtekst"
+msgstr "Onderdruk liedtekst"
 
 #: easy_abc.py:3022
 msgid "Ignore line ends"
@@ -2099,7 +2092,7 @@ msgstr "Gebruik de fabrieksinstellingen van EasyABC"
 
 #: easy_abc.py:3079
 msgid "Do not add page settings"
-msgstr "Geen paginaindeling toevoegen"
+msgstr "Geen pagina-indeling toevoegen"
 
 #: easy_abc.py:3122
 #, python-brace-format
@@ -2116,120 +2109,109 @@ msgstr "Zoek PostScript-formaat-bestand"
 
 #: easy_abc.py:3346
 msgid "Configure colors for:"
-msgstr ""
+msgstr "Kleuren instellen voor:"
 
 #: easy_abc.py:3347
-#, fuzzy
 msgid "Light Mode"
-msgstr "Achtste noot"
+msgstr "Lichte stand"
 
 #: easy_abc.py:3348
-#, fuzzy
 msgid "Dark Mode"
-msgstr "Barfly Mode"
+msgstr "Donkere stand"
 
 #: easy_abc.py:3362
 msgid "Colors for note highlighting in music score"
-msgstr ""
+msgstr "Kleuren voor noten in bladmuziek"
 
 #: easy_abc.py:3363
 msgid "Colors of ABC code highlighting in editor"
-msgstr ""
+msgstr "Kleuren voor ABC-code in tekstbewerkscherm"
 
 #: easy_abc.py:3373
 msgid "Note highlight color"
 msgstr "Kleur van geselecteerde noot"
 
 #: easy_abc.py:3380
-#, fuzzy
 msgid "Note highlight color when follow score"
-msgstr "Kleur van geselecteerde noot"
+msgstr "Kleur van geselecteerde noot tijdens afspelen"
 
 #: easy_abc.py:3395
 msgid "Keep music score in warm light mode"
-msgstr ""
+msgstr "Bladmuziek in warm licht modus behouden"
 
 #: easy_abc.py:3398
 msgid "Custom background:"
-msgstr ""
+msgstr "Eigen achtergrond:"
 
 #: easy_abc.py:3412
-#, fuzzy
 msgid "Default color"
-msgstr "Standaard"
+msgstr "Standaard kleur"
 
 #: easy_abc.py:3413
-#, fuzzy
 msgid "Color of chords"
-msgstr "Combineren tot een akkoord"
+msgstr "Kleur van akkoord"
 
 #: easy_abc.py:3414
-#, fuzzy
 msgid "Color of bars"
-msgstr "Kleuren"
+msgstr "Kleur van maatstrepen"
 
 #: easy_abc.py:3415
-#, fuzzy
 msgid "Color of comment"
-msgstr "Commentaar"
+msgstr "Kleur van commentaar"
 
 #: easy_abc.py:3416
 msgid "Color of instructions/commands"
-msgstr ""
+msgstr "Kleur van instructie/commando"
 
 #: easy_abc.py:3417
 msgid "Color of field index"
-msgstr ""
+msgstr "Kleur van veld index"
 
 #: easy_abc.py:3418
 msgid "Color of ABC fields"
-msgstr ""
+msgstr "Kleur van ABC-velden"
 
 #: easy_abc.py:3419
 msgid "Color of ABC fields value"
-msgstr ""
+msgstr "Kleur van ABC-veldwaarden"
 
 #: easy_abc.py:3420
 msgid "Color of embedded ABC fields"
-msgstr ""
+msgstr "Kleur van ingebedde ABC-velden"
 
 #: easy_abc.py:3421
 msgid "Color of embedded ABC fields values"
-msgstr ""
+msgstr "Kleur van ingebedde ABC-veldwaarden"
 
 #: easy_abc.py:3422
 msgid "Color of string"
-msgstr ""
+msgstr "Kleur van tekst"
 
 #: easy_abc.py:3423
 msgid "Color of lyrics"
-msgstr ""
+msgstr "Kleur van liedtekst"
 
 #: easy_abc.py:3424
-#, fuzzy
 msgid "Color of ornament"
-msgstr "Versieringen"
+msgstr "Kleur van versieringen"
 
 #: easy_abc.py:3425
-#, fuzzy
 msgid "Color of ornament plus"
-msgstr "Versieringen"
+msgstr "Kleur van plusversieringen"
 
 #: easy_abc.py:3426
 msgid "Color of ornament excl"
-msgstr ""
+msgstr "Kleur van versieringen"
 
 #: easy_abc.py:3427
-#, fuzzy
 msgid "Color of grace notes"
-msgstr "Geen voorslagnoten"
+msgstr "Kleur van voorslagnoten"
 
 #: easy_abc.py:3457
 msgid "Restore default colors"
-msgstr ""
+msgstr "Terug naar standaardkleuren"
 
 #: easy_abc.py:3647
-#, fuzzy
 msgid ""
 "The settings on this page control behaviour of the functions abc2xml and "
 "xml2abc.\n"
@@ -2245,7 +2227,7 @@ msgstr ""
 
 #: easy_abc.py:3650
 msgid "abc2xml options"
-msgstr "Abc naar xml opties"
+msgstr "abc naar xml opties"
 
 #: easy_abc.py:3651
 msgid "Compressed xml"
@@ -2253,7 +2235,7 @@ msgstr "Gecomprimeerde xml"
 
 #: easy_abc.py:3652
 msgid "xml2abc option"
-msgstr "Xml naar abc opties"
+msgstr "xml naar abc opties"
 
 #: easy_abc.py:3653
 msgid "Unfold Repeats"
@@ -2436,7 +2418,7 @@ msgstr "Zoeken naar"
 
 #: easy_abc.py:3992
 msgid "Lyrics"
-msgstr "Songtekst"
+msgstr "Liedtekst"
 
 #: easy_abc.py:4000
 msgid "Sort by title"
@@ -2590,7 +2572,7 @@ msgstr "Bestand kon niet worden opgeslagen"
 #: easy_abc.py:5730
 msgid "Which field(s) do you want to sort the tunes by? (eg. T for title)"
 msgstr ""
-"Op welke velden wilt u de liedjes sorteren? (bijvoorbeeld T voor titel)"
+"Op welke velden wilt u de composities sorteren? (bijvoorbeeld T voor titel)"
 
 #: easy_abc.py:5730
 msgid "Sort tunes"
@@ -2613,14 +2595,12 @@ msgid "Midi file"
 msgstr "MIDI-bestand"
 
 #: easy_abc.py:5837
-#, fuzzy
 msgid "MP3 file"
-msgstr "PDF-bestand"
+msgstr "MP3-bestand"
 
 #: easy_abc.py:5843
-#, fuzzy
 msgid "AAC file"
-msgstr "ABC-bestand"
+msgstr "AAC-bestand"
 
 #: easy_abc.py:5849
 msgid "Wave file"
@@ -2645,11 +2625,10 @@ msgid "Failed to create {0}"
 msgstr "Aanmaken van {0} is mislukt"
 
 #: easy_abc.py:5904
-#, fuzzy
 msgid "ffmpeg was not found here. Go to settings and indicate the path"
 msgstr ""
-"Ghostscript kon niet gevonden worden. Ga naar de instellingen om het pad aan "
-"te geven."
+"ffmpeg kon niet gevonden worden. Ga naar de instellingen om het pad aan te "
+"geven"
 
 #: easy_abc.py:5904 easy_abc.py:5934 easy_abc.py:5938 easy_abc.py:9400
 #: easy_abc.py:9411 easy_abc.py:9423 easy_abc.py:9435 easy_abc.py:9444
@@ -2658,7 +2637,6 @@ msgid "Warning"
 msgstr "Waarschuwing"
 
 #: easy_abc.py:5934
-#, fuzzy
 msgid ""
 "EasyABC needs an external program called GhostScript to generate PDFs. You "
 "can get it from https://www.ghostscript.com/download/ or on macOS from "
@@ -2671,7 +2649,7 @@ msgstr ""
 msgid "ghostscript was not found here. Go to settings and indicate the path"
 msgstr ""
 "Ghostscript kon niet gevonden worden. Ga naar de instellingen om het pad aan "
-"te geven."
+"te geven"
 
 #: easy_abc.py:5942
 msgid "PDF file"
@@ -2750,9 +2728,9 @@ msgid ""
 "midiplayer path in Settings -> ABC Settings -> File Settings to regain the "
 "looping ability when you double click the play button"
 msgstr ""
-"Herhalen is niet mogelijk met een externe midi-speler. Ga naar Instellingen "
-"-> ABC instellingen -> Bestandsinstellingen en haal de midi-speler weg om "
-"weer te kunnen herhalen wanneer op de afspeelknop gedubbelklikt wordt."
+"Herhalen is niet mogelijk met een externe midi-speler. Ga naar Instellingen -"
+"> ABC instellingen -> Bestandsinstellingen en haal de midi-speler weg om "
+"weer te kunnen herhalen wanneer op de afspeelknop gedubbelklikt wordt"
 
 #: easy_abc.py:6422
 msgid "Looping unavailable"
@@ -2795,7 +2773,6 @@ msgid "Add abc-charset field?"
 msgstr "ABC-karakterset teovoegen?"
 
 #: easy_abc.py:6621
-#, fuzzy
 msgid ""
 "This ABC file seems not to be encoded using UTF-8 but contains no indication "
 "of this fact. It is strongly recommended that an I:abc-charset field is "
@@ -2916,14 +2893,12 @@ msgid "Export to &Wave..."
 msgstr "Exporteren naar geluidsbestand..."
 
 #: easy_abc.py:6851
-#, fuzzy
 msgid "Export to &MP3..."
-msgstr "Exporteren naar &PDF..."
+msgstr "Exporteren naar &MP3..."
 
 #: easy_abc.py:6852
-#, fuzzy
 msgid "Export to &AAC..."
-msgstr "Exporteren naar &ABC..."
+msgstr "Exporteren naar &AAC..."
 
 #: easy_abc.py:6878
 msgid "&Active"
@@ -2981,7 +2956,7 @@ msgstr "&Toon minder marge bij bladmuziek op scherm"
 
 #: easy_abc.py:6918
 msgid "&Change editor font..."
-msgstr "&Ander lettertype"
+msgstr "&Ander lettertype..."
 
 #: easy_abc.py:6919
 msgid "&Use default editor font"
@@ -3076,14 +3051,12 @@ msgid "as &Wave..."
 msgstr "als geluidsbestand..."
 
 #: easy_abc.py:6947
-#, fuzzy
 msgid "as &MP3..."
-msgstr "als &PDF..."
+msgstr "als &MP3..."
 
 #: easy_abc.py:6948
-#, fuzzy
 msgid "as &AAC..."
-msgstr "als A&BC..."
+msgstr "als AAC..."
 
 #: easy_abc.py:6949
 msgid "Export &all"
@@ -3287,7 +3260,7 @@ msgstr "He&rnummeren van X: velden..."
 
 #: easy_abc.py:7006
 msgid "&Sort tunes..."
-msgstr "Composities &sorteren"
+msgstr "Composities &sorteren..."
 
 #: easy_abc.py:7007
 msgid "&View"
@@ -3311,7 +3284,7 @@ msgstr "Uiteindelijke ABC-bestand"
 
 #: easy_abc.py:7011
 msgid "List of Tunes"
-msgstr ""
+msgstr "Lijst van composities"
 
 #: easy_abc.py:7012
 msgid "Output midi file"
@@ -3326,14 +3299,12 @@ msgid "&Help"
 msgstr "&Hulp"
 
 #: easy_abc.py:7015
-#, fuzzy
 msgid "EasyABC Documentation"
-msgstr "Afdrukstand"
+msgstr "EasyABC documentatie"
 
 #: easy_abc.py:7015
-#, fuzzy
 msgid "Open EasyABC offline documentation"
-msgstr "Afdrukstand"
+msgstr "Open EasyABC lokale documentatie"
 
 #: easy_abc.py:7016
 msgid "&Show fields and commands reference"
@@ -3400,14 +3371,13 @@ msgid "Welcome to EasyABC"
 msgstr "Welkom bij EasyABC"
 
 #: easy_abc.py:7027
-#, fuzzy
 msgid "Show the welcome page of EasyABC"
-msgstr "Welkom bij EasyABC"
+msgstr "Toon de welkompagina van EasyABC"
 
 #: easy_abc.py:7103
 msgid "You need to create the midi file by playing the tune"
 msgstr ""
-"U moet eerst op afspelen drukken om de midistructuur te kunnen bekijken."
+"U moet eerst op afspelen drukken om de midistructuur te kunnen bekijken"
 
 #: easy_abc.py:7167 easy_abc.py:7244 easy_abc.py:7270
 msgid "Find"
@@ -3445,7 +3415,6 @@ msgid "Clear cache?"
 msgstr "Cache leeg maken?"
 
 #: easy_abc.py:7340
-#, fuzzy
 msgid ""
 "This will close EasyAbc and put it in a state so that it starts with default "
 "settings.i.e. the file settings1.4 will be deleted."
@@ -3474,7 +3443,7 @@ msgid ""
 "abcm2ps was not found here. You need it to view the music. Go to settings "
 "and indicate the path."
 msgstr ""
-"Abcm2ps kon niet gevonden worden. Het is nodig om de bladmuziek te tonen. In "
+"abcm2ps kon niet gevonden worden. Het is nodig om de bladmuziek te tonen. In "
 "te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
 #: easy_abc.py:9411
@@ -3482,7 +3451,7 @@ msgid ""
 "abc2midi was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr ""
-"Abc2midi kon niet gevonden worden. Het is nodig om de muziek af te spelen. "
+"abc2midi kon niet gevonden worden. Het is nodig om de muziek af te spelen. "
 "In te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
 #: easy_abc.py:9423
@@ -3496,7 +3465,7 @@ msgid ""
 "abc2abc was not found here. You need it to transpose the music. Go to "
 "settings and indicate the path."
 msgstr ""
-"Abc2abc kon niet gevonden worden. Het is nodig om de muziek te transponeren. "
+"abc2abc kon niet gevonden worden. Het is nodig om de muziek te transponeren. "
 "In te stellen via Instellingen -> ABC instellingen -> Bestandspaden."
 
 #: easy_abc.py:9444
@@ -3510,9 +3479,8 @@ msgid "The executable %s could not be found"
 msgstr "De toepassing %s kon niet gevonden worden"
 
 #: easy_abc.py:9584
-#, fuzzy
 msgid "List of tunes"
-msgstr "Naam van de compositie"
+msgstr "Lijst van composities"
 
 #: easy_abc.py:9635
 msgid "Processed Abc Tune"
@@ -3653,7 +3621,7 @@ msgstr "arpeggio"
 
 #: tune_elements.py:180 tune_elements.py:181
 msgid "marcato"
-msgstr ""
+msgstr "Marcato"
 
 #: tune_elements.py:182
 msgid "fermata or hold"
@@ -3817,18 +3785,18 @@ msgstr "fine"
 
 #: tune_elements.py:231
 msgid "vertical line on the upper part of the staff"
-msgstr "Vertical lijn bovenkant notenbalk"
+msgstr "Verticale lijn bovenkant notenbalk"
 
 #: tune_elements.py:232
 msgid ""
 "vertical line on the upper part of the staff, extending down to the centre "
 "line"
-msgstr "Vertical lijn bovenkant notenbalk tot halverwege"
+msgstr "Verticale lijn bovenkant notenbalk tot halverwege"
 
 #: tune_elements.py:233
 msgid ""
 "vertical line on the upper part of the staff, extending 3/4 of the way down"
-msgstr "Vertical lijn bovenkant notenbalk tot 3/4"
+msgstr "Verticale lijn bovenkant notenbalk tot 3/4"
 
 #: tune_elements.py:234
 msgid "sustain pedal down"
@@ -3840,11 +3808,11 @@ msgstr "sustain pedaal loslaten"
 
 #: tune_elements.py:236
 msgid "editorial accidental above note"
-msgstr ""
+msgstr "plaats kruis/mol boven noot"
 
 #: tune_elements.py:237
 msgid "courtesy accidental between parentheses"
-msgstr ""
+msgstr "voorgestelde kruis/mol tussen haakjes"
 
 #: tune_elements.py:508
 msgid "Unknown"
@@ -4076,7 +4044,7 @@ msgstr "Variërend einde"
 
 #: tune_elements.py:948
 msgid "To play a different ending each time"
-msgstr "Om bij een herhaling anders te eindigen."
+msgstr "Om bij een herhaling anders te eindigen"
 
 #: tune_elements.py:954
 msgid ""
