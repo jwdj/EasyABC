@@ -76,7 +76,7 @@
   <img src="img/EasyABCBanner.jpg" alt="EasyABC" style="max-width:1420px;width:100%;border-radius:12px;margin-bottom:1rem;">
   <h1>EasyABC</h1>
   <p>An open source ABC editor for Windows, macOS and Linux</p>
-  <p>Version 1.4.0.0b — LGPL License</p>
+  <p>Version 1.4.0.0b — GPLv2 License</p>
   <div class="badges">
     <span class="badge">Windows</span>
     <span class="badge">macOS</span>
@@ -424,17 +424,6 @@ CDEF | G2</code></pre>
   <p>The <em>File ▸ ABC Settings</em> dialog is a tabbed notebook. Hovering the mouse
   over most controls shows helpful tooltips. Settings are remembered in
   <code>settings1.4.dat</code>.</p>
-  <h3>File Settings</h3>
-  <ul>
-    <li>Paths to the executables (abcm2ps, abc2midi, abc2abc, midi2abc, Ghostscript…),
-    verified at each startup. Paths are stored in combo boxes so you can switch between
-    versions conveniently.</li>
-    <li>Windows: <code>gswin32c.exe</code> or <code>gswin64c.exe</code> for PDF;
-    macOS: <code>pstopdf</code> or Ghostscript; Linux: <code>gs</code>.</li>
-    <li>An external MIDI player can be specified (e.g. TiMidity on Linux, with its
-    options in "Extra Midiplayer Parameters", e.g. <code>-ik -A 50</code>).</li>
-    <li>The <em>restore settings</em> button resets the paths you have cleared.</li>
-  </ul>
   <h3>Abcm2ps Settings</h3>
   <figure>
     <img src="img/abcm2ps_settings.png" alt="Abcm2ps settings" style="max-width:100%;border-radius:12px;border:1px solid #555;">
@@ -484,10 +473,30 @@ CDEF | G2</code></pre>
   "separate defaults per voice" option defines instrument, volume and pan for each of
   the 16 channels; EasyABC assigns the selected program to a voice the first time it
   appears in the notation.</p>
-  <h3>XML Settings</h3>
+  <h3>MusicXML Settings</h3>
   <p>MusicXML ⇄ ABC conversion options (xml2abc / abc2xml), considered experimental.
   The free program MuseScore is a good companion for displaying, playing and creating
   MusicXML files and importing MIDI files.</p>
+  <h3>File Settings</h3>
+  <ul>
+    <li>Paths to the executables (abcm2ps, abc2midi, abc2abc, midi2abc, Ghostscript…),
+    verified at each startup. Paths are stored in combo boxes so you can switch between
+    versions conveniently.</li>
+    <li>Windows: <code>gswin32c.exe</code> or <code>gswin64c.exe</code> for PDF;
+    macOS: <code>pstopdf</code> or Ghostscript; Linux: <code>gs</code>.</li>
+    <li>An external MIDI player can be specified (e.g. TiMidity on Linux, with its
+    options in "Extra Midiplayer Parameters", e.g. <code>-ik -A 50</code>).</li>
+    <li>The <em>restore settings</em> button resets the paths you have cleared.</li>
+  </ul>
+  <h3>Color Settings</h3>
+  <p>In this panel it is possible to define the colors used in EasyABC</p>
+  <p>To choose the color for a display mode (dark or light mode) first select the mode
+  and then you can decide the color to use in this mode.</p>
+  <p>Note: so far the selection and the follow were always the same, now it is possible
+  to define a color for selection and another one to follow when playing</p>
+  <p>The interface will switch to dark mode depending on your OS setting. If you are in dark mode,
+  it is possible to force to keep a warm light for the background of the score rendering.</p>
+
 </section>
 
 <section id="abcassist">
@@ -648,10 +657,12 @@ CDEF | G2</code></pre>
 <section id="sources">
   <h2>Running EasyABC from source</h2>
   <p>This procedure is common to Windows, macOS, Linux and the Raspberry Pi; on
-  Linux and the Raspberry Pi it is the recommended way to run EasyABC. First get
-  the code from the
-  <a href="https://github.com/aupfred/EasyABC/tree/release-1.4.0">release-1.4.0</a>
-  branch of the GitHub repository (<em>Code ▸ Download ZIP</em> button, or
+  Linux if you are not using deb packages it is the recommended way to run EasyABC.
+  EasyABC is known to work starting from Python 3.10 up to at least 3.13.
+  First get the code from the <a href="https://sourceforge.net/projects/easyabc/">SourceForge</a>, or from Github 
+  <a href="https://github.com/aupfred/EasyABC/tree/release-1.4.0">release-1.4.0</a> or if you prefer latest developper one
+    other branches of the GitHub
+    repository (<em>Code ▸ Download ZIP</em> button, or
   <code>git clone -b release-1.4.0</code>).</p>
   <h3>With a Python virtual environment (recommended)</h3>
   <ol>

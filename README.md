@@ -376,7 +376,7 @@ A summary of the changes since version 1.3.5 — the complete log is available i
 - [PortMIDI](https://sourceforge.net/apps/trac/portmedia/wiki/portmidi) / pygame — real-time MIDI input
 - Thanks to all the project's translators and contributors.
 
-EasyABC is published under the [LGPL license](https://www.gnu.org/licenses/). Bug reports and source code: [GitHub (aupfred/EasyABC, release-1.4.0 branch)](https://github.com/aupfred/EasyABC/tree/release-1.4.0). Up to version 1.3.8.7 the code was hosted on the [jwdj/EasyABC](https://github.com/jwdj/EasyABC) repository, whose `master` branch remains aligned with the historical state of the project. Frozen versions are also downloadable from [SourceForge](https://sourceforge.net/projects/easyabc/), which also hosts a [complementary guide](https://easyabc.sourceforge.io/) (2021).
+EasyABC is published under the [GPL v2 license](https://www.gnu.org/licenses/). Bug reports and source code:  [jwdj/EasyABC](https://github.com/jwdj/EasyABC) repository. Also available here with tags and releases: [GitHub (aupfred/EasyABC, release-1.4.0 branch)](https://github.com/aupfred/EasyABC/tree/release-1.4.0) Frozen versions are also downloadable from [SourceForge](https://sourceforge.net/projects/easyabc/), which also hosts a [complementary guide](https://easyabc.sourceforge.io/).
 ## Keyboard shortcuts
 
 - <kbd>F5</kbd> Refresh
