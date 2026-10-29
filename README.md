@@ -374,6 +374,7 @@ A summary of the changes since version 1.3.5 — the complete log is available i
 - [wxPython](https://www.wxpython.org/) — cross-platform UI framework
 - [Scintilla](https://www.scintilla.org/) — the text editor used for ABC code
 - [PortMIDI](https://sourceforge.net/apps/trac/portmedia/wiki/portmidi) / pygame — real-time MIDI input
+- FluidG3 GM Soundfont from Frank Wen embedded in the Windows setup
 - Thanks to all the project's translators and contributors.
 
 EasyABC is published under the [GPL v2 license](https://www.gnu.org/licenses/). Bug reports and source code:  [jwdj/EasyABC](https://github.com/jwdj/EasyABC) repository. Also available here with tags and releases: [GitHub (aupfred/EasyABC, release-1.4.0 branch)](https://github.com/aupfred/EasyABC/tree/release-1.4.0) Frozen versions are also downloadable from [SourceForge](https://sourceforge.net/projects/easyabc/), which also hosts a [complementary guide](https://easyabc.sourceforge.io/).
