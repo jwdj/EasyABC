@@ -6,6 +6,7 @@
 
 import os
 import wx
+import webbrowser
 from wx import GetTranslation as _
 from utils import get_application_path
 from easyabc_version import program_name 
