@@ -4422,7 +4422,9 @@ class MainFrame(wx.Frame):
             # FORCE METRICS TO ZERO for compatibility with dark mode (This drops the 1px margin rendering entirely)
             # Removes the hardcoded 1px padding lines around docked toolbars
             art.SetMetric(aui.AUI_DOCKART_PANE_BORDER_SIZE, 0)
-            art.SetMetric(aui.AUI_DOCKART_SASH_SIZE, 0)
+            # Keep default size as value of 0 is an issue on Linux and Windows
+            # Todo verify the overall size and effect in both modes dark and light
+            # art.SetMetric(aui.AUI_DOCKART_SASH_SIZE, 0)
 
         self.printData = wx.PrintData()
         self.printData.SetPrintMode(wx.PRINT_MODE_PRINTER)
