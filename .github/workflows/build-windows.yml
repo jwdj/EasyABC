@@ -1,0 +1,138 @@
+name: Build Windows installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      abctools_ver:
+        description: 'abctools version (abcplus cosmopolitan bundle: abcm2ps + abcmidi)'
+        type: string
+        default: '20261023-cosmo' # keep in sync with ABCTOOLS_VER default below
+      fluidsynth_ver:
+        description: 'FluidSynth release (GitHub FluidSynth/fluidsynth), e.g. v2.6.1'
+        type: string
+        default: 'v2.6.1'  # keep in sync with FLUIDSYNTH_VER default below
+  push:
+    tags: ['v*']
+
+env:
+  PY_MAJOR: '3.13'
+  # SHA-256 of FluidR3_GM.sf2 (pinned integrity check; verified 2026-10:
+  # identical to the SourceForge mirrors' file)
+  SF2_SHA256: '74594e8f4250680adf590507a306655a299935343583256f3b722c48a1bc1cb0'
+  SF2_URL: 'https://github.com/pianobooster/fluid-soundfont/releases/download/v3.1/FluidR3_GM.sf2'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      # single point of truth: the default lives HERE (and in the
+      # workflow_dispatch input above, which feeds it on manual runs)
+      ABCTOOLS_VER: ${{ inputs.abctools_ver || '20261023-cosmo' }}
+      FLUIDSYNTH_VER: ${{ inputs.fluidsynth_ver || 'v2.6.1' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install -r requirements.txt
+          python -m pip install cx_Freeze
+
+      # ------------------------------------------------------------------
+      # Helpers: abcplus cosmopolitan binaries (run natively on Windows
+      # via the MZ header). Copy into bin/ with the .exe names expected
+      # by setup.py (include_files).
+      # ------------------------------------------------------------------
+      - name: Fetch abcplus cosmopolitan helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sL --fail -o abctools.zip \
+            "https://sourceforge.net/projects/abcplus/files/Abctools/abctools-${ABCTOOLS_VER}.zip/download"
+          unzip -o abctools.zip -d helpers_src >/dev/null
+          for b in abcm2ps abc2abc abc2midi midi2abc; do
+            src=$(find helpers_src -name "$b" -type f | head -1)
+            [ -n "$src" ] || { echo "ERROR: $b not found in abcplus archive"; exit 1; }
+            cp "$src" "bin/$b.exe"
+          done
+          # Smoke test: cosmo binaries run natively on Windows (MZ header).
+          # NOTE: abcm2ps takes -V, the abcMIDI tools take -ver.
+          ./bin/abcm2ps.exe -V >/dev/null && echo "abcm2ps [run test]: OK"
+          ./bin/abc2midi.exe -ver >/dev/null && echo "abc2midi [run test]: OK"
+
+      # ------------------------------------------------------------------
+      # FluidSynth runtime DLLs (C++11 flavor: no glib dependency chain).
+      # v2.6.1 zip contains exactly: libfluidsynth-3.dll, SDL3.dll, sndfile.dll
+      # (names verified 2026-10) - matching setup.py's include_files.
+      # ------------------------------------------------------------------
+      - name: Fetch FluidSynth DLLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sL --fail -o fluidsynth.zip \
+            "https://github.com/FluidSynth/fluidsynth/releases/download/${FLUIDSYNTH_VER}/fluidsynth-${FLUIDSYNTH_VER}-win10-x64-cpp11.zip"
+          unzip -o fluidsynth.zip -d fs_tmp >/dev/null
+          mkdir -p bin/FluidSynth
+          for dll in libfluidsynth-3.dll SDL3.dll sndfile.dll; do
+            src=$(find fs_tmp -name "$dll" -type f | head -1)
+            [ -n "$src" ] || { echo "ERROR: $dll not found in fluidsynth zip"; exit 1; }
+            cp "$src" bin/FluidSynth/
+          done
+          ls -la bin/FluidSynth/
+
+      # ------------------------------------------------------------------
+      # Soundfont: too large for the git repo (>100MB GitHub limit).
+      # Cached between runs, integrity-checked with the pinned SHA-256.
+      # ------------------------------------------------------------------
+      - name: Cache soundfont
+        uses: actions/cache@v4
+        with:
+          path: sound/FluidR3_GM.sf2
+          key: FluidR3_GM-${{ env.SF2_SHA256 }}
+
+      - name: Download soundfont
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f sound/FluidR3_GM.sf2 ]; then
+            curl -sL --fail -o sound/FluidR3_GM.sf2 "${SF2_URL}"
+          fi
+          echo "${SF2_SHA256}  sound/FluidR3_GM.sf2" | sha256sum -c
+
+      - name: Build with cx_Freeze
+        shell: bash
+        run: |
+          python setup.py build
+          ls build/
+
+      - name: Build installer with Inno Setup
+        shell: cmd
+        run: |
+          choco install innosetup -y
+          for /f "delims=" %%i in ('python -c "import easyabc_version; print(easyabc_version.program_version)"') do set APPVER=%%i
+          "C:\Program Files (x86)\Inno Setup 6\iscc.exe" /DMyAppVersion=%APPVER% /DMyBuildFolder=build\exe.win-amd64-${{ env.PY_MAJOR }} setupEasyABC.iss
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EasyABC-Windows-installer
+          path: Output/*.exe
+          if-no-files-found: error
+
+  release:
+    if: github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe

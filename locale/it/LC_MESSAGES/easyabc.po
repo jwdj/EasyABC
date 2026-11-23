@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EasyABC 1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 21:26+0100\n"
+"POT-Creation-Date: 2026-11-06 00:38+0100\n"
 "PO-Revision-Date: 2014-11-01 18:27+0100\n"
 "Last-Translator: Frédéric AUPEPIN <frederic.aupepin@gmail.com>\n"
 "Language-Team: EasyABC <info@nilsliberg.se>\n"
@@ -21,39 +21,39 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: ../../..\n"
 
-#: easyabc_dialogs.py:27 easy_abc.py:7028
+#: easyabc_dialogs.py:29 easy_abc.py:7101
 msgid "About EasyABC"
 msgstr "Informazioni su EasyABC"
 
-#: easyabc_dialogs.py:53 easy_abc.py:2105 easy_abc.py:2969 easy_abc.py:3814
-#: easy_abc.py:3878
+#: easyabc_dialogs.py:55 easy_abc.py:2145 easy_abc.py:3009 easy_abc.py:3854
+#: easy_abc.py:3918
 msgid "&Ok"
 msgstr "&Ok"
 
-#: easyabc_dialogs.py:86
+#: easyabc_dialogs.py:88 easy_abc.py:7100 tune_elements.py:730
 #, fuzzy
-msgid "Welcome to EasyABC 1.4"
+msgid "Welcome to EasyABC"
 msgstr "Informazioni su EasyABC"
 
-#: easyabc_dialogs.py:115
+#: easyabc_dialogs.py:118
 msgid "Show this welcome page at startup"
 msgstr ""
 
-#: easyabc_dialogs.py:121
+#: easyabc_dialogs.py:124
 #, fuzzy
 msgid "Open Documentation"
 msgstr "Posizione nel brano:"
 
-#: easyabc_dialogs.py:127 easyabc_dialogs.py:230
+#: easyabc_dialogs.py:130 easyabc_dialogs.py:233
 msgid "OK"
 msgstr ""
 
-#: easyabc_dialogs.py:195
+#: easyabc_dialogs.py:198
 #, fuzzy
-msgid "EasyABC 1.4 help page"
+msgid "EasyABC help page"
 msgstr "Aiuto &EasyABC"
 
-#: easyabc_dialogs.py:224
+#: easyabc_dialogs.py:227
 #, fuzzy
 msgid "Open Documentation on Sourceforge"
 msgstr "Posizione nel brano:"
@@ -539,11 +539,11 @@ msgid "6 flats"
 msgstr ""
 
 #: tune_actions.py:955 tune_actions.py:1062 tune_actions.py:2162
-#: easy_abc.py:2931 easy_abc.py:2933
+#: easy_abc.py:2971 easy_abc.py:2973
 msgid "None"
 msgstr "Nessuno"
 
-#: tune_actions.py:958 easy_abc.py:3796
+#: tune_actions.py:958 easy_abc.py:3836
 #, fuzzy
 msgid "Key signature"
 msgstr "K: Tonalità"
@@ -1155,8 +1155,8 @@ msgstr ""
 msgid "New tune"
 msgstr "Aggiungi un brano"
 
-#: tune_actions.py:1614 tune_actions.py:2299 easy_abc.py:4356 easy_abc.py:4756
-#: easy_abc.py:6185
+#: tune_actions.py:1614 tune_actions.py:2299 easy_abc.py:4396 easy_abc.py:4798
+#: easy_abc.py:6258
 msgid "Untitled"
 msgstr "Senza titolo"
 
@@ -1204,7 +1204,7 @@ msgstr ""
 msgid "Insert annotation or chord"
 msgstr ""
 
-#: tune_actions.py:1799 easy_abc.py:6980 tune_elements.py:850
+#: tune_actions.py:1799 easy_abc.py:7053 tune_elements.py:850
 msgid "Dynamics"
 msgstr "Dinamiche"
 
@@ -1301,7 +1301,7 @@ msgstr ""
 msgid "Book"
 msgstr ""
 
-#: tune_actions.py:2102 easy_abc.py:3992 tune_elements.py:81
+#: tune_actions.py:2102 easy_abc.py:4032 tune_elements.py:81
 msgid "Composer"
 msgstr ""
 
@@ -1334,7 +1334,7 @@ msgstr ""
 msgid "Parts"
 msgstr ""
 
-#: tune_actions.py:2110 easy_abc.py:5487 tune_elements.py:94
+#: tune_actions.py:2110 easy_abc.py:5529 tune_elements.py:94
 #, fuzzy
 msgid "Tempo"
 msgstr "Tempo:"
@@ -1587,7 +1587,7 @@ msgstr "Volume principale:"
 msgid "Set volume"
 msgstr ""
 
-#: tune_actions.py:2249 easy_abc.py:2520
+#: tune_actions.py:2249 easy_abc.py:2560
 msgid "Play chords"
 msgstr "Suona gli accordi"
 
@@ -1644,239 +1644,239 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: easy_abc.py:995 easy_abc.py:1021 easy_abc.py:1533 easy_abc.py:1619
-#: easy_abc.py:9224
+#: easy_abc.py:1035 easy_abc.py:1061 easy_abc.py:1573 easy_abc.py:1659
+#: easy_abc.py:9300
 #, python-format
 msgid "%(program)s exited abnormally (errorcode %(error)#8x)"
 msgstr ""
 
-#: easy_abc.py:1039
+#: easy_abc.py:1079
 msgid "Disassembled Midi File"
 msgstr ""
 
-#: easy_abc.py:1045
+#: easy_abc.py:1085
 msgid ""
 "Cannot find the executable midi2abc. Be sure it is in your bin folder and "
 "its path is defined in ABC Setup/File Settings."
 msgstr ""
 
-#: easy_abc.py:1045 easy_abc.py:5181 easy_abc.py:7103 easy_abc.py:9187
+#: easy_abc.py:1085 easy_abc.py:5223 easy_abc.py:7176 easy_abc.py:9263
 msgid "Error"
 msgstr "Errore"
 
-#: easy_abc.py:1260 easy_abc.py:9209
+#: easy_abc.py:1300 easy_abc.py:9285
 #, python-brace-format
 msgid "{0} reported some errors"
 msgstr ""
 
-#: easy_abc.py:1262 easy_abc.py:9211
+#: easy_abc.py:1302 easy_abc.py:9287
 #, python-brace-format
 msgid "{0} reported some warnings"
 msgstr ""
 
-#: easy_abc.py:1537
+#: easy_abc.py:1577
 msgid "No file created so cannot continue"
 msgstr ""
 
-#: easy_abc.py:1539
+#: easy_abc.py:1579
 msgid "Abc2midi reported an error. As Midi file exist, continue..."
 msgstr ""
 
-#: easy_abc.py:1623
+#: easy_abc.py:1663
 #, python-format
 msgid "Error during conversion of %(filename)s: %(error)s"
 msgstr "Errore nella conversione di %(filename): %(error)"
 
-#: easy_abc.py:1644
+#: easy_abc.py:1684
 #, fuzzy
 msgid "EasyABC music"
 msgstr "Aiuto &EasyABC"
 
-#: easy_abc.py:2047
+#: easy_abc.py:2087
 msgid "Field"
 msgstr "Campo"
 
-#: easy_abc.py:2048
+#: easy_abc.py:2088
 msgid "Description"
 msgstr "Descrizione"
 
-#: easy_abc.py:2073
+#: easy_abc.py:2113
 msgid "Generate incipits file..."
 msgstr "Genera il file degli incipit..."
 
-#: easy_abc.py:2077
+#: easy_abc.py:2117
 msgid "Number of bars to extract:"
 msgstr "Numero delle battute da estrarre :"
 
-#: easy_abc.py:2078
+#: easy_abc.py:2118
 msgid "Maximum number of repeats to extract:"
 msgstr "Numero massimo delle ripetizioni da estrarre:"
 
-#: easy_abc.py:2079
+#: easy_abc.py:2119
 msgid "Maximum number of titles/subtitles to extract:"
 msgstr "Numero massimo dei titoli/sottotitoli da estrarre:"
 
-#: easy_abc.py:2080
+#: easy_abc.py:2120
 msgid "Fields to sort by (eg. T):"
 msgstr "Ordina per (es. T):"
 
-#: easy_abc.py:2081
+#: easy_abc.py:2121
 msgid "Number of rows per column:"
 msgstr "Numero di righe per colonna:"
 
-#: easy_abc.py:2086
+#: easy_abc.py:2126
 msgid "&Two column output"
 msgstr "&Due colonne"
 
-#: easy_abc.py:2106 easy_abc.py:2970 easy_abc.py:3815 easy_abc.py:3879
+#: easy_abc.py:2146 easy_abc.py:3010 easy_abc.py:3855 easy_abc.py:3919
 msgid "&Cancel"
 msgstr "&Annulla"
 
-#: easy_abc.py:2162
+#: easy_abc.py:2202
 #, fuzzy
 msgid "Abc settings"
 msgstr "Parametri ABC"
 
-#: easy_abc.py:2174
+#: easy_abc.py:2214
 msgid "Abcm2ps"
 msgstr ""
 
-#: easy_abc.py:2176
+#: easy_abc.py:2216
 msgid "Abc2midi"
 msgstr ""
 
-#: easy_abc.py:2178
+#: easy_abc.py:2218
 msgid "Voices"
 msgstr ""
 
-#: easy_abc.py:2179 easy_abc.py:5969 easy_abc.py:6583
+#: easy_abc.py:2219 easy_abc.py:6034 easy_abc.py:6656
 msgid "MusicXML"
 msgstr "MusicXML"
 
-#: easy_abc.py:2180
+#: easy_abc.py:2220
 #, fuzzy
 msgid "File Settings"
 msgstr "&Preferenze"
 
-#: easy_abc.py:2181
+#: easy_abc.py:2221
 msgid "Colors"
 msgstr ""
 
-#: easy_abc.py:2211
+#: easy_abc.py:2251
 msgid "abcm2ps executable:"
 msgstr "Eseguibile abcm2ps:"
 
-#: easy_abc.py:2211
+#: easy_abc.py:2251
 msgid "This executable is used to display the music"
 msgstr ""
 
-#: easy_abc.py:2212
+#: easy_abc.py:2252
 msgid "abc2midi executable:"
 msgstr "Eseguibile abc2midi:"
 
-#: easy_abc.py:2212
+#: easy_abc.py:2252
 msgid "This executable is used to make the midi file"
 msgstr ""
 
-#: easy_abc.py:2213
+#: easy_abc.py:2253
 msgid "abc2abc executable:"
 msgstr "Eseguibile abc2abc:"
 
-#: easy_abc.py:2213
+#: easy_abc.py:2253
 msgid "This executable is used to transpose the music"
 msgstr ""
 
-#: easy_abc.py:2215
+#: easy_abc.py:2255
 #, fuzzy
 msgid "midi2abc executable:"
 msgstr "Eseguibile abc2abc:"
 
-#: easy_abc.py:2215
+#: easy_abc.py:2255
 msgid "This executable is used to disassemble the output midi file"
 msgstr ""
 
-#: easy_abc.py:2216
+#: easy_abc.py:2256
 msgid "ghostscript executable:"
 msgstr "Eseguibile ghostscript:"
 
-#: easy_abc.py:2216
+#: easy_abc.py:2256
 msgid "This executable is used to create PDF files"
 msgstr ""
 
-#: easy_abc.py:2217
+#: easy_abc.py:2257
 msgid "nwc2xml executable:"
 msgstr "Eseguibile nwc2xml:"
 
-#: easy_abc.py:2217
+#: easy_abc.py:2257
 #, fuzzy
 msgid "For NoteWorthy Composer - Windows only"
 msgstr "File NoteWorthy Composer"
 
-#: easy_abc.py:2218
+#: easy_abc.py:2258
 #, fuzzy
 msgid "ffmpeg executable:"
 msgstr "Eseguibile abcm2ps:"
 
-#: easy_abc.py:2218
+#: easy_abc.py:2258
 msgid "This executable is used to convert music to compressed formats"
 msgstr ""
 
-#: easy_abc.py:2219
+#: easy_abc.py:2259
 msgid "midiplayer:"
 msgstr "Player MIDI:"
 
-#: easy_abc.py:2219
+#: easy_abc.py:2259
 msgid "Your preferred MIDI player"
 msgstr ""
 
-#: easy_abc.py:2220
+#: easy_abc.py:2260
 msgid "SoundFont:"
 msgstr ""
 
-#: easy_abc.py:2220
+#: easy_abc.py:2260
 msgid "Your preferred SoundFont (.sf2)"
 msgstr ""
 
-#: easy_abc.py:2231 easy_abc.py:2295
+#: easy_abc.py:2271 easy_abc.py:2335
 msgid "File paths to required executables"
 msgstr ""
 
-#: easy_abc.py:2259 easy_abc.py:2387
+#: easy_abc.py:2299 easy_abc.py:2427
 msgid "[default]"
 msgstr ""
 
-#: easy_abc.py:2275
+#: easy_abc.py:2315
 msgid "If empty, reset to default"
 msgstr ""
 
-#: easy_abc.py:2279 easy_abc.py:3050
+#: easy_abc.py:2319 easy_abc.py:3090
 msgid "Browse..."
 msgstr "Sfoglia..."
 
-#: easy_abc.py:2298
+#: easy_abc.py:2338
 msgid "Include file header when rendering tunes"
 msgstr "Includi l'intestazione del file quando intepreta il brano"
 
-#: easy_abc.py:2301
+#: easy_abc.py:2341
 msgid "Extra MIDI player parameters"
 msgstr ""
 
-#: easy_abc.py:2309
+#: easy_abc.py:2349
 #, fuzzy
 msgid "Restore settings"
 msgstr "Parametri ABC"
 
-#: easy_abc.py:2310
+#: easy_abc.py:2350
 msgid ""
 "Restore default file paths to abcm2ps, abc2midi, abc2abc, ghostscript when "
 "blank"
 msgstr ""
 
-#: easy_abc.py:2343
+#: easy_abc.py:2383
 msgid "Choose a file"
 msgstr "Scegli un file"
 
-#: easy_abc.py:2438
+#: easy_abc.py:2478
 msgid ""
 "This button will restore some of the paths to the executables (abcmp2s, "
 "abc2midi, etc.) to their defaults. In order that the program knows which "
@@ -1885,111 +1885,111 @@ msgid ""
 "to delete. If this was not done, click Cancel first and then try again."
 msgstr ""
 
-#: easy_abc.py:2442 easy_abc.py:3295 easy_abc.py:7342
+#: easy_abc.py:2482 easy_abc.py:3335 easy_abc.py:7418
 msgid "Proceed?"
 msgstr ""
 
-#: easy_abc.py:2521
+#: easy_abc.py:2561
 #, fuzzy
 msgid "Ignore Dynamics"
 msgstr "Dinamiche"
 
-#: easy_abc.py:2522
+#: easy_abc.py:2562
 msgid "Ignore Fermatas"
 msgstr ""
 
-#: easy_abc.py:2523
+#: easy_abc.py:2563
 msgid "No Grace Notes"
 msgstr ""
 
-#: easy_abc.py:2524
+#: easy_abc.py:2564
 msgid "Barfly Mode"
 msgstr ""
 
-#: easy_abc.py:2525
+#: easy_abc.py:2565
 msgid "Count in"
 msgstr ""
 
-#: easy_abc.py:2528
+#: easy_abc.py:2568
 msgid "gchord pattern"
 msgstr ""
 
-#: easy_abc.py:2536
+#: easy_abc.py:2576
 #, fuzzy
 msgid "Instrument for playback"
 msgstr "Strumenti predefiniti per la riproduzione:"
 
-#: easy_abc.py:2540
+#: easy_abc.py:2580
 #, fuzzy
 msgid "Instrument for chord's playback"
 msgstr "Strumenti predefiniti per la riproduzione degli accordi:"
 
-#: easy_abc.py:2544
+#: easy_abc.py:2584
 #, fuzzy
 msgid "Instrument for bass chord's playback"
 msgstr "Strumenti predefiniti per la riproduzione del basso degli accordi:"
 
-#: easy_abc.py:2550
+#: easy_abc.py:2590
 msgid "Default Tempo"
 msgstr ""
 
-#: easy_abc.py:2553
+#: easy_abc.py:2593
 #, fuzzy
 msgid "Transposition"
 msgstr "&Trasponi"
 
-#: easy_abc.py:2556
+#: easy_abc.py:2596
 msgid "Tuning"
 msgstr ""
 
-#: easy_abc.py:2591
+#: easy_abc.py:2631
 #, fuzzy
 msgid "Quarter notes per minute"
 msgstr "Battute per minuto"
 
-#: easy_abc.py:2592
+#: easy_abc.py:2632
 msgid "Volume level for chordal accompaniment"
 msgstr ""
 
-#: easy_abc.py:2593
+#: easy_abc.py:2633
 msgid "Volume level for bass accompaniment"
 msgstr ""
 
-#: easy_abc.py:2594
+#: easy_abc.py:2634
 msgid ""
 "The Barfly stress model is enabled provided the rhythm designator (R:) is "
 "recognized"
 msgstr ""
 
-#: easy_abc.py:2595
+#: easy_abc.py:2635
 msgid "Dynamic markings like ff mp pp etc. are ignored if enabled"
 msgstr ""
 
-#: easy_abc.py:2596
+#: easy_abc.py:2636
 msgid "Fermata markings are ignored if enabled"
 msgstr ""
 
-#: easy_abc.py:2597
+#: easy_abc.py:2637
 msgid "Grace notes are ignored if enabled"
 msgstr ""
 
-#: easy_abc.py:2598
+#: easy_abc.py:2638
 msgid "Transpose by the number of semitones"
 msgstr ""
 
-#: easy_abc.py:2599
+#: easy_abc.py:2639
 msgid "Frequency of A in Hz"
 msgstr ""
 
-#: easy_abc.py:2600
+#: easy_abc.py:2640
 msgid "Two rest bars before music starts"
 msgstr ""
 
-#: easy_abc.py:2601
+#: easy_abc.py:2641
 msgid "Volume of melody line if the tune does not have any voices"
 msgstr ""
 
-#: easy_abc.py:2635
+#: easy_abc.py:2675
 msgid ""
 "f = fundamental\n"
 "c = chord\n"
@@ -2008,262 +2008,262 @@ msgid ""
 "J -> B,"
 msgstr ""
 
-#: easy_abc.py:2755
+#: easy_abc.py:2795
 msgid "Separate defaults per voice"
 msgstr ""
 
-#: easy_abc.py:2760
+#: easy_abc.py:2800
 #, fuzzy
 msgid "Default instrument:"
 msgstr "Strumenti predefiniti:"
 
-#: easy_abc.py:2761
+#: easy_abc.py:2801
 msgid "Main Volume:"
 msgstr "Volume principale:"
 
-#: easy_abc.py:2762
+#: easy_abc.py:2802
 msgid "L/R Balance:"
 msgstr "Bilanciamento S/D:"
 
-#: easy_abc.py:2792
+#: easy_abc.py:2832
 #, fuzzy, python-format
 msgid "Voice n.%d: "
 msgstr "Voce n.%d:"
 
-#: easy_abc.py:2815
+#: easy_abc.py:2855
 msgid "&Reset"
 msgstr "&Reimposta"
 
-#: easy_abc.py:2829
+#: easy_abc.py:2869
 msgid ""
 "The instrument for all voices is set to the default midi program. The volume "
 "and pan are set to 96/64."
 msgstr ""
 
-#: easy_abc.py:2923
+#: easy_abc.py:2963
 msgid "Midi device settings"
 msgstr "Parametri della periferica midi"
 
-#: easy_abc.py:2928
+#: easy_abc.py:2968
 msgid "Input device"
 msgstr "Periferica di input"
 
-#: easy_abc.py:2929
+#: easy_abc.py:2969
 msgid "Output device"
 msgstr "Periferica di output"
 
-#: easy_abc.py:3014
+#: easy_abc.py:3054
 msgid ""
 "The options in this page controls how the music score is displayed.\n"
 "\n"
 msgstr ""
 
-#: easy_abc.py:3017
+#: easy_abc.py:3057
 #, fuzzy
 msgid "No page settings"
 msgstr "Parametri ABC"
 
-#: easy_abc.py:3018
+#: easy_abc.py:3058
 #, fuzzy
 msgid "EasyABC defaults"
 msgstr "Aiuto &EasyABC"
 
-#: easy_abc.py:3019
+#: easy_abc.py:3059
 msgid "Include bar numbers"
 msgstr ""
 
-#: easy_abc.py:3020
+#: easy_abc.py:3060
 msgid "Add X reference number"
 msgstr ""
 
-#: easy_abc.py:3021
+#: easy_abc.py:3061
 msgid "Suppress lyrics"
 msgstr ""
 
-#: easy_abc.py:3022
+#: easy_abc.py:3062
 msgid "Ignore line ends"
 msgstr ""
 
-#: easy_abc.py:3023
+#: easy_abc.py:3063
 msgid "Left margin (cm)"
 msgstr ""
 
-#: easy_abc.py:3024
+#: easy_abc.py:3064
 msgid "Right margin (cm)"
 msgstr ""
 
-#: easy_abc.py:3025
+#: easy_abc.py:3065
 msgid "Top margin (cm)"
 msgstr ""
 
-#: easy_abc.py:3026
+#: easy_abc.py:3066
 msgid "Bottom margin (cm)"
 msgstr ""
 
-#: easy_abc.py:3028
+#: easy_abc.py:3068
 msgid "Page width (cm)"
 msgstr ""
 
-#: easy_abc.py:3029
+#: easy_abc.py:3069
 msgid "Page height (cm)"
 msgstr ""
 
-#: easy_abc.py:3031
+#: easy_abc.py:3071
 msgid "Scale factor (eg. 0.8)"
 msgstr ""
 
-#: easy_abc.py:3039
+#: easy_abc.py:3079
 msgid "Extra parameters"
 msgstr ""
 
-#: easy_abc.py:3041
+#: easy_abc.py:3081
 #, fuzzy
 msgid "Format file"
 msgstr "File di formato abcm2ps:"
 
-#: easy_abc.py:3060 easy_abc.py:3061 easy_abc.py:3062 easy_abc.py:3063
-#: easy_abc.py:3064 easy_abc.py:3065
+#: easy_abc.py:3100 easy_abc.py:3101 easy_abc.py:3102 easy_abc.py:3103
+#: easy_abc.py:3104 easy_abc.py:3105
 #, python-brace-format
 msgid "The default is {0}"
 msgstr ""
 
-#: easy_abc.py:3066
+#: easy_abc.py:3106
 msgid "Additional command line parameters to abcm2ps"
 msgstr "Parametri addizionali alla linea di comando per abcm2ps"
 
-#: easy_abc.py:3067
+#: easy_abc.py:3107
 msgid "Right click the mouse to remove all choices"
 msgstr ""
 
-#: easy_abc.py:3077
+#: easy_abc.py:3117
 msgid "Use the factory page settings of EasyABC"
 msgstr ""
 
-#: easy_abc.py:3079
+#: easy_abc.py:3119
 msgid "Do not add page settings"
 msgstr ""
 
-#: easy_abc.py:3122
+#: easy_abc.py:3162
 #, python-brace-format
 msgid "Scales the separation between staff lines. Recommended value is {0}."
 msgstr ""
 
-#: easy_abc.py:3295
+#: easy_abc.py:3335
 msgid "This will remove the selections in the combobox."
 msgstr ""
 
-#: easy_abc.py:3312
+#: easy_abc.py:3352
 msgid "Find PostScript format file"
 msgstr ""
 
-#: easy_abc.py:3346
+#: easy_abc.py:3386
 msgid "Configure colors for:"
 msgstr ""
 
-#: easy_abc.py:3347
+#: easy_abc.py:3387
 msgid "Light Mode"
 msgstr ""
 
-#: easy_abc.py:3348
+#: easy_abc.py:3388
 msgid "Dark Mode"
 msgstr ""
 
-#: easy_abc.py:3362
+#: easy_abc.py:3402
 msgid "Colors for note highlighting in music score"
 msgstr ""
 
-#: easy_abc.py:3363
+#: easy_abc.py:3403
 msgid "Colors of ABC code highlighting in editor"
 msgstr ""
 
-#: easy_abc.py:3373
+#: easy_abc.py:3413
 msgid "Note highlight color"
 msgstr ""
 
-#: easy_abc.py:3380
+#: easy_abc.py:3420
 msgid "Note highlight color when follow score"
 msgstr ""
 
-#: easy_abc.py:3395
+#: easy_abc.py:3435
 msgid "Keep music score in warm light mode"
 msgstr ""
 
-#: easy_abc.py:3398
+#: easy_abc.py:3438
 msgid "Custom background:"
 msgstr ""
 
-#: easy_abc.py:3412
+#: easy_abc.py:3452
 msgid "Default color"
 msgstr ""
 
-#: easy_abc.py:3413
+#: easy_abc.py:3453
 #, fuzzy
 msgid "Color of chords"
 msgstr "Suona gli accordi"
 
-#: easy_abc.py:3414
+#: easy_abc.py:3454
 msgid "Color of bars"
 msgstr ""
 
-#: easy_abc.py:3415
+#: easy_abc.py:3455
 msgid "Color of comment"
 msgstr ""
 
-#: easy_abc.py:3416
+#: easy_abc.py:3456
 msgid "Color of instructions/commands"
 msgstr ""
 
-#: easy_abc.py:3417
+#: easy_abc.py:3457
 msgid "Color of field index"
 msgstr ""
 
-#: easy_abc.py:3418
+#: easy_abc.py:3458
 msgid "Color of ABC fields"
 msgstr ""
 
-#: easy_abc.py:3419
+#: easy_abc.py:3459
 msgid "Color of ABC fields value"
 msgstr ""
 
-#: easy_abc.py:3420
+#: easy_abc.py:3460
 msgid "Color of embedded ABC fields"
 msgstr ""
 
-#: easy_abc.py:3421
+#: easy_abc.py:3461
 msgid "Color of embedded ABC fields values"
 msgstr ""
 
-#: easy_abc.py:3422
+#: easy_abc.py:3462
 msgid "Color of string"
 msgstr ""
 
-#: easy_abc.py:3423
+#: easy_abc.py:3463
 msgid "Color of lyrics"
 msgstr ""
 
-#: easy_abc.py:3424
+#: easy_abc.py:3464
 #, fuzzy
 msgid "Color of ornament"
 msgstr "Ornamenti della nota"
 
-#: easy_abc.py:3425
+#: easy_abc.py:3465
 #, fuzzy
 msgid "Color of ornament plus"
 msgstr "Ornamenti della nota"
 
-#: easy_abc.py:3426
+#: easy_abc.py:3466
 msgid "Color of ornament excl"
 msgstr ""
 
-#: easy_abc.py:3427
+#: easy_abc.py:3467
 msgid "Color of grace notes"
 msgstr ""
 
-#: easy_abc.py:3457
+#: easy_abc.py:3497
 msgid "Restore default colors"
 msgstr ""
 
-#: easy_abc.py:3647
+#: easy_abc.py:3687
 msgid ""
 "The settings on this page control behaviour of the functions abc2xml and "
 "xml2abc.\n"
@@ -2273,72 +2273,72 @@ msgid ""
 "Further documentation can be found from the Wim Vree's web site.\n"
 msgstr ""
 
-#: easy_abc.py:3650
+#: easy_abc.py:3690
 msgid "abc2xml options"
 msgstr ""
 
-#: easy_abc.py:3651
+#: easy_abc.py:3691
 msgid "Compressed xml"
 msgstr ""
 
-#: easy_abc.py:3652
+#: easy_abc.py:3692
 msgid "xml2abc option"
 msgstr ""
 
-#: easy_abc.py:3653
+#: easy_abc.py:3693
 msgid "Unfold Repeats"
 msgstr ""
 
-#: easy_abc.py:3654
+#: easy_abc.py:3694
 msgid "Midi Data"
 msgstr ""
 
-#: easy_abc.py:3655
+#: easy_abc.py:3695
 msgid "Volta type setting"
 msgstr ""
 
-#: easy_abc.py:3656
+#: easy_abc.py:3696
 msgid "characters/line"
 msgstr ""
 
-#: easy_abc.py:3657
+#: easy_abc.py:3697
 #, fuzzy
 msgid "bars per line"
 msgstr "Battute per linea"
 
-#: easy_abc.py:3658
+#: easy_abc.py:3698
 #, fuzzy
 msgid "credit filter"
 msgstr "File MIDI"
 
-#: easy_abc.py:3659
+#: easy_abc.py:3699
 #, fuzzy
 msgid "unit length"
 msgstr "L: Durata standard della nota"
 
-#: easy_abc.py:3660
+#: easy_abc.py:3700
 #, fuzzy
 msgid "Page settings"
 msgstr "Parametri ABC"
 
-#: easy_abc.py:3684
+#: easy_abc.py:3724
 msgid "When checked, abc2xml produces compressed xml files with extension mxl."
 msgstr ""
 
-#: easy_abc.py:3686
+#: easy_abc.py:3726
 msgid ""
 "When checked, xml2abc turns off repeat translation and instead unfolds "
 "simple repeats."
 msgstr ""
 
-#: easy_abc.py:3688
+#: easy_abc.py:3728
 msgid ""
 "When checked, xml2abc outputs commands for midi volume and panning and the "
 "channel number. These commands are output in addition to the midi program "
 "number when it is present in the xml file."
 msgstr ""
 
-#: easy_abc.py:3690
+#: easy_abc.py:3730
 msgid ""
 "The page format includes 6 numbers, eg. 0.7,25,15,1.2,1.2,1.2,1.2 which sets "
 "the scale to 0.7, the page height to 25 cm, the page width to 15 cm, and "
@@ -2346,32 +2346,32 @@ msgid ""
 "default values are assumed."
 msgstr ""
 
-#: easy_abc.py:3692
+#: easy_abc.py:3732
 msgid ""
 "Unless CPL is 0, it sets the maximum length for ABC output to CPL "
 "characters. The default is 100 characters. An integer number of bars, at "
 "least one, is always output."
 msgstr ""
 
-#: easy_abc.py:3694
+#: easy_abc.py:3734
 msgid ""
 "When not zero, BPL sets the number of bars per line. If both CPL and BPL is "
 "given, only CPL is used."
 msgstr ""
 
-#: easy_abc.py:3696
+#: easy_abc.py:3736
 msgid ""
 "This filter tries to eliminate redundant T: fields. A higher level (up to 6) "
 "does less filtering. The default is 0 which filters as much as possible."
 msgstr ""
 
-#: easy_abc.py:3698
+#: easy_abc.py:3738
 msgid ""
 "Unless D is 0, it sets the unit length for the output to abc field command "
 "L: 1/D. This overrides the computation of the optimal unit length."
 msgstr ""
 
-#: easy_abc.py:3700
+#: easy_abc.py:3740
 #, python-format
 msgid ""
 "The default (V=0) translates volta brackets in all voices. V=1 prevents "
@@ -2383,416 +2383,416 @@ msgid ""
 "suited for abc2midi."
 msgstr ""
 
-#: easy_abc.py:3791
+#: easy_abc.py:3831
 msgid "ABC Options"
 msgstr "Opzioni ABC"
 
-#: easy_abc.py:3797 easy_abc.py:5430
+#: easy_abc.py:3837 easy_abc.py:5472
 msgid "Metre"
 msgstr "Misura"
 
-#: easy_abc.py:3798
+#: easy_abc.py:3838
 #, fuzzy
 msgid "Default note length"
 msgstr "L: Durata standard della nota"
 
-#: easy_abc.py:3799 easy_abc.py:3992 easy_abc.py:4488
+#: easy_abc.py:3839 easy_abc.py:4032 easy_abc.py:4530
 msgid "Title"
 msgstr "Titolo"
 
-#: easy_abc.py:3800
+#: easy_abc.py:3840
 msgid "Bars per line"
 msgstr "Battute per linea"
 
-#: easy_abc.py:3801
+#: easy_abc.py:3841
 msgid "Numbers of notes in anacrusis"
 msgstr "Numero di note in anacrusi"
 
-#: easy_abc.py:3809
+#: easy_abc.py:3849
 msgid "Detect triplets"
 msgstr "Rileva le terzine"
 
-#: easy_abc.py:3810
+#: easy_abc.py:3850
 msgid "Detect broken rythms"
 msgstr "Rileva le note puntate"
 
-#: easy_abc.py:3811
+#: easy_abc.py:3851
 msgid "Use slurs on triplets"
 msgstr "Usa la legatura d'espressione sulla tripletta"
 
-#: easy_abc.py:3812
+#: easy_abc.py:3852
 msgid "Use slurs on eights (useful for some waltzes)"
 msgstr "Usa la legatura d'espressione sulle ottave (utile per alcuni valzer)"
 
-#: easy_abc.py:3813
+#: easy_abc.py:3853
 msgid "Use slurs on first pair of sixteenth (useful for some 16th polskas)"
 msgstr ""
 "Usa la legatura d'espressione sulla prima coppia di sedicesimi (utile per "
 "alcune polska)"
 
-#: easy_abc.py:3868
+#: easy_abc.py:3908
 #, fuzzy
 msgid "Errors"
 msgstr "Errore"
 
-#: easy_abc.py:3917
+#: easy_abc.py:3957
 msgid "Converting..."
 msgstr "Conversione..."
 
-#: easy_abc.py:3985
+#: easy_abc.py:4025
 #, fuzzy
 msgid "Find what"
 msgstr "Trova"
 
-#: easy_abc.py:3992
+#: easy_abc.py:4032
 msgid "Lyrics"
 msgstr ""
 
-#: easy_abc.py:4000
+#: easy_abc.py:4040
 #, fuzzy
 msgid "Sort by title"
 msgstr "Ordina i brani"
 
-#: easy_abc.py:4005
+#: easy_abc.py:4045
 msgid "Look in"
 msgstr ""
 
-#: easy_abc.py:4016
+#: easy_abc.py:4056
 #, fuzzy
 msgid "Cancel"
 msgstr "&Annulla"
 
-#: easy_abc.py:4018
+#: easy_abc.py:4058
 #, fuzzy
 msgid "Find All"
 msgstr "Trova"
 
-#: easy_abc.py:4041
+#: easy_abc.py:4081
 #, fuzzy
 msgid "When selecting"
 msgstr "Cancella la selezione"
 
-#: easy_abc.py:4041
+#: easy_abc.py:4081
 #, fuzzy
 msgid "Open file"
 msgstr "Apri un file ABC"
 
-#: easy_abc.py:4041
+#: easy_abc.py:4081
 msgid "Copy tune to editor"
 msgstr ""
 
-#: easy_abc.py:4104
+#: easy_abc.py:4144
 msgid "Open"
 msgstr ""
 
-#: easy_abc.py:4113
+#: easy_abc.py:4153
 msgid "Invalid path"
 msgstr ""
 
-#: easy_abc.py:4113
+#: easy_abc.py:4153
 msgid "Please enter a valid path to start looking for ABC-files."
 msgstr ""
 
-#: easy_abc.py:4137
+#: easy_abc.py:4177
 #, python-brace-format
 msgid "Found {0} results"
 msgstr ""
 
-#: easy_abc.py:4216
+#: easy_abc.py:4256
 #, python-brace-format
 msgid "Next {0} results"
 msgstr ""
 
-#: easy_abc.py:4487
+#: easy_abc.py:4529
 msgid "No."
 msgstr "No."
 
-#: easy_abc.py:4510 easy_abc.py:9352
+#: easy_abc.py:4552 easy_abc.py:9436
 msgid "ABC errors"
 msgstr "Errore ABC"
 
-#: easy_abc.py:4517 easy_abc.py:5460 easy_abc.py:5461 easy_abc.py:5462
-#: easy_abc.py:9353
+#: easy_abc.py:4559 easy_abc.py:5502 easy_abc.py:5503 easy_abc.py:5504
+#: easy_abc.py:9437
 #, fuzzy
 msgid "ABC assist"
 msgstr "Parametri ABC"
 
-#: easy_abc.py:4521 easy_abc.py:9350
+#: easy_abc.py:4563 easy_abc.py:9434
 msgid "Tune list"
 msgstr "Lista dei brani"
 
-#: easy_abc.py:4522 easy_abc.py:9349
+#: easy_abc.py:4564 easy_abc.py:9433
 msgid "ABC code"
 msgstr "Codice ABC"
 
-#: easy_abc.py:4523 easy_abc.py:9351
+#: easy_abc.py:4565 easy_abc.py:9435
 msgid "Musical score"
 msgstr "Spartito"
 
-#: easy_abc.py:4621
+#: easy_abc.py:4663
 msgid "This is the status bar. Check it occasionally."
 msgstr ""
 
-#: easy_abc.py:4622
+#: easy_abc.py:4664
 #, python-brace-format
 msgid "You are running {0} on {1}"
 msgstr ""
 
-#: easy_abc.py:4623
+#: easy_abc.py:4665
 msgid "You can get the latest version on"
 msgstr ""
 
-#: easy_abc.py:4867
+#: easy_abc.py:4909
 msgid "EasyABC - print preview"
 msgstr "EasyABC - Anteprima di stampa"
 
-#: easy_abc.py:4879
+#: easy_abc.py:4921
 msgid ""
 "There was a problem printing.\n"
 "Perhaps your current printer is not set correctly?"
 msgstr ""
 
-#: easy_abc.py:4879
+#: easy_abc.py:4921
 msgid "Printing"
 msgstr ""
 
-#: easy_abc.py:5180
+#: easy_abc.py:5222
 #, python-format
 msgid "Unable to load %s: Unsupported format?"
 msgstr "Impossibile caricare %s : Formato non supportato?"
 
-#: easy_abc.py:5429
+#: easy_abc.py:5471
 msgid "Beats per minute"
 msgstr "Battute per minuto"
 
-#: easy_abc.py:5475
+#: easy_abc.py:5517
 #, fuzzy
 msgid "Zoom"
 msgstr "Zoom:"
 
-#: easy_abc.py:5482
+#: easy_abc.py:5524
 msgid "Page"
 msgstr "Pagina"
 
-#: easy_abc.py:5490
+#: easy_abc.py:5532
 #, fuzzy
 msgid "Play position"
 msgstr "Posizione nel brano:"
 
-#: easy_abc.py:5492
+#: easy_abc.py:5534
 msgid "Loop"
 msgstr ""
 
-#: easy_abc.py:5495
+#: easy_abc.py:5537
 msgid "Follow score"
 msgstr ""
 
-#: easy_abc.py:5564 easy_abc.py:6881
+#: easy_abc.py:5606 easy_abc.py:6954
 msgid "&Do-re-mi mode"
 msgstr "Modalità &Do-re-mi"
 
-#: easy_abc.py:5699
+#: easy_abc.py:5741
 msgid "incipits"
 msgstr "incipit"
 
-#: easy_abc.py:5724 easy_abc.py:6540
+#: easy_abc.py:5766 easy_abc.py:6613
 msgid "Error: there was some trouble saving the file."
 msgstr "Errore: c'è stato un problema nel salvare il file."
 
-#: easy_abc.py:5724 easy_abc.py:6540
+#: easy_abc.py:5766 easy_abc.py:6613
 msgid "File could not be saved properly"
 msgstr "Il file non può essere salvato correttamente"
 
-#: easy_abc.py:5730
+#: easy_abc.py:5772
 msgid "Which field(s) do you want to sort the tunes by? (eg. T for title)"
 msgstr ""
 "Quale/i campo/i vuoi utilizzare per selezionare i brani? (es. T - selezione "
 "per titolo)"
 
-#: easy_abc.py:5730
+#: easy_abc.py:5772
 msgid "Sort tunes"
 msgstr "Ordina i brani"
 
-#: easy_abc.py:5743
+#: easy_abc.py:5785
 #, fuzzy
 msgid "Please specify the index of the first tune: "
 msgstr "Indicare l'indice del primo brano:"
 
-#: easy_abc.py:5743
+#: easy_abc.py:5785
 msgid "Renumber X: fields"
 msgstr "Rinumera i campi X:"
 
-#: easy_abc.py:5773 easy_abc.py:6989
+#: easy_abc.py:5815 easy_abc.py:7062
 #, fuzzy
 msgid "Find in Files"
 msgstr "Trova player MIDI"
 
-#: easy_abc.py:5815 easy_abc.py:5819 easy_abc.py:6582
+#: easy_abc.py:5857 easy_abc.py:5861 easy_abc.py:6655
 msgid "Midi file"
 msgstr "File MIDI"
 
-#: easy_abc.py:5837
+#: easy_abc.py:5879
 #, fuzzy
 msgid "MP3 file"
 msgstr "File MIDI"
 
-#: easy_abc.py:5843
+#: easy_abc.py:5885
 #, fuzzy
 msgid "AAC file"
 msgstr "File ABC"
 
-#: easy_abc.py:5849
+#: easy_abc.py:5891
 #, fuzzy
 msgid "Wave file"
 msgstr "Salva il file ABC %s"
 
-#: easy_abc.py:5854
+#: easy_abc.py:5896
 msgid ""
 "Both the FluidSynth library and a valid SoundFont (see menu Settings -> ABC "
 "Settings -> File settings) are required for exporting to a wave file."
 msgstr ""
 
-#: easy_abc.py:5855
+#: easy_abc.py:5897
 msgid "Unable to export"
 msgstr ""
 
-#: easy_abc.py:5865
+#: easy_abc.py:5907
 #, python-brace-format
 msgid "Failed to create {0}"
 msgstr ""
 
-#: easy_abc.py:5904
+#: easy_abc.py:5946
 msgid "ffmpeg was not found here. Go to settings and indicate the path"
 msgstr ""
 
-#: easy_abc.py:5904 easy_abc.py:5934 easy_abc.py:5938 easy_abc.py:9400
-#: easy_abc.py:9411 easy_abc.py:9423 easy_abc.py:9435 easy_abc.py:9444
-#: easy_abc.py:9475
+#: easy_abc.py:5946 easy_abc.py:5987 easy_abc.py:5991 easy_abc.py:9484
+#: easy_abc.py:9495 easy_abc.py:9507 easy_abc.py:9519 easy_abc.py:9528
+#: easy_abc.py:9559
 msgid "Warning"
 msgstr ""
 
-#: easy_abc.py:5934
+#: easy_abc.py:5987
 msgid ""
 "EasyABC needs an external program called GhostScript to generate PDFs. You "
 "can get it from https://www.ghostscript.com/download/ or on macOS from "
 "https://pages.uoregon.edu/koch/ or with homebrew"
 msgstr ""
 
-#: easy_abc.py:5938
+#: easy_abc.py:5991
 msgid "ghostscript was not found here. Go to settings and indicate the path"
 msgstr ""
 
-#: easy_abc.py:5942
+#: easy_abc.py:6004 easy_abc.py:6007
 #, fuzzy
 msgid "PDF file"
 msgstr "File ABC"
 
-#: easy_abc.py:5945
+#: easy_abc.py:6010
 #, fuzzy
 msgid "SVG file"
 msgstr "File ABC"
 
-#: easy_abc.py:5972
+#: easy_abc.py:6037
 msgid "Compressed MusicXML"
 msgstr ""
 
-#: easy_abc.py:5987
+#: easy_abc.py:6052
 #, fuzzy, python-brace-format
 msgid "Error during conversion of X:{0} (\"{1}\"): {2}"
 msgstr "Errore nella conversione di %(filename): %(error)"
 
-#: easy_abc.py:5998 easy_abc.py:6067 easy_abc.py:6070
+#: easy_abc.py:6063 easy_abc.py:6132 easy_abc.py:6135
 #, fuzzy
 msgid "HTML file"
 msgstr "File MIDI"
 
-#: easy_abc.py:6001
+#: easy_abc.py:6066
 msgid "HTML file (interactive)"
 msgstr ""
 
-#: easy_abc.py:6082
+#: easy_abc.py:6147
 msgid "Export all tunes as ..."
 msgstr "Esporta tutti i brani come..."
 
-#: easy_abc.py:6082
+#: easy_abc.py:6147
 msgid "Epub file"
 msgstr ""
 
-#: easy_abc.py:6143 easy_abc.py:6564 easy_abc.py:6581 easy_abc.py:6736
+#: easy_abc.py:6216 easy_abc.py:6637 easy_abc.py:6654 easy_abc.py:6809
 msgid "ABC file"
 msgstr "File ABC"
 
-#: easy_abc.py:6165
+#: easy_abc.py:6238
 msgid "Export tune as ..."
 msgstr "Esporta il brano come..."
 
-#: easy_abc.py:6177
+#: easy_abc.py:6250
 #, python-brace-format
 msgid "{0} was written"
 msgstr ""
 
-#: easy_abc.py:6221
+#: easy_abc.py:6294
 #, fuzzy
 msgid "Choose a directory..."
 msgstr "Scegli una directory..."
 
-#: easy_abc.py:6233
+#: easy_abc.py:6306
 #, python-brace-format
 msgid "{0} files to create"
 msgstr ""
 
-#: easy_abc.py:6239
+#: easy_abc.py:6312
 #, fuzzy
 msgid "Exporting"
 msgstr "&Esporta tutto"
 
-#: easy_abc.py:6239
+#: easy_abc.py:6312
 msgid "Remaining time"
 msgstr ""
 
-#: easy_abc.py:6263
+#: easy_abc.py:6336
 #, fuzzy
 msgid "Export completed"
 msgstr "&Esporta la selezione"
 
-#: easy_abc.py:6265
+#: easy_abc.py:6338
 #, fuzzy
 msgid "Export failed"
 msgstr "&Esporta tutto"
 
-#: easy_abc.py:6422
+#: easy_abc.py:6495
 msgid ""
 "Looping is not possible when using an external midi player. Empty the "
 "midiplayer path in Settings -> ABC Settings -> File Settings to regain the "
 "looping ability when you double click the play button"
 msgstr ""
 
-#: easy_abc.py:6422
+#: easy_abc.py:6495
 msgid "Looping unavailable"
 msgstr ""
 
-#: easy_abc.py:6565 easy_abc.py:6585
+#: easy_abc.py:6638 easy_abc.py:6658
 msgid "Any file"
 msgstr "Tutti i file"
 
-#: easy_abc.py:6567
+#: easy_abc.py:6640
 msgid "Open ABC file"
 msgstr "Apri un file ABC"
 
-#: easy_abc.py:6580
+#: easy_abc.py:6653
 msgid "Any music file"
 msgstr "Tutti i file musicali"
 
-#: easy_abc.py:6584
+#: easy_abc.py:6657
 #, fuzzy
 msgid "Noteworthy Composer file"
 msgstr "File NoteWorthy Composer"
 
-#: easy_abc.py:6587
+#: easy_abc.py:6660
 msgid "Import and add tune"
 msgstr "Importa e aggiungi un brano"
 
-#: easy_abc.py:6610
+#: easy_abc.py:6683
 msgid ""
 "This ABC file seems to be encoded using UTF-8 but contains no indication of "
 "this fact. It is strongly recommended that an I:abc-charset field is added "
@@ -2804,11 +2804,11 @@ msgstr ""
 "il file e salvare le modifiche senza problemi. Vuoi che EasyABC inserisca "
 "automaticamente questo campo?"
 
-#: easy_abc.py:6612 easy_abc.py:6623
+#: easy_abc.py:6685 easy_abc.py:6696
 msgid "Add abc-charset field?"
 msgstr "Aggiungi un campo abc-charset?"
 
-#: easy_abc.py:6621
+#: easy_abc.py:6694
 #, fuzzy
 msgid ""
 "This ABC file seems not to be encoded using UTF-8 but contains no indication "
@@ -2822,7 +2822,7 @@ msgstr ""
 "il file e salvare le modifiche senza problemi. Vuoi che EasyABC inserisca "
 "automaticamente questo campo?"
 
-#: easy_abc.py:6642
+#: easy_abc.py:6715
 msgid ""
 "Could not find file.\n"
 "It may have been moved or deleted. Choose File,Open to locate it."
@@ -2831,20 +2831,20 @@ msgstr ""
 "Potrebbe essere stato spostato o cancellato. Utilizzare File,Apri per "
 "localizzarlo"
 
-#: easy_abc.py:6642
+#: easy_abc.py:6715
 msgid "File not found"
 msgstr "File non trovato"
 
-#: easy_abc.py:6688
+#: easy_abc.py:6761
 #, python-format
 msgid "Do you want to save your changes to %s?"
 msgstr "Vuoi salvare le modifiche a %s ?"
 
-#: easy_abc.py:6689
+#: easy_abc.py:6762
 msgid "Save changes?"
 msgstr "Salva le modifiche?"
 
-#: easy_abc.py:6715
+#: easy_abc.py:6788
 #, python-format
 msgid ""
 "This document contains characters (eg. %(ABC)s) that cannot be represented "
@@ -2858,200 +2858,200 @@ msgstr ""
 "la sostituzione di alcuni di questi caratteri son il segno ? durante il "
 "salvataggio)."
 
-#: easy_abc.py:6719
+#: easy_abc.py:6792
 msgid "Switch to UTF-8 encoding?"
 msgstr "Passo alla codifica UTF-8?"
 
-#: easy_abc.py:6741
+#: easy_abc.py:6814
 #, python-format
 msgid "Save ABC file %s"
 msgstr "Salva il file ABC %s"
 
-#: easy_abc.py:6749
+#: easy_abc.py:6822
 msgid "The file already exists. Do you want to overwrite the existing file?"
 msgstr "File già esistente. Vuoi sovrascriverlo?"
 
-#: easy_abc.py:6750
+#: easy_abc.py:6823
 msgid "Overwrite existing file?"
 msgstr "Sovrascrivo il file esistente?"
 
-#: easy_abc.py:6773
+#: easy_abc.py:6846
 #, fuzzy
 msgid "abc2abc error/warnings: "
 msgstr "Errore/Avviso di abc2abc:"
 
-#: easy_abc.py:6774
+#: easy_abc.py:6847
 msgid "Abc2abc error message"
 msgstr "Messaggio d'errore di Abc2abc"
 
-#: easy_abc.py:6838
+#: easy_abc.py:6911
 msgid "Move up"
 msgstr ""
 
-#: easy_abc.py:6839
+#: easy_abc.py:6912
 msgid "Move down"
 msgstr ""
 
-#: easy_abc.py:6841
+#: easy_abc.py:6914
 msgid "Copy"
 msgstr ""
 
-#: easy_abc.py:6842
+#: easy_abc.py:6915
 msgid "Export to &MIDI..."
 msgstr "Esporta in formato &MIDI..."
 
-#: easy_abc.py:6843
+#: easy_abc.py:6916
 msgid "Export to &PDF..."
 msgstr "Esporta in formato &PDF..."
 
-#: easy_abc.py:6844
+#: easy_abc.py:6917
 #, fuzzy
 msgid "Export to &one PDF..."
 msgstr "Esporta in formato &PDF..."
 
-#: easy_abc.py:6845
+#: easy_abc.py:6918
 msgid "Export to &SVG..."
 msgstr "Esporta in formato &SVG..."
 
-#: easy_abc.py:6846
+#: easy_abc.py:6919
 #, fuzzy
 msgid "Export to &HTML..."
 msgstr "Esporta in formato &MIDI..."
 
-#: easy_abc.py:6847
+#: easy_abc.py:6920
 #, fuzzy
 msgid "Export to HTML (&interactive)..."
 msgstr "Eksporter til svg (eksperimentelt)..."
 
-#: easy_abc.py:6848
+#: easy_abc.py:6921
 #, fuzzy
 msgid "Export to Music&XML..."
 msgstr "Esporta in formato &MIDI..."
 
-#: easy_abc.py:6849
+#: easy_abc.py:6922
 #, fuzzy
 msgid "Export to &ABC..."
 msgstr "Esporta in formato &PDF..."
 
-#: easy_abc.py:6850
+#: easy_abc.py:6923
 #, fuzzy
 msgid "Export to &Wave..."
 msgstr "Esporta in formato &PDF..."
 
-#: easy_abc.py:6851
+#: easy_abc.py:6924
 #, fuzzy
 msgid "Export to &MP3..."
 msgstr "Esporta in formato &PDF..."
 
-#: easy_abc.py:6852
+#: easy_abc.py:6925
 #, fuzzy
 msgid "Export to &AAC..."
 msgstr "Esporta in formato &PDF..."
 
-#: easy_abc.py:6878
+#: easy_abc.py:6951
 msgid "&Active"
 msgstr "&Attivo"
 
-#: easy_abc.py:6880
+#: easy_abc.py:6953
 msgid "Automatic uppercase/lowercase"
 msgstr "Maiuscolo/minuscolo automatico"
 
-#: easy_abc.py:6882
+#: easy_abc.py:6955
 msgid "Add note &durations"
 msgstr "Aggiungi &durata delle note"
 
-#: easy_abc.py:6885
+#: easy_abc.py:6958
 msgid "Disabled"
 msgstr ""
 
-#: easy_abc.py:6886
+#: easy_abc.py:6959
 msgid "Using spacebar"
 msgstr ""
 
-#: easy_abc.py:6887
+#: easy_abc.py:6960
 msgid "Automatic"
 msgstr ""
 
-#: easy_abc.py:6888
+#: easy_abc.py:6961
 msgid "Add &bar"
 msgstr "Aggiungi una &battuta"
 
-#: easy_abc.py:6890
+#: easy_abc.py:6963
 msgid "Add &matching right symbol: ), ], } and \""
 msgstr "Aggiungi symbolo corrispondente: ), ], } o \""
 
-#: easy_abc.py:6907
+#: easy_abc.py:6980
 #, python-format
 msgid "Down %d semitones"
 msgstr "Abbassa di %d semitoni"
 
-#: easy_abc.py:6911
+#: easy_abc.py:6984
 #, python-format
 msgid "Up %d semitones"
 msgstr "Alza di %d semitoni"
 
-#: easy_abc.py:6914
+#: easy_abc.py:6987
 msgid "&Refresh music"
 msgstr "&Aggiorna la partitura"
 
-#: easy_abc.py:6915
+#: easy_abc.py:6988
 msgid "&Automatically refresh music as I type"
 msgstr "Aggiorna &automaticamente la partitura mentre digiti"
 
-#: easy_abc.py:6917
+#: easy_abc.py:6990
 msgid "&Use reduced margins when displaying tunes on screen"
 msgstr "&Utilizza margini ridotti durante la visualizzazione sullo schermo"
 
-#: easy_abc.py:6918
+#: easy_abc.py:6991
 msgid "&Change editor font..."
 msgstr "&Modifica i font dell'editor..."
 
-#: easy_abc.py:6919
+#: easy_abc.py:6992
 msgid "&Use default editor font"
 msgstr "Utilizza i &font predefiniti"
 
-#: easy_abc.py:6921
+#: easy_abc.py:6994
 msgid "&Reset window layout to default"
 msgstr "&Riporta le finestre alla posizione predefinita"
 
-#: easy_abc.py:6923
+#: easy_abc.py:6996
 msgid "&Full screen"
 msgstr ""
 
-#: easy_abc.py:6930
+#: easy_abc.py:7003
 msgid "&File"
 msgstr "&File"
 
-#: easy_abc.py:6931
+#: easy_abc.py:7004
 msgid "&New"
 msgstr ""
 
-#: easy_abc.py:6931
+#: easy_abc.py:7004
 msgid "Create a new file"
 msgstr "Crea un nuovo file"
 
-#: easy_abc.py:6932
+#: easy_abc.py:7005
 #, fuzzy
 msgid "&Open..."
 msgstr "&Apri...\tCtrl+O"
 
-#: easy_abc.py:6932
+#: easy_abc.py:7005
 msgid "Open an existing file"
 msgstr "Apri un file esistente"
 
-#: easy_abc.py:6933
+#: easy_abc.py:7006
 msgid "&Close"
 msgstr "&Chiudi "
 
-#: easy_abc.py:6933
+#: easy_abc.py:7006
 msgid "Close the current file"
 msgstr "Chiudi il file corrente"
 
-#: easy_abc.py:6935
+#: easy_abc.py:7008
 msgid "&Import and add..."
 msgstr "&Importa e aggiungi..."
 
-#: easy_abc.py:6935
+#: easy_abc.py:7008
 msgid ""
 "Import a song in ABC, Midi or MusicXML format and add it to the current "
 "document."
@@ -3059,425 +3059,420 @@ msgstr ""
 "Importa un brano in formato ABC, Midi o MusicXML e aggiungi al documento "
 "corrente."
 
-#: easy_abc.py:6937
+#: easy_abc.py:7010
 msgid "&Export selected"
 msgstr "&Esporta la selezione"
 
-#: easy_abc.py:6938
+#: easy_abc.py:7011
 msgid "as &PDF..."
 msgstr "come &PDF..."
 
-#: easy_abc.py:6939
+#: easy_abc.py:7012
 #, fuzzy
 msgid "as one &PDF..."
 msgstr "come &PDF..."
 
-#: easy_abc.py:6940 easy_abc.py:6952
+#: easy_abc.py:7013 easy_abc.py:7025
 msgid "as &MIDI..."
 msgstr "come &MIDI..."
 
-#: easy_abc.py:6941
+#: easy_abc.py:7014
 msgid "as &SVG..."
 msgstr "come &SVG..."
 
-#: easy_abc.py:6942 easy_abc.py:6953
+#: easy_abc.py:7015 easy_abc.py:7026
 msgid "as &HTML..."
 msgstr "come &HTML..."
 
-#: easy_abc.py:6943 easy_abc.py:6954
+#: easy_abc.py:7016 easy_abc.py:7027
 msgid "as HTML (&interactive)..."
 msgstr ""
 
-#: easy_abc.py:6944 easy_abc.py:6956
+#: easy_abc.py:7017 easy_abc.py:7029
 #, fuzzy
 msgid "as Music&XML..."
 msgstr "come Music&XML..."
 
-#: easy_abc.py:6945
+#: easy_abc.py:7018
 msgid "as A&BC..."
 msgstr ""
 
-#: easy_abc.py:6946
+#: easy_abc.py:7019
 #, fuzzy
 msgid "as &Wave..."
 msgstr "come &PDF..."
 
-#: easy_abc.py:6947
+#: easy_abc.py:7020
 #, fuzzy
 msgid "as &MP3..."
 msgstr "come &PDF..."
 
-#: easy_abc.py:6948
+#: easy_abc.py:7021
 #, fuzzy
 msgid "as &AAC..."
 msgstr "come &PDF..."
 
-#: easy_abc.py:6949
+#: easy_abc.py:7022
 msgid "Export &all"
 msgstr "&Esporta tutto"
 
-#: easy_abc.py:6950
+#: easy_abc.py:7023
 #, fuzzy
 msgid "as a &PDF Book..."
 msgstr "come &PDF..."
 
-#: easy_abc.py:6951
+#: easy_abc.py:7024
 #, fuzzy
 msgid "as PDF &Files..."
 msgstr "come &file PDF..."
 
-#: easy_abc.py:6958
+#: easy_abc.py:7031
 msgid "&Save"
 msgstr ""
 
-#: easy_abc.py:6958
+#: easy_abc.py:7031
 msgid "Save the active file"
 msgstr "Salva il file attivo"
 
-#: easy_abc.py:6959
+#: easy_abc.py:7032
 #, fuzzy
 msgid "Save &As..."
 msgstr "Salva &Come...\tShift+Ctrl+S"
 
-#: easy_abc.py:6959
+#: easy_abc.py:7032
 msgid "Save the active file with a new filename"
 msgstr "Salva con nome"
 
-#: easy_abc.py:6961
+#: easy_abc.py:7034
 #, fuzzy
 msgid "&Print..."
 msgstr "&Stampa...\tCtrl+P"
 
-#: easy_abc.py:6961
+#: easy_abc.py:7034
 msgid "Print the selected tune"
 msgstr "Stampa il file selezionato"
 
-#: easy_abc.py:6962
+#: easy_abc.py:7035
 #, fuzzy
 msgid "&Print preview"
 msgstr "&Anteprima di stampa\tCtrl+Shift+P"
 
-#: easy_abc.py:6963
+#: easy_abc.py:7036
 msgid "P&age Setup..."
 msgstr "&Impostazioni di pagina..."
 
-#: easy_abc.py:6963
+#: easy_abc.py:7036
 msgid "Change the printer and printing options"
 msgstr "Cambia le impostazioni di stampa"
 
-#: easy_abc.py:6965
+#: easy_abc.py:7038
 msgid "&Recent files"
 msgstr ""
 
-#: easy_abc.py:6967
+#: easy_abc.py:7040
 msgid "&Quit"
 msgstr ""
 
-#: easy_abc.py:6967
+#: easy_abc.py:7040
 msgid "Exit the application (prompt to save files)"
 msgstr "Esce dall'applicazione (chiede di salvare il file)"
 
-#: easy_abc.py:6968
+#: easy_abc.py:7041
 msgid "&Edit"
 msgstr "&Modifica"
 
-#: easy_abc.py:6969
+#: easy_abc.py:7042
 msgid "&Undo"
 msgstr ""
 
-#: easy_abc.py:6969
+#: easy_abc.py:7042
 msgid "Undo the last action"
 msgstr "Annulla l'ultima azione"
 
-#: easy_abc.py:6970
+#: easy_abc.py:7043
 msgid "&Redo"
 msgstr ""
 
-#: easy_abc.py:6970
+#: easy_abc.py:7043
 msgid "Redo the last action"
 msgstr "Ripeti l'ultima azione"
 
-#: easy_abc.py:6972
+#: easy_abc.py:7045
 msgid "&Cut"
 msgstr ""
 
-#: easy_abc.py:6972
+#: easy_abc.py:7045
 msgid "Cut the selection and put it on the clipboard"
 msgstr "Taglia l'area selezionata e inserisci nella clipboard"
 
-#: easy_abc.py:6973
+#: easy_abc.py:7046
 msgid "&Copy"
 msgstr ""
 
-#: easy_abc.py:6973
+#: easy_abc.py:7046
 msgid "Copy the selection and put it on the clipboard"
 msgstr "Copia l'area selezionata e inseriscila nella clipboard"
 
-#: easy_abc.py:6974
+#: easy_abc.py:7047
 #, fuzzy
 msgid "&Paste"
 msgstr "Incol&la\tCtrl+V"
 
-#: easy_abc.py:6974
+#: easy_abc.py:7047
 msgid "Paste clipboard contents"
 msgstr "Incolla il contenuto della clipboard"
 
-#: easy_abc.py:6975
+#: easy_abc.py:7048
 #, fuzzy
 msgid "&Delete"
 msgstr "&Cancella\tDel"
 
-#: easy_abc.py:6975
+#: easy_abc.py:7048
 msgid "Delete the selection"
 msgstr "Cancella la selezione"
 
-#: easy_abc.py:6977
+#: easy_abc.py:7050
 msgid "&Insert musical symbol"
 msgstr "&Inserisci un simbolo musicale"
 
-#: easy_abc.py:6978
+#: easy_abc.py:7051
 msgid "Note ornaments"
 msgstr "Ornamenti della nota"
 
-#: easy_abc.py:6979
+#: easy_abc.py:7052
 msgid "Directions"
 msgstr "Ripetizioni/Abbreviazioni"
 
-#: easy_abc.py:6982
+#: easy_abc.py:7055
 msgid "&Transpose"
 msgstr "&Trasponi"
 
-#: easy_abc.py:6983
+#: easy_abc.py:7056
 msgid "&Change note length"
 msgstr "&Modifica la lunghezza della nota"
 
-#: easy_abc.py:6984
+#: easy_abc.py:7057
 #, fuzzy
 msgid "Double note lengths"
 msgstr "Raddoppia la durata delle note\tCtrl+Shift++"
 
-#: easy_abc.py:6985
+#: easy_abc.py:7058
 #, fuzzy
 msgid "Halve note lengths"
 msgstr "&Modifica la lunghezza della nota"
 
-#: easy_abc.py:6986
+#: easy_abc.py:7059
 #, fuzzy
 msgid "A&lign bars"
 msgstr "A&llinea le battute\tCtrl+Shift+A"
 
-#: easy_abc.py:6988
+#: easy_abc.py:7061
 #, fuzzy
 msgid "&Find..."
 msgstr "C&erca...\tCtrl+F"
 
-#: easy_abc.py:6990
+#: easy_abc.py:7063
 #, fuzzy
 msgid "Find &Next"
 msgstr "Ce&rca il prossimo\tF3"
 
-#: easy_abc.py:6991
+#: easy_abc.py:7064
 #, fuzzy
 msgid "&Replace..."
 msgstr "&Sostituisci...\tCtrl+H"
 
-#: easy_abc.py:6993
+#: easy_abc.py:7066
 #, fuzzy
 msgid "&Select all"
 msgstr "&Seleziona tutto\tCtrl+A"
 
-#: easy_abc.py:6994
+#: easy_abc.py:7067
 msgid "&Settings"
 msgstr "&Preferenze"
 
-#: easy_abc.py:6995
+#: easy_abc.py:7068
 msgid "&ABC settings"
 msgstr "Parametri &ABC"
 
-#: easy_abc.py:6996
+#: easy_abc.py:7069
 msgid "&Midi device settings"
 msgstr "Parametri della periferica &MIDI"
 
-#: easy_abc.py:6997
+#: easy_abc.py:7070
 msgid "ABC &typing assistance"
 msgstr "Aiuto &inserimento ABC"
 
-#: easy_abc.py:6999
+#: easy_abc.py:7072
 #, fuzzy
 msgid "&Clear cache"
 msgstr "Pulisci la cache ?"
 
-#: easy_abc.py:7000
+#: easy_abc.py:7073
 msgid "Cold &restart"
 msgstr "Reimposta tutto"
 
-#: easy_abc.py:7001
+#: easy_abc.py:7074
 msgid "&Tools"
 msgstr "&Strumenti"
 
-#: easy_abc.py:7002
+#: easy_abc.py:7075
 msgid "Generate &incipits file..."
 msgstr "Genera il file degli &incipit..."
 
-#: easy_abc.py:7003
+#: easy_abc.py:7076
 msgid "&View incipits..."
 msgstr "&Mostra gli incipit..."
 
-#: easy_abc.py:7005
+#: easy_abc.py:7078
 msgid "&Renumber X: fields..."
 msgstr "&Rinumera i campi X:..."
 
-#: easy_abc.py:7006
+#: easy_abc.py:7079
 msgid "&Sort tunes..."
 msgstr "&Ordina i brani..."
 
-#: easy_abc.py:7007
+#: easy_abc.py:7080
 msgid "&View"
 msgstr "&Vedi"
 
-#: easy_abc.py:7008
+#: easy_abc.py:7081
 msgid "&Internals"
 msgstr "S&istema"
 
-#: easy_abc.py:7009 easy_abc.py:9607
+#: easy_abc.py:7082 easy_abc.py:9691
 msgid "Messages"
 msgstr "Messaggi"
 
-#: easy_abc.py:7009
+#: easy_abc.py:7082
 msgid "Show warnings and errors"
 msgstr "Mostra messaggi di errore"
 
-#: easy_abc.py:7010
+#: easy_abc.py:7083
 msgid "Input processed tune"
 msgstr "Mostra il brano attuale"
 
-#: easy_abc.py:7011
+#: easy_abc.py:7084
 msgid "List of Tunes"
 msgstr ""
 
-#: easy_abc.py:7012
+#: easy_abc.py:7085
 #, fuzzy
 msgid "Output midi file"
 msgstr "Periferica di output"
 
-#: easy_abc.py:7013
+#: easy_abc.py:7086
 msgid "Show settings status"
 msgstr "Mostra le impostazioni"
 
-#: easy_abc.py:7014
+#: easy_abc.py:7087
 msgid "&Help"
 msgstr "&Aiuto"
 
-#: easy_abc.py:7015
+#: easy_abc.py:7088
 #, fuzzy
 msgid "EasyABC Documentation"
 msgstr "Posizione nel brano:"
 
-#: easy_abc.py:7015
+#: easy_abc.py:7088
 #, fuzzy
 msgid "Open EasyABC offline documentation"
 msgstr "Posizione nel brano:"
 
-#: easy_abc.py:7016
+#: easy_abc.py:7089
 msgid "&Show fields and commands reference"
 msgstr "&Mostra il glossario dei campi e dei comandi ABC"
 
-#: easy_abc.py:7018
+#: easy_abc.py:7091
 msgid "&EasyABC Help"
 msgstr "Aiuto &EasyABC"
 
-#: easy_abc.py:7018
+#: easy_abc.py:7091
 msgid "Link to EasyABC Website"
 msgstr "Link al sito EasyABC"
 
-#: easy_abc.py:7019
+#: easy_abc.py:7092
 msgid "&ABC Standard Version 2.1"
 msgstr "&ABC Standard Versione 2.1"
 
-#: easy_abc.py:7019
+#: easy_abc.py:7092
 msgid "Link to the ABC Standard version 2.1"
 msgstr "Link ad ABC Standard versione 2.1"
 
-#: easy_abc.py:7020
+#: easy_abc.py:7093
 msgid "&Learn ABC"
 msgstr "&Impara ABC"
 
-#: easy_abc.py:7020
+#: easy_abc.py:7093
 msgid "Link to the ABC notation website"
 msgstr "Link al sito della notazione ABC"
 
-#: easy_abc.py:7021
+#: easy_abc.py:7094
 msgid "&Abcm2ps help"
 msgstr ""
 
-#: easy_abc.py:7021
+#: easy_abc.py:7094
 #, fuzzy
 msgid "Link to the Abcm2ps website"
 msgstr "Link al sito della notazione ABC"
 
-#: easy_abc.py:7022
+#: easy_abc.py:7095
 msgid "&Abc2midi help"
 msgstr ""
 
-#: easy_abc.py:7022
+#: easy_abc.py:7095
 #, fuzzy
 msgid "Link to the Abc2midi website"
 msgstr "Link al sito della notazione ABC"
 
-#: easy_abc.py:7023
+#: easy_abc.py:7096
 msgid "ABC &Quick Reference Card"
 msgstr ""
 
-#: easy_abc.py:7023
+#: easy_abc.py:7096
 msgid "Link to a PDF with the most common ABC commands"
 msgstr ""
 
-#: easy_abc.py:7025
+#: easy_abc.py:7098
 msgid "&Check for update..."
 msgstr ""
 
-#: easy_abc.py:7025
+#: easy_abc.py:7098
 #, fuzzy
 msgid "Link to EasyABC download page"
 msgstr "Link al sito EasyABC"
 
-#: easy_abc.py:7027 tune_elements.py:730
-#, fuzzy
-msgid "Welcome to EasyABC"
-msgstr "Informazioni su EasyABC"
-
-#: easy_abc.py:7027
+#: easy_abc.py:7100
 #, fuzzy
 msgid "Show the welcome page of EasyABC"
 msgstr "Informazioni su EasyABC"
 
-#: easy_abc.py:7103
+#: easy_abc.py:7176
 msgid "You need to create the midi file by playing the tune"
 msgstr ""
 
-#: easy_abc.py:7167 easy_abc.py:7244 easy_abc.py:7270
+#: easy_abc.py:7240 easy_abc.py:7317 easy_abc.py:7343
 msgid "Find"
 msgstr "Trova"
 
-#: easy_abc.py:7172
+#: easy_abc.py:7245
 msgid "Find & Replace"
 msgstr "Trova e sostituisci"
 
-#: easy_abc.py:7219
+#: easy_abc.py:7292
 #, python-format
 msgid "%d occurrences successfully replaced."
 msgstr "Testo sostituito %d volte."
 
-#: easy_abc.py:7221 easy_abc.py:7244 easy_abc.py:7270
+#: easy_abc.py:7294 easy_abc.py:7317 easy_abc.py:7343
 #, python-format
 msgid "Cannot find \"%s\""
 msgstr "\"%s\" non trovato."
 
-#: easy_abc.py:7222
+#: easy_abc.py:7295
 msgid "Replace All"
 msgstr "Sostituisci tutto."
 
-#: easy_abc.py:7327
+#: easy_abc.py:7400
 #, python-format
 msgid ""
 "This will remove %(count)s temporary files stored in the directory %(dir)s "
@@ -3486,72 +3481,74 @@ msgstr ""
 "Questo comando rimuove %(count) file temporanei dalla directory %(dir) che "
 "in totale occupano %(size).2f di spazio su disco. Procedo?"
 
-#: easy_abc.py:7328
+#: easy_abc.py:7401
 msgid "Clear cache?"
 msgstr "Pulisci la cache ?"
 
-#: easy_abc.py:7340
+#: easy_abc.py:7415
+#, python-format
 msgid ""
-"This will close EasyAbc and put it in a state so that it starts with default "
-"settings.i.e. the file settings1.4 will be deleted."
+"This will close EasyABC and put it in a state so that it starts with default "
+"settings.\n"
+"i.e. the file %(filename)s will be deleted."
 msgstr ""
 
-#: easy_abc.py:7372
+#: easy_abc.py:7448
 msgid "Select a font for the ABC editor"
 msgstr "Seleziona un font per l'editor ABC"
 
-#: easy_abc.py:7380
+#: easy_abc.py:7456
 msgid "ABC fields and commands reference"
 msgstr "Glossario dei comandi e dei campi ABC"
 
-#: easy_abc.py:9165
+#: easy_abc.py:9241
 msgid "nwc2xml error"
 msgstr "errore nwc2xml"
 
-#: easy_abc.py:9241
+#: easy_abc.py:9317
 msgid "Name of tune"
 msgstr "Nome del brano"
 
-#: easy_abc.py:9400
+#: easy_abc.py:9484
 msgid ""
 "abcm2ps was not found here. You need it to view the music. Go to settings "
 "and indicate the path."
 msgstr ""
 
-#: easy_abc.py:9411
+#: easy_abc.py:9495
 msgid ""
 "abc2midi was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr ""
 
-#: easy_abc.py:9423
+#: easy_abc.py:9507
 msgid ""
 "midi2abc was not found here. You need it to play the music. Go to settings "
 "and indicate the path."
 msgstr ""
 
-#: easy_abc.py:9435
+#: easy_abc.py:9519
 msgid ""
 "abc2abc was not found here. You need it to transpose the music. Go to "
 "settings and indicate the path."
 msgstr ""
 
-#: easy_abc.py:9444
+#: easy_abc.py:9528
 msgid ""
 "The midiplayer was not found. You will not be able to play the MIDI file."
 msgstr ""
 
-#: easy_abc.py:9474
+#: easy_abc.py:9558
 #, python-format
 msgid "The executable %s could not be found"
 msgstr ""
 
-#: easy_abc.py:9584
+#: easy_abc.py:9668
 #, fuzzy
 msgid "List of tunes"
 msgstr "Nome del brano"
 
-#: easy_abc.py:9635
+#: easy_abc.py:9719
 #, fuzzy
 msgid "Processed Abc Tune"
 msgstr "Mostra il brano attuale"
@@ -4164,6 +4161,10 @@ msgid ""
 "In abc music code, by default, line-breaks in the code generate line-breaks "
 "in the typeset score and these can be suppressed by using a backslash."
 msgstr ""
+
+#, fuzzy
+#~ msgid "Welcome to EasyABC 1.4"
+#~ msgstr "Informazioni su EasyABC"
 
 #, fuzzy
 #~ msgid ""

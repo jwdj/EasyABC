@@ -82,6 +82,46 @@ import traceback
 # import xml.etree.cElementTree as ET  # 1.3.7.4 [JWdJ] 2016-06-30
 import zipfile
 from datetime import datetime
+
+# Add logging to help on bug report
+def log_unexpected_error(tb_text):
+    """Traceback log: File created in app_dir if available, or home ;
+    Use the internal messages if wx is already loaded."""
+    try:
+        log_dir = None
+        try:
+            log_dir = wx.StandardPaths.Get().GetUserLocalDataDir()
+        except Exception:
+            pass
+        if not log_dir:
+            log_dir = os.path.join(os.path.expanduser('~'), 'EasyABC')
+        os.makedirs(log_dir, exist_ok=True)
+        with open(os.path.join(log_dir, 'easyabc-error.log'), 'a') as f:
+            f.write("\n===== %s =====\n%s" % (datetime.now(), tb_text))
+    except Exception:
+        pass
+
+    try:
+        global execmessages
+        execmessages = (execmessages or '') + \
+            "\n===== Unexpected error =====\n" + tb_text
+        win = wx.FindWindowByName('infoframe')
+        if win is None:
+            frame = MyInfoFrame()
+            frame.ShowText(execmessages)
+            frame.Show()
+        else:
+            win.ShowText(execmessages)
+            win.Iconize(False)
+            win.Raise()
+    except Exception:
+        pass
+
+def excepthook(type_, value, tb):
+    log_unexpected_error("".join(traceback.format_exception(type_, value, tb)))
+
+sys.excepthook = excepthook
+
 from collections import deque, namedtuple, defaultdict
 from io import StringIO
 from wx.lib.scrolledpanel import ScrolledPanel
@@ -4422,7 +4462,9 @@ class MainFrame(wx.Frame):
             # FORCE METRICS TO ZERO for compatibility with dark mode (This drops the 1px margin rendering entirely)
             # Removes the hardcoded 1px padding lines around docked toolbars
             art.SetMetric(aui.AUI_DOCKART_PANE_BORDER_SIZE, 0)
-            art.SetMetric(aui.AUI_DOCKART_SASH_SIZE, 0)
+            # Keep default size as value of 0 is an issue on Linux and Windows
+            # Todo verify the overall size and effect in both modes dark and light
+            # art.SetMetric(aui.AUI_DOCKART_SASH_SIZE, 0)
 
         self.printData = wx.PrintData()
         self.printData.SetPrintMode(wx.PRINT_MODE_PRINTER)
@@ -5928,6 +5970,17 @@ class MainFrame(wx.Frame):
 
         return False
 
+    def export_multiple_pdf(self, tune, filepath):
+        pdf_file = AbcToPDF(self.settings, tune.abc, tune.header, self.cache_dir, self.settings.get('abcm2ps_extra_params', ''),
+                                           self.settings.get('abcm2ps_path', ''),
+                                           self.settings.get('gs_path',''),
+                                           #self.settings.get('ps2pdf_path',''),
+                                           self.settings.get('abcm2ps_format_path', ''))
+        if pdf_file:
+            return self.copy_to_destination(pdf_file, filepath)
+
+        return False
+
     def export_pdf_tunes(self, only_selected=False, single_file=False):
         gs_path = self.settings.get('gs_path')
         if not gs_path:
@@ -5939,7 +5992,19 @@ class MainFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        self.export_tunes(_('PDF file'), '.pdf', self.export_pdf, only_selected=only_selected, single_file=single_file)
+        if only_selected:
+            tunes = self.GetSelectedTunes()
+        else:
+            tunes = [self.GetTune(i) for i in xrange(self.tune_list.GetItemCount())]
+
+        if len(tunes) == 0:
+            return
+
+        if len(tunes) == 1:
+            self.export_tunes(_('PDF file'), '.pdf', self.export_pdf, only_selected=only_selected, single_file=single_file)
+
+        if len(tunes) > 1:
+            self.export_tunes(_('PDF file'), '.pdf', self.export_multiple_pdf, only_selected=only_selected, single_file=single_file)
 
     def OnExportSVG(self, evt):
         self.export_tunes(_('SVG file'), '.svg', self.export_svg, only_selected=True)
@@ -6129,6 +6194,14 @@ class MainFrame(wx.Frame):
                     #launch_file(path)
             finally:
                 dlg.Destroy() # 1.3.6.3 [JWDJ] 2015-04-21 always clean up dialog window
+
+    def copy_to_destination(self, file_name, destination_path):
+        try:
+            return shutil.copy(file_name, destination_path)
+        except IOError as ex:
+            pass
+            # print(u'Failed to create %s: %s' % (destination_path.encode('utf-8'), os.strerror(ex.errno)))
+        return False
 
     def copy_to_destination_and_launch_file(self, file_name, destination_path):
         try:
@@ -7337,9 +7410,12 @@ class MainFrame(wx.Frame):
 
     # 1.3.6.1 [SS] 2014-12-28 2015-01-22
     def OnColdRestart(self, evt):
-        result = wx.MessageBox(_("This will close EasyAbc and put it in a state so that it starts with default settings."
-        "i.e. the file settings1.4 will be deleted."),
-                               _("Proceed?"), wx.ICON_QUESTION | wx.OK | wx.CANCEL)
+        settings_filename = "settings1.4.dat"
+        result = wx.MessageBox(
+            _("This will close EasyABC and put it in a state so that it starts with default settings.\n"
+              "i.e. the file %(filename)s will be deleted.")
+            % {"filename": settings_filename},
+            _("Proceed?"), wx.ICON_QUESTION | wx.OK | wx.CANCEL)
         if result == wx.OK:
             #f = os.path.join(self.app_dir, 'settings1.4.dat')
             # FAU: write an empty settings to avoid to enforce migration from 1.3
@@ -9312,9 +9388,17 @@ class MainFrame(wx.Frame):
                 self.SetDimensions(*dimensions)
         if load_perspective:
             perspective = settings.get('perspective')
-            # 1.3.6.3 [JWDJ] 2015-04-14 only load perspective if there is any.
+            # only try to load perspective if there is any.
+            # perspective might change from one version of wxpython to the other
+            # thus try or reset to default (see aupfred#29)
             if perspective:
-                self.manager.LoadPerspective(perspective)
+                try:
+                    self.manager.LoadPerspective(perspective)
+                except Exception:
+                    try:
+                        self.manager.LoadPerspective(self.default_perspective)
+                    except Exception:
+                        pass
         self.bpm_slider.SetValue(0)
         self.zoom_slider.SetValue(settings.get('score_zoom', 1000))
         self.author = settings.get('author', '')
@@ -9706,12 +9790,21 @@ class MyMidiTextTree(wx.Frame):
 
 class MyApp(wx.App):
     def __init__(self, *args, **kargs):
+        self._startup = True
         self._frames = []
         self.settings = {}
         wx.App.__init__(self, *args, **kargs)
         self.theme_check_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.CheckThemePeriodically, self.theme_check_timer)
         self.theme_check_timer.Start(500)
+
+    def FinishStartup(self):
+        if not self._startup:
+            return
+        self._startup = False
+        if hasattr(self, '_startup_end_timer'):
+            self._startup_end_timer.Stop()
+        self.OpenWelcomeFrame()
 
     def CheckThemePeriodically(self, event):
         """
@@ -9767,20 +9860,55 @@ class MyApp(wx.App):
         L.sort(key=lambda f: not f.IsActive()) # make sure an active frame comes first in the list
         return L
 
-    def MacOpenFile(self, filename):	# [EPO] 2018-11-20 TODO  dup open file creates two frames (why?)
+    def FindFrameForFile(self, path):
+        if not path:
+            return None
+        target = os.path.normcase(os.path.abspath(path))
+        for f in self._frames:
+            if f.current_file and os.path.normcase(os.path.abspath(f.current_file)) == target:
+                return f
+        return None
+
+    def OpenOrActivate(self, filename):
+        """Open File or activate the frame containing the file."""
+        frame = self.FindFrameForFile(filename)
+        if frame:
+            frame.Raise()
+            return frame
+        for f in self.GetAllFrames():
+            if (not f.editor.GetModify() and not f.current_file) or self._startup:
+                f.load(filename)
+                f.Raise()
+                return f
+        new_frame = self.NewMainFrame()
+        new_frame.load(filename)
+        new_frame.Show(True)
+        return new_frame
+
+    def MacOpenFile(self, filename):
         """Called for files dropped on dock icon, or opened via finders context menu"""
-        if not self.frame.editor.GetModify() and not self.frame.current_file:     # if a new unmodified document
-            self.frame.load(filename)
-        else:
-            self.frame = self.NewMainFrame()
-            self.frame.load(filename)
+        self.OpenOrActivate(filename)
+        self.FinishStartup()
             
     def MacNewFile(self):
-        """Called on startup, loads last recent file"""
-        #Todo need to rework the recent file management to manage closure of last file.
+        """Called on startup, if no file is specified and loads last recent file"""
+        if any(f.current_file or f.editor.GetModify() for f in self._frames):
+            self.FinishStartup()
+            return
         recent_file = self.settings.get('recentfiles', '').split('|')[0]
         if recent_file and os.path.exists(recent_file):
-            self.frame.load_or_import(recent_file)
+            self.OpenOrActivate(recent_file)
+        self.FinishStartup()
+
+    def OpenWelcomeFrame(self):
+        if self.frame.settings.get('show_welcome_page', True):
+            wx.CallAfter(self.frame.ShowWelcomeFrame)
+
+    def OnStartupEndTimer(self, event):
+        recent_file = self.settings.get('recentfiles', '').split('|')[0]
+        if recent_file and os.path.exists(recent_file):
+            self.OpenOrActivate(recent_file)
+        self.FinishStartup()
 
     def OnInit(self):
         try:
@@ -9837,20 +9965,19 @@ class MyApp(wx.App):
             self.SetTopWindow(self.frame)
             #self.Bind(wx.EVT_SYS_COLOUR_CHANGED, self.OnGlobalThemeChanged)
 
-            # 1.3.8.4 [mist] Load most recent file
-            if not path:
-                recent_file = self.settings.get('recentfiles', '').split('|')[0]
-                if recent_file and os.path.exists(recent_file):
-                    path = recent_file
+            self._startup_end_timer = wx.Timer(self)
+            self.Bind(wx.EVT_TIMER, self.OnStartupEndTimer, self._startup_end_timer)
+            if path:
+                # if path is setup it means no rush with MacNewFile or MacOpenFile
+                self.OpenOrActivate(path)
+                self.FinishStartup()
+            else:
+                # in the context of mac app other event might come so starting a timer
+                # at the end recent file is open if no MacOpenFile event in between
+                self._startup_end_timer.StartOnce(300)
 
-            #FAU: on Mac the sys.frozen is set by py2app and pyinstaller and is unset otherwise getattr( sys, 'frozen', False)
-            if path and wx.Platform != "__WXMAC__":
-                self.frame.load_or_import(path)
-
-            if self.frame.settings.get('show_welcome_page', True):
-                wx.CallAfter(self.frame.ShowWelcomeFrame)
-        except:
-            sys.stdout.write(traceback.format_exc())
+        except Exception:
+            log_unexpected_error(traceback.format_exc())
         return True
 
 app = MyApp(0)

@@ -652,6 +652,7 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Improved: Frame title identifies whether a change in the abc file was done (revad)
 - Improved: Graphic selection for multivoice and multi selection (revad + aupfred)
 - Improved: Selection of editor in case of graphical selection and multivoice (aupfred)
+- Improved: Avoid to open PDF when exporting tunes in individual PDF files (aupfred)
 - Updated: xml2abc, abc2xml (aupfred)
 - Updated: Adapt to new version of abcmidi output (aupfred)
 - Updated: Several fixes to support newer Python versions. (thanks aupfred and all that contributed)
@@ -668,3 +669,5 @@ different panes. Tie/untie option added for notes. Broken rhythm
 - Fixed: On mac OS a cosmopolitan binary for abcm2ps, abc2midi... as proposed on abcplus can only work if started in a Terminal
 - Fixed: Tied notes are not highlighted all at once any more (aupfred)
 - Fixed: Gchord pattern of the settings was always reset to default (aupfred)
+
+In addition adding github actions to build macos, linux and windows binaries

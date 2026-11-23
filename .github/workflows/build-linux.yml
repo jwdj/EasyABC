@@ -1,0 +1,82 @@
+name: Build Debian package
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    # Pinned to the OLDEST supported distro: the package is arch:all with
+    # distro deps only, so building on the oldest base guarantees the deps
+    # resolve everywhere newer. Upgrade the pin only when dropping support
+    # for old releases (and never use ubuntu-latest: it moves to 26.04+).
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          # Build-Depends of debian/control + debuild toolchain.
+          # build-essential: dpkg-buildpackage treats it as an implicit
+          # native build-dep (GH runners don't preinstall it).
+          # Runtime deps (python3-wxgtk4.0, abcm2ps, abcmidi, ...) are
+          # declared in the .deb and resolved at install time.
+          sudo apt-get install -y \
+            build-essential devscripts debhelper \
+            pandoc imagemagick
+
+      - name: Build package
+        run: |
+          chmod +x build_deb.sh
+          ./build_deb.sh
+
+      # ------------------------------------------------------------------
+      # Invariant: debian/install is generated AND committed. The CI
+      # does not invent anything: it rebuilds the file and refuses to
+      # publish if the committed version is stale (someone added a file
+      # in img/, docs/, ... without refreshing debian/install).
+      # On failure: the diff is in the log; regenerate locally, review
+      # and commit.
+      # NOTE: the guard could also live inside build_deb.sh (single
+      # source of truth) - then this step just re-verifies for free.
+      # ------------------------------------------------------------------
+      - name: Verify debian/install is up to date
+        run: |
+          if ! git diff --quiet debian/install; then
+            echo "ERROR: debian/install does not match the repo content."
+            git --no-pager diff debian/install
+            echo ""
+            echo "Regenerate locally (./build_deb.sh), review and commit."
+            exit 1
+          fi
+          echo "debian/install matches ($(wc -l < debian/install) lines)"
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          cp ../easyabc_*.deb dist/ || ls ..
+          # the regenerated install file, useful even on failure
+          cp debian/install dist/debian.install.generated
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EasyABC-debian-package
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    if: github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/easyabc_*.deb

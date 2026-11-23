@@ -1,0 +1,279 @@
+name: Build macOS DMG
+
+on:
+  workflow_dispatch:
+    inputs:
+      helpers_source:
+        description: 'Source of the ABC helper binaries'
+        type: choice
+        default: repo   # keep in sync with HELPERS_SOURCE default below
+        options: [repo, source, abcplus]
+      abctools_ver:
+        description: 'abctools version (abcplus cosmopolitan bundle: abcm2ps + abcmidi + abcpp + abc2prt)'
+        type: string
+        default: '20261023-cosmo'  # keep in sync with ABCTOOLS_VER default below
+      abcm2ps_ver:
+        description: 'abcm2ps fossil version (tag e.g. v8.14.18, or trunk)'
+        type: string
+        default: 'v8.14.18'  # keep in sync with ABCM2PS_VER default below
+      abcmidi_ver:
+        description: 'abcMIDI version (archive date on ifdo.ca/~seymour/runabc)'
+        type: string
+        default: '2026.10.23'  # keep in sync with ABCMIDI_VER default below
+  push:
+    tags: ['v*']
+
+#Python 3.10 need to stitch wxPython and include type_extensions Switching to 3.12
+#env:
+#  PY_MAJOR: '3.10'
+#  PY_FULL: '3.10.11'
+#  MACOSX_DEPLOYMENT_TARGET: '11.0'
+env:
+  PY_MAJOR: '3.12'
+  PY_FULL: '3.12.7'
+  MACOSX_DEPLOYMENT_TARGET: '11.0'
+
+jobs:
+  build:
+    runs-on: macos-15   # arm64 runner
+    env:
+      # single point of truth: the default lives HERE (and in the
+      # workflow_dispatch input above, which feeds it on manual runs)
+      HELPERS_SOURCE: ${{ inputs.helpers_source || 'repo' }}
+      ABCTOOLS_VER: ${{ inputs.abctools_ver || '20261023-cosmo' }}
+      ABCM2PS_VER: ${{ inputs.abcm2ps_ver || 'v8.14.18' }}
+      ABCMIDI_VER: ${{ inputs.abcmidi_ver || '2026.10.23' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Rosetta is only needed for the (experimental) abcplus cosmopolitan path
+      - name: Install Rosetta 2
+        if: env.HELPERS_SOURCE == 'abcplus'
+        run: /usr/sbin/softwareupdate --install-rosetta --agree-to-license || true
+
+      - name: Install python.org universal2 framework build
+        run: |
+          curl -sL --fail -o /tmp/python.pkg \
+            "https://www.python.org/ftp/python/${PY_FULL}/python-${PY_FULL}-macos11.pkg"
+          sudo installer -pkg /tmp/python.pkg -target /
+          /Library/Frameworks/Python.framework/Versions/${PY_MAJOR}/bin/python3 --version
+
+      - name: Create venv and install Python dependencies
+        env:
+          ARCHFLAGS: '-arch arm64 -arch x86_64'
+          _PYTHON_HOST_PLATFORM: 'macosx-11.0-universal2'
+        run: |
+          export PY=/Library/Frameworks/Python.framework/Versions/${PY_MAJOR}/bin/python3
+          $PY -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip setuptools wheel py2app
+          # wxPython 4.2.2 (cp312) has a native universal2 wheel:
+          # no need to stitch for now.
+          python -m pip install -r requirements.txt
+          # framemanager.py (wx.lib.agw.aui) needs typing_extensions;
+          # not needed with the python wheel but kept here in comments just in case
+          # (py2app setup to be modified to include typing_extensions).
+          # python -m pip install typing_extensions
+
+      # ------------------------------------------------------------------
+      # Helpers, default path: universal2 binaries committed in the repo
+      # (built locally, see knowledge: easyabc-build/helpers-macos-universal2).
+      # bin/ receives only what the app actually executes.
+      # ------------------------------------------------------------------
+      - name: Install universal helpers committed in the repo
+        if: env.HELPERS_SOURCE == 'repo'
+        run: |
+          set -euo pipefail
+          SRC="bin/mac_universal2"
+          echo "Quality check (in ${SRC}):"
+          for b in abcm2ps abc2abc abc2midi midi2abc; do
+            [ -f "$SRC/$b" ] || { echo "ERROR: $SRC/$b missing" >&2; exit 1; }
+            file "$SRC/$b"
+            lipo -info "$SRC/$b"
+            # must be a fat binary with both slices
+            lipo -info "$SRC/$b" | tr ' ' '\n' | grep -qx arm64 \
+              && lipo -info "$SRC/$b" | tr ' ' '\n' | grep -qx x86_64 \
+              || { echo "ERROR: $SRC/$b is not universal2" >&2; exit 1; }
+            # each slice must support macOS 11+ (the DMG minimum).
+            # Guards against toolchain defaults (e.g. minos 26.0 after a
+            # local rebuild on a recent macOS) silently breaking old Macs.
+            for arch in arm64 x86_64; do
+              minos=$(otool -arch "$arch" -l "$SRC/$b" \
+                | awk '/LC_BUILD_VERSION/{f=1} f && /minos/{print $2; exit}')
+              [ "$minos" = "11.0" ] \
+                || { echo "ERROR: $b ($arch slice): minos=$minos, expected 11.0" >&2; exit 1; }
+            done
+          done
+          # Smoke test: run each helper (arm64 natively on this runner)
+          # NOTE: abcm2ps takes -V, the abcMIDI tools take -ver.
+          for b in abcm2ps; do
+            arch -arm64 "$SRC/$b" -V >/dev/null 2>&1 \
+              && echo "$b [run test]: OK" \
+              || echo "WARNING: $b failed the arm64 run test" >&2
+          done
+          for b in abc2abc abc2midi midi2abc; do
+            arch -arm64 "$SRC/$b" -ver >/dev/null 2>&1 \
+              && echo "$b [run test]: OK" \
+              || echo "WARNING: $b failed the arm64 run test" >&2
+          done
+          cp -v "$SRC"/abcm2ps "$SRC"/abc2abc "$SRC"/abc2midi "$SRC"/midi2abc bin/
+
+      # ------------------------------------------------------------------
+      # Helpers, maintenance path: rebuild from official sources in CI.
+      # ------------------------------------------------------------------
+      - name: Build ABC helpers from source (universal2)
+        if: env.HELPERS_SOURCE == 'source'
+        run: |
+          set -euo pipefail
+          # abcm2ps's custom configure needs GNU realpath/sed (macOS ships BSD ones)
+          brew install coreutils gnu-sed
+          export PATH="$(brew --prefix coreutils)/libexec/gnubin:$(brew --prefix gnu-sed)/libexec/gnubin:$PATH"
+          mkdir -p helpers_build && cd helpers_build
+
+          # abcm2ps: official fossil repository on chiselapp, via the tarball
+          # endpoint (clone and zip were unreliable; the tarball is a plain
+          # HTTP download). Its configure is NOT autoconf: env variables only,
+          # in-tree build, one extracted copy per arch.
+          curl -sL --fail -o abcm2ps.tar.gz \
+            "https://chiselapp.com/user/moinejf/repository/abcm2ps/tarball/abcm2ps.tar.gz?ci=${ABCM2PS_VER}"
+          for arch in arm64 x86_64; do
+            tar xzf abcm2ps.tar.gz && mv abcm2ps "abcm2ps_${arch}" \
+              || { echo "ERROR: abcm2ps ${ABCM2PS_VER} tarball failed"; exit 1; }
+          done
+
+          # abcMIDI: release archive from ifdo.ca (Seymour Shlien)
+          curl -sL --fail -o abcmidi.zip "https://ifdo.ca/~seymour/runabc/abcMIDI-${ABCMIDI_VER}.zip"
+          unzip -o abcmidi.zip >/dev/null
+          ABCMIDI_DIR=$(find . -maxdepth 1 -type d -name 'abcMIDI*' | head -1)
+          [ -n "$ABCMIDI_DIR" ] || { echo "ERROR: abcMIDI archive not extracted"; exit 1; }
+          cd ..
+
+          # Two-pass build then lipo (robust with any Makefile).
+          # abcMIDI is standard autoconf (VAR=value as configure argument ok).
+          # abcm2ps custom configure: CFLAGS via env; PKG_CONFIG=/bin/false
+          # forces "no pango support" (historical EasyABC/abcplus builds);
+          # DEFAULT_FDIR and A4_FORMAT match the abcplus builds.
+          # -mmacosx-version-min=11.0 on every slice: matches the committed
+          # helpers (DMG minimum = macOS 11). Without it the toolchain default
+          # takes over (recent Xcode => minos 26.0 => breaks older Macs).
+          build_slice() { # $1=arch
+            ARCH="$1"
+
+            (cd "helpers_build/abcm2ps_${ARCH}" \
+              && PKG_CONFIG=/bin/false CFLAGS="-arch ${ARCH} -mmacosx-version-min=11.0 -O2" \
+                 DEFAULT_FDIR=/usr/share/abcm2ps ./configure \
+              && echo "#define A4_FORMAT 1" >> config.h \
+              && make LDFLAGS="-arch ${ARCH} -mmacosx-version-min=11.0")
+
+            mkdir -p "helpers_build/abcmidi_${ARCH}"
+            (cd "helpers_build/abcmidi_${ARCH}" \
+              && "${GITHUB_WORKSPACE}/helpers_build/${ABCMIDI_DIR}/configure" CFLAGS="-arch ${ARCH} -mmacosx-version-min=11.0 -O2" \
+              && make LDFLAGS="-arch ${ARCH} -mmacosx-version-min=11.0" abc2midi abc2abc midi2abc)
+
+            mkdir -p "helpers_build/out_${ARCH}"
+            cp "helpers_build/abcm2ps_${ARCH}/abcm2ps" \
+               "helpers_build/abcmidi_${ARCH}/abc2abc" \
+               "helpers_build/abcmidi_${ARCH}/abc2midi" \
+               "helpers_build/abcmidi_${ARCH}/midi2abc" \
+               "helpers_build/out_${ARCH}/"
+            file "helpers_build/out_${ARCH}"/*
+          }
+          build_slice arm64
+          build_slice x86_64
+
+          mkdir -p bin
+          for b in abcm2ps abc2abc abc2midi midi2abc; do
+            lipo -create "helpers_build/out_arm64/$b" "helpers_build/out_x86_64/$b" -output "bin/$b"
+          done
+
+          echo "Quality check:"
+          file bin/abcm2ps bin/abc2abc bin/abc2midi bin/midi2abc
+          lipo -info bin/abcm2ps bin/abc2abc bin/abc2midi bin/midi2abc
+          # Smoke test: run each helper (arm64 natively on this runner)
+          # NOTE: abcm2ps takes -V, the abcMIDI tools take -ver.
+          for b in abcm2ps; do
+            arch -arm64 "bin/$b" -V >/dev/null 2>&1 \
+              && echo "$b [run test]: OK" \
+              || echo "WARNING: $b failed the arm64 run test" >&2
+          done
+          for b in abc2abc abc2midi midi2abc; do
+            arch -arm64 "bin/$b" -ver >/dev/null 2>&1 \
+              && echo "$b [run test]: OK" \
+              || echo "WARNING: $b failed the arm64 run test" >&2
+          done
+
+      # ------------------------------------------------------------------
+      # Helpers, legacy path: abcplus cosmopolitan binaries.
+      # WARNING: --assimilate is broken on Apple Silicon with these builds
+      # (ape-m1 loader passes the flag to the program; verified 2026-10).
+      # ------------------------------------------------------------------
+      - name: Fetch abcplus cosmopolitan helpers, assimilate and fuse
+        if: env.HELPERS_SOURCE == 'abcplus'
+        run: |
+          set -euo pipefail
+          mkdir -p helpers_src
+          curl -sL --fail -o abctools.zip \
+            "https://sourceforge.net/projects/abcplus/files/Abctools/abctools-${ABCTOOLS_VER}.zip/download"
+          unzip -o abctools.zip -d helpers_src >/dev/null
+
+          assimilate_slice() { # $1=binary  $2=shell prefix ("" | "arch -x86_64")  $3=slice dir
+            src=$(find helpers_src -name "$1" -type f | head -1)
+            [ -n "$src" ] || { echo "ERROR: $1 not found in abcplus archive" >&2; exit 1; }
+            mkdir -p "$3"
+            cp "$src" "$3/$1"
+            chmod +x "$3/$1"
+            # Force shell interpretation so the APE header handles --assimilate
+            (cd "$3" && $2 sh -c "./$1 --assimilate") || true
+            file "$3/$1"
+            file "$3/$1" | grep -q "Mach-O" \
+              || { echo "ERROR: $1 not assimilated to Mach-O (slice $3)" >&2; exit 1; }
+          }
+
+          for b in abcm2ps abc2abc abc2midi midi2abc; do assimilate_slice "$b" ""              slices/arm64;   done
+          for b in abcm2ps abc2abc abc2midi midi2abc; do assimilate_slice "$b" "arch -x86_64" slices/x86_64; done
+
+          mkdir -p bin
+          for b in abcm2ps abc2abc abc2midi midi2abc; do
+            lipo -create "slices/arm64/$b" "slices/x86_64/$b" -output "bin/$b"
+          done
+
+          echo "Quality check:"
+          file bin/*
+          lipo -info bin/*
+
+      - name: Build app bundle
+        env:
+          ARCHFLAGS: '-arch arm64 -arch x86_64'
+          _PYTHON_HOST_PLATFORM: 'macosx-11.0-universal2'
+        run: |
+          source venv/bin/activate
+          chmod +x build_mac_app.sh build_make_dmg.sh
+          ./build_mac_app.sh universal2
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          VERSION=$(grep "^program_version[[:space:]]*=" easyabc_version.py | sed -E "s/.*'([^']+)'.*/\1/")
+          ./build_make_dmg.sh "dist/EasyABC_${VERSION}_universal2.dmg"
+          hdiutil imageinfo "dist/EasyABC_${VERSION}_universal2.dmg" | head -20
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EasyABC-universal2-DMG
+          path: dist/*.dmg
+          if-no-files-found: error
+
+  release:
+    if: github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg

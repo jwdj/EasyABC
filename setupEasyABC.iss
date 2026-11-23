@@ -9,12 +9,16 @@
 ; Seymour Shlien
 
 #define MyAppName "EasyABC"
-#define MyAppVersion "1.4.0.0rc2"
+#ifndef MyAppVersion
+  #define MyAppVersion "1.4.0.0"
+#endif
 #define MyAppPublisher "Frédéric Aupépin"
 #define MyAppURL "easyabc.sourceforge.net"
 #define MyAppExeName "easy_abc.exe"
 
-#define MyBuildFolder "build\exe.win-amd64-3.13"
+#ifndef MyBuildFolder
+  #define MyBuildFolder "build\exe.win-amd64-3.13"
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.

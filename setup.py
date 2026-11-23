@@ -46,7 +46,7 @@ if sys.platform == "darwin":
         #                 'optimize'       : 1,  #2
                          'compressed'     : True,
         #                 'excludes': ['Tkinter','tcl','tk','_ssl', 'email'],
-                         'excludes': ['Tkinter','tcl','tk','_ssl', 'pygame', 'pygame.pypm'],
+                         'excludes': ['Tkinter','tcl','tk','_ssl'], #'pygame', 'pygame.pypm'],
         #                 'includes': ['mechanize', 'urllib', 'socket', 'pygame.pypm' ],
                          'includes': ['urllib', 'socket' ],
                          'packages': ['wx'],
@@ -98,7 +98,8 @@ else:
                      'bin\\abcm2ps.exe',
                      'bin\\midi2abc.exe',
                      'bin\\abc2abc.exe',
-                     'bin\\nwc2xml.exe',
+                     #For now do not include nwc2xml need to verify latest source before
+                     #'bin\\nwc2xml.exe',
                      #'bin\\zlibwapi.dll',
                      #'bin\\FluidSynth\\X86\\libsndfile-1.dll',
                      #'bin\\FluidSynth\\X86\\intl.dll',

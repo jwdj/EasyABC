@@ -29,6 +29,14 @@ Another option is to use Homebrew to install Ghostscript and other ABC tools suc
 Because EasyABC is distributed outside the Mac App Store and is not signed with an Apple Developer certificate, macOS Gatekeeper may block the first launch.
 
 ### **How to allow EasyABC to run**  
+If macOS shows a message saying the application is damaged:
+
+1. Open the file Fix_EasyABC_damaged.scpt  
+2. It will open Applescript editor
+3. Click on the play button
+4. You will have to type your user password
+5. The application should start
+
 If macOS shows a message saying the application cannot be opened:
 
 **Option A — Open via context menu**  
@@ -84,6 +92,14 @@ Vous pouvez aussi installer Ghostscript et d’autres outils ABC (`abcm2ps`, `ab
 EasyABC étant distribué en dehors du Mac App Store et n’étant pas signé avec un certificat Apple Developer, macOS peut bloquer son premier lancement.
 
 ### **Comment autoriser EasyABC à s’exécuter**  
+Si macOS indique que l’application est endommagé (damaged) :
+
+1. Ouvrez le fichier Fix_EasyABC_damaged.scpt  
+2. l'éditeur de script Apple s'ouvre
+3. Cliquez sur le bouton play
+4. Vous devrez saisir votre mot de passe
+5. L'application est lancée à la fin du processus
+
 Si macOS indique que l’application ne peut pas être ouverte :
 
 **Option A — Ouvrir via le menu contextuel**  

@@ -32,6 +32,7 @@ for s in $SIZES; do
 done
 
 echo "=== Update debian/install ==="
+export LC_ALL=C
 generate_install() {
     # The following populate according to what is needed
     # Files related to running from sources, translation, windows script, build scripts are excluded
@@ -63,7 +64,7 @@ generate_install() {
     echo ""
 
     # All other files to /usr/share/easyabc
-    find . -type f -name '*.py' -maxdepth 1 | sed -e 's|^\./||' | sort | \
+    find . -maxdepth 1 -type f -name '*.py' | sed -e 's|^\./||' | sort | \
         while IFS= read -r f; do
             d=$(dirname "$f")
             [ "$d" = "." ] && echo "$f usr/share/easyabc" || echo "$f usr/share/easyabc/$d"
